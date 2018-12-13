@@ -1,6 +1,11 @@
 CommonBehavior.Endpoints=tcp -p 10000
 
 
+# Proxies for required interfaces
+DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
+LaserProxy = laser:tcp -h localhost -p 10003
+
+
 
 InnerModelPath = innermodel.xml
 

@@ -1,7 +1,11 @@
+import "Laser.idsl";
+import "DifferentialRobot.idsl";
+
 Component NewAgent
 {
 	Communications
 	{
+		requires Laser, DifferentialRobot;
 	};
 	language Cpp;
 	gui Qt(QWidget);

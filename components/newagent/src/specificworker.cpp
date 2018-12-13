@@ -303,7 +303,7 @@ void SpecificWorker::initialize(int period)
 	graph = std::make_shared<DSR::Graph>();
 	//initializeFromInnerModel(innerModel);
 	//initializeRandom();
-	initializeXML("initialModel_hybrid.xml");
+	initializeXML("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->print();
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
@@ -319,11 +319,11 @@ void SpecificWorker::initialize(int period)
 	innerapi.innerModelTreeWalk("world");
 
 	std::cout << __FILE__ << __FUNCTION__ << " -- TESTS transform" << std::endl;
-	auto r = innerapi.transform("robot", QVec::zeros(3), "tableA");
+	auto r = innerapi.transform("base", QVec::zeros(3), "laser");
 	r.print("Target coordinates from 0, 0, 0");
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- TESTS updatetransformvalues " << std::endl;
-	innerapi.updateTransformValues("robot", 20, 30, 40, 50, 60, 70);
+	innerapi.updateTransformValues("base", 20, 30, 40, 50, 60, 70);
 
 	this->Period = 100;
 	timer.start(Period);  
@@ -335,16 +335,21 @@ void SpecificWorker::compute()
 {
 	QMutexLocker locker(mutex);
 	//computeCODE
-// 	try
-// 	{
-// 		camera_proxy->getYImage(0,img, cState, bState);
-// 		memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-// 		searchTags(image_gray);
-// 	}
-// 	catch(const Ice::Exception &e)
-// 	{
-// 		std::cout << "Error reading from Camera" << e << std::endl;
-// 	}
+	try
+	{
+		auto lData = laser_proxy->getLaserData();
+		RoboCompGenericBase::TBaseState bState;
+		differentialrobot_proxy->getBaseState(bState);
+		innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
+		auto r = innerapi.transform("world", "base");
+		r.print("transform");
+		std::cout << bState.x << " " bState.z << std::endl;
+		
+	}
+	catch(const Ice::Exception &e)
+	{
+		std::cout << "Error reading from Laser" << e << std::endl;
+	}
 }
 
 
