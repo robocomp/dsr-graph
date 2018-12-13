@@ -20,7 +20,10 @@ SET ( HEADERS
 
 )
 
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+add_definitions(-g  -fmax-errors=1 )
 set(CMAKE_CXX_STANDARD 17)
-SET(SPECIFIC_LIBS  -lxml2)
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES} )
 
 
