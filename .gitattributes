@@ -1,0 +1,5 @@
+etc/*.ttt filter=lfs diff=lfs merge=lfs -text
+etc/*.json filter=lfs diff=lfs merge=lfs -text
+etc/*.ttm filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+* text !filter !merge !diff
