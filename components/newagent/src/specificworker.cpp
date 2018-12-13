@@ -70,7 +70,7 @@ void SpecificWorker::walkTree(InnerModelNode *node)
 	if (node == nullptr)
 		node = innerModel->getRoot();
 	
-	graph->addNode(node_id);
+	graph->addNode(node_id, "transform");
 	auto node_parent = node_id;
 	DSR::DrawAttribs atts;
 	auto rd = QVec::uniformVector(2,0,3000);
@@ -90,9 +90,9 @@ void SpecificWorker::walkTree(InnerModelNode *node)
 	
 	for(auto &it : node->children)	
 	{	
-		graph->addEdge(node_parent, node_id);
+		graph->addEdge(node_parent, node_id, "is_a");
 		graph->addEdgeDrawAttribs(node_parent, node_id, DSR::DrawAttribs{std::pair("name", std::string{"parentOf"})});
-		graph->addEdge(node_id, node_parent);
+		graph->addEdge(node_id, node_parent,"has_a");
 		graph->addEdgeDrawAttribs(node_id, node_parent, DSR::DrawAttribs{std::pair("name", std::string{"childOf"})});
 		walkTree(it);
 	}
@@ -107,7 +107,7 @@ void SpecificWorker::initializeRandom()
 	const int nNodes = 2;
 	for (auto i : iter::range(nNodes)) 
 	{
-		graph->addNode(i); 
+		graph->addNode(i, "transform"); 
 		DSR::DrawAttribs atts;
 		auto rd = QVec::uniformVector(2,-200,200);
 		atts.insert(std::pair("posx", rd[0]));
@@ -119,7 +119,7 @@ void SpecificWorker::initializeRandom()
 	for (auto i : iter::range(nNodes)) 
 	{
 		auto rd = QVec::uniformVector(2,0,nNodes);
-		graph->addEdge(rd[0], rd[1]);
+		graph->addEdge(rd[0], rd[1], "is_a");
 		graph->addEdgeDrawAttribs(rd[0], rd[1], DSR::DrawAttribs{std::pair("name", std::string("edge"))});
 	}
 }
@@ -160,11 +160,11 @@ void SpecificWorker::initializeXML(std::string file_name)
 			
 			//AGMModelSymbol::SPtr s = newSymbol(atoi((char *)sid), (char *)stype);
 			IDType node_id = std::atoi((char *)sid);
-			graph->addNode(node_id);
 			std::string node_type((char *)stype);
+			graph->addNode(node_id, node_type);
 			graph->addNodeAttribs(node_id, DSR::Attribs{ 
-								std::pair("name", node_type), 
-								std::pair("type", node_type),
+								//std::pair("name", node_type), 
+								//std::pair("type", node_type),
 								std::pair("level", std::int32_t(0)),
 								std::pair("parent", IDType(0))
 				});
@@ -252,8 +252,8 @@ void SpecificWorker::initializeXML(std::string file_name)
 				else { printf("unexpected tag inside symbol: %s ==> %s\n", cur2->name,xmlGetProp(cur2, (const xmlChar *)"id") ); exit(-1); } // unexpected tags make the program exit
 			}
 			
-			graph->addEdge(a, b);
- 			graph->addEdgeAttribs(a, b, DSR::Attribs{std::pair("name", edgeName)});
+			graph->addEdge(a, b, edgeName);
+ 			//graph->addEdgeAttribs(a, b, DSR::Attribs{std::pair("name", edgeName)});
 			graph->addEdgeDrawAttribs(a, b, DSR::DrawAttribs{std::pair("name", edgeName)});
  			DSR::Attribs edge_attribs;
 			if( edgeName == "RT")   //add level to node b as a.level +1, and add parent to node b as a
@@ -280,7 +280,7 @@ void SpecificWorker::initializeXML(std::string file_name)
  					edge_attribs.insert(r);
 			}
 
-			std::cout << "edge  from " << a << " " <<  edgeName  << std::endl;		
+			std::cout << __FUNCTION__ << "edge  from " << a << " " <<  edgeName  << std::endl;		
  			graph->addEdgeAttribs(a, b, edge_attribs);
 			
 	//	  graph->addEdgeByIdentifiers(a, b, edgeName, attrs);
