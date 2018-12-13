@@ -1,0 +1,9 @@
+Component NewAgent
+{
+	Communications
+	{
+	};
+	language Cpp;
+	gui Qt(QWidget);
+};
+
