@@ -103,15 +103,11 @@ void SpecificWorker::initializeRandom()
 	std::cout << "Initialize random" << std::endl;
 	
 	//Crear el grafo
+	srand (time(NULL));
 	const int nNodes = 2;
-	for(std::uint32_t i=0; i<nNodes; i++)
-	
-		graph->addNode(i); 
-	
-	 srand (time(NULL));
-	
-	for(std::uint32_t i=0; i<nNodes; i++)
+	for (auto i : iter::range(nNodes)) 
 	{
+		graph->addNode(i); 
 		DSR::DrawAttribs atts;
 		auto rd = QVec::uniformVector(2,-200,200);
 		atts.insert(std::pair("posx", rd[0]));
@@ -120,7 +116,6 @@ void SpecificWorker::initializeRandom()
 		atts.insert(std::pair("color", std::string("red")));
 		graph->addNodeDrawAttribs(i, atts);
 	}
-	
 	for (auto i : iter::range(nNodes)) 
 	{
 		auto rd = QVec::uniformVector(2,0,nNodes);
@@ -343,7 +338,7 @@ void SpecificWorker::compute()
 		innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
 		auto r = innerapi.transform("world", "base");
 		r.print("transform");
-		std::cout << bState.x << " " bState.z << std::endl;
+		std::cout << bState.x << " " << bState.z << std::endl;
 		
 	}
 	catch(const Ice::Exception &e)
