@@ -1,0 +1,97 @@
+<AGMModel>
+
+<symbol id="100" type="world">
+	<attribute key="imName" value="world" />
+	<attribute key="imType" value="transform" />
+</symbol>
+<symbol id="1" type="robot">
+	<attribute key="imName" value="robot" />
+	<attribute key="imType" value="transform" />
+</symbol>
+<symbol id="3" type="room">
+	<attribute key="imName" value="room_3" />
+	<attribute key="imType" value="transform" />
+	<attribute key="x" value="3300" />
+	<attribute key="z" value="500" />
+</symbol>
+<symbol id="5" type="room">
+	<attribute key="imName" value="room_5" />
+	<attribute key="imType" value="transform" />
+	<attribute key="x" value="3300" />
+	<attribute key="z" value="-500" />
+</symbol>
+<symbol id="20" type="table">
+	<attribute key="depth" value="700" />
+	<attribute key="height" value="800" />
+	<attribute key="imName" value="tableA" />
+	<attribute key="imType" value="transform" />
+	<attribute key="tableType" value="rectangle" />
+	<attribute key="width" value="1750" />
+</symbol>
+<symbol id="23" type="table">
+	<attribute key="depth" value="700" />
+	<attribute key="height" value="800" />
+	<attribute key="imName" value="tableB" />
+	<attribute key="imType" value="transform" />
+	<attribute key="tableType" value="rectangle" />
+	<attribute key="tag" value="30" />
+	<attribute key="width" value="1200" />
+</symbol>
+
+<link src="3" dst="3" label="room"/>
+<link src="1" dst="3" label="know"/>
+<link src="1" dst="3" label="in"/>
+<link src="5" dst="5" label="room"/>
+<link src="1" dst="5" label="know"/>
+<link src="3" dst="5" label="transitable"/>
+<link src="5" dst="3" label="transitable"/>
+<link src="20" dst="20" label="explored"/>
+<link src="20" dst="3" label="in"/>
+<link src="20" dst="20" label="reachable"/>
+<link src="1" dst="20" label="know"/>
+<link src="23" dst="3" label="in"/>
+<link src="23" dst="23" label="explored"/>
+<link src="23" dst="23" label="reachable"/>
+<link src="1" dst="23" label="know"/>
+<link src="3" dst="1" label="RT">
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="0" />
+	<linkAttribute key="x" value="0" />
+	<linkAttribute key="y" value="0" />
+	<linkAttribute key="z" value="0" />
+</link>
+<link src="100" dst="3" label="RT">
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="0" />
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+</link>
+<link src="3" dst="20" label="RT">
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="-0.05" />
+	<linkAttribute key="rz" value="0" />
+	<linkAttribute key="tx" value="1274" />
+	<linkAttribute key="ty" value="760" />
+	<linkAttribute key="tz" value="3167" />
+</link>
+<link src="3" dst="23" label="RT">
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="-0.05" />
+	<linkAttribute key="rz" value="0" />
+	<linkAttribute key="tx" value="3250" />
+	<linkAttribute key="ty" value="740" />
+	<linkAttribute key="tz" value="3770" />
+</link>
+<link src="100" dst="5" label="RT">
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="0" />
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+</link>
+
+</AGMModel>

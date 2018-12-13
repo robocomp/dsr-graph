@@ -1,0 +1,26 @@
+
+# Sources set
+SET ( SOURCES
+  specificworker.cpp
+  specificmonitor.cpp
+  ../../../graph-related-classes/graphviewer.cpp
+  ../../../graph-related-classes/graphnode.cpp
+  ../../../graph-related-classes/graphedge.cpp
+  ../../../graph-related-classes/graph.cpp
+  ../../../graph-related-classes/innermodelapi.cpp
+)
+
+# Headers set
+SET ( HEADERS
+  specificworker.h
+  specificmonitor.h
+  ../../graph-related-classes/graphviewer.h
+  ../../graph-related-classes/graphnode.h
+  ../../graph-related-classes/graphedge.h
+
+)
+
+set(CMAKE_CXX_STANDARD 17)
+SET(SPECIFIC_LIBS  -lxml2)
+
+
