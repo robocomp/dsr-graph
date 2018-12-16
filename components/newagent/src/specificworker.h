@@ -51,10 +51,16 @@ class SpecificWorker : public GenericWorker
 	public slots:
 		void compute();
 		void initialize(int period);
+		void saveGraphSLOT()			{ graph->save("caca.xml");};
+
+	signals:
+		void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
+		void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
 
 	private:
 		InnerModel *innerModel;
 		void walkTree(InnerModelNode *node);
+		void drawGraph();
 
 		std::shared_ptr<DSR::Graph> graph;
 		GraphViewer graph_viewer;

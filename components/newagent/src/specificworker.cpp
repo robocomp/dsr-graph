@@ -181,9 +181,15 @@ void SpecificWorker::initializeXML(std::string file_name)
 			// color selection
 			std::string color = "coral";
 			if(qname == "world") color = "SeaGreen";
-			else if(qname == "table") color = "SteelBlue";
-			else if(qname == "room") color = "Khaki";
-			else if(qname == "robot") color = "GoldenRod";
+			else if(qname == "transform") color = "SteelBlue";
+			else if(qname == "plane") color = "Khaki";
+			else if(qname == "differentialrobot") color = "GoldenRod";
+			else if(qname == "laser") color = "GreenYellow";
+			else if(qname == "mesh") color = "LightBlue";
+			else if(qname == "imu") color = "LightSalmon";
+			
+			
+			
 			
 			atts.insert(std::pair("color", color));
 			graph->addNodeDrawAttribs(node_id, atts);
@@ -302,7 +308,16 @@ void SpecificWorker::initialize(int period)
 	graph->print();
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
-	graph_viewer.setGraph(graph, scrollArea);
+	//graph_viewer.setGraph(graph, scrollArea);
+	graph_viewer.setWidget(this);
+	connect(this, SIGNAL(addNodeSIGNAL(std::int32_t, const std::string&, const std::string&, float , float , const std::string&)), 
+					&graph_viewer, SLOT(addNodeSLOT(std::int32_t, const std::string&, const std::string&, float , float , const std::string&)));
+	connect(this, SIGNAL(addEdgeSIGNAL(std::int32_t, std::int32_t, const std::string&)), 
+					&graph_viewer, SLOT(addEdgeSLOT(std::int32_t, std::int32_t, const std::string&)));
+	connect(&graph_viewer, SIGNAL(saveGraphSIGNAL()), this, SLOT(saveGraphSLOT()));
+					
+	drawGraph();
+
 	std::cout << __FILE__ << __FUNCTION__ << " -- Graph set OK" << std::endl;
 	//graph_viewer.show();	
 	std::cout << __FILE__ << __FUNCTION__ << " -- Graph shown OK" << std::endl;
@@ -328,24 +343,50 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	QMutexLocker locker(mutex);
-	//computeCODE
-	try
-	{
-		auto lData = laser_proxy->getLaserData();
-		RoboCompGenericBase::TBaseState bState;
-		differentialrobot_proxy->getBaseState(bState);
-		innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
-		auto r = innerapi.transform("world", "base");
-		r.print("transform");
-		std::cout << bState.x << " " << bState.z << std::endl;
+	// try
+	// {
+	// 	auto lData = laser_proxy->getLaserData();
+	// 	RoboCompGenericBase::TBaseState bState;
+	// 	differentialrobot_proxy->getBaseState(bState);
+	// 	innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
+	// 	auto r = innerapi.transform("world", "base");
+	// 	r.print("transform");
+	// 	std::cout << bState.x << " " << bState.z << std::endl;
 		
-	}
-	catch(const Ice::Exception &e)
-	{
-		std::cout << "Error reading from Laser" << e << std::endl;
-	}
+	// }
+	// catch(const Ice::Exception &e)
+	// {
+	// 	std::cout << "Error reading from Laser" << e << std::endl;
+	// }
 }
 
+void SpecificWorker::drawGraph()
+{
+	std::cout << __FUNCTION__ << "-- Entering drawGraph" << std::endl;
+	
+	for(const auto &par : *graph)
+	{
+			const auto &node_id = par.first;
+			// get attrs from graph
+			auto &node_draw_attrs = graph->getNodeDrawAttrs(node_id);
+			float node_posx = graph->attr<float>(node_draw_attrs.at("posx"));
+			float node_posy = graph->attr<float>(node_draw_attrs.at("posy"));
+			std::string color_name = graph->attr<std::string>(node_draw_attrs.at("color"));
+			std::string qname = graph->attr<std::string>(node_draw_attrs.at("name"));
+			std::string type = graph->getNodeType(node_id);
+			//create graphic nodes 
+			emit addNodeSIGNAL(node_id, qname, type, node_posx, node_posy, color_name);
+			
+	}		
 
-
+	// add edges after all nodes have been created
+	for(const auto &par : *graph)
+	{
+		auto &node_fanout = graph->fanout(par.first);
+		for( auto &[node_adj, edge_atts] : node_fanout)
+		{
+			auto edge_tag = graph->attr<std::string>(edge_atts.draw_attrs.at("name"));
+			emit addEdgeSIGNAL(par.first, node_adj, edge_tag);
+		}
+	}
+}
