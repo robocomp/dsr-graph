@@ -325,8 +325,8 @@ void SpecificWorker::initialize(int period)
 	std::cout << __FILE__ << __FUNCTION__ << " -- Iniializing  innerAPI" << std::endl;
 	innerapi.setGraph(graph);
 	
-	std::cout << __FILE__ << __FUNCTION__ << " -- TEST treewalk" << std::endl;
-	innerapi.innerModelTreeWalk("world");
+	//std::cout << __FILE__ << __FUNCTION__ << " -- TEST treewalk" << std::endl;
+	//innerapi.innerModelTreeWalk("world");
 
 	std::cout << __FILE__ << __FUNCTION__ << " -- TESTS transform" << std::endl;
 	auto r = innerapi.transform("base", QVec::zeros(3), "laser");
@@ -366,16 +366,13 @@ void SpecificWorker::drawGraph()
 	
 	for(const auto &par : *graph)
 	{
-			const auto &node_id = par.first;
-			// get attrs from graph
-			auto &node_draw_attrs = graph->getNodeDrawAttrs(node_id);
-			float node_posx = graph->attr<float>(node_draw_attrs.at("posx"));
-			float node_posy = graph->attr<float>(node_draw_attrs.at("posy"));
-			std::string color_name = graph->attr<std::string>(node_draw_attrs.at("color"));
-			std::string qname = graph->attr<std::string>(node_draw_attrs.at("name"));
-			std::string type = graph->getNodeType(node_id);
-			//create graphic nodes 
-			emit addNodeSIGNAL(node_id, qname, type, node_posx, node_posy, color_name);
+		const auto &node_id = par.first;
+		float node_posx = graph->getNodeDrawAttribByName<float>(node_id, "posx");
+		float node_posy = graph->getNodeDrawAttribByName<float>(node_id, "posy");
+		std::string color_name = graph->getNodeDrawAttribByName<std::string>(node_id, "color");
+		std::string qname = graph->getNodeDrawAttribByName<std::string>(node_id, "name");
+		std::string type = graph->getNodeType(node_id);
+		emit addNodeSIGNAL(node_id, qname, type, node_posx, node_posy, color_name);
 			
 	}		
 
