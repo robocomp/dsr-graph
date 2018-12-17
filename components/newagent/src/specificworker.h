@@ -47,6 +47,7 @@ class SpecificWorker : public GenericWorker
 		void initializeFromInnerModel(InnerModel *inner);
 		void initializeRandom();
 		void initializeXML(std::string file_name);
+		std::shared_ptr<DSR::Graph> graph;
 
 	public slots:
 		void compute();
@@ -62,7 +63,6 @@ class SpecificWorker : public GenericWorker
 		void walkTree(InnerModelNode *node);
 		void drawGraph();
 
-		std::shared_ptr<DSR::Graph> graph;
 		GraphViewer graph_viewer;
 		InnerModelAPI innerapi;
 };

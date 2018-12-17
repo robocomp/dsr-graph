@@ -24,8 +24,8 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QListView" name="listViewNodes"/>
-       <widget class="QListView" name="listViewEdges"/>
+       <widget class="QTableWidget" name="tableWidgetNodes"/>
+       <widget class="QTableWidget" name="tableWidgetEdges"/>
       </widget>
       <widget class="QScrollArea" name="scrollArea">
        <property name="minimumSize">
