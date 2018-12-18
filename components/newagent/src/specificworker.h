@@ -44,15 +44,12 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(MapPrx& mprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		void initializeFromInnerModel(InnerModel *inner);
-		void initializeRandom();
-		void initializeXML(std::string file_name);
 		std::shared_ptr<DSR::Graph> graph;
 
 	public slots:
 		void compute();
 		void initialize(int period);
-		void saveGraphSLOT()			{ graph->save("caca.xml");};
+		void saveGraphSLOT()			{ graph->saveToFile("caca.xml");};
 
 	signals:
 		void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
