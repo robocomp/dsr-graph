@@ -100,21 +100,30 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	// try
-	// {
-	// 	auto lData = laser_proxy->getLaserData();
-	// 	RoboCompGenericBase::TBaseState bState;
-	// 	differentialrobot_proxy->getBaseState(bState);
-	// 	innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
-	// 	auto r = innerapi.transform("world", "base");
-	// 	r.print("transform");
-	// 	std::cout << bState.x << " " << bState.z << std::endl;
+	try
+	{
+		auto lData = laser_proxy->getLaserData();
+		RoboCompGenericBase::TBaseState bState;
+		differentialrobot_proxy->getBaseState(bState);
+		//innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
+		//auto r = innerapi.transform("world", "base");
+		//r.print("transform");
+		//std::cout << bState.x << " " << bState.z << std::endl;
+		std::vector<float> dists, angles;
+		for( auto &l : lData)
+		{
+			dists.push_back(l.dist);
+			angles.push_back(l.angle);
+		}
+		auto node_id = graph->getNodeByInnerModelName("laser");
+		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_dists", dists)});
+		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});
 		
-	// }
-	// catch(const Ice::Exception &e)
-	// {
-	// 	std::cout << "Error reading from Laser" << e << std::endl;
-	// }
+	}
+	catch(const Ice::Exception &e)
+	{
+		std::cout << "Error reading from Laser" << e << std::endl;
+	}
 }
 
 void SpecificWorker::drawGraph()
