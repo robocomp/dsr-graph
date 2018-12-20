@@ -20,7 +20,7 @@ using namespace DSR;
 
 void InnerModelAPI::innerModelTreeWalk(const IMType &id)
 {
-	auto r = graph->getNodeByInnerModelName("imName", id.toStdString());
+	auto r = graph->getNodeByInnerModelName(id.toStdString());
 	std::cout << "ID " << r << std::endl;
 	innerModelTreeWalk(r);
 }
@@ -104,16 +104,16 @@ RMat::RTMat InnerModelAPI::getTransformationMatrix(const IDType &to, const IDTyp
  
 RMat::RTMat InnerModelAPI::getTransformationMatrix(const IMType &to_, const IMType &from_)
 {
-    auto to = graph->getNodeByInnerModelName("imName", to_.toStdString());
-    auto from = graph->getNodeByInnerModelName("imName", from_.toStdString());
-	
+	//std::cout << __FUNCTION__ << std::endl;
+    auto to = graph->getNodeByInnerModelName(to_.toStdString());
+    auto from = graph->getNodeByInnerModelName(from_.toStdString());
 	return getTransformationMatrix(to, from);	
 } 
 
  RTMat  InnerModelAPI::getTransformationMatrixS(const std::string &to_, const std::string &from_)
  {
-	auto to = graph->getNodeByInnerModelName("imName", to_);
-    auto from = graph->getNodeByInnerModelName("imName", from_);
+	auto to = graph->getNodeByInnerModelName(to_);
+    auto from = graph->getNodeByInnerModelName(from_);
 	
 	return getTransformationMatrix(to, from);
  }
@@ -128,8 +128,8 @@ QMat InnerModelAPI::getRotationMatrixTo(const IMType &to_, const IMType &from_)
 	// }
 	//else
 	//{
-		auto to = graph->getNodeByInnerModelName("imName", to_.toStdString());
-    	auto from = graph->getNodeByInnerModelName("imName", from_.toStdString());
+		auto to = graph->getNodeByInnerModelName(to_.toStdString());
+    	auto from = graph->getNodeByInnerModelName(from_.toStdString());
 		
 		//InnerModelTransform *tf=NULL;
 		auto [listA, listB] = setLists(from, to);
@@ -174,10 +174,12 @@ InnerModelAPI::ABLists InnerModelAPI::setLists(const IDType &origId, const IDTyp
 	if (!b)
 		throw InnerModelException("Cannot find node: "+ destId.toStdString()+"\"");
  */
-	std::int32_t a_level = graph->getNodeLevel(origId);
+ std::cout << __FUNCTION__ << origId << " " << destId << std::endl;
+	
+ 	std::int32_t a_level = graph->getNodeLevel(origId);
 	std::int32_t b_level = graph->getNodeLevel(destId);
 	std::int32_t min_level = std::min(a_level,b_level);
-	 
+		
 	//std::cout << "caca " << a_level << " " << b_level << " " << min_level << std::endl;
 	while (a_level >= min_level)
 	{
@@ -218,8 +220,8 @@ void InnerModelAPI::updateTransformValues(const IMType &transformId_, float tx, 
 {	
 //	cleanupTables();
 //	InnerModelTransform *aux = dynamic_cast<InnerModelTransform *>(hash[transformId]);
-    auto transformId = graph->getNodeByInnerModelName("imName", transformId_.toStdString());
-    auto parentId = graph->getNodeByInnerModelName("imName", parentId_.toStdString());
+    auto transformId = graph->getNodeByInnerModelName(transformId_.toStdString());
+    auto parentId = graph->getNodeByInnerModelName(parentId_.toStdString());
 
 	if(graph->nodeExists(transformId) and (graph->nodeHasAttrib<std::string>(transformId, "imType", "transform") or graph->nodeHasAttrib<std::string>(transformId, "imType", "differentialrobot")))
 	{
