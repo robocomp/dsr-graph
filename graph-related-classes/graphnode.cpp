@@ -24,7 +24,7 @@
 #include <QDebug>
 #include <QDialog>
 #include <QHeaderView>
-#include "specificworker.h"
+#include "graph.h"
 
 GraphNode::GraphNode(GraphViewer *graph_viewer) : graph(graph_viewer)
 {
@@ -72,11 +72,13 @@ void GraphNode::calculateForces()
     // Sum up all forces pushing this item away
     qreal xvel = 0;
     qreal yvel = 0;
-    foreach (QGraphicsItem *item, scene()->items()) 
+    //foreach (QGraphicsItem *item, scene()->items()) 
+    for( auto &[k,node] : graph->gmap)
 	{
-        GraphNode *node = qgraphicsitem_cast<GraphNode *>(item);
-        if (!node)
-            continue;
+        //GraphNode *node = qgraphicsitem_cast<GraphNode *>(item);
+        //if (!node)
+        //    continue;
+        (void)k;
 
         QPointF vec = mapToItem(node, 0, 0);
         qreal dx = vec.x();
@@ -94,6 +96,7 @@ void GraphNode::calculateForces()
     foreach (GraphEdge *edge, edgeList) 
 	{
         QPointF vec;
+       
         if (edge->sourceNode() == this)
             vec = mapToItem(edge->destNode(), 0, 0);
         else
@@ -115,6 +118,8 @@ void GraphNode::calculateForces()
     newPos = pos() + QPointF(xvel, yvel);
     newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right() - 10));
     newPos.setY(qMin(qMax(newPos.y(), sceneRect.top() + 10), sceneRect.bottom() - 10));
+     
+   
 }
 
 bool GraphNode::advancePosition()
@@ -183,22 +188,40 @@ void GraphNode::mousePressEvent(QGraphicsSceneMouseEvent *event)
     std::cout << "node: " << tag->text().toStdString() << std::endl;
     if( event->button()== Qt::RightButton)
     {
-        if(label != nullptr) { delete label; label = nullptr; }
-        label = new QTableWidget(graph);
-        label->setColumnCount(2);
-        auto g = graph->worker->graph;
-        label->setRowCount(g->getNodeAttrs(id_in_graph).size() );
-        label->setHorizontalHeaderLabels(QStringList{"Key", "Value"}); 
-        int i=0;
-        for( auto &[k, v] : g->getNodeAttrs(id_in_graph) )
+        //if(label != nullptr) { delete label; label = nullptr; }
+        if(tag->text().contains("laser"))
+            laser_stuff = new DoLaserStuff(graph, id_in_graph);
+        else
         {
-            label->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));
-            label->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(g->printVisitor(v))));
-            i++;
+            label = new QTableWidget(graph);
+            label->setColumnCount(2);
+            auto g = graph->worker->graph;
+            label->setRowCount(g->getNodeAttrs(id_in_graph).size() );
+            label->setHorizontalHeaderLabels(QStringList{"Key", "Value"}); 
+            int i=0;
+            for( auto &[k, v] : g->getNodeAttrs(id_in_graph) )
+            {
+                label->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));
+                label->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(g->printVisitor(v))));
+                i++;
+            }
+            label->horizontalHeader()->setStretchLastSection(true);
+            label->resizeRowsToContents();
+            label->resizeColumnsToContents();
+            QObject::connect(graph, &GraphViewer::closeWindowSIGNAL, label, &QTableWidget::close);
+            QTableWidget *l = label;
+            QObject::connect(g.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, [g,l](const DSR::Attribs &attrs)
+                                                { 
+                                                  int i= 0; 
+                                                  for(auto &[k,v]: attrs)
+                                                  {
+                                                    l->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));
+                                                    l->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(g->printVisitor(v))));
+                                                    i++;
+                                                  }
+                                                });
+            label->show();
         }
-        label->horizontalHeader()->setStretchLastSection(true);
-        label->resizeRowsToContents();
-        label->show();
     }
     update();
     QGraphicsItem::mousePressEvent(event);
@@ -206,22 +229,36 @@ void GraphNode::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    if( event->button()== Qt::LeftButton)
+    {
+        auto g = graph->worker->graph;
+        g->addNodeAttribs(id_in_graph, DSR::Attribs{ std::pair("pos_x", (float)event->scenePos().x())});
+        g->addNodeAttribs(id_in_graph, DSR::Attribs{ std::pair("pos_y", (float)event->scenePos().y())}); 
+    }
     update();
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void GraphNode::keyPressEvent(QKeyEvent *event) 
 {
-    if (event->key() == Qt::Key_Escape)
-    {
-        if(label != nullptr)
-        {
-            label->close();
-            delete label; 
-            label = nullptr;
-        }
-    }
+    // if (event->key() == Qt::Key_Escape)
+    // {
+    //     if(label != nullptr)
+    //     {
+    //         label->close();
+    //         delete label; 
+    //         label = nullptr;
+    //     }
+    // }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////7
+////
+/////////////////////////////////////////////////////////////////////////////////////////
+ void GraphNode::NodeAttrsChangedSLOT(const IDType &node, const DSR::Attribs &attr)
+ {
+	 std::cout << "do cool stuff" << std::endl;
+ }
 
 // void GraphNode::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 // {
