@@ -4,3 +4,11 @@
 *.o
 
 components/newcomp/CMakeCache\.txt
+
+components/newcomp/\.idea/
+
+components/newcomp/bin/
+
+components/newcomp/CMakeFiles/3\.12\.1/CMakeCCompiler\.cmake
+
+components/newcomp/CMakeFiles/
