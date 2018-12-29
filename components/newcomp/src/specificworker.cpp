@@ -47,7 +47,7 @@ void SpecificWorker::compute() {
 
     int argc=0;
     char *argv[0];
-    s
+    
     if (role == "publicator") {
         cout << "Im working as publicator..." << endl;
         try {
