@@ -38,6 +38,8 @@ private:
     	writer.add(move(graph));
 		return writer;
 	}
+
+	G my_graph;
 };
 
 #endif
