@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <qlog/qlog.h>
 
+#define ICE_IGNORE_VERSION
 #include <DataStorm/DataStorm.h>
 
 #include <CommonBehavior.h>
