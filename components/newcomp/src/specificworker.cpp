@@ -44,10 +44,12 @@ void SpecificWorker::initialize(int period) {
 }
 
 void SpecificWorker::compute() {
-
     int argc=0;
     char *argv[0];
+<<<<<<< HEAD
     
+=======
+>>>>>>> 0228c06f74c7f10cad600499c07eae1e3276a242
     if (role == "publicator") {
         cout << "Im working as publicator..." << endl;
         try {
