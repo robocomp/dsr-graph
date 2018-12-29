@@ -46,19 +46,22 @@ void SpecificWorker::initialize(int period)
     node = DataStorm::Node(argc, argv);
     topic = std::make_shared<DataStorm::Topic<std::string, G>>(node, "DSR");
     topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never });
-    
-    writer = std::make_shared<DataStorm::SingleKeyWriter<std::string, G>>(*topic.get(), "foo");
-    
+    writer = std::make_shared<DataStorm::SingleKeyWriter<std::string, G>>(*topic.get(), role);
+  
+    my_graph.insert(std::make_pair(0, RoboCompDSR::Content{"nodo0", 0, RoboCompDSR::Attribs(), RoboCompDSR::FanOut()}));
+  
     read_thread = std::thread(&SpecificWorker::subscribeThread, this);
 
-    timer.start(300);
+    timer.start(500);
 }
 
 void SpecificWorker::subscribeThread()
 {
     DataStorm::Topic<std::string, G> topic(node, "DSR");
     topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never });
-    auto reader = DataStorm::makeAnyKeyReader(topic);
+    // regex to filter out myself as publisher
+    std::string f = "^(?!" + role + "$).*$";
+    auto reader = DataStorm::makeFilteredKeyReader(topic, DataStorm::Filter<string>("_regex", f.c_str()));
     std::cout << "starting reader " << std::endl;
     reader.waitForWriters();
     while(true)
@@ -67,7 +70,7 @@ void SpecificWorker::subscribeThread()
         {
             auto sample = reader.getNextUnread();
             for( const auto &[k,v] : sample.getValue())
-                cout << "Received: node " << k << " from " << sample.getKey() << endl;
+                cout << "Received: node " << k << "with laser_data " << v.attrs.at("laser_data") << " from " << sample.getKey() << endl;
             std::cout << "--------------------" << std::endl;
         }
         catch (const std::exception &ex) 
@@ -77,11 +80,11 @@ void SpecificWorker::subscribeThread()
 
 void SpecificWorker::compute() 
 {  
-    static G my_graph;
     static int cont = 0;
     topic->waitForReaders();
    
-    my_graph.insert(std::make_pair(cont++, RoboCompDSR::Content{"n", cont,RoboCompDSR::Attribs(), RoboCompDSR::FanOut()}));
-    
+    std::string d = std::to_string(cont++);
+    my_graph[0].attrs.insert_or_assign("laser_data", d);
+
     writer->update(my_graph);
 }
