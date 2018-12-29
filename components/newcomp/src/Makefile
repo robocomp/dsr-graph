@@ -213,6 +213,60 @@ CommonBehavior.cpp.s:
 	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/CommonBehavior.cpp.s
 .PHONY : CommonBehavior.cpp.s
 
+DSRGraph.o: DSRGraph.cpp.o
+
+.PHONY : DSRGraph.o
+
+# target to build an object file
+DSRGraph.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DSRGraph.cpp.o
+.PHONY : DSRGraph.cpp.o
+
+DSRGraph.i: DSRGraph.cpp.i
+
+.PHONY : DSRGraph.i
+
+# target to preprocess a source file
+DSRGraph.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DSRGraph.cpp.i
+.PHONY : DSRGraph.cpp.i
+
+DSRGraph.s: DSRGraph.cpp.s
+
+.PHONY : DSRGraph.s
+
+# target to generate assembly for a file
+DSRGraph.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DSRGraph.cpp.s
+.PHONY : DSRGraph.cpp.s
+
+DataStorm.o: DataStorm.cpp.o
+
+.PHONY : DataStorm.o
+
+# target to build an object file
+DataStorm.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DataStorm.cpp.o
+.PHONY : DataStorm.cpp.o
+
+DataStorm.i: DataStorm.cpp.i
+
+.PHONY : DataStorm.i
+
+# target to preprocess a source file
+DataStorm.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DataStorm.cpp.i
+.PHONY : DataStorm.cpp.i
+
+DataStorm.s: DataStorm.cpp.s
+
+.PHONY : DataStorm.s
+
+# target to generate assembly for a file
+DataStorm.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/DataStorm.cpp.s
+.PHONY : DataStorm.cpp.s
+
 NewComp_autogen/mocs_compilation.o: NewComp_autogen/mocs_compilation.cpp.o
 
 .PHONY : NewComp_autogen/mocs_compilation.o
@@ -500,6 +554,12 @@ help:
 	@echo "... CommonBehavior.o"
 	@echo "... CommonBehavior.i"
 	@echo "... CommonBehavior.s"
+	@echo "... DSRGraph.o"
+	@echo "... DSRGraph.i"
+	@echo "... DSRGraph.s"
+	@echo "... DataStorm.o"
+	@echo "... DataStorm.i"
+	@echo "... DataStorm.s"
 	@echo "... NewComp_autogen/mocs_compilation.o"
 	@echo "... NewComp_autogen/mocs_compilation.i"
 	@echo "... NewComp_autogen/mocs_compilation.s"

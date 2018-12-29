@@ -21,8 +21,8 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
-
+SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) 
+{
 }
 
 /**
@@ -37,51 +37,51 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     return true;
 }
 
-void SpecificWorker::initialize(int period) {
+void SpecificWorker::initialize(int period) 
+{
     std::cout << "Initialize worker" << std::endl;
-    this->Period = period;
-    timer.start(Period);
-}
 
-void SpecificWorker::compute() {
     int argc=0;
     char *argv[0];
-<<<<<<< HEAD
+    node = DataStorm::Node(argc, argv);
+    topic = std::make_shared<DataStorm::Topic<std::string, G>>(node, "DSR");
+    topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never });
     
-=======
->>>>>>> 0228c06f74c7f10cad600499c07eae1e3276a242
-    if (role == "publicator") {
-        cout << "Im working as publicator..." << endl;
-        try {
-            DataStorm::Node node(argc, argv);
-            DataStorm::Topic <string, string> topic(node, "hello");
-            auto writer = DataStorm::makeSingleKeyWriter(topic, "foo");
-            topic.waitForReaders();
-            writer.update("hello");
-            topic.waitForNoReaders();
+    writer = std::make_shared<DataStorm::SingleKeyWriter<std::string, G>>(*topic.get(), "foo");
+    
+    read_thread = std::thread(&SpecificWorker::subscribeThread, this);
 
-        }
-        catch (const std::exception &ex) {
-            cerr << ex.what() << endl;
-        }
-
-    } else {
-        cout << "Im working as reader..." << endl;
-        try {
-            DataStorm::Node node(argc, argv);
-            DataStorm::Topic <string, string> topic(node, "hello");
-            auto reader = DataStorm::makeSingleKeyReader(topic, "foo");
-            auto sample = reader.getNextUnread();
-            cout << sample.getKey() << " says " << sample.getValue() << "!" << endl;
-        }
-        catch (const std::exception &ex) {
-            cerr << ex.what() << endl;
-        }
-    }
-    sleep(1);
-
-
+    timer.start(300);
 }
 
+void SpecificWorker::subscribeThread()
+{
+    DataStorm::Topic<std::string, G> topic(node, "DSR");
+    topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never });
+    auto reader = DataStorm::makeAnyKeyReader(topic);
+    std::cout << "starting reader " << std::endl;
+    reader.waitForWriters();
+    while(true)
+    {
+        try
+        {
+            auto sample = reader.getNextUnread();
+            for( const auto &[k,v] : sample.getValue())
+                cout << "Received: node " << k << " from " << sample.getKey() << endl;
+            std::cout << "--------------------" << std::endl;
+        }
+        catch (const std::exception &ex) 
+        {   cerr << ex.what() << endl;  }
+    }
+}
 
-
+void SpecificWorker::compute() 
+{  
+    static G my_graph;
+    static int cont = 0;
+    topic->waitForReaders();
+   
+    my_graph.insert(std::make_pair(cont++, RoboCompDSR::Content{"n", cont,RoboCompDSR::Attribs(), RoboCompDSR::FanOut()}));
+    
+    writer->update(my_graph);
+}
