@@ -26,13 +26,7 @@ Ui_guiDlg()
 #else
 QObject()
 #endif
-
 {
-	differentialrobot_proxy = std::get<DifferentialRobotPrxPtr>(tprx);
-	laser_proxy = std::get<LaserPrxPtr>(tprx);
-
-	mutex = new QMutex(QMutex::Recursive);
-
 	#ifdef USE_QTGUI
 		setupUi(this);
 		show();

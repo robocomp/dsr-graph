@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::NewAgent
+/** \mainpage RoboComp::observeragent
  *
  * \section intro_sec Introduction
  *
- * The NewAgent component...
+ * The observeragent component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd NewAgent
+ * cd observeragent
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/NewAgent --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/observeragent --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -82,10 +82,6 @@
 #include "commonbehaviorI.h"
 
 
-#include <Laser.h>
-#include <GenericBase.h>
-#include <DifferentialRobot.h>
-#include <GenericBase.h>
 
 
 // User includes here
@@ -94,10 +90,10 @@
 using namespace std;
 using namespace RoboCompCommonBehavior;
 
-class NewAgent : public RoboComp::Application
+class observeragent : public RoboComp::Application
 {
 public:
-	NewAgent (QString prfx) { prefix = prfx.toStdString(); }
+	observeragent (QString prfx) { prefix = prfx.toStdString(); }
 private:
 	void initialize();
 	std::string prefix;
@@ -107,14 +103,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::NewAgent::initialize()
+void ::observeragent::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::NewAgent::run(int argc, char* argv[])
+int ::observeragent::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -137,46 +133,11 @@ int ::NewAgent::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	DifferentialRobotPrxPtr differentialrobot_proxy;
-	LaserPrxPtr laser_proxy;
 
 	string proxy, tmp;
 	initialize();
 
-
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DifferentialRobotProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DifferentialRobotProxy\n";
-		}
-		differentialrobot_proxy = Ice::uncheckedCast<DifferentialRobotPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DifferentialRobot: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DifferentialRobotProxy initialized Ok!");
-
-
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
-		}
-		laser_proxy = Ice::uncheckedCast<LaserPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy Laser: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("LaserProxy initialized Ok!");
-
-
-	tprx = std::make_tuple(differentialrobot_proxy,laser_proxy);
+	tprx = std::make_tuple();
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -285,7 +246,7 @@ int main(int argc, char* argv[])
 			printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
 		}
 	}
-	::NewAgent app(prefix);
+	::observeragent app(prefix);
 
 	return app.main(argc, argv, configFile.c_str());
 }

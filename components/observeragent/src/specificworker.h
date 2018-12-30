@@ -22,8 +22,6 @@
        @author authorname
 */
 
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
@@ -31,35 +29,26 @@
 #include <innermodel/innermodel.h>
 #include "../../graph-related-classes/graph.h"
 #include "../../graph-related-classes/graphviewer.h"
-#include "../../graph-related-classes/innermodelapi.h"
 #include "../../graph-related-classes/graphcrdt.h"
 
 class SpecificWorker : public GenericWorker
 {
-	Q_OBJECT
-	public:
-		SpecificWorker(TuplePrx mprx);
-		~SpecificWorker();
-		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<DSR::Graph> graph;
+Q_OBJECT
+public:
+	SpecificWorker(TuplePrx tprx);
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
+	std::shared_ptr<DSR::Graph> getGraph() const {return graph;};
 
-	public slots:
-		void compute();
-		void initialize(int period);
-		void saveGraphSLOT()			{ graph->saveToFile("caca.xml");};
+public slots:
+	void compute();
+	void initialize(int period);
 
-	signals:
-		void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
-		void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
+private:
+	std::shared_ptr<DSR::Graph> graph;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::GraphCRDT> gcrdt; 
 
-	private:
-		InnerModel *innerModel;
-		void walkTree(InnerModelNode *node);
-		void drawGraph();
-
-		std::unique_ptr<DSR::GraphViewer> graph_viewer;
-		InnerModelAPI innerapi;
-		std::unique_ptr<DSR::GraphCRDT> gcrdt; 
 };
 
 #endif

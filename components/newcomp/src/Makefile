@@ -375,87 +375,6 @@ genericworker.cpp.s:
 	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/genericworker.cpp.s
 .PHONY : genericworker.cpp.s
 
-home/pbustos/robocomp/classes/qlog/qlog.o: home/pbustos/robocomp/classes/qlog/qlog.cpp.o
-
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.o
-
-# target to build an object file
-home/pbustos/robocomp/classes/qlog/qlog.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/qlog/qlog.cpp.o
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.cpp.o
-
-home/pbustos/robocomp/classes/qlog/qlog.i: home/pbustos/robocomp/classes/qlog/qlog.cpp.i
-
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.i
-
-# target to preprocess a source file
-home/pbustos/robocomp/classes/qlog/qlog.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/qlog/qlog.cpp.i
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.cpp.i
-
-home/pbustos/robocomp/classes/qlog/qlog.s: home/pbustos/robocomp/classes/qlog/qlog.cpp.s
-
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.s
-
-# target to generate assembly for a file
-home/pbustos/robocomp/classes/qlog/qlog.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/qlog/qlog.cpp.s
-.PHONY : home/pbustos/robocomp/classes/qlog/qlog.cpp.s
-
-home/pbustos/robocomp/classes/rapplication/rapplication.o: home/pbustos/robocomp/classes/rapplication/rapplication.cpp.o
-
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.o
-
-# target to build an object file
-home/pbustos/robocomp/classes/rapplication/rapplication.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/rapplication/rapplication.cpp.o
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.cpp.o
-
-home/pbustos/robocomp/classes/rapplication/rapplication.i: home/pbustos/robocomp/classes/rapplication/rapplication.cpp.i
-
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.i
-
-# target to preprocess a source file
-home/pbustos/robocomp/classes/rapplication/rapplication.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/rapplication/rapplication.cpp.i
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.cpp.i
-
-home/pbustos/robocomp/classes/rapplication/rapplication.s: home/pbustos/robocomp/classes/rapplication/rapplication.cpp.s
-
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.s
-
-# target to generate assembly for a file
-home/pbustos/robocomp/classes/rapplication/rapplication.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/rapplication/rapplication.cpp.s
-.PHONY : home/pbustos/robocomp/classes/rapplication/rapplication.cpp.s
-
-home/pbustos/robocomp/classes/sigwatch/sigwatch.o: home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.o
-
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.o
-
-# target to build an object file
-home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.o
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.o
-
-home/pbustos/robocomp/classes/sigwatch/sigwatch.i: home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.i
-
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.i
-
-# target to preprocess a source file
-home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.i
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.i
-
-home/pbustos/robocomp/classes/sigwatch/sigwatch.s: home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.s
-
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.s
-
-# target to generate assembly for a file
-home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.s
-.PHONY : home/pbustos/robocomp/classes/sigwatch/sigwatch.cpp.s
-
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -482,6 +401,87 @@ main.s: main.cpp.s
 main.cpp.s:
 	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/main.cpp.s
 .PHONY : main.cpp.s
+
+opt/robocomp/classes/qlog/qlog.o: opt/robocomp/classes/qlog/qlog.cpp.o
+
+.PHONY : opt/robocomp/classes/qlog/qlog.o
+
+# target to build an object file
+opt/robocomp/classes/qlog/qlog.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/qlog/qlog.cpp.o
+.PHONY : opt/robocomp/classes/qlog/qlog.cpp.o
+
+opt/robocomp/classes/qlog/qlog.i: opt/robocomp/classes/qlog/qlog.cpp.i
+
+.PHONY : opt/robocomp/classes/qlog/qlog.i
+
+# target to preprocess a source file
+opt/robocomp/classes/qlog/qlog.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/qlog/qlog.cpp.i
+.PHONY : opt/robocomp/classes/qlog/qlog.cpp.i
+
+opt/robocomp/classes/qlog/qlog.s: opt/robocomp/classes/qlog/qlog.cpp.s
+
+.PHONY : opt/robocomp/classes/qlog/qlog.s
+
+# target to generate assembly for a file
+opt/robocomp/classes/qlog/qlog.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/qlog/qlog.cpp.s
+.PHONY : opt/robocomp/classes/qlog/qlog.cpp.s
+
+opt/robocomp/classes/rapplication/rapplication.o: opt/robocomp/classes/rapplication/rapplication.cpp.o
+
+.PHONY : opt/robocomp/classes/rapplication/rapplication.o
+
+# target to build an object file
+opt/robocomp/classes/rapplication/rapplication.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/rapplication/rapplication.cpp.o
+.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.o
+
+opt/robocomp/classes/rapplication/rapplication.i: opt/robocomp/classes/rapplication/rapplication.cpp.i
+
+.PHONY : opt/robocomp/classes/rapplication/rapplication.i
+
+# target to preprocess a source file
+opt/robocomp/classes/rapplication/rapplication.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/rapplication/rapplication.cpp.i
+.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.i
+
+opt/robocomp/classes/rapplication/rapplication.s: opt/robocomp/classes/rapplication/rapplication.cpp.s
+
+.PHONY : opt/robocomp/classes/rapplication/rapplication.s
+
+# target to generate assembly for a file
+opt/robocomp/classes/rapplication/rapplication.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/rapplication/rapplication.cpp.s
+.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.s
+
+opt/robocomp/classes/sigwatch/sigwatch.o: opt/robocomp/classes/sigwatch/sigwatch.cpp.o
+
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.o
+
+# target to build an object file
+opt/robocomp/classes/sigwatch/sigwatch.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.o
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.o
+
+opt/robocomp/classes/sigwatch/sigwatch.i: opt/robocomp/classes/sigwatch/sigwatch.cpp.i
+
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.i
+
+# target to preprocess a source file
+opt/robocomp/classes/sigwatch/sigwatch.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.i
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.i
+
+opt/robocomp/classes/sigwatch/sigwatch.s: opt/robocomp/classes/sigwatch/sigwatch.cpp.s
+
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.s
+
+# target to generate assembly for a file
+opt/robocomp/classes/sigwatch/sigwatch.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/newcomp && $(MAKE) -f src/CMakeFiles/NewComp.dir/build.make src/CMakeFiles/NewComp.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.s
+.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.s
 
 specificmonitor.o: specificmonitor.cpp.o
 
@@ -572,18 +572,18 @@ help:
 	@echo "... genericworker.o"
 	@echo "... genericworker.i"
 	@echo "... genericworker.s"
-	@echo "... home/pbustos/robocomp/classes/qlog/qlog.o"
-	@echo "... home/pbustos/robocomp/classes/qlog/qlog.i"
-	@echo "... home/pbustos/robocomp/classes/qlog/qlog.s"
-	@echo "... home/pbustos/robocomp/classes/rapplication/rapplication.o"
-	@echo "... home/pbustos/robocomp/classes/rapplication/rapplication.i"
-	@echo "... home/pbustos/robocomp/classes/rapplication/rapplication.s"
-	@echo "... home/pbustos/robocomp/classes/sigwatch/sigwatch.o"
-	@echo "... home/pbustos/robocomp/classes/sigwatch/sigwatch.i"
-	@echo "... home/pbustos/robocomp/classes/sigwatch/sigwatch.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... opt/robocomp/classes/qlog/qlog.o"
+	@echo "... opt/robocomp/classes/qlog/qlog.i"
+	@echo "... opt/robocomp/classes/qlog/qlog.s"
+	@echo "... opt/robocomp/classes/rapplication/rapplication.o"
+	@echo "... opt/robocomp/classes/rapplication/rapplication.i"
+	@echo "... opt/robocomp/classes/rapplication/rapplication.s"
+	@echo "... opt/robocomp/classes/sigwatch/sigwatch.o"
+	@echo "... opt/robocomp/classes/sigwatch/sigwatch.i"
+	@echo "... opt/robocomp/classes/sigwatch/sigwatch.s"
 	@echo "... specificmonitor.o"
 	@echo "... specificmonitor.i"
 	@echo "... specificmonitor.s"
