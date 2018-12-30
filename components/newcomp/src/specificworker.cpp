@@ -48,6 +48,7 @@ void SpecificWorker::initialize(int period)
     topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never });
     writer = std::make_shared<DataStorm::SingleKeyWriter<std::string, G>>(*topic.get(), role);
   
+    //just to initialize the fake graph
     my_graph.insert(std::make_pair(0, RoboCompDSR::Content{"nodo0", 0, RoboCompDSR::Attribs(), RoboCompDSR::FanOut()}));
   
     read_thread = std::thread(&SpecificWorker::subscribeThread, this);
@@ -70,7 +71,7 @@ void SpecificWorker::subscribeThread()
         {
             auto sample = reader.getNextUnread();
             for( const auto &[k,v] : sample.getValue())
-                cout << "Received: node " << k << "with laser_data " << v.attrs.at("laser_data") << " from " << sample.getKey() << endl;
+                cout << "Received: node " << k << "with laser_data " << v.attrs.at("laser_data_dists") << " from " << sample.getKey() << endl;
             std::cout << "--------------------" << std::endl;
         }
         catch (const std::exception &ex) 
@@ -83,8 +84,19 @@ void SpecificWorker::compute()
     static int cont = 0;
     topic->waitForReaders();
    
-    std::string d = std::to_string(cont++);
-    my_graph[0].attrs.insert_or_assign("laser_data", d);
+    // calls to graph editing method
+    my_graph[0].attrs.insert_or_assign("laser_data_dists", std::to_string(cont++));
 
     writer->update(my_graph);
 }
+
+// some attrib has changed in some node
+// void SpecificWorker::nodeAttrsChangedSLOT(DSR::IDType id, const DSR::Attribs &attrs)
+// {
+//     // do delta magic changing my_graph
+//     // for now we update my_graph with attrs
+//     for( const auto &[k,v] : attrs)
+//         my_graph[0].attrs.at(k) = bestApproxTo(v);
+//     writer->update(my_graph);
+// }
+

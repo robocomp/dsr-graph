@@ -32,23 +32,13 @@
 
 #include <CommonBehavior.h>
 
-#include <Laser.h>
-#include <GenericBase.h>
-#include <DifferentialRobot.h>
-#include <GenericBase.h>
 
 #define CHECK_PERIOD 5000
 #define BASIC_PERIOD 100
 
 using namespace std;
-using namespace RoboCompDifferentialRobot;
-using namespace RoboCompGenericBase;
-using namespace RoboCompLaser;
 
-using TuplePrx = std::tuple<RoboCompDifferentialRobot::DifferentialRobotPrxPtr,RoboCompLaser::LaserPrxPtr>;
-
-
-
+using TuplePrx = std::tuple<>;
 
 class GenericWorker :
 #ifdef USE_QTGUI
@@ -65,12 +55,6 @@ public:
 	virtual void setPeriod(int p);
 
 	virtual bool setParams(RoboCompCommonBehavior::ParameterList params) = 0;
-	QMutex *mutex;
-
-
-	DifferentialRobotPrxPtr differentialrobot_proxy;
-	LaserPrxPtr laser_proxy;
-
 
 protected:
 	QTimer timer;

@@ -31,7 +31,7 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(MapPrx& mprx) : GenericWorker(mprx)
+SpecificWorker::SpecificWorker(TuplePrx mprx) : GenericWorker(mprx)
 {
 
 }
@@ -61,36 +61,40 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
+	// Graph creation
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
 	graph->print();
-	
+
+	// CRDT creation and connection to graph
+	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent0");
+	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
+	connect(this, &SpecificWorker::addNodeSIGNAL, gcrdt.get(), &DSR::GraphCRDT::addNodeSLOT);
+	connect(this, &SpecificWorker::addEdgeSIGNAL, gcrdt.get(), &DSR::GraphCRDT::addEdgeSLOT);
+					
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
-	graph_viewer.setWidget(this);
-	connect(this, SIGNAL(addNodeSIGNAL(std::int32_t, const std::string&, const std::string&, float , float , const std::string&)), 
-					&graph_viewer, SLOT(addNodeSLOT(std::int32_t, const std::string&, const std::string&, float , float , const std::string&)));
-	connect(this, SIGNAL(addEdgeSIGNAL(std::int32_t, std::int32_t, const std::string&)), 
-					&graph_viewer, SLOT(addEdgeSLOT(std::int32_t, std::int32_t, const std::string&)));
-	connect(&graph_viewer, SIGNAL(saveGraphSIGNAL()), this, SLOT(saveGraphSLOT()));
+	graph_viewer->setWidget(this);
+	connect(this, &SpecificWorker::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
+	connect(this, &SpecificWorker::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
+	connect(graph_viewer.get(), &DSR::GraphViewer::saveGraphSIGNAL, this, &SpecificWorker::saveGraphSLOT);
 					
 	drawGraph();
 	std::cout << __FILE__ << __FUNCTION__ << " -- Graph set OK" << std::endl;
-	//graph_viewer.show();	
-	std::cout << __FILE__ << __FUNCTION__ << " -- Graph shown OK" << std::endl;
-
-	std::cout << __FILE__ << __FUNCTION__ << " -- Iniializing  innerAPI" << std::endl;
-	innerapi.setGraph(graph);
 	
-	//std::cout << __FILE__ << __FUNCTION__ << " -- TEST treewalk" << std::endl;
-	//innerapi.innerModelTreeWalk("world");
-
-	std::cout << __FILE__ << __FUNCTION__ << " -- TESTS transform" << std::endl;
-	auto r = innerapi.transform("base", QVec::zeros(3), "laser");
-	r.print("Target coordinates from 0, 0, 0");
+	///// TESTING to be moved to a unit tests file
+	// std::cout << __FILE__ << __FUNCTION__ << " -- Iniializing  innerAPI" << std::endl;
+	// innerapi.setGraph(graph);
 	
-	std::cout << __FILE__ << __FUNCTION__ << " -- TESTS updatetransformvalues " << std::endl;
-	innerapi.updateTransformValues("base", 20, 30, 40, 50, 60, 70);
+	// //std::cout << __FILE__ << __FUNCTION__ << " -- TEST treewalk" << std::endl;
+	// //innerapi.innerModelTreeWalk("world");
+
+	// std::cout << __FILE__ << __FUNCTION__ << " -- TESTS transform" << std::endl;
+	// auto r = innerapi.transform("base", QVec::zeros(3), "laser");
+	// r.print("Target coordinates from 0, 0, 0");
+	
+	// std::cout << __FILE__ << __FUNCTION__ << " -- TESTS updatetransformvalues " << std::endl;
+	// innerapi.updateTransformValues("base", 20, 30, 40, 50, 60, 70);
 
 	this->Period = 100;
 	timer.start(Period);  
@@ -110,14 +114,14 @@ void SpecificWorker::compute()
 		//r.print("transform");
 		//std::cout << bState.x << " " << bState.z << std::endl;
 		std::vector<float> dists, angles;
-		for( auto &l : lData)
+		for(const auto &l : lData)
 		{
 			dists.push_back(l.dist);
 			angles.push_back(l.angle);
 		}
 		auto node_id = graph->getNodeByInnerModelName("laser");
 		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_dists", dists)});
-		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});
+		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});  // does not change but needed first time
 		
 	}
 	catch(const Ice::Exception &e)

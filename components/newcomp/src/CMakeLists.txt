@@ -25,7 +25,6 @@ SET ( SOURCES
   genericmonitor.cpp
   commonbehaviorI.cpp
   genericworker.cpp
-  DataStorm.cpp
 )
 
 
@@ -33,8 +32,6 @@ ADD_DEFINITIONS ("-DICE_CPP11_MAPPING")
 FIND_PACKAGE( Ice REQUIRED COMPONENTS Ice++11 )
 SET (DataStorm_LIBRARIES "-lDataStorm -lIce++11")
 #SET (DATA_STORM_CPP /usr/include/DataStorm/DataStorm.cpp)
-#SET (DATA_STORM_CPP DataStorm.so)
-
 
 #ROBOCOMP
 ROBOCOMP_INITIALIZE( $ENV{ROBOCOMP}/ )
