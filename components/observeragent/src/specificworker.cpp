@@ -49,7 +49,9 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
-	qRegisterMetaType<DSR::IDType>();
+	qRegisterMetaType<std::int32_t>("std::int32_t");
+	qRegisterMetaType<std::string>("std::string");
+	qRegisterMetaType<DSR::Attribs>("DSR::Attribs");
 
 	std::cout << "Initialize Agent1" << std::endl;
 	// Graph creation
@@ -57,6 +59,7 @@ void SpecificWorker::initialize(int period)
 	
 	// CRDT creation and connection to graph
 	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent1");
+	setWindowTitle( "Agent 1" );
 	//connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	
 	// GraphViewer creation
@@ -68,7 +71,7 @@ void SpecificWorker::initialize(int period)
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
 
-	this->Period = period;
+	this->Period = 100;
 	timer.start(Period);
 }
 
