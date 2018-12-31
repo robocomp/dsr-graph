@@ -49,7 +49,25 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
+	qRegisterMetaType<DSR::IDType>();
+
+	std::cout << "Initialize Agent1" << std::endl;
+	// Graph creation
+	graph = std::make_shared<DSR::Graph>();
+	
+	// CRDT creation and connection to graph
+	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent1");
+	//connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
+	
+	// GraphViewer creation
+	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+	connect(graph.get(), &DSR::Graph::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
+	connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
+	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT); 
+	
+	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
+
 	this->Period = period;
 	timer.start(Period);
 }

@@ -41,7 +41,8 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(TuplePrx mprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<DSR::Graph> graph;
+		std::shared_ptr<DSR::Graph> getGraph() const { return graph;};
+		
 
 	public slots:
 		void compute();
@@ -55,11 +56,11 @@ class SpecificWorker : public GenericWorker
 	private:
 		InnerModel *innerModel;
 		void walkTree(InnerModelNode *node);
-		void drawGraph();
-
+		//void drawGraph();
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 		InnerModelAPI innerapi;
 		std::unique_ptr<DSR::GraphCRDT> gcrdt; 
+		std::shared_ptr<DSR::Graph> graph;
 };
 
 #endif
