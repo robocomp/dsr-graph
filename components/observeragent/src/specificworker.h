@@ -33,22 +33,25 @@
 
 class SpecificWorker : public GenericWorker
 {
-Q_OBJECT
-public:
-	SpecificWorker(TuplePrx tprx);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
-	std::shared_ptr<DSR::Graph> getGraph() const {return graph;};
+	Q_OBJECT
+	public:
+		SpecificWorker(TuplePrx tprx);
+		~SpecificWorker();
+		bool setParams(RoboCompCommonBehavior::ParameterList params);
+		std::shared_ptr<DSR::Graph> getGraph() const {return graph;};
 
-public slots:
-	void compute();
-	void initialize(int period);
+	public slots:
+		void compute();
+		void initialize(int period);
 
-private:
-	std::shared_ptr<DSR::Graph> graph;
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
-	std::unique_ptr<DSR::GraphCRDT> gcrdt; 
+	// signals:
+	// 	void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
+	// 	void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
 
+	private:
+		std::shared_ptr<DSR::Graph> graph;
+		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+		std::unique_ptr<DSR::GraphCRDT> gcrdt; 
 };
 
 #endif
