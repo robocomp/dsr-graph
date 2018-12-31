@@ -70,6 +70,7 @@ void SpecificWorker::initialize(int period)
 
 	// CRDT creation and connection to graph
 	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent0");
+	setWindowTitle( "Agent 0" );
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	
 	//no se usan
