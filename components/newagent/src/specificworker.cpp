@@ -62,15 +62,14 @@ void SpecificWorker::initialize(int period)
 	qRegisterMetaType<std::string>("std::string");
 	qRegisterMetaType<DSR::Attribs>("DSR::Attribs");
 	
-	// Graph creation
+	// DSR Graph creation
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
 	graph->print();
 
 	// CRDT creation and connection to graph
-	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent0");
-	setWindowTitle( "Agent 0" );
+	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, AGENT_NAME);
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	
 	//no se usan
@@ -81,6 +80,7 @@ void SpecificWorker::initialize(int period)
 	// GraphViewer creation
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+	setWindowTitle( AGENT_NAME.c_str() );
 	//connect(this, &SpecificWorker::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
 	//connect(this, &SpecificWorker::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
 	connect(graph_viewer.get(), &DSR::GraphViewer::saveGraphSIGNAL, this, &SpecificWorker::saveGraphSLOT);
@@ -108,6 +108,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+	static bool first_time = true;
 	try
 	{
 		auto lData = laser_proxy->getLaserData();
@@ -125,8 +126,11 @@ void SpecificWorker::compute()
 		}
 		auto node_id = graph->getNodeByInnerModelName("laser");
 		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_dists", dists)});
-		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});  // does not change but needed first time
-		
+		if(first_time)
+		{
+			graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});  // does not change but needed first time
+			first_time = false;
+		}
 	}
 	catch(const Ice::Exception &e)
 	{

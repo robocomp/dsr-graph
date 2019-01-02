@@ -52,6 +52,7 @@ class SpecificWorker : public GenericWorker
 		std::shared_ptr<DSR::Graph> graph;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 		std::unique_ptr<DSR::GraphCRDT> gcrdt; 
+		const std::string AGENT_NAME = "Observer";
 };
 
 #endif
