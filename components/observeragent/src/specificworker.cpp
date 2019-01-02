@@ -53,13 +53,13 @@ void SpecificWorker::initialize(int period)
 	qRegisterMetaType<std::string>("std::string");
 	qRegisterMetaType<DSR::Attribs>("DSR::Attribs");
 
-	std::cout << "Initialize Agent1" << std::endl;
+	std::cout << "Initialize " << AGENT_NAME << std::endl;
 	// Graph creation
 	graph = std::make_shared<DSR::Graph>();
 	
 	// CRDT creation and connection to graph
-	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, "agent1");
-	setWindowTitle( "Agent 1" );
+	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, AGENT_NAME);
+	setWindowTitle( AGENT_NAME.c_str() );
 	//connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	
 	// GraphViewer creation
