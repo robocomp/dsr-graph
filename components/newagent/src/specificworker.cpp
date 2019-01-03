@@ -66,7 +66,10 @@ void SpecificWorker::initialize(int period)
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
-	graph->print();
+	// graph->clear();
+	// graph->addNode(1, "world");
+	// graph->addNodeAttribs(1, DSR::Attribs{std::make_pair("imName", std::string("laser"))});
+	// graph->print();
 
 	// CRDT creation and connection to graph
 	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, AGENT_NAME);
