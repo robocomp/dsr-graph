@@ -53,7 +53,7 @@ void SpecificWorker::initialize(int period)
 	qRegisterMetaType<std::string>("std::string");
 	qRegisterMetaType<DSR::Attribs>("DSR::Attribs");
 
-	std::cout << "Initialize " << AGENT_NAME << std::endl;
+	std::cout << __FUNCTION__ << "Initialize " << AGENT_NAME << std::endl;
 	// Graph creation
 	graph = std::make_shared<DSR::Graph>();
 	
@@ -63,13 +63,13 @@ void SpecificWorker::initialize(int period)
 	//connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	
 	// GraphViewer creation
-	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
+	std::cout  << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
 	connect(graph.get(), &DSR::Graph::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
 	connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT); 
 	
-	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
+	std::cout << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
 
 	this->Period = 100;
 	timer.start(Period);
