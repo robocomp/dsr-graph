@@ -1,6 +1,5 @@
 module RoboCompDSR
 {
-
     dictionary<string, string> Attribs;
     struct EdgeAttribs
 	{ 
@@ -18,5 +17,10 @@ module RoboCompDSR
         FanOut fano;
     };
     dictionary<int, Content> DSRGraph;
-   
+    
+    struct DSRPackage
+    {
+        DSRGraph graph;
+        Content node;
+    }
 }

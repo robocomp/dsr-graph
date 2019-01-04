@@ -66,9 +66,6 @@ void SpecificWorker::initialize(int period)
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
-	// graph->clear();
-	// graph->addNode(1, "world");
-	// graph->addNodeAttribs(1, DSR::Attribs{std::make_pair("imName", std::string("laser"))});
 	// graph->print();
 
 	// CRDT creation and connection to graph
@@ -103,6 +100,13 @@ void SpecificWorker::initialize(int period)
 	// std::cout << __FILE__ << __FUNCTION__ << " -- TESTS updatetransformvalues " << std::endl;
 	// innerapi.updateTransformValues("base", 20, 30, 40, 50, 60, 70);
 
+	// add laser angle data once to the graph
+	auto ldata = laser_proxy->getLaserData();
+	std::vector<float> angles;
+	std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l){ return l.angle;});
+	auto node_id = graph->getNodeByInnerModelName("laser");
+	graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});  // does not change but needed first time
+	
 	this->Period = 100;
 	timer.start(Period);  
 	
@@ -111,29 +115,20 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	static bool first_time = true;
+	//static bool first_time = true;
 	try
 	{
-		auto lData = laser_proxy->getLaserData();
 		RoboCompGenericBase::TBaseState bState;
 		differentialrobot_proxy->getBaseState(bState);
 		//innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
 		//auto r = innerapi.transform("world", "base");
 		//r.print("transform");
 		//std::cout << bState.x << " " << bState.z << std::endl;
-		std::vector<float> dists, angles;
-		for(const auto &l : lData)
-		{
-			dists.push_back(l.dist);
-			angles.push_back(l.angle);
-		}
+		auto ldata = laser_proxy->getLaserData();
+		std::vector<float> dists;
+		std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
 		auto node_id = graph->getNodeByInnerModelName("laser");
 		graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_dists", dists)});
-		if(first_time)
-		{
-			graph->addNodeAttribs(node_id, DSR::Attribs{ std::pair("laser_data_angles", angles)});  // does not change but needed first time
-			first_time = false;
-		}
 	}
 	catch(const Ice::Exception &e)
 	{
