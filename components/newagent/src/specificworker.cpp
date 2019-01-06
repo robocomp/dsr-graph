@@ -48,9 +48,9 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	try
 	{
-		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-		std::string innermodel_path = par.value;
+		std::string innermodel_path = params.at("InnerModelPath").value;
 		innerModel = new InnerModel(innermodel_path);
+		AGENT_NAME = params.at("AgentName").value;
 	}
 	catch(std::exception e) { qFatal("Error reading config params"); }
 	return true;
@@ -71,18 +71,14 @@ void SpecificWorker::initialize(int period)
 	// CRDT creation and connection to graph
 	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, AGENT_NAME);
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
-	
-	//no se usan
-	//connect(this, &SpecificWorker::addNodeSIGNAL, gcrdt.get(), &DSR::GraphCRDT::addNodeSLOT);
-	//connect(this, &SpecificWorker::addEdgeSIGNAL, gcrdt.get(), &DSR::GraphCRDT::addEdgeSLOT);
+	connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::EdgeAttrsChangedSLOT); 
+	gcrdt->startGraphRequestThread();
 	std::cout << __FILE__ << __FUNCTION__ << " -- GraphCRDT created OK" << std::endl;
 					
 	// GraphViewer creation
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
 	setWindowTitle( AGENT_NAME.c_str() );
-	//connect(this, &SpecificWorker::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
-	//connect(this, &SpecificWorker::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
 	connect(graph_viewer.get(), &DSR::GraphViewer::saveGraphSIGNAL, this, &SpecificWorker::saveGraphSLOT);
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
 
@@ -118,12 +114,23 @@ void SpecificWorker::compute()
 	//static bool first_time = true;
 	try
 	{
+		// robot update
 		RoboCompGenericBase::TBaseState bState;
 		differentialrobot_proxy->getBaseState(bState);
+		auto base_id = graph->getNodeByInnerModelName("base");
+		auto world_id = graph->getNodeByInnerModelName("world");  //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
+		RMat::RTMat rt;
+    	rt.setTr( QVec::vec3(bState.x, 0, bState.z));
+		rt.setRX(0.f);rt.setRY(bState.alpha);rt.setRZ(0.f);
+		
+		//graph->addEdgeAttribs(world_id, base_id, DSR::Attribs{std::make_pair("RT", rt)} );
+
+
 		//innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);
 		//auto r = innerapi.transform("world", "base");
 		//r.print("transform");
-		//std::cout << bState.x << " " << bState.z << std::endl;
+
+		// laser update
 		auto ldata = laser_proxy->getLaserData();
 		std::vector<float> dists;
 		std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});

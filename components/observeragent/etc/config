@@ -1,6 +1,6 @@
-CommonBehavior.Endpoints=tcp -p 10001
+CommonBehavior.Endpoints=tcp -p 11002
 
-
+AgentName = Observer1
 
 InnerModelPath = innermodel.xml
 
