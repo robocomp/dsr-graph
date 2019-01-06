@@ -1,641 +1,763 @@
 <AGMModel>
 
-<symbol id="125" type="transform">
-	<attribute key="imName" value="caja4" />
-	<attribute key="pos_y" value="-149,181244" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="-30,672779" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="124" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-44,614952" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="123" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="400" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
-	<attribute key="height" value="400" />
-	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="39,038082" />
-	<attribute key="imName" value="cajaMesh3" />
-</symbol>
-<symbol id="123" type="transform">
-	<attribute key="imName" value="caja3" />
-	<attribute key="pos_y" value="-79,470383" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="-64,133995" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="122" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-105,960510" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="121" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="400" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
-	<attribute key="height" value="400" />
-	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="122,691116" />
-	<attribute key="imName" value="cajaMesh2" />
-</symbol>
-<symbol id="121" type="transform">
-	<attribute key="imName" value="caja2" />
-	<attribute key="pos_y" value="-37,643864" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="-131,056412" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="101" type="transform">
-	<attribute key="imName" value="floor" />
-	<attribute key="pos_y" value="-50,632912" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="299,578064" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="138" type="rgbd">
-	<attribute key="pos_x" value="-246,617584" />
-	<attribute key="focal" value="490" />
-	<attribute key="height" value="480" />
-	<attribute key="pos_y" value="197,922394" />
-	<attribute key="imName" value="rgbd" />
-	<attribute key="port" value="10096" />
-	<attribute key="level" value="3" />
-	<attribute key="imType" value="rgbd" />
-	<attribute key="parent" value="136" />
-	<attribute key="noise" value="0" />
-	<attribute key="ifconfig" value="40000,50000" />
-	<attribute key="width" value="640" />
-</symbol>
-<symbol id="107" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="177,501831" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="2500" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#eeeeee" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="13" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="205,776459" />
-	<attribute key="imName" value="ddR2" />
-</symbol>
-<symbol id="108" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="331,441467" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="-2500" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#eeeeee" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="13" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="221,484573" />
-	<attribute key="imName" value="ddL2" />
-</symbol>
-<symbol id="102" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="1" />
-	<attribute key="pos_x" value="341,772156" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="-0" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/wood.jpg" />
-	<attribute key="height" value="5000" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="127,426163" />
-	<attribute key="imName" value="ddG" />
-</symbol>
-<symbol id="139" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-359,716095" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1" />
-	<attribute key="parent" value="136" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="200" />
-	<attribute key="texture" value="#550000" />
-	<attribute key="height" value="50" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="-200" />
-	<attribute key="pos_y" value="168,076950" />
-	<attribute key="imName" value="rgbd_mesh1" />
-</symbol>
-<symbol id="112" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-76,969818" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="111" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="-1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="-216" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-0.png" />
-	<attribute key="height" value="279" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="326,729034" />
-	<attribute key="imName" value="planeTag00" />
-</symbol>
-<symbol id="129" type="transform">
-	<attribute key="imName" value="caja6" />
-	<attribute key="pos_y" value="-146,392807" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="50,191818" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="113" type="transform">
-	<attribute key="imName" value="target01" />
-	<attribute key="pos_y" value="210,488892" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="101" />
-	<attribute key="pos_x" value="21,991377" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="130" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="122,691116" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="129" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="400" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
-	<attribute key="height" value="400" />
-	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="-48,797604" />
-	<attribute key="imName" value="cajaMesh6" />
-</symbol>
-<symbol id="111" type="transform">
-	<attribute key="imName" value="target00" />
-	<attribute key="pos_y" value="219,913773" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="101" />
-	<attribute key="pos_x" value="65,974129" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="128" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="275,105499" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="127" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="400" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
-	<attribute key="height" value="400" />
-	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="-136,708862" />
-	<attribute key="imName" value="cajaMesh5" />
-</symbol>
-<symbol id="110" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-20,420565" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#555555" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="13" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="-2500" />
-	<attribute key="pos_y" value="205,776459" />
-	<attribute key="imName" value="ddB2" />
-</symbol>
-<symbol id="127" type="transform">
-	<attribute key="imName" value="caja5" />
-	<attribute key="pos_y" value="-194,092834" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="232,911392" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="109" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="11,814346" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#555555" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="13" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="2500" />
-	<attribute key="pos_y" value="75,105484" />
-	<attribute key="imName" value="ddF2" />
-</symbol>
-<symbol id="126" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="34,855431" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="125" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="400" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
-	<attribute key="height" value="400" />
-	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="-48,797604" />
-	<attribute key="imName" value="cajaMesh4" />
-</symbol>
-<symbol id="134" type="laser">
-	<attribute key="pos_x" value="-386,419891" />
-	<attribute key="ifconfig" value="10000" />
-	<attribute key="angle" value="3" />
-	<attribute key="imType" value="laser" />
-	<attribute key="min" value="100" />
-	<attribute key="port" value="10003" />
-	<attribute key="level" value="3" />
-	<attribute key="laser_data_dists" value="2500,221680 2506,773682 2515,629639 2526,830566 2540,428223 2556,486084 2575,080078 2596,300537 2620,251221 2647,052246 2676,840820 2709,774170 2746,029785 2785,809814 1693,489990 1604,420654 1525,557007 1455,331543 1392,484619 1373,766846 1405,929932 1440,963013 1479,151733 1520,825806 1566,366455 1616,218262 3047,416992 2970,788818 2900,466064 2835,889160 2776,568848 2722,079102 2672,045166 2626,138184 2584,068115 2545,579346 2510,446289 2478,470215 2449,474854 2423,305908 627,816101 622,346375 617,522034 613,319641 609,719055 606,703308 604,258301 602,372864 601,038452 600,248840 600,000549 600,292480 601,125977 602,504700 604,434998 606,925659 609,988098 613,636719 617,888611 622,764160 628,287170 2425,319336 2451,711426 2480,941650 2513,166260 2548,562744 2587,332031 2629,702148 2675,931885 2726,312988 2781,178711 2840,906982 2905,929688 2976,740234 3053,905029 1611,306519 1561,843262 1516,650635 1475,289917 1437,384644 1402,608887 1370,680664 1397,315674 1460,718262 1531,591797 1611,217285 2825,129639 2781,917236 2742,437988 2706,464844 2673,798584 2644,262695 2617,702148 2593,980957 2572,980713 2554,598145 2538,745117 2525,345947 2514,338379 2505,671631 
-" />
-	<attribute key="measures" value="100" />
-	<attribute key="parent" value="133" />
-	<attribute key="laser_data_angles" value="1,500000 1,470000 1,440000 1,410000 1,380000 1,350000 1,320000 1,290000 1,260000 1,230000 1,200000 1,170000 1,140000 1,110000 1,080000 1,050000 1,020000 0,990000 0,960000 0,930000 0,900000 0,870000 0,840000 0,810000 0,780000 0,750000 0,720000 0,690000 0,660000 0,630000 0,600000 0,570000 0,540000 0,510000 0,480000 0,450000 0,420000 0,390000 0,360000 0,330000 0,300000 0,270000 0,240000 0,210000 0,180000 0,150000 0,120000 0,090000 0,060000 0,030000 0,000000 -0,030000 -0,060000 -0,090000 -0,120000 -0,150000 -0,180000 -0,210000 -0,240000 -0,270000 -0,300000 -0,330000 -0,360000 -0,390000 -0,420000 -0,450000 -0,480000 -0,510000 -0,540000 -0,570000 -0,600000 -0,630000 -0,660000 -0,690000 -0,720000 -0,750000 -0,780000 -0,810000 -0,840000 -0,870000 -0,900000 -0,930000 -0,960000 -0,990000 -1,020000 -1,050000 -1,080000 -1,110000 -1,140000 -1,170000 -1,200000 -1,230000 -1,260000 -1,290000 -1,320000 -1,350000 -1,380000 -1,410000 -1,440000 -1,470000 
-" />
-	<attribute key="pos_y" value="9,424875" />
-	<attribute key="imName" value="laser" />
-	<attribute key="max" value="30000" />
-</symbol>
-<symbol id="133" type="transform">
-	<attribute key="imName" value="laserPose" />
-	<attribute key="pos_y" value="-57,383965" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="131" />
-	<attribute key="pos_x" value="-339,240509" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="132" type="mesh">
-	<attribute key="imName" value="base_robex" />
-	<attribute key="pos_y" value="244,725739" />
-	<attribute key="scaley" value="1000" />
-	<attribute key="render" value="NormalRendering" />
-	<attribute key="collidable" value="false" />
-	<attribute key="path" value="/home/robocomp/robocomp/files/osgModels/robex/robex.ive" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="mesh" />
-	<attribute key="parent" value="131" />
-	<attribute key="pos_x" value="-167,932495" />
-	<attribute key="scalex" value="1000" />
-	<attribute key="scalez" value="1000" />
-</symbol>
-<symbol id="114" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-56,549255" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="113" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="-1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="-216" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-1.png" />
-	<attribute key="height" value="279" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="270,179779" />
-	<attribute key="imName" value="planeTag01" />
-</symbol>
-<symbol id="131" type="differentialrobot">
-	<attribute key="collide" value="false" />
-	<attribute key="imName" value="base" />
-	<attribute key="pos_y" value="-68,354431" />
-	<attribute key="imType" value="differentialrobot" />
-	<attribute key="parent" value="100" />
-	<attribute key="noise" value="0" />
-	<attribute key="level" value="1" />
-	<attribute key="port" value="10004" />
-	<attribute key="pos_x" value="-270,886078" />
-</symbol>
-<symbol id="135" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="-345,578766" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1" />
-	<attribute key="parent" value="133" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="100" />
-	<attribute key="texture" value="#ff0000" />
-	<attribute key="height" value="100" />
-	<attribute key="depth" value="1" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="-200" />
-	<attribute key="pos_y" value="23,562189" />
-	<attribute key="imName" value="sensorL" />
-</symbol>
-<symbol id="106" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="59,915611" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#555555" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="-2500" />
-	<attribute key="pos_y" value="4,219409" />
-	<attribute key="imName" value="ddB" />
-</symbol>
-<symbol id="140" type="transform">
-	<attribute key="imName" value="robotGeometricCenter" />
-	<attribute key="pos_y" value="93,670883" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="131" />
-	<attribute key="pos_x" value="-340,928284" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="103" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="59,690880" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="2500" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#eeeeee" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="289,029510" />
-	<attribute key="imName" value="ddR" />
-</symbol>
-<symbol id="137" type="imu">
-	<attribute key="imType" value="imu" />
-	<attribute key="imName" value="imu" />
-	<attribute key="pos_y" value="219,913773" />
-	<attribute key="parent" value="136" />
-	<attribute key="level" value="3" />
-	<attribute key="port" value="10010" />
-	<attribute key="pos_x" value="-318,874969" />
-</symbol>
-<symbol id="100" type="world">
-	<attribute key="pos_x" value="-90,295357" />
-	<attribute key="imName" value="world" />
-	<attribute key="parent" value="0" />
-	<attribute key="pos_y" value="-286,075958" />
-	<attribute key="imType" value="transform" />
-	<attribute key="level" value="0" />
-</symbol>
-<symbol id="136" type="transform">
-	<attribute key="imName" value="camera" />
-	<attribute key="pos_y" value="74,261604" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="131" />
-	<attribute key="pos_x" value="-268,354431" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="115" type="transform">
-	<attribute key="imName" value="target02" />
-	<attribute key="pos_y" value="249,759201" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="101" />
-	<attribute key="pos_x" value="270,179779" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="104" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="7,854063" />
-	<attribute key="nx" value="1" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="0" />
-	<attribute key="px" value="-2500" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#eeeeee" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="131,948257" />
-	<attribute key="imName" value="ddL" />
-</symbol>
-<symbol id="105" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="40,506329" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="200" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="101" />
-	<attribute key="level" value="2" />
-	<attribute key="nz" value="1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="5000" />
-	<attribute key="texture" value="#555555" />
-	<attribute key="height" value="500" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="2500" />
-	<attribute key="pos_y" value="35,443039" />
-	<attribute key="imName" value="ddF" />
-</symbol>
-<symbol id="116" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="235,621887" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="115" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="-1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="-216" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-2.png" />
-	<attribute key="height" value="279" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="365,999329" />
-	<attribute key="imName" value="planeTag02" />
-</symbol>
-<symbol id="117" type="transform">
-	<attribute key="imName" value="target03" />
-	<attribute key="pos_y" value="177,501831" />
-	<attribute key="level" value="2" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="101" />
-	<attribute key="pos_x" value="235,621887" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
-<symbol id="118" type="plane">
-	<attribute key="imType" value="plane" />
-	<attribute key="ny" value="0" />
-	<attribute key="pos_x" value="191,639145" />
-	<attribute key="nx" value="0" />
-	<attribute key="py" value="0" />
-	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="117" />
-	<attribute key="level" value="3" />
-	<attribute key="nz" value="-1" />
-	<attribute key="px" value="0" />
-	<attribute key="width" value="-216" />
-	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-3.png" />
-	<attribute key="height" value="279" />
-	<attribute key="depth" value="10" />
-	<attribute key="collidable" value="false" />
-	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="282,746277" />
-	<attribute key="imName" value="planeTag03" />
-</symbol>
-<symbol id="119" type="transform">
-	<attribute key="imName" value="caja1" />
-	<attribute key="pos_y" value="-19,519041" />
-	<attribute key="level" value="1" />
-	<attribute key="imType" value="transform" />
-	<attribute key="parent" value="100" />
-	<attribute key="pos_x" value="-200,767273" />
-	<attribute key="mass" value="0" />
-	<attribute key="engine" value="static" />
-</symbol>
 <symbol id="120" type="plane">
+	<attribute key="imName" value="cajaMesh1" />
+	<attribute key="pos_y" value="58,227848" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
 	<attribute key="imType" value="plane" />
 	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
+	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="119" />
 	<attribute key="pos_x" value="-169,620255" />
 	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [120]" />
 	<attribute key="py" value="0" />
 	<attribute key="repeat" value="1000" />
-	<attribute key="parent" value="119" />
-	<attribute key="level" value="2" />
 	<attribute key="nz" value="0" />
 	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
 	<attribute key="width" value="400" />
+	<attribute key="depth" value="400" />
+</symbol>
+<symbol id="119" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-168,177170" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [119]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-32,233959" />
+	<attribute key="imName" value="caja1" />
+</symbol>
+<symbol id="118" type="plane">
+	<attribute key="imName" value="planeTag03" />
+	<attribute key="pos_y" value="282,746277" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-3.png" />
+	<attribute key="height" value="279" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="117" />
+	<attribute key="pos_x" value="191,639145" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [118]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="-1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="-216" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="117" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="235,621887" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="101" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [117]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="177,501831" />
+	<attribute key="imName" value="target03" />
+</symbol>
+<symbol id="116" type="plane">
+	<attribute key="imName" value="planeTag02" />
+	<attribute key="pos_y" value="365,999329" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-2.png" />
+	<attribute key="height" value="279" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="115" />
+	<attribute key="pos_x" value="235,621887" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [116]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="-1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="-216" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="111" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="65,974129" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="101" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [111]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="219,913773" />
+	<attribute key="imName" value="target00" />
+</symbol>
+<symbol id="130" type="plane">
+	<attribute key="imName" value="cajaMesh6" />
+	<attribute key="pos_y" value="-48,797604" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
 	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
 	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="129" />
+	<attribute key="pos_x" value="122,691116" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [130]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="400" />
 	<attribute key="depth" value="400" />
-	<attribute key="collidable" value="false" />
+</symbol>
+<symbol id="113" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="21,991377" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="101" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [113]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="210,488892" />
+	<attribute key="imName" value="target01" />
+</symbol>
+<symbol id="129" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="50,191818" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [129]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-146,392807" />
+	<attribute key="imName" value="caja6" />
+</symbol>
+<symbol id="112" type="plane">
+	<attribute key="imName" value="planeTag00" />
+	<attribute key="pos_y" value="326,729034" />
 	<attribute key="pz" value="0" />
-	<attribute key="pos_y" value="58,227848" />
-	<attribute key="imName" value="cajaMesh1" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-0.png" />
+	<attribute key="height" value="279" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="111" />
+	<attribute key="pos_x" value="-76,969818" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [112]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="-1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="-216" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="102" type="plane">
+	<attribute key="imName" value="ddG" />
+	<attribute key="pos_y" value="127,426163" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="1" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/wood.jpg" />
+	<attribute key="height" value="5000" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="341,772156" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [102]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="-0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="139" type="plane">
+	<attribute key="imName" value="rgbd_mesh1" />
+	<attribute key="pos_y" value="168,076950" />
+	<attribute key="pz" value="-200" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#550000" />
+	<attribute key="height" value="50" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="136" />
+	<attribute key="pos_x" value="-359,716095" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [139]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="200" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="107" type="plane">
+	<attribute key="imName" value="ddR2" />
+	<attribute key="pos_y" value="205,776459" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#eeeeee" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="177,501831" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [107]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="2500" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="13" />
+</symbol>
+<symbol id="124" type="plane">
+	<attribute key="imName" value="cajaMesh3" />
+	<attribute key="pos_y" value="39,038082" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
+	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="123" />
+	<attribute key="pos_x" value="-44,614952" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [124]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="400" />
+	<attribute key="depth" value="400" />
+</symbol>
+<symbol id="108" type="plane">
+	<attribute key="imName" value="ddL2" />
+	<attribute key="pos_y" value="221,484573" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#eeeeee" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="331,441467" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [108]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="-2500" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="13" />
+</symbol>
+<symbol id="125" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-30,672779" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [125]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-149,181244" />
+	<attribute key="imName" value="caja4" />
+</symbol>
+<symbol id="123" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-64,133995" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [123]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-79,470383" />
+	<attribute key="imName" value="caja3" />
+</symbol>
+<symbol id="122" type="plane">
+	<attribute key="imName" value="cajaMesh2" />
+	<attribute key="pos_y" value="122,691116" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
+	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="121" />
+	<attribute key="pos_x" value="-105,960510" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [122]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="400" />
+	<attribute key="depth" value="400" />
+</symbol>
+<symbol id="101" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="299,578064" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [101]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-50,632912" />
+	<attribute key="imName" value="floor" />
+</symbol>
+<symbol id="138" type="rgbd">
+	<attribute key="width" value="640" />
+	<attribute key="ifconfig" value="40000,50000" />
+	<attribute key="noise" value="0" />
+	<attribute key="imType" value="rgbd" />
+	<attribute key="imName" value="rgbd" />
+	<attribute key="pos_y" value="197,922394" />
+	<attribute key="parent" value="136" />
+	<attribute key="focal" value="490" />
+	<attribute key="height" value="480" />
+	<attribute key="name" value="rgbd [138]" />
+	<attribute key="port" value="10096" />
+	<attribute key="level" value="3" />
+	<attribute key="color" value="coral" />
+	<attribute key="pos_x" value="-246,617584" />
+</symbol>
+<symbol id="121" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-131,056412" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [121]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-37,643864" />
+	<attribute key="imName" value="caja2" />
+</symbol>
+<symbol id="128" type="plane">
+	<attribute key="imName" value="cajaMesh5" />
+	<attribute key="pos_y" value="-136,708862" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
+	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="127" />
+	<attribute key="pos_x" value="275,105499" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [128]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="400" />
+	<attribute key="depth" value="400" />
+</symbol>
+<symbol id="110" type="plane">
+	<attribute key="imName" value="ddB2" />
+	<attribute key="pos_y" value="205,776459" />
+	<attribute key="pz" value="-2500" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#555555" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="-20,420565" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [110]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="13" />
+</symbol>
+<symbol id="127" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="232,911392" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="100" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [127]" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-194,092834" />
+	<attribute key="imName" value="caja5" />
+</symbol>
+<symbol id="109" type="plane">
+	<attribute key="imName" value="ddF2" />
+	<attribute key="pos_y" value="75,105484" />
+	<attribute key="pz" value="2500" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#555555" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="11,814346" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [109]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="13" />
+</symbol>
+<symbol id="126" type="plane">
+	<attribute key="imName" value="cajaMesh4" />
+	<attribute key="pos_y" value="-48,797604" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" />
+	<attribute key="height" value="400" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="125" />
+	<attribute key="pos_x" value="34,855431" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [126]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="400" />
+	<attribute key="depth" value="400" />
+</symbol>
+<symbol id="134" type="laser">
+	<attribute key="max" value="30000" />
+	<attribute key="imName" value="laser" />
+	<attribute key="pos_y" value="9,424875" />
+	<attribute key="laser_data_angles" value="1,500000 1,470000 1,440000 1,410000 1,380000 1,350000 1,320000 1,290000 1,260000 1,230000 1,200000 1,170000 1,140000 1,110000 1,080000 1,050000 1,020000 0,990000 0,960000 0,930000 0,900000 0,870000 0,840000 0,810000 0,780000 0,750000 0,720000 0,690000 0,660000 0,630000 0,600000 0,570000 0,540000 0,510000 0,480000 0,450000 0,420000 0,390000 0,360000 0,330000 0,300000 0,270000 0,240000 0,210000 0,180000 0,150000 0,120000 0,090000 0,060000 0,030000 0,000000 -0,030000 -0,060000 -0,090000 -0,120000 -0,150000 -0,180000 -0,210000 -0,240000 -0,270000 -0,300000 -0,330000 -0,360000 -0,390000 -0,420000 -0,450000 -0,480000 -0,510000 -0,540000 -0,570000 -0,600000 -0,630000 -0,660000 -0,690000 -0,720000 -0,750000 -0,780000 -0,810000 -0,840000 -0,870000 -0,900000 -0,930000 -0,960000 -0,990000 -1,020000 -1,050000 -1,080000 -1,110000 -1,140000 -1,170000 -1,200000 -1,230000 -1,260000 -1,290000 -1,320000 -1,350000 -1,380000 -1,410000 -1,440000 -1,470000 
+" />
+	<attribute key="laser_data_dists" value="892,630920 879,216980 866,968933 855,817017 845,699707 836,562988 828,359009 821,046082 814,587769 808,952698 804,113647 800,047852 796,736389 794,164001 792,318848 791,192627 790,780273 791,079895 792,092834 793,823669 796,280273 799,473816 803,419006 808,134216 813,641663 819,967651 827,142944 835,203247 844,189392 854,147949 865,132141 877,202332 890,426697 904,882629 920,657959 937,851990 956,577820 976,963745 999,156189 1023,322693 1049,655273 1078,374756 1109,737061 1144,038452 1181,625366 1222,903687 1268,353394 1318,544067 1374,158203 1436,019897 1505,132080 1582,729248 1670,347534 1769,921387 1883,922119 2015,558594 2169,071533 2350,184814 2566,821289 2830,255859 3157,113281 3572,958984 4012,607666 3990,986816 3973,154053 3959,026855 3948,540527 3941,647705 3938,316650 1244,651245 1245,840820 1248,156982 1251,610107 1256,216187 1261,996216 1268,976807 1277,191040 1286,677612 1297,482666 4144,241699 4187,307129 4235,127930 4287,957520 4346,082031 4409,827148 4479,561523 4555,702148 4638,722656 4729,160156 4827,625488 4934,813477 5051,518066 5178,650391 450,517303 436,289764 423,302521 411,425690 400,547729 390,572601 381,417267 
+" />
+	<attribute key="min" value="100" />
+	<attribute key="imType" value="laser" />
+	<attribute key="angle" value="3" />
+	<attribute key="measures" value="100" />
+	<attribute key="parent" value="133" />
+	<attribute key="name" value="laser [134]" />
+	<attribute key="port" value="10003" />
+	<attribute key="level" value="3" />
+	<attribute key="color" value="GreenYellow" />
+	<attribute key="pos_x" value="-386,419891" />
+	<attribute key="ifconfig" value="10000" />
+</symbol>
+<symbol id="133" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-339,240509" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="131" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [133]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-57,383965" />
+	<attribute key="imName" value="laserPose" />
+</symbol>
+<symbol id="132" type="mesh">
+	<attribute key="scalez" value="1000" />
+	<attribute key="pos_x" value="-167,932495" />
+	<attribute key="imType" value="mesh" />
+	<attribute key="path" value="/home/robocomp/robocomp/files/osgModels/robex/robex.ive" />
+	<attribute key="collidable" value="false" />
+	<attribute key="render" value="NormalRendering" />
+	<attribute key="parent" value="131" />
+	<attribute key="scalex" value="1000" />
+	<attribute key="name" value="mesh [132]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="LightBlue" />
+	<attribute key="scaley" value="1000" />
+	<attribute key="pos_y" value="244,725739" />
+	<attribute key="imName" value="base_robex" />
+</symbol>
+<symbol id="114" type="plane">
+	<attribute key="imName" value="planeTag01" />
+	<attribute key="pos_y" value="270,179779" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="/home/robocomp/robocomp/files/innermodel/tar36h11-1.png" />
+	<attribute key="height" value="279" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="113" />
+	<attribute key="pos_x" value="-56,549255" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [114]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="-1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="-216" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="131" type="differentialrobot">
+	<attribute key="pos_x" value="-235,448044" />
+	<attribute key="noise" value="0" />
+	<attribute key="imType" value="differentialrobot" />
+	<attribute key="parent" value="100" />
+	<attribute key="name" value="differentialrobot [131]" />
+	<attribute key="port" value="10004" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="GoldenRod" />
+	<attribute key="collide" value="false" />
+	<attribute key="pos_y" value="-168,177170" />
+	<attribute key="imName" value="base" />
+</symbol>
+<symbol id="135" type="plane">
+	<attribute key="imName" value="sensorL" />
+	<attribute key="pos_y" value="23,562189" />
+	<attribute key="pz" value="-200" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#ff0000" />
+	<attribute key="height" value="100" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="133" />
+	<attribute key="pos_x" value="-345,578766" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [135]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="100" />
+	<attribute key="depth" value="1" />
+</symbol>
+<symbol id="106" type="plane">
+	<attribute key="imName" value="ddB" />
+	<attribute key="pos_y" value="4,219409" />
+	<attribute key="pz" value="-2500" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#555555" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="59,915611" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [106]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="140" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-340,928284" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="131" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [140]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="93,670883" />
+	<attribute key="imName" value="robotGeometricCenter" />
+</symbol>
+<symbol id="103" type="plane">
+	<attribute key="imName" value="ddR" />
+	<attribute key="pos_y" value="289,029510" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#eeeeee" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="59,690880" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [103]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="2500" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="137" type="imu">
+	<attribute key="pos_x" value="-318,874969" />
+	<attribute key="parent" value="136" />
+	<attribute key="name" value="imu [137]" />
+	<attribute key="imType" value="imu" />
+	<attribute key="port" value="10010" />
+	<attribute key="level" value="3" />
+	<attribute key="color" value="LightSalmon" />
+	<attribute key="pos_y" value="219,913773" />
+	<attribute key="imName" value="imu" />
+</symbol>
+<symbol id="100" type="world">
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="0" />
+	<attribute key="name" value="world [100]" />
+	<attribute key="level" value="0" />
+	<attribute key="color" value="SeaGreen" />
+	<attribute key="pos_x" value="-90,295357" />
+	<attribute key="pos_y" value="-286,075958" />
+	<attribute key="imName" value="world" />
+</symbol>
+<symbol id="136" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-268,354431" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="131" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [136]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="74,261604" />
+	<attribute key="imName" value="camera" />
+</symbol>
+<symbol id="115" type="transform">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="270,179779" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="101" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [115]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="249,759201" />
+	<attribute key="imName" value="target02" />
+</symbol>
+<symbol id="104" type="plane">
+	<attribute key="imName" value="ddL" />
+	<attribute key="pos_y" value="131,948257" />
+	<attribute key="pz" value="0" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#eeeeee" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="7,854063" />
+	<attribute key="nx" value="1" />
+	<attribute key="name" value="plane [104]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="0" />
+	<attribute key="px" value="-2500" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="10" />
+</symbol>
+<symbol id="105" type="plane">
+	<attribute key="imName" value="ddF" />
+	<attribute key="pos_y" value="35,443039" />
+	<attribute key="pz" value="2500" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#555555" />
+	<attribute key="height" value="500" />
+	<attribute key="level" value="2" />
+	<attribute key="parent" value="101" />
+	<attribute key="pos_x" value="40,506329" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [105]" />
+	<attribute key="py" value="200" />
+	<attribute key="repeat" value="1000" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="5000" />
+	<attribute key="depth" value="10" />
 </symbol>
 
 
+<link src="119" dst="120" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="117" dst="118" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="111" dst="112" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="113" dst="114" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="129" dst="130" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
 <link src="125" dst="126" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
@@ -652,7 +774,23 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="121" dst="122" label="RT">
+<link src="101" dst="115" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="350" />
+	<linkAttribute key="tz" value="-2480" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="101" dst="117" label="RT">
+	<linkAttribute key="tx" value="-2480" />
+	<linkAttribute key="ty" value="350" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="1" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="101" dst="110" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -660,7 +798,31 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="101" dst="103" label="RT">
+<link src="101" dst="113" label="RT">
+	<linkAttribute key="tx" value="2480" />
+	<linkAttribute key="ty" value="350" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="-1" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="101" dst="109" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="101" dst="111" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="350" />
+	<linkAttribute key="tz" value="2480" />
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="3" />
+	<linkAttribute key="rz" value="0" />
+</link>
+<link src="101" dst="108" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -669,6 +831,14 @@
 	<linkAttribute key="rz" value="-0" />
 </link>
 <link src="101" dst="102" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="101" dst="103" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -708,79 +878,7 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="101" dst="108" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="101" dst="111" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="350" />
-	<linkAttribute key="tz" value="2480" />
-	<linkAttribute key="rx" value="0" />
-	<linkAttribute key="ry" value="3" />
-	<linkAttribute key="rz" value="0" />
-</link>
-<link src="101" dst="109" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="101" dst="113" label="RT">
-	<linkAttribute key="tx" value="2480" />
-	<linkAttribute key="ty" value="350" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="-1" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="101" dst="110" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="101" dst="117" label="RT">
-	<linkAttribute key="tx" value="-2480" />
-	<linkAttribute key="ty" value="350" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="1" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="101" dst="115" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="350" />
-	<linkAttribute key="tz" value="-2480" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="129" dst="130" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="113" dst="114" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="111" dst="112" label="RT">
+<link src="121" dst="122" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -796,6 +894,14 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
+<link src="133" dst="135" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
 <link src="133" dst="134" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
@@ -804,7 +910,15 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="133" dst="135" label="RT">
+<link src="131" dst="136" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="210" />
+	<linkAttribute key="tz" value="200" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="131" dst="132" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -828,7 +942,7 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="131" dst="132" label="RT">
+<link src="100" dst="101" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -836,13 +950,21 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="131" dst="136" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="210" />
-	<linkAttribute key="tz" value="200" />
+<link src="100" dst="129" label="RT">
+	<linkAttribute key="tx" value="-1300" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="1200" />
 	<linkAttribute key="rx" value="-0" />
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="100" dst="131" label="RT">
+	<linkAttribute key="tx" value="-1614.65" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="-1597.64" />
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="2.12397" />
+	<linkAttribute key="rz" value="0" />
 </link>
 <link src="100" dst="119" label="RT">
 	<linkAttribute key="tx" value="0" />
@@ -851,14 +973,6 @@
 	<linkAttribute key="rx" value="-0" />
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="100" dst="131" label="RT">
-	<linkAttribute key="tx" value="20" />
-	<linkAttribute key="ty" value="30" />
-	<linkAttribute key="tz" value="40" />
-	<linkAttribute key="rx" value="-0.265482" />
-	<linkAttribute key="ry" value="3.45133" />
-	<linkAttribute key="rz" value="0.884962" />
 </link>
 <link src="100" dst="121" label="RT">
 	<linkAttribute key="tx" value="1300" />
@@ -892,15 +1006,7 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="100" dst="129" label="RT">
-	<linkAttribute key="tx" value="-1300" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="1200" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="100" dst="101" label="RT">
+<link src="136" dst="138" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />
@@ -924,31 +1030,7 @@
 	<linkAttribute key="ry" value="0" />
 	<linkAttribute key="rz" value="-0" />
 </link>
-<link src="136" dst="138" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
 <link src="115" dst="116" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="117" dst="118" label="RT">
-	<linkAttribute key="tx" value="0" />
-	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
-</link>
-<link src="119" dst="120" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
 	<linkAttribute key="tz" value="0" />

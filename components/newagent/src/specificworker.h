@@ -61,7 +61,7 @@ class SpecificWorker : public GenericWorker
 		InnerModelAPI innerapi;
 		std::unique_ptr<DSR::GraphCRDT> gcrdt; 
 		std::shared_ptr<DSR::Graph> graph;
-		const std::string AGENT_NAME = "Laser Agent";
+		std::string AGENT_NAME = "Laser Agent";
 };
 
 #endif
