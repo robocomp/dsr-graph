@@ -717,14 +717,13 @@
 	<attribute key="depth" value="10" />
 </symbol>
 
-
 <link src="119" dst="120" label="RT">
 	<linkAttribute key="tx" value="0" />
 	<linkAttribute key="ty" value="0" />
-	<linkAttribute key="tz" value="0" />
-	<linkAttribute key="rx" value="-0" />
-	<linkAttribute key="ry" value="0" />
-	<linkAttribute key="rz" value="-0" />
+	<linkAttribute key="tz" value="789" />
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="1.5" />
+	<linkAttribute key="rz" value="0" />
 </link>
 <link src="117" dst="118" label="RT">
 	<linkAttribute key="tx" value="0" />

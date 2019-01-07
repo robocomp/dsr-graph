@@ -66,10 +66,11 @@ void SpecificWorker::initialize(int period)
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
-	// graph->print();
-
+	//graph->print();
+	
 	// CRDT creation and connection to graph
 	gcrdt = std::make_unique<DSR::GraphCRDT>(graph, AGENT_NAME);
+	gcrdt->printIceGraph();
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::EdgeAttrsChangedSLOT); 
 	gcrdt->startGraphRequestThread();
@@ -122,8 +123,7 @@ void SpecificWorker::compute()
 		RMat::RTMat rt;
     	rt.setTr( QVec::vec3(bState.x, 0, bState.z));
 		rt.setRX(0.f);rt.setRY(bState.alpha);rt.setRZ(0.f);
-		
-		//graph->addEdgeAttribs(world_id, base_id, DSR::Attribs{std::make_pair("RT", rt)} );
+		graph->addEdgeAttribs(world_id, base_id, DSR::Attribs{std::make_pair("RT", rt)} );
 
 
 		//innerapi.updateTransformValues("base", bState.x, 0, bState.z, 0, bState.alpha, 0);

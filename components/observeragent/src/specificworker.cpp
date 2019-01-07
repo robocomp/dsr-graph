@@ -62,7 +62,6 @@ void SpecificWorker::initialize(int period)
 	//connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, gcrdt.get(), &DSR::GraphCRDT::NodeAttrsChangedSLOT); 
 	gcrdt->newGraphRequestAndWait();
 	//graph->print();
-	//gcrdt->startSubscriptionThread();
 	//gcrdt->printIceGraph();
 	//graph->print();
 	
@@ -73,8 +72,11 @@ void SpecificWorker::initialize(int period)
 	connect(graph.get(), &DSR::Graph::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
 	connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
 	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT); 
+	//connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT); 
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	
+
+	gcrdt->startSubscriptionThread();
 
 	this->Period = 100;
 	timer.start(Period);
