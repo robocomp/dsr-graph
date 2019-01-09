@@ -1,0 +1,9 @@
+
+Component concurrent
+{
+	Communications
+	{
+	};
+	language Cpp11;
+};
+
