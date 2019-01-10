@@ -39,7 +39,7 @@ void SpecificWorker::initialize(int period)
 	graph = std::make_shared<DSR::Graph>();
 	//graph->readFromFile("/home/robocomp/robocomp/files/innermodel/simpleworld-hybrid.xml");
 	graph->readFromFile("caca.xml");
-	graph->print();
+	//graph->print();
 
 	this->Period = period;
 	timer.setSingleShot(true);
@@ -52,9 +52,12 @@ void SpecificWorker::compute()
 
 	{
 		auto node = graph->getNodePtr(100);
-		std::cout << node->id << /*node->attrs.at("imType" << " " <<*/ node->type  << std::endl;
+		std::cout << "line" << std::endl;	
+		std::cout << "id " << node->id /*<< node->attrs.at("imType")*/ << " type " << node->type  << std::endl;
 	}
-	
+
+
+	std::cout << "line" << std::endl;	
 	auto nodeT = graph->nodes[100];
 	std::cout << "Truth " << nodeT.id << " " << nodeT.type  << std::endl;
 
