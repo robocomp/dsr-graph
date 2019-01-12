@@ -54,7 +54,7 @@ void SpecificWorker::compute()
 		{
 			auto n = graph->getNodePtr(100);
 			auto &node = *(n.get());
-		}
+		// }  //if scope is removed the second new blocks here
 		std::cout << "waiting" << std::endl;
 		auto n2 = graph->getNodePtr(100);
 		auto &node2 = *(n2.get());
