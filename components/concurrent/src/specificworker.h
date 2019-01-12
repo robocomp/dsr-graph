@@ -3,6 +3,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include <cppitertools/range.hpp>
 #include "../../graph-related-classes/graphNEW.h"
 //#include "../../graph-related-classes/graphviewer.h"
 
