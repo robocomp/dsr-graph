@@ -23,6 +23,9 @@ private:
 	InnerModel *innerModel;
 	std::shared_ptr<DSR::Graph> graph;
 
+	// template<typename T>
+	// T& deref(T *a) { return *a;};
+
 };
 
 #endif

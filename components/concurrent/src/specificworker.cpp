@@ -51,16 +51,21 @@ void SpecificWorker::compute()
 	//Let's start the party
 
 	{
-		auto node = graph->getNodePtr(100);
-		std::cout << "line" << std::endl;	
-		std::cout << "id " << (*node)->id /*<< node->attrs.at("imType")*/ << " type " << (*node)->type  << std::endl;
+		{
+			auto n = graph->getNodePtr(100);
+			auto &node = *(n.get());
+		}
+		std::cout << "waiting" << std::endl;
+		auto n2 = graph->getNodePtr(100);
+		auto &node2 = *(n2.get());
+		
+		
+		std::cout << "id " << node2->id << " type " << node2->type  << std::endl;
+		//std::cout << "did " << node->id << " type " << node->type  << std::endl;
 	}
-
-
 	std::cout << "line" << std::endl;	
 	auto nodeT = graph->nodes[100];
 	std::cout << "Truth, should be: " << nodeT.id << " " << nodeT.type  << std::endl;
-
 }
 
 
