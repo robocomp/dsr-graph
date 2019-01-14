@@ -40,7 +40,10 @@ private:
     	writer.add(move(node));
 		return writer;
 	}
+
+
     ormap<string,aworset<N>> nodes; // Real data
+
 };
 
 #endif
