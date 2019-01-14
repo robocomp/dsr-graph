@@ -68,9 +68,20 @@ void SpecificWorker::subscribeThread()
         try
         {
             auto sample = reader.getNextUnread();
-            nodes[std::to_string(sample.getValue().id)].add(sample.getValue());
-            std::cout <<"Nodes:"<< nodes <<"--------------------"<<std::endl;
-//            std::cout << "Received: node " << sample.getValue().id<< " from " << sample.getKey() << std::endl;
+            std::cout << "Received: node " << sample.getValue().id<< " from " << sample.getKey() << std::endl;
+            std::string strId = to_string(sample.getValue().id);
+            auto contx = nodes.context().get(strId);
+            if (!contx.empty()) {
+                if (contx.back().first <= sample.getValue().causalContext) {
+                    nodes[strId].add(sample.getValue(), strId);
+                    std::cout << "------> LLEGA BIEN. [CC:"<<sample.getValue().causalContext<<"]. CC_actual: "<<contx.back().first<<" valido. "<< sample.getValue() << endl;
+                } else
+                    std::cout << "------> LLEGA TARDE. [CC:" << sample.getValue().causalContext << "]. CC_actual: "
+                         << contx.back().first << ". " << sample.getValue() << endl;
+            } else {
+                std::cout << "New Value"<<std::endl;
+                nodes[strId].add(sample.getValue(), strId);
+            }
         }
         catch (const std::exception &ex) 
         {   cerr << ex.what() << endl;  }
@@ -83,9 +94,12 @@ void SpecificWorker::compute()
     topic->waitForReaders();
     try{
         cont++;
-        nodes[std::to_string(cont)].add(RoboCompDSR::Content{"foo",cont});
-        for (auto n_ice : nodes[std::to_string(cont)].readAsList())
+        nodes[std::to_string(cont)].add(RoboCompDSR::Content{"foo",cont}, std::to_string(cont));
+        for (auto n_ice : nodes[std::to_string(cont)].readAsList()){
+            n_ice.second.causalContext = nodes[std::to_string(cont)].context().get().first.front().second;
+            n_ice.second.dotCloud = nodes[std::to_string(cont)].context().get().second.front().second;
             writer->update(n_ice.second);
+        }
     }
     catch  (const std::exception &ex)  { cerr << __FUNCTION__ << " -> "<<ex.what()<<std::endl;}
 }

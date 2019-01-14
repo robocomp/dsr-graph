@@ -141,7 +141,7 @@ struct Content
             output<<"], FanOut:[";
             for (auto [k,v] : c_.fano)
                 output << k <<":"<< v;
-            output<<"], Contexto-ICE:[CC:"<<c_.causalContext<<", DC:"<<c_.dotCloud<<"]"<<std::endl;
+            output<<"], Contexto-ICE:[CC:"<<c_.causalContext<<", DC:"<<c_.dotCloud<<"]";
             return output;
             }
 };
