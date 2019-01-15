@@ -9,6 +9,8 @@ module RoboCompDSR
 		Attribs attrs; 
 	};
     dictionary<int, EdgeAttribs> FanOut;
+
+    // Topic for node graph sync
     struct Content
     { 
         string type;
@@ -19,6 +21,8 @@ module RoboCompDSR
         int dotCloud;
     };
 
+    // Topic for full graph sync
+    dictionary<int, Content> DSRGraph;
 
     // Topic for full graph requests
     struct GraphRequest
