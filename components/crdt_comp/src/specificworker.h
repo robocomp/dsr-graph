@@ -10,6 +10,7 @@
 #include "DSRGraph.h"
 
 using N = RoboCompDSR::Content; // For each node
+using G = RoboCompDSR::DSRGraph; // For full graph
 
 class SpecificWorker : public GenericWorker
 {
@@ -25,22 +26,17 @@ public slots:
 
 private:
 	InnerModel *innerModel;
-	string role;
+	std::string agent_name, filter;
+	bool work;
 	DataStorm::Node node;
 	std::shared_ptr<DataStorm::SingleKeyWriter<std::string, N>> writer;
 	std::shared_ptr<DataStorm::Topic<std::string, N>> topic;
 
 	void subscribeThread();
-	std::thread read_thread;
+	void serveFullGraphThread();
+	void newGraphRequestAndWait();
 
-	DataStorm::SingleKeyWriter<std::string, N>
-	makeGraphWriter(DataStorm::Topic<std::string, N>& topic, std::string sender, N node)
-	{
-		auto writer = DataStorm::makeSingleKeyWriter(topic, move(sender));
-    	writer.add(move(node));
-		return writer;
-	}
-
+	std::thread read_thread, full_graph;
 
     ormap<string,aworset<N>> nodes; // Real data
 

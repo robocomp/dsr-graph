@@ -1,4 +1,4 @@
-CommonBehavior.Endpoints=tcp -p 10001
+CommonBehavior.Endpoints=tcp -p 10000
 
 InnerModelPath = innermodel.xml
 
@@ -6,4 +6,4 @@ Ice.Warn.Connections=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 
-agent_name = agent1
+agent_name = agent3
