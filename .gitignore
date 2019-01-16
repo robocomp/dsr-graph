@@ -12,3 +12,17 @@ components/newcomp/bin/
 components/newcomp/CMakeFiles/3\.12\.1/CMakeCCompiler\.cmake
 
 components/newcomp/CMakeFiles/
+
+components/crdt_comp/bin/
+
+components/crdt_comp/CMakeFiles/
+
+components/crdt_comp/DataStorm_examples/
+
+components/crdt_comp/src/CMakeFiles/
+
+components/crdt_comp/src/CrdtComp_autogen/
+
+*.cmake
+
+\.idea/
