@@ -42,11 +42,11 @@ void SpecificWorker::initialize(int period) {
     int argc = 0;
     char *argv[0];
     filter = "^(?!" + agent_name + "$).*$";
-    work = true;
+    work = false;
     // General topic update
     node = DataStorm::Node(argc, argv);
     topic = std::make_shared < DataStorm::Topic < std::string, N >> (node, "DSR");
-    topic->setWriterDefaultConfig({Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never});
+    topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     // No filter for this topic
     writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, N >> (*topic.get(), "DSR");
 
@@ -62,7 +62,7 @@ void SpecificWorker::initialize(int period) {
 // Subscribe thread
 void SpecificWorker::subscribeThread() {
     DataStorm::Topic <std::string, N> topic(node, "DSR");
-    topic.setReaderDefaultConfig({Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::Never});
+    topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     auto reader = DataStorm::makeSingleKeyReader(topic, "DSR");
     std::cout << "starting reader" << std::endl;
     reader.waitForWriters(); // If someone is writting...
@@ -92,26 +92,26 @@ void SpecificWorker::subscribeThread() {
 void SpecificWorker::compute() {
 
     if (work) {
-        static int cont = 0, vueltas = 0;
+        static int cont = 0, laps = 0;
         topic->waitForReaders();
-        if (vueltas < 5) {
+        if (laps < LAPS + agent_name.back() -48) { // Laps = 5 - agent id (just for random)
             try {
                 cont++;
-                nodes[std::to_string(cont)].add(RoboCompDSR::Content{
-                                                        "foo_" + std::to_string(cont) + "," + std::to_string(vueltas) + "_from_" + agent_name, cont},
-                                                std::to_string(cont));
-                for (auto n_ice : nodes[std::to_string(cont)].readAsList()) {
-                    n_ice.second.causalContext = nodes[std::to_string(cont)].context().get().first.front().second;
-                    n_ice.second.dotCloud = nodes[std::to_string(cont)].context().get().second.front().second;
-                    usleep(agent_name.back() * 1000); // Latencia en función del ID.
-                    writer->update(n_ice.second);
+                auto newNode = RoboCompDSR::Content{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
+
+                auto contx = nodes.context().get(std::to_string(cont));
+                if (!contx.empty()) {
+                    newNode.causalContext = contx.back().first;
+                    newNode.dotCloud = contx.back().second;
                 }
+                usleep((agent_name.back()-48) * 1000); // Latencia en función del ID.
+                writer->update(newNode);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
 
-            if (cont > 9) {
+            if (cont > NODES) {
                 cont = 0;
-                vueltas++;
+                laps++;
             }
 
         } else {
@@ -127,14 +127,18 @@ void SpecificWorker::newGraphRequestAndWait() {
     DataStorm::Topic <std::string, G> topic_answer(node, "DSR_GRAPH_ANSWER");
     DataStorm::FilteredKeyReader <std::string, G> reader(topic_answer,
                                                          DataStorm::Filter<std::string>("_regex", filter.c_str()));
+    topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
     DataStorm::Topic <std::string, RoboCompDSR::GraphRequest> topicR(node, "DSR_GRAPH_REQUEST");
     DataStorm::SingleKeyWriter <std::string, RoboCompDSR::GraphRequest> writer(topicR, agent_name,
                                                                                agent_name + " Full Graph Request");
+    topicR.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topicR.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     writer.add(RoboCompDSR::GraphRequest{agent_name});
 
 
-    if (agent_name == "agent1") { //TODO: Check if i am first to arrive
+    if (agent_name != "agent0") { //TODO: Check if i am first to arrive
         std::cout << __FUNCTION__ << " Wait for writers " << std::endl;
         auto sample = reader.getNextUnread();
         std::cout << __FUNCTION__ << " Samples received " << std::endl;
@@ -152,6 +156,7 @@ void SpecificWorker::newGraphRequestAndWait() {
 
 //    copyIceGraphToDSRGraph(this->ice_graph);
     std::cout << __FUNCTION__ << " Finished uploading full graph" << std::endl;
+    work = true;
 }
 
 
@@ -164,28 +169,37 @@ void SpecificWorker::serveFullGraphThread() {
                                                                                            DataStorm::Filter<std::string>(
                                                                                                    "_regex",
                                                                                                    filter.c_str()));
-    auto processSample = [this](auto sample) {
-        std::cout << sample.getValue().from << " asked for full graph" << std::endl;
-        work = false;
-        sleep(3);
-        G ice_graph;
-        DataStorm::Topic <std::string, G> topic_answer(node, "DSR_GRAPH_ANSWER");
-        DataStorm::SingleKeyWriter <std::string, G> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
-        auto map = nodes.getFullOrMap();
-        auto context = map.second.second;
-        for (auto node : map.second.first) {
-            for (auto node_value : node.second.readAsList()) {
-                auto listContext = context.get();
-                node_value.second.causalContext = listContext.first.front().second;
-                node_value.second.dotCloud = listContext.second.front().second;
-                cout << node_value.second.id << ", " << node_value.second << endl;
-                ice_graph.insert(std::make_pair(node_value.second.id, node_value.second));
+    topic_graph_request.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic_graph_request.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
+    auto processSample = [this](auto sample) {
+        if (work) {
+            work = false;
+            std::cout << sample.getValue().from << " asked for full graph" << std::endl;
+            sleep(3);
+            G ice_graph;
+            DataStorm::Topic <std::string, G> topic_answer(node, "DSR_GRAPH_ANSWER");
+            DataStorm::SingleKeyWriter <std::string, G> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
+            topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+            topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+
+            auto map = nodes.getFullOrMap();
+            auto context = map.second.second;
+            cout << "-- Sync -- " << endl;
+            for (auto node : map.second.first) {
+                for (auto node_value : node.second.readAsList()) {
+                    auto listContext = context.get();
+                    node_value.second.causalContext = listContext.first.front().second;
+                    node_value.second.dotCloud = listContext.second.front().second;
+                    cout << node_value.second.id << ", " << node_value.second << endl;
+                    ice_graph.insert(std::make_pair(node_value.second.id, node_value.second));
+
+                }
             }
+            writer.add(ice_graph);
+            std::cout << "Full graph written from lambda" << std::endl;
+            work = true;
         }
-        writer.add(ice_graph);
-        std::cout << "Full graph written from lambda" << std::endl;
-        work = true;
     };
     new_graph_reader.onSamples([processSample](const auto &samples) { for (const auto &s : samples) processSample(s); },
                                processSample);

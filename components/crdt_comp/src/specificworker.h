@@ -12,6 +12,10 @@
 using N = RoboCompDSR::Content; // For each node
 using G = RoboCompDSR::DSRGraph; // For full graph
 
+
+#define LAPS 5
+#define NODES 10
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT

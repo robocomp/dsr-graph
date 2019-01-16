@@ -24,3 +24,5 @@ components/crdt_comp/src/CMakeFiles/
 components/crdt_comp/src/CrdtComp_autogen/
 
 *.cmake
+
+\.idea/
