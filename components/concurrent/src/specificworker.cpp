@@ -109,8 +109,9 @@ void SpecificWorker::compute()
 		for(auto i: iter::range(100000))
 		{
 			auto ind = dist(gen);
-			auto n2 = graph->getNodePtr(ind);
-			auto &node2 = *(n2.get());
+			//auto n2 = graph->getNodePtr(ind);
+			auto &node2 = *(graph->getNodePtr(ind).get());
+			//auto &node2 = *(n2.get());
 			node2->type = "morningsinger";
 		}
 		auto finish = std::chrono::high_resolution_clock::now();
