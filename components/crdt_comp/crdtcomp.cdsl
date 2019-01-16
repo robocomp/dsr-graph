@@ -1,0 +1,9 @@
+Component CrdtComp
+{
+	Communications
+	{
+
+	};
+	language Cpp11;
+};
+
