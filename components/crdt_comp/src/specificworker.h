@@ -45,10 +45,6 @@ private:
 
 	std::thread read_thread, full_graph;
 
-    ormap<string,aworset<N>> nodes; // Real data
-
-
-
 };
 
 #endif

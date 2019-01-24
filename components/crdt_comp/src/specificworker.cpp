@@ -51,12 +51,13 @@ void SpecificWorker::initialize(int period) {
     topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
     // No filter for this topic
-    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::AworSet  >> (*topic.get(), "DSR");
+    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::AworSet  >> (*topic.get(), agent_name);
 
-    graph = std::make_shared<CRDT::CRDTNodes>(); // Init nodes
+    graph = std::make_shared<CRDT::CRDTNodes>(0); // Init nodes
 
-    full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
-    newGraphRequestAndWait();  // Client sync
+    work = true; //TODO: FOR TEST WITHOUT SYNC
+//    full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
+//    newGraphRequestAndWait();  // Client sync
     read_thread = std::thread(&SpecificWorker::subscribeThread, this); // Reader thread
 
     timer.start(500);
@@ -66,7 +67,8 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::subscribeThread() {
     DataStorm::Topic <std::string, RoboCompDSR::AworSet > topic(node, "DSR");
     topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-    auto reader = DataStorm::makeSingleKeyReader(topic, "DSR");
+//    auto reader = DataStorm::makeSingleKeyReader(topic, "DSR"); // Reader for any
+    auto reader = DataStorm::FilteredKeyReader<std::string, RoboCompDSR::AworSet>(topic, DataStorm::Filter<std::string>("_regex", filter.c_str())); // Reader excluded self agent
     std::cout << "starting reader" << std::endl;
     reader.waitForWriters(); // If someone is writting...
     while (true) {
@@ -74,18 +76,10 @@ void SpecificWorker::subscribeThread() {
             try {
                 auto sample = reader.getNextUnread(); // Get sample
                 std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
-//                std::string strId = to_string(sample.getValue().id);
-//                auto contx = nodes.context().get(strId); // Get currently context
-//                if (!contx.empty()) {
-//                    if (contx.back().first <=
-//                        sample.getValue().causalContext) { // Check currently context and received context
-//                        nodes[strId].add(sample.getValue(), strId);
-//                    } else
-//                        std::cout << "* ------> Out of time. [CC:" << sample.getValue().causalContext
-//                                  << "]. CC_actual: "
-//                                  << contx.back().first << ". " << sample.getValue() << endl;
-//                } else // Empty context = new value
-//                    nodes[strId].add(sample.getValue(), strId);
+                graph->joinDeltaNode(sample.getValue());
+                sleep(3);
+                cout << "Nodes after join:" << endl;
+                graph->print();
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -93,7 +87,6 @@ void SpecificWorker::subscribeThread() {
 
 
 void SpecificWorker::compute() {
-
     if (work) {
         static int cont = 0, laps = 0;
         topic->waitForReaders();
@@ -113,7 +106,7 @@ void SpecificWorker::compute() {
             }
 
         } else {
-            std::cout << "Nodes: " << nodes << std::endl;
+            graph->print();
             sleep(5);
         }
     }
