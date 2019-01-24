@@ -1,5 +1,3 @@
-[["cpp:include:set"]]
-
 module RoboCompDSR
 {
     dictionary<string, string> Attribs;
@@ -19,8 +17,6 @@ module RoboCompDSR
         int id;
         Attribs attrs;
         FanOut fano;
-        int causalContext;
-        int dotCloud;
     };
 
     // Topic for full graph sync
@@ -41,8 +37,7 @@ module RoboCompDSR
     };
 
     dictionary<int, int> CausalContext;
-    ["cpp:type:std::set< ::RoboCompDSR::PairInt>"]
-            sequence<PairInt> DotCloud;
+    sequence< ::RoboCompDSR::PairInt> DotCloud;
     dictionary<PairInt, Node> DotKernelValue;
 
 
