@@ -1,3 +1,5 @@
+[["cpp:include:set"]]
+
 module RoboCompDSR
 {
     dictionary<string, string> Attribs;
@@ -11,7 +13,7 @@ module RoboCompDSR
     dictionary<int, EdgeAttribs> FanOut;
 
     // Topic for node graph sync
-    struct Content
+    struct Node
     { 
         string type;
         int id;
@@ -22,11 +24,49 @@ module RoboCompDSR
     };
 
     // Topic for full graph sync
-    dictionary<int, Content> DSRGraph;
+    dictionary<int, Node> DSRGraph;
 
     // Topic for full graph requests
     struct GraphRequest
     {
         string from;
     };
+
+
+    // --- Test: OrMap with AworSet
+
+    struct PairInt {
+        int first;
+        int second;
+    };
+
+    dictionary<int, int> CausalContext;
+    ["cpp:type:std::set< ::RoboCompDSR::PairInt>"]
+            sequence<PairInt> DotCloud;
+    dictionary<PairInt, Node> DotKernelValue;
+
+
+    struct DotContext {
+        CausalContext cc;
+        DotCloud dc;
+    };
+
+    struct DotKernel {
+        DotKernelValue ds;
+        DotContext cbase;
+    }
+
+    struct AworSet {
+        int id;
+        DotKernel dk; // Dot kernel
+    };
+
+
+    dictionary<int, AworSet> MapAworSet;
+
+    struct OrMap {
+        int id;
+        MapAworSet m;
+        DotContext cbase;
+    }
 }
