@@ -47,11 +47,11 @@ void SpecificWorker::initialize(int period) {
 
     // General topic update
     node = DataStorm::Node(argc, argv);
-    topic = std::make_shared < DataStorm::Topic < std::string, RoboCompDSR::OrMap >> (node, "DSR");
+    topic = std::make_shared < DataStorm::Topic < std::string, RoboCompDSR::AworSet >> (node, "DSR");
     topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
     // No filter for this topic
-    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::OrMap >> (*topic.get(), "DSR");
+    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::AworSet  >> (*topic.get(), "DSR");
 
     graph = std::make_shared<CRDT::CRDTNodes>(); // Init nodes
 
@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period) {
 
 // Subscribe thread
 void SpecificWorker::subscribeThread() {
-    DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic(node, "DSR");
+    DataStorm::Topic <std::string, RoboCompDSR::AworSet > topic(node, "DSR");
     topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     auto reader = DataStorm::makeSingleKeyReader(topic, "DSR");
     std::cout << "starting reader" << std::endl;
@@ -101,9 +101,8 @@ void SpecificWorker::compute() {
             try {
                 cont++;
                 auto test = RoboCompDSR::Node{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
-                graph->addNode(cont, test);
-                auto test1 = RoboCompDSR::OrMap{graph->id(), graph->map(), graph->context()};
-                writer->update(test1);
+                RoboCompDSR::AworSet delta = graph->addNode(cont, test);
+                writer->update(delta);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
 
@@ -123,9 +122,10 @@ void SpecificWorker::compute() {
 void SpecificWorker::newGraphRequestAndWait() {
     std::cout << __FUNCTION__ << " Initiating request for full graph requests" << std::endl;
 
-    DataStorm::Topic <std::string, G> topic_answer(node, "DSR_GRAPH_ANSWER");
-    DataStorm::FilteredKeyReader <std::string, G> reader(topic_answer,
+    DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic_answer(node, "DSR_GRAPH_ANSWER");
+    DataStorm::FilteredKeyReader <std::string, RoboCompDSR::OrMap> reader(topic_answer,
                                                          DataStorm::Filter<std::string>("_regex", filter.c_str()));
+
     topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
@@ -141,19 +141,19 @@ void SpecificWorker::newGraphRequestAndWait() {
         std::cout << __FUNCTION__ << " Wait for writers " << std::endl;
         auto sample = reader.getNextUnread();
         std::cout << __FUNCTION__ << " Samples received " << std::endl;
+        std::cout << sample << std::endl;
 //        for (const auto &[k,v] : sample.getValue())
 //            std::cout << k << ", "<<v <<std::endl;
-        try {
-            for (const auto &[k, v] : sample.getValue()) {
-                std::string strId = to_string(k);
-                nodes[strId].add(v, strId);
-            }
-        }
-        catch (const std::exception &ex) { cerr << ex.what() << endl; }
+//        try {
+//            for (const auto &[k, v] : sample.getValue()) {
+//                std::string strId = to_string(k);
+//                nodes[strId].add(v, strId);
+//            }
+//        }
+//        catch (const std::exception &ex) { cerr << ex.what() << endl; }
     } else
         std::cout << __FUNCTION__ << " No writers. Im first." << std::endl;
 
-//    copyIceGraphToDSRGraph(this->ice_graph);
     std::cout << __FUNCTION__ << " Finished uploading full graph" << std::endl;
     work = true;
 }
@@ -177,25 +177,13 @@ void SpecificWorker::serveFullGraphThread() {
             std::cout << sample.getValue().from << " asked for full graph" << std::endl;
             sleep(3);
             G ice_graph;
-            DataStorm::Topic <std::string, G> topic_answer(node, "DSR_GRAPH_ANSWER");
-            DataStorm::SingleKeyWriter <std::string, G> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
+            DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic_answer(node, "DSR_GRAPH_ANSWER");
+            DataStorm::SingleKeyWriter <std::string, RoboCompDSR::OrMap> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
+
             topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
             topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
 
-            auto map = nodes.getFullOrMap();
-            auto context = map.second.second;
-            cout << "-- Sync -- " << endl;
-            for (auto node : map.second.first) {
-                for (auto node_value : node.second.readAsList()) {
-                    auto listContext = context.get();
-                    node_value.second.causalContext = listContext.first.front().second;
-                    node_value.second.dotCloud = listContext.second.front().second;
-                    cout << node_value.second.id << ", " << node_value.second << endl;
-                    ice_graph.insert(std::make_pair(node_value.second.id, node_value.second));
-
-                }
-            }
-            writer.add(ice_graph);
+            writer.add(RoboCompDSR::OrMap{graph->id(), graph->map(), graph->context()});
             std::cout << "Full graph written from lambda" << std::endl;
             work = true;
         }

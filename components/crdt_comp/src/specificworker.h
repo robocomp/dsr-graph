@@ -31,12 +31,13 @@ public slots:
 
 private:
 	InnerModel *innerModel;
+
 	std::string agent_name, filter;
 	bool work;
 	DataStorm::Node node;
     std::shared_ptr<CRDT::CRDTNodes> graph;
-	std::shared_ptr<DataStorm::SingleKeyWriter<std::string, RoboCompDSR::OrMap>> writer;
-	std::shared_ptr<DataStorm::Topic<std::string, RoboCompDSR::OrMap>> topic;
+	std::shared_ptr<DataStorm::SingleKeyWriter<std::string, RoboCompDSR::AworSet >> writer;
+	std::shared_ptr<DataStorm::Topic<std::string, RoboCompDSR::AworSet >> topic;
 
 	void subscribeThread();
 	void serveFullGraphThread();
