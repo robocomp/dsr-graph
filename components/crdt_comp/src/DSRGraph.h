@@ -32,6 +32,7 @@
 #include <IceUtil/ScopedArray.h>
 #include <Ice/Optional.h>
 #include <IceUtil/UndefSysMacros.h>
+#include <set>
 
 #ifndef ICE_IGNORE_VERSION
 #   if ICE_INT_VERSION / 100 != 307
@@ -68,17 +69,19 @@ struct EdgeAttribs
     {
         return std::tie(label, from, to, attrs);
     }
-        friend std::ostream &operator<<(std::ostream &output, const EdgeAttribs &ea_) {
-            output << "EdgeAttribs["<<ea_.label<<": from:" << ea_.from << ", to:"<<ea_.to<<std::endl<<" Attribs:";
-            for (auto [k,v] : ea_.attrs)
-                output << k <<":"<<v <<" - ";
-            return output;
+
+    friend std::ostream &operator<<(std::ostream &output, const EdgeAttribs &ea_) {
+        output << "EdgeAttribs["<<ea_.label<<": from:" << ea_.from << ", to:"<<ea_.to<<std::endl<<" Attribs:";
+        for (auto [k,v] : ea_.attrs)
+            output << k <<":"<<v <<" - ";
+        return output;
     };
+
 };
 
 using FanOut = ::std::map<int, EdgeAttribs>;
 
-struct Content
+struct Node
 {
     ::std::string type;
     int id;
@@ -96,57 +99,57 @@ struct Content
     {
         return std::tie(type, id, attrs, fano, causalContext, dotCloud);
     }
-    bool operator==(const Content &c_) const {
-            if (this == &c_) {
-                return true;
-            }
-            if (id != c_.id) {
-                return false;
-            }
+    bool operator==(const Node &n_) const {
+        if (this == &n_) {
             return true;
         }
-
-        bool operator<(const Content &c_) const {
-            if (this == &c_) {
-                return false;
-            }
-            if (id < c_.id) {
-                return true;
-            } else if (c_.id < id) {
-                return false;
-            }
+        if (id != n_.id) {
             return false;
         }
+        return true;
+    }
 
-        bool operator!=(const Content &c_) const {
-            return !operator==(c_);
+    bool operator<(const Node &n_) const {
+        if (this == &n_) {
+            return false;
         }
-
-        bool operator<=(const Content &c_) const {
-            return operator<(c_) || operator==(c_);
+        if (id < n_.id) {
+            return true;
+        } else if (n_.id < id) {
+            return false;
         }
+        return false;
+    }
 
-        bool operator>(const Content &c_) const {
-            return !operator<(c_) && !operator==(c_);
-        }
+    bool operator!=(const Node &n_) const {
+        return !operator==(n_);
+    }
 
-        bool operator>=(const Content &c_) const {
-            return !operator<(c_);
-        }
+    bool operator<=(const Node &n_) const {
+        return operator<(n_) || operator==(n_);
+    }
 
-        friend std::ostream &operator<<(std::ostream &output, const Content &c_) {
-            output <<"Content:["<<c_.id<<"," << c_.type <<"], Attribs:[";
-            for (auto [k,v] : c_.attrs)
-                output << k <<":"<< v <<" - ";
-            output<<"], FanOut:[";
-            for (auto [k,v] : c_.fano)
-                output << k <<":"<< v;
-            output<<"], Contexto-ICE:[CC:"<<c_.causalContext<<", DC:"<<c_.dotCloud<<"]";
-            return output;
-            }
+    bool operator>(const Node &n_) const {
+        return !operator<(n_) && !operator==(n_);
+    }
+
+    bool operator>=(const Node &n_) const {
+        return !operator<(n_);
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Node &n_) {
+        output <<"Node:["<<n_.id<<"," << n_.type <<"], Attribs:[";
+        for (auto [k,v] : n_.attrs)
+            output << k <<":"<< v <<" - ";
+        output<<"], FanOut:[";
+        for (auto [k,v] : n_.fano)
+            output << k <<":"<< v;
+        output<<"], Contexto-ICE:[CC:"<<n_.causalContext<<", DC:"<<n_.dotCloud<<"]";
+        return output;
+    }
 };
 
-using DSRGraph = ::std::map<int, Content>;
+using DSRGraph = ::std::map<int, Node>;
 
 struct GraphRequest
 {
@@ -161,11 +164,167 @@ struct GraphRequest
     {
         return std::tie(from);
     }
+};
 
-    friend std::ostream &operator<<(std::ostream &output, const GraphRequest &gr_) {
-        output << gr_.from;
+struct PairInt
+{
+    int first;
+    int second;
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+
+    std::tuple<const int&, const int&> ice_tuple() const
+    {
+        return std::tie(first, second);
+    }
+
+    bool operator==(const PairInt &pi_) const {
+        if (this == &pi_) {
+            return true;
+        }
+        if (first != pi_.first || second != pi_.second) {
+            return false;
+        }
+        return true;
+    }
+
+    bool operator<(const PairInt &pi_) const {
+        if (this == &pi_) {
+            return false;
+        }
+        if ( (first+second) < (pi_.first+pi_.second)) {
+            return true;
+        } else if ((first+second) > (pi_.first+pi_.second)) {
+            return false;
+        }
+        return false;
+    }
+
+    bool operator!=(const PairInt &pi_) const {
+        return !operator==(pi_);
+    }
+
+    bool operator<=(const PairInt &pi_) const {
+        return operator<(pi_) || operator==(pi_);
+    }
+
+    bool operator>(const PairInt &pi_) const {
+        return !operator<(pi_) && !operator==(pi_);
+    }
+
+    bool operator>=(const PairInt &pi_) const {
+        return !operator<(pi_);
+    }
+    friend std::ostream &operator<<(std::ostream &output, const PairInt &pi_) {
+        output <<"("<<pi_.first<<","<<pi_.second;
         return output;
     }
+};
+
+using CausalContext = ::std::map<int, int>;
+
+using DotCloud = std::set< ::RoboCompDSR::PairInt>;
+
+using DotKernelValue = ::std::map<PairInt, Node>;
+
+struct DotContext
+{
+    CausalContext cc;
+    DotCloud dc;
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+
+    std::tuple<const CausalContext&, const DotCloud&> ice_tuple() const
+    {
+        return std::tie(cc, dc);
+    }
+    friend std::ostream &operator<<(std::ostream &output, const DotContext &dc_) {
+        for (const auto & kv : dc_.cc)
+            output << kv.first << "->" << kv.second << "\n";
+        for (const auto & kv : dc_.dc)
+            output << kv.first << "->" << kv.second << "\n";
+        return output;
+    }
+
+};
+
+struct DotKernel
+{
+    DotKernelValue ds;
+    DotContext cbase;
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+
+    std::tuple<const DotKernelValue&, const DotContext&> ice_tuple() const
+    {
+        return std::tie(ds, cbase);
+    }
+    friend std::ostream &operator<<(std::ostream &output, const DotKernel &dk_) {
+        for (const auto & kv : dk_.ds)
+            output << kv.first << "->" << kv.second << "\n";
+        output <<dk_.cbase;
+        return output;
+    }
+};
+
+struct AworSet
+{
+    int id;
+    DotKernel dk;
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+
+    std::tuple<const int&, const DotKernel&> ice_tuple() const
+    {
+        return std::tie(id, dk);
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const AworSet &as_) {
+        output <<"AworSet: "<<as_.id<<" Data:: "<<as_.dk;
+        return output;
+    }
+
+};
+
+using MapAworSet = ::std::map<int, AworSet>;
+
+struct OrMap
+{
+    int id;
+    MapAworSet m;
+    DotContext cbase;
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+
+    std::tuple<const int&, const MapAworSet&, const DotContext&> ice_tuple() const
+    {
+        return std::tie(id, m, cbase);
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const OrMap &om_) {
+        output <<"RoboCompDSR::OrMap: "<<om_.id<<" Map: ";
+        for (const auto & kv : om_.m)
+            output << kv.first << "->" << kv.second << "\n";
+
+        output << " Context: "<<om_.cbase;
+        return output;
+    }
+
 };
 
 using Ice::operator<;
@@ -199,7 +358,7 @@ struct StreamReader<::RoboCompDSR::EdgeAttribs, S>
 };
 
 template<>
-struct StreamableTraits<::RoboCompDSR::Content>
+struct StreamableTraits<::RoboCompDSR::Node>
 {
     static const StreamHelperCategory helper = StreamHelperCategoryStruct;
     static const int minWireSize = 15;
@@ -207,9 +366,9 @@ struct StreamableTraits<::RoboCompDSR::Content>
 };
 
 template<typename S>
-struct StreamReader<::RoboCompDSR::Content, S>
+struct StreamReader<::RoboCompDSR::Node, S>
 {
-    static void read(S* istr, ::RoboCompDSR::Content& v)
+    static void read(S* istr, ::RoboCompDSR::Node& v)
     {
         istr->readAll(v.type, v.id, v.attrs, v.fano, v.causalContext, v.dotCloud);
     }
@@ -232,6 +391,91 @@ struct StreamReader<::RoboCompDSR::GraphRequest, S>
     }
 };
 
+template<>
+struct StreamableTraits<::RoboCompDSR::PairInt>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 8;
+    static const bool fixedLength = true;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompDSR::PairInt, S>
+{
+    static void read(S* istr, ::RoboCompDSR::PairInt& v)
+    {
+        istr->readAll(v.first, v.second);
+    }
+};
+
+template<>
+struct StreamableTraits<::RoboCompDSR::DotContext>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 2;
+    static const bool fixedLength = false;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompDSR::DotContext, S>
+{
+    static void read(S* istr, ::RoboCompDSR::DotContext& v)
+    {
+        istr->readAll(v.cc, v.dc);
+    }
+};
+
+template<>
+struct StreamableTraits<::RoboCompDSR::DotKernel>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 3;
+    static const bool fixedLength = false;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompDSR::DotKernel, S>
+{
+    static void read(S* istr, ::RoboCompDSR::DotKernel& v)
+    {
+        istr->readAll(v.ds, v.cbase);
+    }
+};
+
+template<>
+struct StreamableTraits<::RoboCompDSR::AworSet>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 7;
+    static const bool fixedLength = false;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompDSR::AworSet, S>
+{
+    static void read(S* istr, ::RoboCompDSR::AworSet& v)
+    {
+        istr->readAll(v.id, v.dk);
+    }
+};
+
+template<>
+struct StreamableTraits<::RoboCompDSR::OrMap>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 7;
+    static const bool fixedLength = false;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompDSR::OrMap, S>
+{
+    static void read(S* istr, ::RoboCompDSR::OrMap& v)
+    {
+        istr->readAll(v.id, v.m, v.cbase);
+    }
+};
+
 }
 /// \endcond
 
@@ -250,59 +494,16 @@ namespace RoboCompDSR {
 
     typedef ::std::map <Ice::Int, RoboCompDSR::EdgeAttribs> FanOut;
 
-    struct Content {
+    struct Node {
         ::std::string type;
         ::Ice::Int id;
         Attribs attrs;
         FanOut fano;
         ::Ice::Int causalContext;
         ::Ice::Int dotCloud;
-
-        bool operator==(const Content &c_) const {
-            if (this == &c_) {
-                return true;
-            }
-            if (id != c_.id) {
-                return false;
-            }
-            return true;
-        }
-
-        bool operator<(const Content &c_) const {
-            if (this == &c_) {
-                return false;
-            }
-            if (id < c_.id) {
-                return true;
-            } else if (c_.id < id) {
-                return false;
-            }
-            return false;
-        }
-
-        bool operator!=(const Content &c_) const {
-            return !operator==(c_);
-        }
-
-        bool operator<=(const Content &c_) const {
-            return operator<(c_) || operator==(c_);
-        }
-
-        bool operator>(const Content &c_) const {
-            return !operator<(c_) && !operator==(c_);
-        }
-
-        bool operator>=(const Content &c_) const {
-            return !operator<(c_);
-        }
-
-        friend std::ostream &operator<<(std::ostream &output, const Content &c_) {
-            output << "Content: " << c_.id;
-            return output;
-        };
     };
 
-    typedef ::std::map <Ice::Int, RoboCompDSR::Content> DSRGraph;
+    typedef ::std::map <Ice::Int, RoboCompDSR::Node> DSRGraph;
 
     struct GraphRequest {
         ::std::string from;
@@ -346,6 +547,86 @@ namespace RoboCompDSR {
         }
     };
 
+    struct PairInt {
+        ::Ice::Int first;
+        ::Ice::Int second;
+
+        bool operator==(const PairInt &rhs_) const {
+            if (this == &rhs_) {
+                return true;
+            }
+            if (first != rhs_.first) {
+                return false;
+            }
+            if (second != rhs_.second) {
+                return false;
+            }
+            return true;
+        }
+
+        bool operator<(const PairInt &rhs_) const {
+            if (this == &rhs_) {
+                return false;
+            }
+            if (first < rhs_.first) {
+                return true;
+            } else if (rhs_.first < first) {
+                return false;
+            }
+            if (second < rhs_.second) {
+                return true;
+            } else if (rhs_.second < second) {
+                return false;
+            }
+            return false;
+        }
+
+        bool operator!=(const PairInt &rhs_) const {
+            return !operator==(rhs_);
+        }
+
+        bool operator<=(const PairInt &rhs_) const {
+            return operator<(rhs_) || operator==(rhs_);
+        }
+
+        bool operator>(const PairInt &rhs_) const {
+            return !operator<(rhs_) && !operator==(rhs_);
+        }
+
+        bool operator>=(const PairInt &rhs_) const {
+            return !operator<(rhs_);
+        }
+    };
+
+    typedef ::std::map <Ice::Int, Ice::Int> CausalContext;
+
+    typedef std::set<::RoboCompDSR::PairInt> DotCloud;
+
+    typedef ::std::map <RoboCompDSR::PairInt, RoboCompDSR::Node> DotKernelValue;
+
+    struct DotContext {
+        CausalContext cc;
+        DotCloud dc;
+    };
+
+    struct DotKernel {
+        DotKernelValue ds;
+        DotContext cbase;
+    };
+
+    struct AworSet {
+        ::Ice::Int id;
+        DotKernel dk;
+    };
+
+    typedef ::std::map <Ice::Int, RoboCompDSR::AworSet> MapAworSet;
+
+    struct OrMap {
+        ::Ice::Int id;
+        MapAworSet m;
+        DotContext cbase;
+    };
+
 }
 
 /// \cond STREAM
@@ -379,15 +660,15 @@ namespace Ice {
     };
 
     template<>
-    struct StreamableTraits<::RoboCompDSR::Content> {
+    struct StreamableTraits<::RoboCompDSR::Node> {
         static const StreamHelperCategory helper = StreamHelperCategoryStruct;
         static const int minWireSize = 15;
         static const bool fixedLength = false;
     };
 
     template<typename S>
-    struct StreamWriter<::RoboCompDSR::Content, S> {
-        static void write(S *ostr, const ::RoboCompDSR::Content &v) {
+    struct StreamWriter<::RoboCompDSR::Node, S> {
+        static void write(S *ostr, const ::RoboCompDSR::Node &v) {
             ostr->write(v.type);
             ostr->write(v.id);
             ostr->write(v.attrs);
@@ -398,8 +679,8 @@ namespace Ice {
     };
 
     template<typename S>
-    struct StreamReader<::RoboCompDSR::Content, S> {
-        static void read(S *istr, ::RoboCompDSR::Content &v) {
+    struct StreamReader<::RoboCompDSR::Node, S> {
+        static void read(S *istr, ::RoboCompDSR::Node &v) {
             istr->read(v.type);
             istr->read(v.id);
             istr->read(v.attrs);
@@ -427,6 +708,123 @@ namespace Ice {
     struct StreamReader<::RoboCompDSR::GraphRequest, S> {
         static void read(S *istr, ::RoboCompDSR::GraphRequest &v) {
             istr->read(v.from);
+        }
+    };
+
+    template<>
+    struct StreamableTraits<::RoboCompDSR::PairInt> {
+        static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+        static const int minWireSize = 8;
+        static const bool fixedLength = true;
+    };
+
+    template<typename S>
+    struct StreamWriter<::RoboCompDSR::PairInt, S> {
+        static void write(S *ostr, const ::RoboCompDSR::PairInt &v) {
+            ostr->write(v.first);
+            ostr->write(v.second);
+        }
+    };
+
+    template<typename S>
+    struct StreamReader<::RoboCompDSR::PairInt, S> {
+        static void read(S *istr, ::RoboCompDSR::PairInt &v) {
+            istr->read(v.first);
+            istr->read(v.second);
+        }
+    };
+
+    template<>
+    struct StreamableTraits<::RoboCompDSR::DotContext> {
+        static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+        static const int minWireSize = 2;
+        static const bool fixedLength = false;
+    };
+
+    template<typename S>
+    struct StreamWriter<::RoboCompDSR::DotContext, S> {
+        static void write(S *ostr, const ::RoboCompDSR::DotContext &v) {
+            ostr->write(v.cc);
+            ostr->write(v.dc);
+        }
+    };
+
+    template<typename S>
+    struct StreamReader<::RoboCompDSR::DotContext, S> {
+        static void read(S *istr, ::RoboCompDSR::DotContext &v) {
+            istr->read(v.cc);
+            istr->read(v.dc);
+        }
+    };
+
+    template<>
+    struct StreamableTraits<::RoboCompDSR::DotKernel> {
+        static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+        static const int minWireSize = 3;
+        static const bool fixedLength = false;
+    };
+
+    template<typename S>
+    struct StreamWriter<::RoboCompDSR::DotKernel, S> {
+        static void write(S *ostr, const ::RoboCompDSR::DotKernel &v) {
+            ostr->write(v.ds);
+            ostr->write(v.cbase);
+        }
+    };
+
+    template<typename S>
+    struct StreamReader<::RoboCompDSR::DotKernel, S> {
+        static void read(S *istr, ::RoboCompDSR::DotKernel &v) {
+            istr->read(v.ds);
+            istr->read(v.cbase);
+        }
+    };
+
+    template<>
+    struct StreamableTraits<::RoboCompDSR::AworSet> {
+        static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+        static const int minWireSize = 7;
+        static const bool fixedLength = false;
+    };
+
+    template<typename S>
+    struct StreamWriter<::RoboCompDSR::AworSet, S> {
+        static void write(S *ostr, const ::RoboCompDSR::AworSet &v) {
+            ostr->write(v.id);
+            ostr->write(v.dk);
+        }
+    };
+
+    template<typename S>
+    struct StreamReader<::RoboCompDSR::AworSet, S> {
+        static void read(S *istr, ::RoboCompDSR::AworSet &v) {
+            istr->read(v.id);
+            istr->read(v.dk);
+        }
+    };
+
+    template<>
+    struct StreamableTraits<::RoboCompDSR::OrMap> {
+        static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+        static const int minWireSize = 7;
+        static const bool fixedLength = false;
+    };
+
+    template<typename S>
+    struct StreamWriter<::RoboCompDSR::OrMap, S> {
+        static void write(S *ostr, const ::RoboCompDSR::OrMap &v) {
+            ostr->write(v.id);
+            ostr->write(v.m);
+            ostr->write(v.cbase);
+        }
+    };
+
+    template<typename S>
+    struct StreamReader<::RoboCompDSR::OrMap, S> {
+        static void read(S *istr, ::RoboCompDSR::OrMap &v) {
+            istr->read(v.id);
+            istr->read(v.m);
+            istr->read(v.cbase);
         }
     };
 

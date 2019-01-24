@@ -41,16 +41,19 @@ void SpecificWorker::initialize(int period) {
 
     int argc = 0;
     char *argv[0];
+
     filter = "^(?!" + agent_name + "$).*$";
     work = false;
+
     // General topic update
     node = DataStorm::Node(argc, argv);
-    topic = std::make_shared < DataStorm::Topic < std::string, N >> (node, "DSR");
+    topic = std::make_shared < DataStorm::Topic < std::string, RoboCompDSR::OrMap >> (node, "DSR");
     topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-    // No filter for this topic
-    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, N >> (*topic.get(), "DSR");
 
-    nodes = ormap < string, aworset < N >> ("node"); // Init nodes
+    // No filter for this topic
+    writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::OrMap >> (*topic.get(), "DSR");
+
+    graph = std::make_shared<CRDT::CRDTNodes>(); // Init nodes
 
     full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
     newGraphRequestAndWait();  // Client sync
@@ -61,7 +64,7 @@ void SpecificWorker::initialize(int period) {
 
 // Subscribe thread
 void SpecificWorker::subscribeThread() {
-    DataStorm::Topic <std::string, N> topic(node, "DSR");
+    DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic(node, "DSR");
     topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     auto reader = DataStorm::makeSingleKeyReader(topic, "DSR");
     std::cout << "starting reader" << std::endl;
@@ -71,18 +74,18 @@ void SpecificWorker::subscribeThread() {
             try {
                 auto sample = reader.getNextUnread(); // Get sample
                 std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
-                std::string strId = to_string(sample.getValue().id);
-                auto contx = nodes.context().get(strId); // Get currently context
-                if (!contx.empty()) {
-                    if (contx.back().first <=
-                        sample.getValue().causalContext) { // Check currently context and received context
-                        nodes[strId].add(sample.getValue(), strId);
-                    } else
-                        std::cout << "* ------> Out of time. [CC:" << sample.getValue().causalContext
-                                  << "]. CC_actual: "
-                                  << contx.back().first << ". " << sample.getValue() << endl;
-                } else // Empty context = new value
-                    nodes[strId].add(sample.getValue(), strId);
+//                std::string strId = to_string(sample.getValue().id);
+//                auto contx = nodes.context().get(strId); // Get currently context
+//                if (!contx.empty()) {
+//                    if (contx.back().first <=
+//                        sample.getValue().causalContext) { // Check currently context and received context
+//                        nodes[strId].add(sample.getValue(), strId);
+//                    } else
+//                        std::cout << "* ------> Out of time. [CC:" << sample.getValue().causalContext
+//                                  << "]. CC_actual: "
+//                                  << contx.back().first << ". " << sample.getValue() << endl;
+//                } else // Empty context = new value
+//                    nodes[strId].add(sample.getValue(), strId);
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -94,24 +97,20 @@ void SpecificWorker::compute() {
     if (work) {
         static int cont = 0, laps = 0;
         topic->waitForReaders();
-        if (laps < LAPS + agent_name.back() -48) { // Laps = 5 - agent id (just for random)
+        if (laps < LAPS + agent_name.back()-48) { // Laps = 5 - agent id (just for random)
             try {
                 cont++;
-                auto newNode = RoboCompDSR::Content{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
-
-                auto contx = nodes.context().get(std::to_string(cont));
-                if (!contx.empty()) {
-                    newNode.causalContext = contx.back().first;
-                    newNode.dotCloud = contx.back().second;
-                }
-                usleep((agent_name.back()-48) * 1000); // Latencia en función del ID.
-                writer->update(newNode);
+                auto test = RoboCompDSR::Node{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
+                graph->addNode(cont, test);
+                auto test1 = RoboCompDSR::OrMap{graph->id(), graph->map(), graph->context()};
+                writer->update(test1);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
 
             if (cont > NODES) {
                 cont = 0;
                 laps++;
+                cout << "------------" << laps << endl;
             }
 
         } else {
