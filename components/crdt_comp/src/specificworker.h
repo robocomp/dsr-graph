@@ -15,7 +15,7 @@ using G = RoboCompDSR::DSRGraph; // For full graph
 
 
 #define LAPS 10
-#define NODES 10
+#define NODES 5
 
 class SpecificWorker : public GenericWorker
 {

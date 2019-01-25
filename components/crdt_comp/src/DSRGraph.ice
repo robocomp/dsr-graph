@@ -38,7 +38,7 @@ module RoboCompDSR
 
     dictionary<int, int> CausalContext;
     sequence< ::RoboCompDSR::PairInt> DotCloud;
-    dictionary<PairInt, Node> DotKernelValue;
+    dictionary<::RoboCompDSR::PairInt, Node> DotKernelValue;
 
 
     struct DotContext {

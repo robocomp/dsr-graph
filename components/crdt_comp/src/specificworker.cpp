@@ -77,9 +77,9 @@ void SpecificWorker::subscribeThread() {
                 auto sample = reader.getNextUnread(); // Get sample
                 std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
                 graph->joinDeltaNode(sample.getValue());
-                sleep(3);
-                cout << "Nodes after join:" << endl;
+                cout << "-----------------\nNodes after join:" << endl;
                 graph->print();
+                cout << "-----------------" << endl;
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -87,7 +87,7 @@ void SpecificWorker::subscribeThread() {
 
 
 void SpecificWorker::compute() {
-    if (work) {
+    if (work && agent_name=="agent0") {
         static int cont = 0, laps = 0;
         topic->waitForReaders();
         if (laps < LAPS + agent_name.back()-48) { // Laps = 5 - agent id (just for random)
