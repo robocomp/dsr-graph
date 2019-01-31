@@ -69,6 +69,44 @@ struct EdgeAttribs
         return std::tie(label, from, to, attrs);
     }
 
+    bool operator==(const EdgeAttribs &eA_) const {
+        if (this == &eA_) {
+            return true;
+        }
+        if (label != eA_.label || from != eA_.from || to != eA_.to || attrs != eA_.attrs) {
+            return false;
+        }
+        return true;
+    }
+
+    bool operator<(const EdgeAttribs &eA_) const {
+        if (this == &eA_) {
+            return false;
+        }
+        if (label < eA_.label) {
+            return true;
+        } else if (eA_.label < label) {
+            return false;
+        }
+        return false;
+    }
+
+    bool operator!=(const EdgeAttribs &eA_) const {
+        return !operator==(eA_);
+    }
+
+    bool operator<=(const EdgeAttribs &eA_) const {
+        return operator<(eA_) || operator==(eA_);
+    }
+
+    bool operator>(const EdgeAttribs &eA_) const {
+        return !operator<(eA_) && !operator==(eA_);
+    }
+
+    bool operator>=(const EdgeAttribs &eA_) const {
+        return !operator<(eA_);
+    }
+
     friend std::ostream &operator<<(std::ostream &output, const EdgeAttribs &ea_) {
         output << "EdgeAttribs["<<ea_.label<<": from:" << ea_.from << ", to:"<<ea_.to<<std::endl<<" Attribs:";
         for (auto [k,v] : ea_.attrs)
@@ -100,11 +138,12 @@ struct Node
         if (this == &n_) {
             return true;
         }
-        if (id != n_.id) {
+        if (id != n_.id || type != n_.type || attrs != n_.attrs || fano != n_.fano) {
             return false;
         }
         return true;
     }
+
 
     bool operator<(const Node &n_) const {
         if (this == &n_) {
@@ -242,12 +281,13 @@ struct DotContext
         return std::tie(cc, dc);
     }
     friend std::ostream &operator<<(std::ostream &output, const DotContext &dc_) {
-        output << " (";
+        output << ", CC: [";
         for (const auto & kv : dc_.cc)
-            output << kv.first << "," << kv.second;
+            output <<" "<< kv.first << ":" << kv.second;
+        output << "] , DC: [";
         for (const auto & kv : dc_.dc)
-            output << kv.first << "," << kv.second;
-        output << ") ";
+            output <<" "<< kv.first << ":" << kv.second;
+        output << "] ";
         return output;
     }
 

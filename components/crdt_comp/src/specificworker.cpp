@@ -75,11 +75,9 @@ void SpecificWorker::subscribeThread() {
         if (work)
             try {
                 auto sample = reader.getNextUnread(); // Get sample
-                std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
+//                std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
                 graph->joinDeltaNode(sample.getValue());
-                cout << "-----------------\nNodes after join:" << endl;
                 graph->print();
-                cout << "-----------------" << endl;
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -88,18 +86,19 @@ void SpecificWorker::subscribeThread() {
 
 void SpecificWorker::compute() {
     if (work && agent_name=="agent0") {
-        static int cont = 0, laps = 0;
+        static int cont = 0, laps = 1;
         topic->waitForReaders();
-        if (laps < LAPS + agent_name.back()-48) { // Laps = 5 - agent id (just for random)
+        if (laps < LAPS + agent_name.back()-48) { // Laps = LAPS - agent id (just for random)
             try {
                 cont++;
                 auto test = RoboCompDSR::Node{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
                 RoboCompDSR::AworSet delta = graph->addNode(cont, test);
+                graph->print();
                 writer->update(delta);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
 
-            if (cont > NODES) {
+            if (cont == NODES) {
                 cont = 0;
                 laps++;
                 cout << "------------" << laps << endl;
