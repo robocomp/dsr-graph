@@ -59,7 +59,7 @@ void SpecificWorker::initialize(int period) {
 //    full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
 //    newGraphRequestAndWait();  // Client sync
     read_thread = std::thread(&SpecificWorker::subscribeThread, this); // Reader thread
-
+    cout << "------------ 0" << endl;
     timer.start(500);
 }
 
@@ -93,6 +93,7 @@ void SpecificWorker::compute() {
                 cont++;
                 auto test = RoboCompDSR::Node{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
                 RoboCompDSR::AworSet delta = graph->addNode(cont, test);
+                cout << "Delta generado (ICE) : " << delta << endl;
                 graph->print();
                 writer->update(delta);
             }
