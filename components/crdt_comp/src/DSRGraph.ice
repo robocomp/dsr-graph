@@ -19,9 +19,6 @@ module RoboCompDSR
         FanOut fano;
     };
 
-    // Topic for full graph sync
-    dictionary<int, Node> DSRGraph;
-
     // Topic for full graph requests
     struct GraphRequest
     {
