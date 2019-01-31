@@ -11,11 +11,10 @@
 #include "DSRGraph.h"
 
 using N = RoboCompDSR::Node; // For each node
-using G = RoboCompDSR::DSRGraph; // For full graph
 
 
 #define LAPS 10
-#define NODES 1
+#define NODES 3
 
 class SpecificWorker : public GenericWorker
 {
@@ -34,6 +33,7 @@ private:
 
 	std::string agent_name, filter;
 	bool work;
+	int graph_root;
 	DataStorm::Node node;
     std::shared_ptr<CRDT::CRDTNodes> graph;
 	std::shared_ptr<DataStorm::SingleKeyWriter<std::string, RoboCompDSR::AworSet >> writer;

@@ -185,7 +185,6 @@ struct Node
     }
 };
 
-using DSRGraph = ::std::map<int, Node>;
 
 struct GraphRequest
 {
@@ -309,7 +308,7 @@ struct DotKernel
     }
     friend std::ostream &operator<<(std::ostream &output, const DotKernel &dk_) {
         for (const auto & kv : dk_.ds)
-            output << kv.first << "-->" << kv.second;
+            output << kv.first << "-->" << kv.second<< ", ";
         output <<dk_.cbase;
         return output;
     }
@@ -356,11 +355,10 @@ struct OrMap
     }
 
     friend std::ostream &operator<<(std::ostream &output, const OrMap &om_) {
-        output <<"RoboCompDSR::OrMap: "<<om_.id<<" Map: ";
+        output <<"RoboCompDSR::OrMap:"<<om_.id<<"\nMap: ";
         for (const auto & kv : om_.m)
             output << kv.first << "->" << kv.second << "\n";
-
-        output << " Context: "<<om_.cbase;
+        output << "\nContext: "<<om_.cbase;
         return output;
     }
 
@@ -543,7 +541,6 @@ struct Node
     FanOut fano;
 };
 
-typedef ::std::map<Ice::Int, RoboCompDSR::Node> DSRGraph;
 
 struct GraphRequest
 {

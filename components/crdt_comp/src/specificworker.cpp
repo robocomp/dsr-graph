@@ -38,6 +38,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
 
 void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
+    graph_root = 0;
 
     int argc = 0;
     char *argv[0];
@@ -53,21 +54,19 @@ void SpecificWorker::initialize(int period) {
     // No filter for this topic
     writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::AworSet  >> (*topic.get(), agent_name);
 
-    graph = std::make_shared<CRDT::CRDTNodes>(0); // Init nodes
+    graph = std::make_shared<CRDT::CRDTNodes>(graph_root); // Init nodes
 
-    work = true; //TODO: FOR TEST WITHOUT SYNC
-//    full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
-//    newGraphRequestAndWait();  // Client sync
+    full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
+    newGraphRequestAndWait();  // Client sync
     read_thread = std::thread(&SpecificWorker::subscribeThread, this); // Reader thread
     cout << "------------ 0" << endl;
-    timer.start(500);
+    timer.start(5);
 }
 
 // Subscribe thread
 void SpecificWorker::subscribeThread() {
     DataStorm::Topic <std::string, RoboCompDSR::AworSet > topic(node, "DSR");
     topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-//    auto reader = DataStorm::makeSingleKeyReader(topic, "DSR"); // Reader for any
     auto reader = DataStorm::FilteredKeyReader<std::string, RoboCompDSR::AworSet>(topic, DataStorm::Filter<std::string>("_regex", filter.c_str())); // Reader excluded self agent
     std::cout << "starting reader" << std::endl;
     reader.waitForWriters(); // If someone is writting...
@@ -77,7 +76,7 @@ void SpecificWorker::subscribeThread() {
                 auto sample = reader.getNextUnread(); // Get sample
 //                std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
                 graph->joinDeltaNode(sample.getValue());
-                graph->print();
+//                graph->print();
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -85,16 +84,15 @@ void SpecificWorker::subscribeThread() {
 
 
 void SpecificWorker::compute() {
-    if (work && agent_name=="agent0") {
+    if (work) { // Wait for sync
         static int cont = 0, laps = 1;
-        topic->waitForReaders();
-        if (laps < LAPS + agent_name.back()-48) { // Laps = LAPS - agent id (just for random)
+//        topic->waitForReaders();
+        if (laps < LAPS + agent_name.back() - 48) { // Laps = LAPS - agent id (just for random)
             try {
                 cont++;
-                auto test = RoboCompDSR::Node{"foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
+                auto test = RoboCompDSR::Node{
+                        "foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
                 RoboCompDSR::AworSet delta = graph->addNode(cont, test);
-                cout << "Delta generado (ICE) : " << delta << endl;
-                graph->print();
                 writer->update(delta);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
@@ -104,11 +102,13 @@ void SpecificWorker::compute() {
                 laps++;
                 cout << "------------" << laps << endl;
             }
-
-        } else {
-            graph->print();
-            sleep(5);
         }
+        else if (laps == LAPS + agent_name.back() - 48) {
+            graph->print();
+            laps++;
+        }
+        else
+            sleep(5);
     }
 }
 
@@ -129,21 +129,13 @@ void SpecificWorker::newGraphRequestAndWait() {
     topicR.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
     writer.add(RoboCompDSR::GraphRequest{agent_name});
 
-
     if (agent_name != "agent0") { //TODO: Check if i am first to arrive
         std::cout << __FUNCTION__ << " Wait for writers " << std::endl;
-        auto sample = reader.getNextUnread();
-        std::cout << __FUNCTION__ << " Samples received " << std::endl;
-        std::cout << sample << std::endl;
-//        for (const auto &[k,v] : sample.getValue())
-//            std::cout << k << ", "<<v <<std::endl;
-//        try {
-//            for (const auto &[k, v] : sample.getValue()) {
-//                std::string strId = to_string(k);
-//                nodes[strId].add(v, strId);
-//            }
-//        }
-//        catch (const std::exception &ex) { cerr << ex.what() << endl; }
+        auto full_graph = reader.getNextUnread();
+        std::cout << full_graph << std::endl;
+        graph->joinFullGraph((full_graph.getValue()));
+        cout << "-------- GRAPH --------" << endl;
+        graph->print();
     } else
         std::cout << __FUNCTION__ << " No writers. Im first." << std::endl;
 
@@ -169,7 +161,7 @@ void SpecificWorker::serveFullGraphThread() {
             work = false;
             std::cout << sample.getValue().from << " asked for full graph" << std::endl;
             sleep(3);
-            G ice_graph;
+//            RoboCompDSR::OrMap ice_ormap{};
             DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic_answer(node, "DSR_GRAPH_ANSWER");
             DataStorm::SingleKeyWriter <std::string, RoboCompDSR::OrMap> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
 
