@@ -74,9 +74,9 @@ void SpecificWorker::subscribeThread() {
         if (work)
             try {
                 auto sample = reader.getNextUnread(); // Get sample
-//                std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
+                std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
                 graph->joinDeltaNode(sample.getValue());
-//                graph->print();
+                graph->print();
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -160,8 +160,6 @@ void SpecificWorker::serveFullGraphThread() {
         if (work) {
             work = false;
             std::cout << sample.getValue().from << " asked for full graph" << std::endl;
-            sleep(3);
-//            RoboCompDSR::OrMap ice_ormap{};
             DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic_answer(node, "DSR_GRAPH_ANSWER");
             DataStorm::SingleKeyWriter <std::string, RoboCompDSR::OrMap> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
 
