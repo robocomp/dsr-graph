@@ -49,7 +49,7 @@ void SpecificWorker::initialize(int period) {
     // General topic update
     node = DataStorm::Node(argc, argv);
     topic = std::make_shared < DataStorm::Topic < std::string, RoboCompDSR::AworSet >> (node, "DSR");
-    topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic->setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
 
     // No filter for this topic
     writer = std::make_shared < DataStorm::SingleKeyWriter < std::string, RoboCompDSR::AworSet  >> (*topic.get(), agent_name);
@@ -59,13 +59,13 @@ void SpecificWorker::initialize(int period) {
     full_graph = std::thread(&SpecificWorker::serveFullGraphThread, this); // Server sync
     newGraphRequestAndWait();  // Client sync
     read_thread = std::thread(&SpecificWorker::subscribeThread, this); // Reader thread
-    timer.start(5);
+    timer.start(100 * (agent_name.back() - 48)+1);
 }
 
 // Subscribe thread
 void SpecificWorker::subscribeThread() {
     DataStorm::Topic <std::string, RoboCompDSR::AworSet > topic(node, "DSR");
-    topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
     auto reader = DataStorm::FilteredKeyReader<std::string, RoboCompDSR::AworSet>(topic, DataStorm::Filter<std::string>("_regex", filter.c_str())); // Reader excluded self agent
     std::cout << "Starting reader" << std::endl;
     reader.waitForWriters(); // If someone is writting...
@@ -76,6 +76,7 @@ void SpecificWorker::subscribeThread() {
                 std::cout << "Received: node " << sample.getValue() << " from " << sample.getKey() << std::endl;
                 graph->joinDeltaNode(sample.getValue());
                 graph->print();
+                sleep(2);
             }
             catch (const std::exception &ex) { cerr << ex.what() << endl; }
     }
@@ -91,6 +92,7 @@ void SpecificWorker::compute() {
                 cont++;
                 auto test = RoboCompDSR::Node{
                         "foo_" + std::to_string(cont) + "," + std::to_string(laps) + "_from_" + agent_name, cont};
+                std::cout << work<<" New node: "<< test << std::endl;
                 RoboCompDSR::AworSet delta = graph->addNode(cont, test);
                 writer->update(delta);
             }
@@ -116,14 +118,14 @@ void SpecificWorker::newGraphRequestAndWait() {
     DataStorm::FilteredKeyReader <std::string, RoboCompDSR::OrMap> reader(topic_answer,
                                                          DataStorm::Filter<std::string>("_regex", filter.c_str()));
 
-    topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-    topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
+    topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
 
     DataStorm::Topic <std::string, RoboCompDSR::GraphRequest> topicR(node, "DSR_GRAPH_REQUEST");
     DataStorm::SingleKeyWriter <std::string, RoboCompDSR::GraphRequest> writer(topicR, agent_name,
                                                                                agent_name + " Full Graph Request");
-    topicR.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-    topicR.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topicR.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
+    topicR.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
     writer.add(RoboCompDSR::GraphRequest{agent_name});
 
     if (agent_name != "agent0") { //TODO: Check if i am first to arrive
@@ -149,20 +151,21 @@ void SpecificWorker::serveFullGraphThread() {
                                                                                            DataStorm::Filter<std::string>(
                                                                                                    "_regex",
                                                                                                    filter.c_str()));
-    topic_graph_request.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-    topic_graph_request.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+    topic_graph_request.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
+    topic_graph_request.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
 
-    auto processSample = [this](auto sample) {
+    auto processSample = [=](auto sample) {
         if (work) {
             work = false;
             std::cout << sample.getValue().from << " asked for full graph" << std::endl;
             DataStorm::Topic <std::string, RoboCompDSR::OrMap> topic_answer(node, "DSR_GRAPH_ANSWER");
             DataStorm::SingleKeyWriter <std::string, RoboCompDSR::OrMap> writer(topic_answer, agent_name, agent_name + " Full Graph Answer");
 
-            topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
-            topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAdd });
+            topic_answer.setWriterDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
+            topic_answer.setReaderDefaultConfig({ Ice::nullopt, Ice::nullopt, DataStorm::ClearHistoryPolicy::OnAll });
             writer.add(RoboCompDSR::OrMap{graph->id(), graph->map(), graph->context()});
             std::cout << "Full graph written from lambda" << std::endl;
+            sleep(5);
             work = true;
         }
     };
