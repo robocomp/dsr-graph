@@ -330,7 +330,7 @@ struct AworSet
     }
 
     friend std::ostream &operator<<(std::ostream &output, const AworSet &as_) {
-        output <<"AworSet: ID:"<<as_.id<<", Data: "<<as_.dk;
+        output <<"RoboCompDSR::AworSet: ID:["<<as_.id<<"], Data: ["<<as_.dk<<"] ";
         return output;
     }
 
