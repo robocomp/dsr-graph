@@ -13,8 +13,8 @@
 using N = RoboCompDSR::Node; // For each node
 
 
-#define LAPS 30
-#define NODES 500
+#define LAPS 150
+#define NODES 25
 
 class SpecificWorker : public GenericWorker
 {
