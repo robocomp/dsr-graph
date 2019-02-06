@@ -3,18 +3,12 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include <DataStorm/DataStorm.h>
-#include <chrono>
-#include <thread>
-#include "../../graph-related-classes/libs/delta-crdts.cc"
 #include "../../graph-related-classes/CRDT.h"
-#include "DSRGraph.h"
-
-using N = RoboCompDSR::Node; // For each node
-
+#include "../../graph-related-classes/libs/DSRGraph.h"
 
 #define LAPS 150
 #define NODES 25
+#define TIMEOUT 5
 
 class SpecificWorker : public GenericWorker
 {
@@ -30,20 +24,8 @@ public slots:
 
 private:
 	InnerModel *innerModel;
-
-	std::string agent_name, filter;
-	bool work;
-	int graph_root;
-	DataStorm::Node node;
-    std::shared_ptr<CRDT::CRDTNodes> graph;
-	std::shared_ptr<DataStorm::SingleKeyWriter<std::string, RoboCompDSR::AworSet >> writer;
-	std::shared_ptr<DataStorm::Topic<std::string, RoboCompDSR::AworSet >> topic;
-
-	void subscribeThread();
-	void serveFullGraphThread();
-	void newGraphRequestAndWait();
-
-	std::thread read_thread, full_graph;
+	std::string agent_name;
+	std::shared_ptr<CRDT::CRDTGraph> graph;
 
 };
 
