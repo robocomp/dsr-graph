@@ -3,14 +3,20 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  DSRGraph.cpp
-  DataStorm.cpp
+   ../../../graph-related-classes/CRDT.cpp
+   DataStorm.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
+  ../../graph-related-classes/CRDT.h
 )
 
+INCLUDE_DIRECTORIES (/robocomp/components/dsr-graph/graph-related-classes/)
+INCLUDE_DIRECTORIES (/robocomp/components/dsr-graph/graph-related-classes/libs/)
+
 set(CMAKE_CXX_STANDARD 17)
+
+
