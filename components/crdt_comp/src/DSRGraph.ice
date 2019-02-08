@@ -1,6 +1,13 @@
 module RoboCompDSR
 {
-    dictionary<string, string> Attribs;
+    struct AttribValue
+    {
+        string type;
+        string value;
+        int length;
+    }
+
+    dictionary<string, AttribValue> Attribs;
     struct EdgeAttribs
 	{ 
 		string label;

@@ -26,13 +26,20 @@
 
 #include <CommonBehavior.h>
 
+#include <DifferentialRobot.h>
+#include <GenericBase.h>
+#include <Laser.h>
+#include <GenericBase.h>
 
 #define CHECK_PERIOD 5000
 #define BASIC_PERIOD 100
 
 using namespace std;
+using namespace RoboCompLaser;
+using namespace RoboCompGenericBase;
+using namespace RoboCompDifferentialRobot;
 
-using TuplePrx = std::tuple<>;
+using TuplePrx = std::tuple<RoboCompLaser::LaserPrxPtr,RoboCompDifferentialRobot::DifferentialRobotPrxPtr>;
 
 
 class GenericWorker :
@@ -49,6 +56,8 @@ public:
 	QMutex *mutex;
 
 
+	DifferentialRobotPrxPtr differentialrobot_proxy;
+	LaserPrxPtr laser_proxy;
 
 
 protected:

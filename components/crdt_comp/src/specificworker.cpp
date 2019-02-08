@@ -39,21 +39,24 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
 void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
-    graph = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
+    // DSR Graph creation
+    graph = std::make_shared<DSR::Graph>();
+    graph->readFromFile("caca.xml");
 
-    graph->start_fullgraph_server_thread();
-    graph->start_fullgraph_request_thread();
+    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, graph); // Init nodes
+
+    gcrdt->start_fullgraph_server_thread();
+    gcrdt->start_fullgraph_request_thread();
     sleep(TIMEOUT);
-    graph->start_subscription_thread();
-
-    timer.start(10);
+    gcrdt->start_subscription_thread();
+//    gcrdt->print();
+    std::cout << "Starting compute" << std::endl;
+    timer.start(30);
 }
 
 
-void SpecificWorker::compute() {
+void SpecificWorker::tester() {
     try {
-
-
         static int cont = 0, laps = 1;
         if (laps < LAPS) {
             try {
@@ -61,7 +64,7 @@ void SpecificWorker::compute() {
                 auto test = RoboCompDSR::Node{
                         "foo_id:" + std::to_string(cont) + "_laps:" + std::to_string(laps) + "_" + agent_name, cont};
 //            std::cout <<" New node: "<< test << std::endl;
-                graph->insert_or_assign(cont, test);
+                gcrdt->insert_or_assign(cont, test);
             }
             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
 
@@ -70,10 +73,38 @@ void SpecificWorker::compute() {
                 laps++;
             }
         } else if (laps == LAPS) {
-//            graph->print();
+//            gcrdt->print();
             laps++;
         } else
             sleep(5);
     } catch(const std::exception &e){ std::cout <<__FILE__ << " " << __FUNCTION__ << " "<< e.what() << std::endl;};
 }
 
+void SpecificWorker::compute()
+{
+    if (agent_name == "agent0")
+    try
+    {
+        // robot update
+        RoboCompGenericBase::TBaseState bState;
+        differentialrobot_proxy->getBaseState(bState);
+        auto base_id = graph->getNodeByInnerModelName("base");
+        auto world_id = graph->getNodeByInnerModelName("world");  //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
+        RMat::RTMat rt;
+        rt.setTr( QVec::vec3(bState.x, 0, bState.z));
+        rt.setRX(0.f);rt.setRY(bState.alpha);rt.setRZ(0.f);
+        gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat",rt.serializeAsString(),1} )});
+
+        // laser update
+        auto ldata = laser_proxy->getLaserData();
+        std::vector<float> dists;
+        std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
+        auto node_id = graph->getNodeByInnerModelName("laser");
+
+        gcrdt->add_node_attribs(node_id, RoboCompDSR::Attribs{std::make_pair("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", std::string(dists.begin(), dists.end()),(int)dists.size()} )});
+    }
+    catch(const Ice::Exception &e)
+    {
+        std::cout << "Error reading from Laser" << e << std::endl;
+    }
+}
