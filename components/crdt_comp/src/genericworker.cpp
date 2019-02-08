@@ -23,6 +23,8 @@
 GenericWorker::GenericWorker(TuplePrx tprx) :
 QObject()
 {
+	differentialrobot_proxy = std::get<DifferentialRobotPrxPtr>(tprx);
+	laser_proxy = std::get<LaserPrxPtr>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 

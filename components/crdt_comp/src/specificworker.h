@@ -4,7 +4,9 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include "../../graph-related-classes/CRDT.h"
+#include "../../graph-related-classes/graph.h"
 #include "../../graph-related-classes/libs/DSRGraph.h"
+
 
 #define LAPS 150
 #define NODES 25
@@ -25,8 +27,10 @@ public slots:
 private:
 	InnerModel *innerModel;
 	std::string agent_name;
-	std::shared_ptr<CRDT::CRDTGraph> graph;
+    std::shared_ptr<DSR::Graph> graph;
+	std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 
+    void tester();
 };
 
 #endif
