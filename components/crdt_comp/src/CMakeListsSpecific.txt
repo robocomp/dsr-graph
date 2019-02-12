@@ -11,7 +11,7 @@ SET ( SOURCES
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/CRDT.h
   ../../../graph-related-classes/graph.h
 )
 
