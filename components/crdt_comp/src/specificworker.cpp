@@ -29,6 +29,8 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
 */
 SpecificWorker::~SpecificWorker() {
     std::cout << "Destroying SpecificWorker" << std::endl;
+    gcrdt.reset();
+    graph.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
@@ -48,7 +50,7 @@ void SpecificWorker::initialize(int period) {
     gcrdt->start_fullgraph_server_thread();
     gcrdt->start_fullgraph_request_thread();
     sleep(TIMEOUT);
-    gcrdt->start_subscription_thread();
+    gcrdt->start_subscription_thread(false);
 //    gcrdt->print();
     std::cout << "Starting compute" << std::endl;
     timer.start(30);
@@ -82,7 +84,7 @@ void SpecificWorker::tester() {
 
 void SpecificWorker::compute()
 {
-    if (agent_name == "agent0")
+
     try
     {
         // robot update
@@ -100,11 +102,17 @@ void SpecificWorker::compute()
         std::vector<float> dists;
         std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
         auto node_id = graph->getNodeByInnerModelName("laser");
+        std::string s;
+        for (auto & x : dists)
+            s += std::to_string(x) + ":";
 
-        gcrdt->add_node_attribs(node_id, RoboCompDSR::Attribs{std::make_pair("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", std::string(dists.begin(), dists.end()),(int)dists.size()} )});
+        gcrdt->add_node_attribs(node_id, RoboCompDSR::Attribs{std::make_pair("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s,(int)dists.size()} )});
+
+//        gcrdt->print(node_id);
     }
     catch(const Ice::Exception &e)
     {
         std::cout << "Error reading from Laser" << e << std::endl;
     }
+
 }

@@ -240,33 +240,6 @@ CrdtComp_autogen/mocs_compilation.cpp.s:
 	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/CrdtComp_autogen/mocs_compilation.cpp.s
 .PHONY : CrdtComp_autogen/mocs_compilation.cpp.s
 
-DSRGraph.o: DSRGraph.cpp.o
-
-.PHONY : DSRGraph.o
-
-# target to build an object file
-DSRGraph.cpp.o:
-	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DSRGraph.cpp.o
-.PHONY : DSRGraph.cpp.o
-
-DSRGraph.i: DSRGraph.cpp.i
-
-.PHONY : DSRGraph.i
-
-# target to preprocess a source file
-DSRGraph.cpp.i:
-	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DSRGraph.cpp.i
-.PHONY : DSRGraph.cpp.i
-
-DSRGraph.s: DSRGraph.cpp.s
-
-.PHONY : DSRGraph.s
-
-# target to generate assembly for a file
-DSRGraph.cpp.s:
-	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DSRGraph.cpp.s
-.PHONY : DSRGraph.cpp.s
-
 DataStorm.o: DataStorm.cpp.o
 
 .PHONY : DataStorm.o
@@ -293,6 +266,87 @@ DataStorm.s: DataStorm.cpp.s
 DataStorm.cpp.s:
 	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DataStorm.cpp.s
 .PHONY : DataStorm.cpp.s
+
+DifferentialRobot.o: DifferentialRobot.cpp.o
+
+.PHONY : DifferentialRobot.o
+
+# target to build an object file
+DifferentialRobot.cpp.o:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DifferentialRobot.cpp.o
+.PHONY : DifferentialRobot.cpp.o
+
+DifferentialRobot.i: DifferentialRobot.cpp.i
+
+.PHONY : DifferentialRobot.i
+
+# target to preprocess a source file
+DifferentialRobot.cpp.i:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DifferentialRobot.cpp.i
+.PHONY : DifferentialRobot.cpp.i
+
+DifferentialRobot.s: DifferentialRobot.cpp.s
+
+.PHONY : DifferentialRobot.s
+
+# target to generate assembly for a file
+DifferentialRobot.cpp.s:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/DifferentialRobot.cpp.s
+.PHONY : DifferentialRobot.cpp.s
+
+GenericBase.o: GenericBase.cpp.o
+
+.PHONY : GenericBase.o
+
+# target to build an object file
+GenericBase.cpp.o:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/GenericBase.cpp.o
+.PHONY : GenericBase.cpp.o
+
+GenericBase.i: GenericBase.cpp.i
+
+.PHONY : GenericBase.i
+
+# target to preprocess a source file
+GenericBase.cpp.i:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/GenericBase.cpp.i
+.PHONY : GenericBase.cpp.i
+
+GenericBase.s: GenericBase.cpp.s
+
+.PHONY : GenericBase.s
+
+# target to generate assembly for a file
+GenericBase.cpp.s:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/GenericBase.cpp.s
+.PHONY : GenericBase.cpp.s
+
+Laser.o: Laser.cpp.o
+
+.PHONY : Laser.o
+
+# target to build an object file
+Laser.cpp.o:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/Laser.cpp.o
+.PHONY : Laser.cpp.o
+
+Laser.i: Laser.cpp.i
+
+.PHONY : Laser.i
+
+# target to preprocess a source file
+Laser.cpp.i:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/Laser.cpp.i
+.PHONY : Laser.cpp.i
+
+Laser.s: Laser.cpp.s
+
+.PHONY : Laser.s
+
+# target to generate assembly for a file
+Laser.cpp.s:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/Laser.cpp.s
+.PHONY : Laser.cpp.s
 
 commonbehaviorI.o: commonbehaviorI.cpp.o
 
@@ -456,6 +510,60 @@ home/crivac/robocomp/classes/sigwatch/sigwatch.cpp.s:
 	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/classes/sigwatch/sigwatch.cpp.s
 .PHONY : home/crivac/robocomp/classes/sigwatch/sigwatch.cpp.s
 
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.o: home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.o
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.o
+
+# target to build an object file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.o:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.o
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.o
+
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.i: home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.i
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.i
+
+# target to preprocess a source file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.i:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.i
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.i
+
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.s: home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.s
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.s
+
+# target to generate assembly for a file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.s:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.s
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.cpp.s
+
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.o: home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.o
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.o
+
+# target to build an object file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.o:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.o
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.o
+
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.i: home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.i
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.i
+
+# target to preprocess a source file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.i:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.i
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.i
+
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.s: home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.s
+
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.s
+
+# target to generate assembly for a file
+home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.s:
+	cd /home/crivac/robocomp/components/dsr-graph/components/crdt_comp && $(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.s
+.PHONY : home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -557,12 +665,18 @@ help:
 	@echo "... CrdtComp_autogen/mocs_compilation.o"
 	@echo "... CrdtComp_autogen/mocs_compilation.i"
 	@echo "... CrdtComp_autogen/mocs_compilation.s"
-	@echo "... DSRGraph.o"
-	@echo "... DSRGraph.i"
-	@echo "... DSRGraph.s"
 	@echo "... DataStorm.o"
 	@echo "... DataStorm.i"
 	@echo "... DataStorm.s"
+	@echo "... DifferentialRobot.o"
+	@echo "... DifferentialRobot.i"
+	@echo "... DifferentialRobot.s"
+	@echo "... GenericBase.o"
+	@echo "... GenericBase.i"
+	@echo "... GenericBase.s"
+	@echo "... Laser.o"
+	@echo "... Laser.i"
+	@echo "... Laser.s"
 	@echo "... commonbehaviorI.o"
 	@echo "... commonbehaviorI.i"
 	@echo "... commonbehaviorI.s"
@@ -581,6 +695,12 @@ help:
 	@echo "... home/crivac/robocomp/classes/sigwatch/sigwatch.o"
 	@echo "... home/crivac/robocomp/classes/sigwatch/sigwatch.i"
 	@echo "... home/crivac/robocomp/classes/sigwatch/sigwatch.s"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.o"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.i"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/CRDT.s"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.o"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.i"
+	@echo "... home/crivac/robocomp/components/dsr-graph/graph-related-classes/graph.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
