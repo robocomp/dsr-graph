@@ -26,3 +26,7 @@ components/crdt_comp/src/CrdtComp_autogen/
 *.cmake
 
 \.idea/
+
+*.cbp
+
+*.bak

@@ -3,9 +3,9 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../graph-related-classes/CRDT.h"
-#include "../../graph-related-classes/graph.h"
-#include "../../graph-related-classes/libs/DSRGraph.h"
+#include "../../../graph-related-classes/CRDT.h"
+#include "../../../graph-related-classes/graph.h"
+#include "../../../graph-related-classes/libs/DSRGraph.h"
 
 
 #define LAPS 150

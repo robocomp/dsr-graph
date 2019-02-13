@@ -58,11 +58,11 @@ void SpecificWorker::initialize(int period)
 	// GraphViewer creation
 //	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-//	setWindowTitle( AGENT_NAME.c_str() );
+	setWindowTitle( AGENT_NAME.c_str() );
 
-	connect(gcrdt.get(), &CRDT::CRDTGraph::updateNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
-//	connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
-//	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT);
+	connect(gcrdt.get(), &CRDT::CRDTGraph::update_node_signal, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
+	connect(gcrdt.get(), &CRDT::CRDTGraph::update_edge_signal, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
+//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_attrs_signal, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT);
 
 	//connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT); 
 	
