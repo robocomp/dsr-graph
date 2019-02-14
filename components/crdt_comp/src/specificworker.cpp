@@ -43,9 +43,10 @@ void SpecificWorker::initialize(int period) {
 
     // DSR Graph creation
     graph = std::make_shared<DSR::Graph>();
-    graph->readFromFile("caca.xml");
+//    graph->readFromFile("caca.xml");
 
     gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, graph); // Init nodes
+    gcrdt->read_from_file("caca.xml");
 
     gcrdt->start_fullgraph_server_thread();
     gcrdt->start_fullgraph_request_thread();
