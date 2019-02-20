@@ -44,9 +44,9 @@ class SpecificWorker : public GenericWorker
 		void compute();
 		void initialize(int period);
 
-	// signals:
-	// 	void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
-	// 	void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
+	 signals:
+	 	void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
+	 	void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
 
 	private:
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
