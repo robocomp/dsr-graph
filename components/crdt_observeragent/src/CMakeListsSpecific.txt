@@ -5,9 +5,8 @@ SET ( SOURCES
   specificmonitor.cpp
   ../../../graph-related-classes/CRDT_graphviewer.cpp
   ../../../graph-related-classes/CRDT.cpp
-  ../../../graph-related-classes/graphnode.cpp
-  ../../../graph-related-classes/graphedge.cpp
-  ../../../graph-related-classes/graph.cpp
+  ../../../graph-related-classes/CRDT_graphnode.cpp
+  ../../../graph-related-classes/CRDT_graphedge.cpp
   DataStorm.cpp
 )
 
@@ -17,9 +16,9 @@ SET ( HEADERS
   specificmonitor.h
   ../../../graph-related-classes/CRDT_graphviewer.h
   ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/graph.h
-  ../../../graph-related-classes/graphnode.h
-  ../../../graph-related-classes/graphedge.h
+  ../../../graph-related-classes/CRDT_graph.h
+  ../../../graph-related-classes/CRDT_graphnode.h
+  ../../../graph-related-classes/CRDT_graphedge.h
 )
 
 find_package(LibXml2 REQUIRED)

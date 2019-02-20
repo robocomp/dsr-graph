@@ -62,7 +62,7 @@ void SpecificWorker::initialize(int period)
 //	connect(gcrdt.get(), &CRDT::CRDTGraph::update_node_signal, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
 //	connect(gcrdt.get(), &CRDT::CRDTGraph::update_edge_signal, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
 //	connect(gcrdt.get(), &CRDT::CRDTGraph::update_attrs_signal, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT);
-//connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT);
+//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_edge_attrs_signal, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT);
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;
 	this->Period = 100;
