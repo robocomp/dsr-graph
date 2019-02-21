@@ -52,7 +52,7 @@ void SpecificWorker::initialize(int period)
 
 	gcrdt->start_fullgraph_request_thread();
 	sleep(TIMEOUT);
-	gcrdt->start_subscription_thread(true);
+	gcrdt->start_subscription_thread(false);
 //	gcrdt->print();
 
 	// GraphViewer creation

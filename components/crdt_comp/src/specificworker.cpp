@@ -102,7 +102,7 @@ void SpecificWorker::compute()
         auto ldata = laser_proxy->getLaserData();
         std::vector<float> dists;
         std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
-        auto node_id = graph->getNodeByInnerModelName("laser");
+        int node_id = gcrdt->get_id_from_name("laser");
         std::string s;
         for (auto & x : dists)
             s += std::to_string(x) + ":";
