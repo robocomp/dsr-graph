@@ -59,10 +59,6 @@ void SpecificWorker::initialize(int period)
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
 	setWindowTitle( AGENT_NAME.c_str() );
 
-//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_node_signal, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
-//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_edge_signal, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
-//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_attrs_signal, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT);
-//	connect(gcrdt.get(), &CRDT::CRDTGraph::update_edge_attrs_signal, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT);
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;
 	this->Period = 100;

@@ -103,13 +103,19 @@ void SpecificWorker::compute()
         std::vector<float> dists;
         std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
         int node_id = gcrdt->get_id_from_name("laser");
-        std::string s;
+        std::string s,a;
         for (auto & x : dists)
-            s += std::to_string(x) + ":";
+            s += std::to_string(x) + " ";
 
-        gcrdt->add_node_attribs(node_id, RoboCompDSR::Attribs{std::make_pair("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s,(int)dists.size()} )});
+        std::vector<float> angles;
+        std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l){ return l.angle;});
+        for (auto & x : angles)
+            a += std::to_string(x) + " ";
+        RoboCompDSR::Attribs ma;
+        ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s,(int)dists.size()} );
+        ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a,(int)angles.size()} );
+        gcrdt->add_node_attribs(node_id, ma);
 
-//        gcrdt->print(node_id);
     }
     catch(const Ice::Exception &e)
     {
