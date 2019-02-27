@@ -54,7 +54,11 @@ void SpecificWorker::initialize(int period) {
     gcrdt->start_subscription_thread(false);
 //    gcrdt->print();
     std::cout << "Starting compute" << std::endl;
-    timer.start(30);
+
+    // Random
+    mt = std::mt19937(rd());
+    dist = std::uniform_real_distribution((float)-20.0, (float)20.0);
+    timer.start(300);
 }
 
 
@@ -115,6 +119,17 @@ void SpecificWorker::compute()
         ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s,(int)dists.size()} );
         ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a,(int)angles.size()} );
         gcrdt->add_node_attribs(node_id, ma);
+
+        for (auto x : gcrdt->get_list())
+        {
+            for (auto &[k,v] : x.attrs) {
+                if (k == "pos_x" || k == "pos_y") {
+//                    std::cout << x.id<<". Actual: "<<v.value<<std::endl;
+                    gcrdt->add_node_attrib(x.id, k, v.type, std::to_string(std::stoi(v.value) + dist(mt)), v.length);
+//                    std::cout << x.id<<". Nuevo: "<<std::to_string(std::stoi(v.value) + dist(mt))<<std::endl;
+                }
+            }
+        }
 
     }
     catch(const Ice::Exception &e)
