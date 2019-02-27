@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
 	gcrdt = std::make_shared<CRDT::CRDTGraph>(0, AGENT_NAME); // Init nodes
 
-	gcrdt->start_fullgraph_request_thread();
+//	gcrdt->start_fullgraph_request_thread();
 	sleep(TIMEOUT);
 	gcrdt->start_subscription_thread(false);
 //	gcrdt->print();
@@ -67,7 +67,8 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-//	gcrdt->print();
+	std::cout << __FUNCTION__ <<":" << __LINE__ <<std::endl;
+//			  gcrdt->print();
 }
 
 

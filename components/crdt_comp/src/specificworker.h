@@ -6,7 +6,7 @@
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/graph.h"
 #include "../../../graph-related-classes/libs/DSRGraph.h"
-
+#include <random>
 
 #define LAPS 150
 #define NODES 25
@@ -31,6 +31,11 @@ private:
 	std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 
     void tester();
+
+	// Random
+	std::random_device rd;
+	std::mt19937 mt;
+	std::uniform_real_distribution<float> dist;
 };
 
 #endif
