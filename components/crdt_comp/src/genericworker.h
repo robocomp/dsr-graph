@@ -23,6 +23,12 @@
 #include <stdint.h>
 #include <qlog/qlog.h>
 
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
+#include <ui_mainUI.h>
 
 #include <CommonBehavior.h>
 
@@ -43,7 +49,11 @@ using TuplePrx = std::tuple<RoboCompLaser::LaserPrxPtr,RoboCompDifferentialRobot
 
 
 class GenericWorker :
-public QObject
+#ifdef USE_QTGUI
+	public QMainWindow, public Ui_guiDlg
+#else
+	public QObject
+ #endif
 {
 Q_OBJECT
 public:
@@ -56,8 +66,8 @@ public:
 	QMutex *mutex;
 
 
-	DifferentialRobotPrxPtr differentialrobot_proxy;
 	LaserPrxPtr laser_proxy;
+	DifferentialRobotPrxPtr differentialrobot_proxy;
 
 
 protected:

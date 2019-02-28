@@ -116,7 +116,11 @@ void ::CrdtComp::initialize()
 
 int ::CrdtComp::run(int argc, char* argv[])
 {
+#ifdef USE_QTGUI
+	QApplication a(argc, argv);  // GUI application
+#else
 	QCoreApplication a(argc, argv);  // NON-GUI application
+#endif
 
 
 	sigset_t sigs;
@@ -170,7 +174,7 @@ int ::CrdtComp::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	rInfo("LaserProxy initialized Ok!");
-//    tprx = std::make_tuple(differentialrobot_proxy,laser_proxy);
+
 	tprx = std::make_tuple(laser_proxy,differentialrobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread

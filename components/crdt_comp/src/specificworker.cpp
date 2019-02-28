@@ -30,7 +30,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
 SpecificWorker::~SpecificWorker() {
     std::cout << "Destroying SpecificWorker" << std::endl;
     gcrdt.reset();
-    graph.reset();
+
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
@@ -41,11 +41,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
 void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
-    // DSR Graph creation
-    graph = std::make_shared<DSR::Graph>();
-//    graph->readFromFile("caca.xml");
-
-    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, graph); // Init nodes
+    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
     gcrdt->read_from_file("caca.xml");
 
     gcrdt->start_fullgraph_server_thread();
@@ -55,9 +51,13 @@ void SpecificWorker::initialize(int period) {
 //    gcrdt->print();
     std::cout << "Starting compute" << std::endl;
 
+    // GraphViewer creation
+    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    setWindowTitle( agent_name.c_str() );
+
     // Random
     mt = std::mt19937(rd());
-    dist = std::uniform_real_distribution((float)-20.0, (float)20.0);
+    dist = std::uniform_real_distribution((float)-50.0, (float)50.0);
     timer.start(300);
 }
 
@@ -89,52 +89,63 @@ void SpecificWorker::tester() {
 
 void SpecificWorker::compute()
 {
+    static int cont = 0;
+    if (cont<50) {
+        try {
+            // robot update
+            RoboCompGenericBase::TBaseState bState;
+            differentialrobot_proxy->getBaseState(bState);
+            auto base_id = gcrdt->get_id_from_name("base");
+            auto world_id = gcrdt->get_id_from_name(
+                    "world");  //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
+            RMat::RTMat rt;
+            rt.setTr(QVec::vec3(bState.x, 0, bState.z));
+            rt.setRX(0.f);
+            rt.setRY(bState.alpha);
+            rt.setRZ(0.f);
+            gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{
+                    std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
 
-    try
-    {
-        // robot update
-        RoboCompGenericBase::TBaseState bState;
-        differentialrobot_proxy->getBaseState(bState);
-        auto base_id = graph->getNodeByInnerModelName("base");
-        auto world_id = graph->getNodeByInnerModelName("world");  //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
-        RMat::RTMat rt;
-        rt.setTr( QVec::vec3(bState.x, 0, bState.z));
-        rt.setRX(0.f);rt.setRY(bState.alpha);rt.setRZ(0.f);
-        gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat",rt.serializeAsString(),1} )});
+            // laser update
+            auto ldata = laser_proxy->getLaserData();
+            std::vector<float> dists;
+            std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
+            int node_id = gcrdt->get_id_from_name("laser");
+            std::string s, a;
+            for (auto &x : dists)
+                s += std::to_string(x) + " ";
 
-        // laser update
-        auto ldata = laser_proxy->getLaserData();
-        std::vector<float> dists;
-        std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l){ return l.dist;});
-        int node_id = gcrdt->get_id_from_name("laser");
-        std::string s,a;
-        for (auto & x : dists)
-            s += std::to_string(x) + " ";
+            std::vector<float> angles;
+            std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles),
+                           [](const auto &l) { return l.angle; });
+            for (auto &x : angles)
+                a += std::to_string(x) + " ";
+            RoboCompDSR::Attribs ma;
+            ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s, (int) dists.size()});
+            ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a, (int) angles.size()});
+            gcrdt->add_node_attribs(node_id, ma);
 
-        std::vector<float> angles;
-        std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l){ return l.angle;});
-        for (auto & x : angles)
-            a += std::to_string(x) + " ";
-        RoboCompDSR::Attribs ma;
-        ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s,(int)dists.size()} );
-        ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a,(int)angles.size()} );
-        gcrdt->add_node_attribs(node_id, ma);
-
-        for (auto x : gcrdt->get_list())
-        {
-            for (auto &[k,v] : x.attrs) {
-                if (k == "pos_x" || k == "pos_y") {
+            for (auto x : gcrdt->get_list()) {
+                for (auto &[k, v] : x.attrs) {
+                    if(k == "pos_x" || k == "pos_y") {
 //                    std::cout << x.id<<". Actual: "<<v.value<<std::endl;
-                    gcrdt->add_node_attrib(x.id, k, v.type, std::to_string(std::stoi(v.value) + dist(mt)), v.length);
+                        gcrdt->add_node_attrib(x.id, k, v.type, std::to_string(std::stoi(v.value) + dist(mt)),
+                                               v.length);
 //                    std::cout << x.id<<". Nuevo: "<<std::to_string(std::stoi(v.value) + dist(mt))<<std::endl;
+                    }
                 }
             }
+            std::cout<<"Working..."<<cont<<std::endl;
+            cont++;
         }
-
-    }
-    catch(const Ice::Exception &e)
+        catch (const Ice::Exception &e) {
+            std::cout << "Error reading from Laser" << e << std::endl;
+        }
+    } else
     {
-        std::cout << "Error reading from Laser" << e << std::endl;
+        std::cout<<"Fin"<<std::endl;
+        sleep(1);
     }
+
 
 }
