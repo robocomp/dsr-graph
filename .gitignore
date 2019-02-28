@@ -30,3 +30,15 @@ components/crdt_comp/src/CrdtComp_autogen/
 *.cbp
 
 *.bak
+
+components/crdt_observeragent/cmake-build-debug/
+
+components/crdt_observeragent/CMakeFiles/
+
+components/crdt_observeragent/src/bin/
+
+components/crdt_observeragent/src/cmake-build-debug/
+
+components/crdt_observeragent/src/observeragent_autogen/
+
+components/crdt_observeragent/src/CMakeFiles/

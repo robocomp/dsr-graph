@@ -57,8 +57,8 @@ void SpecificWorker::initialize(int period) {
 
     // Random
     mt = std::mt19937(rd());
-    dist = std::uniform_real_distribution((float)-50.0, (float)50.0);
-    timer.start(300);
+    dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
+    timer.start(20);
 }
 
 
@@ -90,7 +90,7 @@ void SpecificWorker::tester() {
 void SpecificWorker::compute()
 {
     static int cont = 0;
-    if (cont<50) {
+    if (cont<30) {
         try {
             // robot update
             RoboCompGenericBase::TBaseState bState;
@@ -128,10 +128,9 @@ void SpecificWorker::compute()
             for (auto x : gcrdt->get_list()) {
                 for (auto &[k, v] : x.attrs) {
                     if(k == "pos_x" || k == "pos_y") {
-//                    std::cout << x.id<<". Actual: "<<v.value<<std::endl;
-                        gcrdt->add_node_attrib(x.id, k, v.type, std::to_string(std::stoi(v.value) + dist(mt)),
-                                               v.length);
-//                    std::cout << x.id<<". Nuevo: "<<std::to_string(std::stoi(v.value) + dist(mt))<<std::endl;
+                        std::string nValue = std::to_string(std::stoi(v.value) + dist(mt));
+                        cout << "Nodo: "<<x.id<<", antes: "<<v<<", ahora: "<<nValue<<endl;
+                        gcrdt->add_node_attrib(x.id, k, v.type, nValue, v.length);
                     }
                 }
             }
@@ -146,6 +145,4 @@ void SpecificWorker::compute()
         std::cout<<"Fin"<<std::endl;
         sleep(1);
     }
-
-
 }

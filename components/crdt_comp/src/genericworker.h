@@ -38,7 +38,7 @@
 #include <GenericBase.h>
 
 #define CHECK_PERIOD 5000
-#define BASIC_PERIOD 100
+#define BASIC_PERIOD 10
 
 using namespace std;
 using namespace RoboCompLaser;
