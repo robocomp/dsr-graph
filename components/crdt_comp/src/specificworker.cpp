@@ -58,6 +58,7 @@ void SpecificWorker::initialize(int period) {
     // Random
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
+    randomNode = std::uniform_int_distribution((int)100, (int)140.0);
     timer.start(20);
 }
 
@@ -90,7 +91,7 @@ void SpecificWorker::tester() {
 void SpecificWorker::compute()
 {
     static int cont = 0;
-    if (cont<30) {
+    if (cont<LAPS) {
         try {
             // robot update
             RoboCompGenericBase::TBaseState bState;
@@ -120,6 +121,7 @@ void SpecificWorker::compute()
                            [](const auto &l) { return l.angle; });
             for (auto &x : angles)
                 a += std::to_string(x) + " ";
+
             RoboCompDSR::Attribs ma;
             ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s, (int) dists.size()});
             ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a, (int) angles.size()});
@@ -136,13 +138,21 @@ void SpecificWorker::compute()
             }
             std::cout<<"Working..."<<cont<<std::endl;
             cont++;
+            auto toDelete = randomNode(mt);
+            std::cout<<"Deleting.... "<<toDelete<<std::endl;
+            gcrdt->delete_node(toDelete);
         }
         catch (const Ice::Exception &e) {
             std::cout << "Error reading from Laser" << e << std::endl;
         }
-    } else
+    } else if (cont == LAPS)
     {
-        std::cout<<"Fin"<<std::endl;
-        sleep(1);
-    }
+//        auto toDelete = randomNode(mt);
+////        int toDelete = 118;
+//        std::cout<<"Antes "<<toDelete<<std::endl;
+//        gcrdt->delete_node(toDelete);
+//        std::cout<<"Fin "<<std::endl;
+        cont++;
+    } else
+        std::cout<<"nada "<<std::endl;
 }

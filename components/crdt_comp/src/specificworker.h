@@ -8,7 +8,7 @@
 #include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 
-#define LAPS 150
+#define LAPS 5
 #define NODES 25
 #define TIMEOUT 5
 
@@ -41,6 +41,8 @@ class SpecificWorker : public GenericWorker
 		std::random_device rd;
 		std::mt19937 mt;
 		std::uniform_real_distribution<float> dist;
+        std::uniform_int_distribution<int> randomNode;
+
 };
 
 #endif
