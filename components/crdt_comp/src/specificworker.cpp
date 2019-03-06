@@ -47,7 +47,7 @@ void SpecificWorker::initialize(int period) {
     gcrdt->start_fullgraph_server_thread();
     gcrdt->start_fullgraph_request_thread();
     sleep(TIMEOUT);
-    gcrdt->start_subscription_thread(false);
+    gcrdt->start_subscription_thread(true);
 //    gcrdt->print();
     std::cout << "Starting compute" << std::endl;
 
@@ -88,8 +88,7 @@ void SpecificWorker::tester() {
     } catch(const std::exception &e){ std::cout <<__FILE__ << " " << __FUNCTION__ << " "<< e.what() << std::endl;};
 }
 
-void SpecificWorker::compute()
-{
+void SpecificWorker::test_laser() {
     static int cont = 0;
     if (cont<LAPS) {
         try {
@@ -127,6 +126,19 @@ void SpecificWorker::compute()
             ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a, (int) angles.size()});
             gcrdt->add_node_attribs(node_id, ma);
 
+            std::cout<<"Working..."<<cont<<std::endl;
+            cont++;
+        }
+        catch (const Ice::Exception &e) {
+            std::cout << "Error reading from Laser" << e << std::endl;
+        }
+    }
+}
+
+void SpecificWorker::test_nodes_mov() {
+    static int cont = 0;
+    if (cont<LAPS) {
+        try {
             for (auto x : gcrdt->get_list()) {
                 for (auto &[k, v] : x.attrs) {
                     if(k == "pos_x" || k == "pos_y") {
@@ -138,21 +150,48 @@ void SpecificWorker::compute()
             }
             std::cout<<"Working..."<<cont<<std::endl;
             cont++;
-            auto toDelete = randomNode(mt);
-            std::cout<<"Deleting.... "<<toDelete<<std::endl;
-            gcrdt->delete_node(toDelete);
+//            auto toDelete = randomNode(mt);
+//            std::cout<<"Deleting.... "<<toDelete<<std::endl;
+//            gcrdt->delete_node(toDelete);
         }
         catch (const Ice::Exception &e) {
             std::cout << "Error reading from Laser" << e << std::endl;
         }
     } else if (cont == LAPS)
     {
-//        auto toDelete = randomNode(mt);
-////        int toDelete = 118;
-//        std::cout<<"Antes "<<toDelete<<std::endl;
-//        gcrdt->delete_node(toDelete);
+//        auto to_delete = randomNode(mt);
+////        int to_delete = 118;
+//        std::cout<<"Antes "<<to_delete<<std::endl;
+//        gcrdt->delete_node(to_delete);
 //        std::cout<<"Fin "<<std::endl;
         cont++;
     } else
         std::cout<<"nada "<<std::endl;
+}
+
+void SpecificWorker::test_node_random()
+{   static int cont = 0;
+    if (cont<NODES) {
+        try {
+            int to_move = randomNode(mt);
+            std::cout<<"["<<cont<<"] to_move: "<<to_move<<std::endl;
+            float p_x = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_x");
+            p_x+= dist(mt);
+            float p_y = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_y");
+            p_y+= dist(mt);
+            gcrdt->add_node_attrib(to_move, "pos_x", p_x);
+            gcrdt->add_node_attrib(to_move, "pos_y", p_y);
+        } catch (const std::exception &e) {
+            std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
+                      << std::endl;
+        };
+        cont++;
+    }
+}
+
+void SpecificWorker::compute()
+{
+//    test_laser();
+//    test_nodes_mov();
+    test_node_random();
 }
