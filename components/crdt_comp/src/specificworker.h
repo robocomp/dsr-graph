@@ -8,8 +8,8 @@
 #include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 
-#define LAPS 5
-#define NODES 25
+#define LAPS 50
+#define NODES 2000
 #define TIMEOUT 5
 
 class SpecificWorker : public GenericWorker
@@ -35,8 +35,11 @@ class SpecificWorker : public GenericWorker
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
+		// Tests
 		void tester();
-
+		void test_nodes_mov();
+		void test_laser();
+		void test_node_random();
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;
