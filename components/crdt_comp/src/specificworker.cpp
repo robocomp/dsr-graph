@@ -47,7 +47,7 @@ void SpecificWorker::initialize(int period) {
     gcrdt->start_fullgraph_server_thread();
     gcrdt->start_fullgraph_request_thread();
     sleep(TIMEOUT);
-    gcrdt->start_subscription_thread(true);
+    gcrdt->start_subscription_thread(false);
 //    gcrdt->print();
     std::cout << "Starting compute" << std::endl;
 
@@ -174,13 +174,16 @@ void SpecificWorker::test_node_random()
     if (cont<NODES) {
         try {
             int to_move = randomNode(mt);
-            std::cout<<"["<<cont<<"] to_move: "<<to_move<<std::endl;
-            float p_x = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_x");
-            p_x+= dist(mt);
-            float p_y = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_y");
-            p_y+= dist(mt);
-            gcrdt->add_node_attrib(to_move, "pos_x", p_x);
-            gcrdt->add_node_attrib(to_move, "pos_y", p_y);
+            if (gcrdt->in(to_move))
+            {
+                std::cout << "[" << cont << "] to_move: " << to_move << std::endl;
+                float p_x = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_x");
+                p_x += dist(mt);
+                float p_y = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_y");
+                p_y += dist(mt);
+                gcrdt->add_node_attrib(to_move, "pos_x", p_x);
+                gcrdt->add_node_attrib(to_move, "pos_y", p_y);
+            }
         } catch (const std::exception &e) {
             std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
                       << std::endl;

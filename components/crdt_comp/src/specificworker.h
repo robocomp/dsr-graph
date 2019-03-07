@@ -9,7 +9,7 @@
 #include <random>
 
 #define LAPS 50
-#define NODES 2000
+#define NODES 3000
 #define TIMEOUT 5
 
 class SpecificWorker : public GenericWorker
