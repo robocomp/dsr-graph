@@ -4,12 +4,12 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
+#include <ctime>
 
 #define LAPS 50
-#define NODES 1500
+#define NODES 1000
 #define TIMEOUT 5
 
 class SpecificWorker : public GenericWorker
@@ -32,8 +32,9 @@ class SpecificWorker : public GenericWorker
 	private:
 		InnerModel *innerModel;
 		std::string agent_name;
+        int nodes_test;
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
-		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+        clock_t begin;
 
 		// Tests
 		void tester();
