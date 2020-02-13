@@ -82,6 +82,10 @@
 #include "commonbehaviorI.h"
 
 
+#include <DifferentialRobot.h>
+#include <GenericBase.h>
+#include <Laser.h>
+#include <GenericBase.h>
 
 
 // User includes here
@@ -112,7 +116,11 @@ void ::CrdtComp::initialize()
 
 int ::CrdtComp::run(int argc, char* argv[])
 {
+#ifdef USE_QTGUI
+	QApplication a(argc, argv);  // GUI application
+#else
 	QCoreApplication a(argc, argv);  // NON-GUI application
+#endif
 
 
 	sigset_t sigs;
@@ -129,10 +137,45 @@ int ::CrdtComp::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	DifferentialRobotPrxPtr differentialrobot_proxy;
+	LaserPrxPtr laser_proxy;
 
 	string proxy, tmp;
 	initialize();
 
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DifferentialRobotProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DifferentialRobotProxy\n";
+		}
+		differentialrobot_proxy = Ice::uncheckedCast<DifferentialRobotPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DifferentialRobot: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("DifferentialRobotProxy initialized Ok!");
+
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
+		}
+		laser_proxy = Ice::uncheckedCast<LaserPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy Laser: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("LaserProxy initialized Ok!");
+
+	tprx = std::make_tuple(laser_proxy,differentialrobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

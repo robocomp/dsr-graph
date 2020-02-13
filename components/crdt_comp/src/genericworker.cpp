@@ -21,11 +21,22 @@
 * \brief Default constructor
 */
 GenericWorker::GenericWorker(TuplePrx tprx) :
+#ifdef USE_QTGUI
+Ui_guiDlg()
+#else
 QObject()
+#endif
+
 {
+	differentialrobot_proxy = std::get<DifferentialRobotPrxPtr>(tprx);
+	laser_proxy = std::get<LaserPrxPtr>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
+	#ifdef USE_QTGUI
+		setupUi(this);
+		show();
+	#endif
 	Period = BASIC_PERIOD;
 	connect(&timer, SIGNAL(timeout()), this, SLOT(compute()));
 

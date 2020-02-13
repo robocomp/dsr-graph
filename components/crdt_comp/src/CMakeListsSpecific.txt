@@ -1,16 +1,30 @@
-
 # Sources set
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  DSRGraph.cpp
-  DataStorm.cpp
+  ../../../graph-related-classes/CRDT.cpp
+  ../../../graph-related-classes/CRDT_graphviewer.cpp
+  ../../../graph-related-classes/CRDT_graphnode.cpp
+  ../../../graph-related-classes/CRDT_graphedge.cpp
+   DataStorm.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
+  ../../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/CRDT_graphviewer.h
+  ../../../graph-related-classes/CRDT_graph.h
+  ../../../graph-related-classes/CRDT_graphnode.h
+  ../../../graph-related-classes/CRDT_graphedge.h
 )
 
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+add_definitions(-g  -fmax-errors=1 )
 set(CMAKE_CXX_STANDARD 17)
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES} -lDataStorm)
+
+
+

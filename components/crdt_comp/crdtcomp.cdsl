@@ -1,9 +1,13 @@
+import "Laser.idsl";
+import "DifferentialRobot.idsl";
+
 Component CrdtComp
 {
 	Communications
 	{
-
+		requires Laser, DifferentialRobot;
 	};
 	language Cpp11;
+	gui Qt(QMainWindow);
 };
 
