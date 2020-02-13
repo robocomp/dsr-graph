@@ -23,20 +23,37 @@
 #include <stdint.h>
 #include <qlog/qlog.h>
 
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
+#include <ui_mainUI.h>
 
 #include <CommonBehavior.h>
 
+#include <DifferentialRobot.h>
+#include <GenericBase.h>
+#include <Laser.h>
+#include <GenericBase.h>
 
 #define CHECK_PERIOD 5000
-#define BASIC_PERIOD 100
+#define BASIC_PERIOD 10
 
 using namespace std;
+using namespace RoboCompLaser;
+using namespace RoboCompGenericBase;
+using namespace RoboCompDifferentialRobot;
 
-using TuplePrx = std::tuple<>;
+using TuplePrx = std::tuple<RoboCompLaser::LaserPrxPtr,RoboCompDifferentialRobot::DifferentialRobotPrxPtr>;
 
 
 class GenericWorker :
-public QObject
+#ifdef USE_QTGUI
+	public QMainWindow, public Ui_guiDlg
+#else
+	public QObject
+ #endif
 {
 Q_OBJECT
 public:
@@ -49,6 +66,8 @@ public:
 	QMutex *mutex;
 
 
+	LaserPrxPtr laser_proxy;
+	DifferentialRobotPrxPtr differentialrobot_proxy;
 
 
 protected:
