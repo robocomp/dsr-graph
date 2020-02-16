@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2018 by YOUR NAME HERE
+ *    Copyright (C)2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -26,7 +26,12 @@ Ui_guiDlg()
 #else
 QObject()
 #endif
+
 {
+
+
+	mutex = new QMutex(QMutex::Recursive);
+
 	#ifdef USE_QTGUI
 		setupUi(this);
 		show();

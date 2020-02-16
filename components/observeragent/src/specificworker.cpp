@@ -42,7 +42,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	{
 		AGENT_NAME = params.at("AgentName").value;
 	}
-	catch(std::exception e) { qFatal("Error reading config params"); }
+	catch(std::exception &e) { qFatal("Error reading config params"); }
 	return true;
 }
 
@@ -69,9 +69,9 @@ void SpecificWorker::initialize(int period)
 	std::cout << __FILE__ << __FUNCTION__ << " -- Initializing graphic graph" << std::endl;
 	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));   //NO PASAR THIS, SOLO EL WIDGET
 	setWindowTitle( AGENT_NAME.c_str() );
-	connect(gcrdt.get(), &DSR::Graph::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
-	connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
-	connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT); 
+	// connect(gcrdt.get(), &DSR::Graph::addNodeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addNodeSLOT);
+	// connect(graph.get(), &DSR::Graph::addEdgeSIGNAL, graph_viewer.get(), &DSR::GraphViewer::addEdgeSLOT);
+	// connect(graph.get(), &DSR::Graph::NodeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::NodeAttrsChangedSLOT); 
 	//connect(graph.get(), &DSR::Graph::EdgeAttrsChangedSIGNAL, graph_viewer.get(), &DSR::GraphViewer::EdgeAttrsChangedSLOT); 
 	
 	std::cout << __FILE__ << __FUNCTION__ << " -- graphics initialized OK" << std::endl;	

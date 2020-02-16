@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2018 by YOUR NAME HERE
+ *    Copyright (C)2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -29,8 +29,8 @@
 	#include <QtGui>
 #endif
 #include <ui_mainUI.h>
-
 #include <CommonBehavior.h>
+
 
 
 #define CHECK_PERIOD 5000
@@ -40,12 +40,13 @@ using namespace std;
 
 using TuplePrx = std::tuple<>;
 
+
 class GenericWorker :
 #ifdef USE_QTGUI
-public QMainWindow, public Ui_guiDlg
+	public QMainWindow, public Ui_guiDlg
 #else
-public QObject
-#endif
+	public QObject
+ #endif
 {
 Q_OBJECT
 public:
@@ -55,8 +56,13 @@ public:
 	virtual void setPeriod(int p);
 
 	virtual bool setParams(RoboCompCommonBehavior::ParameterList params) = 0;
+	QMutex *mutex;
+
+
+
 
 protected:
+
 	QTimer timer;
 	int Period;
 
@@ -65,7 +71,8 @@ private:
 
 public slots:
 	virtual void compute() = 0;
-	virtual void initialize(int period) = 0;
+    virtual void initialize(int period) = 0;
+	
 signals:
 	void kill();
 };

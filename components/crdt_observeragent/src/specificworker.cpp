@@ -40,7 +40,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	{
 		AGENT_NAME = params.at("AgentName").value;
 	}
-	catch(std::exception e) { qFatal("Error reading config params"); }
+	catch(std::exception &e) { qFatal("Error reading config params"); }
 	return true;
 }
 
@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
 	gcrdt = std::make_shared<CRDT::CRDTGraph>(0, AGENT_NAME); // Init nodes
 
-//	gcrdt->start_fullgraph_request_thread();
+	gcrdt->start_fullgraph_request_thread();
 	sleep(TIMEOUT);
 	gcrdt->start_subscription_thread(false);
 //	gcrdt->print();

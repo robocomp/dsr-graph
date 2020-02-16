@@ -23,7 +23,7 @@
 #include <Ice/Ice.h>
 #include <CommonBehavior.h>
 
-#include "config.h"
+#include <config.h>
 
 #include "genericworker.h"
 #include "genericmonitor.h"

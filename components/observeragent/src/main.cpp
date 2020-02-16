@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2018 by YOUR NAME HERE
+ *    Copyright (C) 2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -137,7 +137,8 @@ int ::observeragent::run(int argc, char* argv[])
 	string proxy, tmp;
 	initialize();
 
-	tprx = std::make_tuple();
+
+	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

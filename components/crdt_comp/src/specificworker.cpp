@@ -42,6 +42,8 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
+
+    // OJO
     gcrdt->read_from_file("caca.xml");
 
     gcrdt->start_fullgraph_server_thread();
@@ -90,19 +92,17 @@ void SpecificWorker::tester() {
 
 void SpecificWorker::test_laser() {
     static int cont = 0;
-    if (cont<LAPS) {
+    //if (cont<LAPS) {
         try {
             // robot update
             RoboCompGenericBase::TBaseState bState;
             differentialrobot_proxy->getBaseState(bState);
             auto base_id = gcrdt->get_id_from_name("base");
-            auto world_id = gcrdt->get_id_from_name(
-                    "world");  //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
+            auto world_id = gcrdt->get_id_from_name("world");  
+                    //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
             RMat::RTMat rt;
             rt.setTr(QVec::vec3(bState.x, 0, bState.z));
-            rt.setRX(0.f);
-            rt.setRY(bState.alpha);
-            rt.setRZ(0.f);
+            rt.setRX(0.f); rt.setRY(bState.alpha); rt.setRZ(0.f);
             gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{
                     std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
 
@@ -132,7 +132,7 @@ void SpecificWorker::test_laser() {
         catch (const Ice::Exception &e) {
             std::cout << "Error reading from Laser" << e << std::endl;
         }
-    }
+    //}
 }
 
 void SpecificWorker::test_nodes_mov() {
@@ -194,7 +194,7 @@ void SpecificWorker::test_node_random()
 
 void SpecificWorker::compute()
 {
-//    test_laser();
+    test_laser();
 //    test_nodes_mov();
-    test_node_random();
+//    test_node_random();
 }
