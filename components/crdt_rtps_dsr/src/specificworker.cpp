@@ -46,92 +46,84 @@ void SpecificWorker::initialize(int period) {
     // OJO
     gcrdt->read_from_file("caca.xml");
 
-    gcrdt->start_fullgraph_server_thread();
-    gcrdt->start_fullgraph_request_thread();
+    //gcrdt->start_fullgraph_server_thread();
+    //gcrdt->start_fullgraph_request_thread();
+
     sleep(TIMEOUT);
-    gcrdt->start_subscription_thread(false);
-//    gcrdt->print();
+    //gcrdt->start_subscription_thread(false);
+    //gcrdt->print();
     std::cout << "Starting compute" << std::endl;
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
     setWindowTitle( agent_name.c_str() );
 
-    // Random
+    // Random initialization
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
     timer.start(20);
 }
 
-
-void SpecificWorker::tester() {
-    try {
-        static int cont = 0, laps = 1;
-        if (laps < LAPS) {
-            try {
-                cont++;
-                auto test = RoboCompDSR::Node{
-                        "foo_id:" + std::to_string(cont) + "_laps:" + std::to_string(laps) + "_" + agent_name, cont};
-//            std::cout <<" New node: "<< test << std::endl;
-                gcrdt->insert_or_assign(cont, test);
-            }
-            catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
-
-            if (cont == NODES) {
-                cont = 0;
-                laps++;
-            }
-        } else if (laps == LAPS) {
-//            gcrdt->print();
-            laps++;
-        } else
-            sleep(5);
-    } catch(const std::exception &e){ std::cout <<__FILE__ << " " << __FUNCTION__ << " "<< e.what() << std::endl;};
+void SpecificWorker::compute()
+{
+   test_laser();
+   //   test_nodes_mov();
+   // test_node_random();
 }
 
-void SpecificWorker::test_laser() {
+
+void SpecificWorker::test_laser() 
+{
     static int cont = 0;
     //if (cont<LAPS) {
+         // get robot position
         try {
-            // robot update
             RoboCompGenericBase::TBaseState bState;
             differentialrobot_proxy->getBaseState(bState);
+            // get corresponding nodes in G
             auto base_id = gcrdt->get_id_from_name("base");
             auto world_id = gcrdt->get_id_from_name("world");  
                     //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
+            // create Rt mat coding the robot's pose in the world
             RMat::RTMat rt;
             rt.setTr(QVec::vec3(bState.x, 0, bState.z));
             rt.setRX(0.f); rt.setRY(bState.alpha); rt.setRZ(0.f);
-            gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{
-                    std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
-
-            // laser update
+            // add Rt mat as the edge attribute between world and robot
+            gcrdt->add_edge_attribs(world_id, base_id, 
+                        RoboCompDSR::Attribs{std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
+        }
+        catch (const Ice::Exception &e) { std::cout << "Error reading from Base" << e << std::endl;}
+        // get laser values
+        try
+        {
             auto ldata = laser_proxy->getLaserData();
+            // extract distances 
             std::vector<float> dists;
             std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
+            // get corresponding node
             int node_id = gcrdt->get_id_from_name("laser");
+            // convert values to string
             std::string s, a;
             for (auto &x : dists)
                 s += std::to_string(x) + " ";
-
+            // extract angles
             std::vector<float> angles;
-            std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles),
-                           [](const auto &l) { return l.angle; });
+            std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
+            // convert angles to string
             for (auto &x : angles)
                 a += std::to_string(x) + " ";
-
+            // insert both strings as attributes
             RoboCompDSR::Attribs ma;
             ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s, (int) dists.size()});
             ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a, (int) angles.size()});
+            // add attributes to node
             gcrdt->add_node_attribs(node_id, ma);
-
-            std::cout<<"Working..."<<cont<<std::endl;
-            cont++;
         }
-        catch (const Ice::Exception &e) {
-            std::cout << "Error reading from Laser" << e << std::endl;
-        }
+        catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
+        
+        std::cout<<"Working..." << cont << std::endl;
+        cont++;
     //}
 }
 
@@ -192,9 +184,27 @@ void SpecificWorker::test_node_random()
     }
 }
 
-void SpecificWorker::compute()
-{
-//   test_laser();
-//    test_nodes_mov();
-    test_node_random();
-}
+// void SpecificWorker::tester() {
+//     try {
+//         static int cont = 0, laps = 1;
+//         if (laps < LAPS) {
+//             try {
+//                 cont++;
+//                 auto test = RoboCompDSR::Node{
+//                         "foo_id:" + std::to_string(cont) + "_laps:" + std::to_string(laps) + "_" + agent_name, cont};
+// //            std::cout <<" New node: "<< test << std::endl;
+//                 gcrdt->insert_or_assign(cont, test);
+//             }
+//             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
+
+//             if (cont == NODES) {
+//                 cont = 0;
+//                 laps++;
+//             }
+//         } else if (laps == LAPS) {
+// //            gcrdt->print();
+//             laps++;
+//         } else
+//             sleep(5);
+//     } catch(const std::exception &e){ std::cout <<__FILE__ << " " << __FUNCTION__ << " "<< e.what() << std::endl;};
+// }
