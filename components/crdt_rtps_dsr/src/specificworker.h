@@ -36,7 +36,7 @@ class SpecificWorker : public GenericWorker
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Tests
-		void tester();
+		//void tester();
 		void test_nodes_mov();
 		void test_laser();
 		void test_node_random();

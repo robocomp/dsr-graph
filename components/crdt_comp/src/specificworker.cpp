@@ -194,7 +194,7 @@ void SpecificWorker::test_node_random()
 
 void SpecificWorker::compute()
 {
-    test_laser();
+//   test_laser();
 //    test_nodes_mov();
-//    test_node_random();
+    test_node_random();
 }
