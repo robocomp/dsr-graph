@@ -157,30 +157,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named CrdtComp
+# Target rules for targets named Crdt_rtps_dsr
 
 # Build rule for target.
-CrdtComp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 CrdtComp
-.PHONY : CrdtComp
+Crdt_rtps_dsr: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Crdt_rtps_dsr
+.PHONY : Crdt_rtps_dsr
 
 # fast build rule for target.
-CrdtComp/fast:
-	$(MAKE) -f src/CMakeFiles/CrdtComp.dir/build.make src/CMakeFiles/CrdtComp.dir/build
-.PHONY : CrdtComp/fast
+Crdt_rtps_dsr/fast:
+	$(MAKE) -f src/CMakeFiles/Crdt_rtps_dsr.dir/build.make src/CMakeFiles/Crdt_rtps_dsr.dir/build
+.PHONY : Crdt_rtps_dsr/fast
 
 #=============================================================================
-# Target rules for targets named CrdtComp_autogen
+# Target rules for targets named Crdt_rtps_dsr_autogen
 
 # Build rule for target.
-CrdtComp_autogen: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 CrdtComp_autogen
-.PHONY : CrdtComp_autogen
+Crdt_rtps_dsr_autogen: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Crdt_rtps_dsr_autogen
+.PHONY : Crdt_rtps_dsr_autogen
 
 # fast build rule for target.
-CrdtComp_autogen/fast:
-	$(MAKE) -f src/CMakeFiles/CrdtComp_autogen.dir/build.make src/CMakeFiles/CrdtComp_autogen.dir/build
-.PHONY : CrdtComp_autogen/fast
+Crdt_rtps_dsr_autogen/fast:
+	$(MAKE) -f src/CMakeFiles/Crdt_rtps_dsr_autogen.dir/build.make src/CMakeFiles/Crdt_rtps_dsr_autogen.dir/build
+.PHONY : Crdt_rtps_dsr_autogen/fast
 
 # Help Target
 help:
@@ -194,8 +194,8 @@ help:
 	@echo "... list_install_components"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... CrdtComp"
-	@echo "... CrdtComp_autogen"
+	@echo "... Crdt_rtps_dsr"
+	@echo "... Crdt_rtps_dsr_autogen"
 .PHONY : help
 
 

@@ -7,6 +7,10 @@
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
+#include "fast_rtps/dsrparticipant.h"
+#include "fast_rtps/dsrpublisher.h"
+#include "fast_rtps/dsrsubscriber.h"
+
 
 #define LAPS 50
 #define NODES 1500
@@ -45,6 +49,10 @@ class SpecificWorker : public GenericWorker
 		std::mt19937 mt;
 		std::uniform_real_distribution<float> dist;
         std::uniform_int_distribution<int> randomNode;
+
+		DSRParticipant dsrparticipant;
+		DSRPublisher dsrpub;
+		DSRSubscriber dsrsub;
 
 };
 
