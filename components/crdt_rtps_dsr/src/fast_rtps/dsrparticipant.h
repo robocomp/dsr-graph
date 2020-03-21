@@ -35,14 +35,16 @@ public:
 	std::tuple<bool, eprosima::fastrtps::Participant *> init();
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getID() const ;
-	const char* getTopicName() const;
+	const char* getDSRTopicName() const;
+	const char* getRequestTopicName() const;
 
 private:
 	eprosima::fastrtps::Participant *mp_participant;
     eprosima::fastrtps::Publisher *mp_publisher;
     eprosima::fastrtps::Subscriber *mp_subscriber;
+	eprosima::fastrtps::Subscriber *mp_subscriber_graph_request;
 
-	DSRDeltaPubSubType dsrdeltaType;
+	DSRGraphTopicPubSubType dsrgraphType;
 	GraphRequestPubSubType graphrequestType;
 
 };

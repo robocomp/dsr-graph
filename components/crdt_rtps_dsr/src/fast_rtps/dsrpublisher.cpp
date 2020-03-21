@@ -40,43 +40,15 @@ DSRPublisher::~DSRPublisher()
     //eprosima::fastrtps::Domain::removeParticipant(mp_participant);
 }
 
-bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_)
+bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType)
 {
     mp_participant = mp_participant_;
-    // // Create RTPSParticipant     
-    // eprosima::fastrtps::ParticipantAttributes PParam;
-    // PParam.rtps.setName("Participant_publisher");  //You can put here the name you want
     
-    // //Create a descriptor for the new transport.
-    // auto custom_transport = std::make_shared<UDPv4TransportDescriptor>();
-    // custom_transport->sendBufferSize = 65000;
-    // custom_transport->receiveBufferSize = 65000;
-    // custom_transport->maxMessageSize = 65000;
-    // custom_transport->interfaceWhiteList.emplace_back("127.0.0.1");
-    // //custom_transport->interfaceWhiteList.emplace_back("192.168.1.253");
-    
-
-    // //Disable the built-in Transport Layer.
-    // PParam.rtps.useBuiltinTransports = false;
-
-    // //Link the Transport Layer to the Participant.
-    // PParam.rtps.userTransports.push_back(custom_transport);
-
-    // mp_participant = eprosima::fastrtps::Domain::createParticipant(PParam);
-
-    // if(mp_participant == nullptr)
-    // {
-    //     return false;
-    // }
-
-    // //Register the type
-    // eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType*>(&dsrdeltaType));
-
     // Create Publisher
     eprosima::fastrtps::PublisherAttributes Wparam;
     Wparam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
-    Wparam.topic.topicDataType = dsrdeltaType.getName();  //This type MUST be registered
-    Wparam.topic.topicName = "DSRDeltaPubSubTopic";
+    Wparam.topic.topicDataType = topicDataType;  //This type MUST be registered
+    Wparam.topic.topicName = topicName;
     eprosima::fastrtps::rtps::Locator_t locator;
     eprosima::fastrtps::rtps::IPLocator::setIPv4(locator, 239, 255, 0 , 1);
     locator.port = 7900;
@@ -88,9 +60,7 @@ bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_)
 
     //Wparam.times.heartbeatPeriod.nanosec = 500000000; //500 ms
     if(mp_publisher == nullptr)
-    {
         return false;
-    }
     std::cout << "Publisher created, waiting for Subscribers." << std::endl;
     return true;
 }
@@ -124,22 +94,14 @@ void DSRPublisher::run()
     std::cout << __FUNCTION__ << " HOLA" << std::endl;
     
     // Publication code
-    DSRDelta st;
-    std::vector<int32_t> caca(10000, 0);
-    int j=0;
-    for(auto &i : caca)
-        i = j++;
-    st.load(caca);
-    
-    /* Initialize your structure here */
+    DSRGraphTopic st;
 
-    int msgsent = 0;
-  
+    int msgsent = 0;  
     do
     {
-        mp_publisher->write(&st);  
-        ++msgsent;
-        std::cout << "Sending sample, count=" << msgsent << " " << st.load().size() * 4 << std::endl;
-        std::this_thread::sleep_for(std::chrono::microseconds(1000000)); // Sleep 250 ms
+    //     mp_publisher->write(&st);  
+    //     ++msgsent;
+    //     std::cout << "Sending sample, count=" << msgsent << " " << st.load().size() * 4 << std::endl;
+    //     std::this_thread::sleep_for(std::chrono::microseconds(1000000)); // Sleep 250 ms
     } while(true);
 }

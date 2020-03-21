@@ -53,7 +53,7 @@ private:
 		int n_msg;
 		eprosima::fastrtps::rtps::GUID_t participant_ID;
 	} m_listener;
-	DSRDeltaPubSubType dsrdeltaType;
+	
 };
 
 #endif // _CADENA_SUBSCRIBER_H_

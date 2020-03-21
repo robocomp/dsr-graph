@@ -25,14 +25,14 @@
 
 #include <fastrtps/fastrtps_fwd.h>
 #include <fastrtps/publisher/PublisherListener.h>
-#include "dsrdeltaPubSubTypes.h"
+#include "topics/DSRGraphPubSubTypes.h"
 
 class DSRPublisher
 {
 public:
 	DSRPublisher();
 	virtual ~DSRPublisher();
-	bool init(eprosima::fastrtps::Participant *mp_participant_);
+	bool init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType);
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getParticipantID() const ;
 
@@ -48,7 +48,7 @@ private:
 		void onPublicationMatched(eprosima::fastrtps::Publisher* pub,eprosima::fastrtps::rtps::MatchingInfo& info);
 		int n_matched;
 	} m_listener;
-	DSRDeltaPubSubType dsrdeltaType;
+	DSRGraphTopicPubSubType dsrgraphType;
 };
 
 #endif // _CADENA_PUBLISHER_H_
