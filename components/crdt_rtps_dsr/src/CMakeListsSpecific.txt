@@ -11,7 +11,8 @@ SET ( SOURCES
   fast_rtps/dsrdelta.cxx
   fast_rtps/dsrsubscriber.cpp
   fast_rtps/dsrparticipant.cpp
-  fast_rtps/dsrdeltaPubSubTypes.cxx
+  topics/DSRGraphPubSubTypes.cxx
+  topics/GraphRequestPubSubTypes.cxx
 
 )
 

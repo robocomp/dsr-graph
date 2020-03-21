@@ -38,44 +38,15 @@ DSRSubscriber::~DSRSubscriber()
     	//Domain::removeParticipant(mp_participant);
 }
 
-bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_)
+bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType)
 {
-
     mp_participant = mp_participant_;
-    // // Create RTPSParticipant
-
-    // ParticipantAttributes PParam;
-    // PParam.rtps.setName("Participant_subscriber"); //You can put the name you want
-    // //PParam.rtps.builtin.domainId = 80;
     
-    // //Create a descriptor for the new transport.
-    // auto custom_transport = std::make_shared<eprosima::fastrtps::rtps::UDPv4TransportDescriptor>();
-    // custom_transport->sendBufferSize = 65000;
-    // custom_transport->receiveBufferSize = 65000;
-    // custom_transport->maxMessageSize = 65000;
-    // // custom_transport->interfaceWhiteList.emplace_back("192.168.1.253");
-    // custom_transport->interfaceWhiteList.emplace_back("127.0.0.1");
-
-    // //Disable the built-in Transport Layer.
-    // PParam.rtps.useBuiltinTransports = false;
-
-    // //Link the Transport Layer to the Participant.
-    // PParam.rtps.userTransports.push_back(custom_transport);
-    
-    // mp_participant = Domain::createParticipant(PParam);
-    // if(mp_participant == nullptr)
-    // {
-    //     return false;
-    // }
-
-    // //Register the type
-    // Domain::registerType(mp_participant, static_cast<TopicDataType*>(&dsrdeltaType));
-
     // Create Subscriber
     SubscriberAttributes Rparam;
     Rparam.topic.topicKind = NO_KEY;
-    Rparam.topic.topicDataType = dsrdeltaType.getName(); //Must be registered before the creation of the subscriber
-    Rparam.topic.topicName = "DSRDeltaPubSubTopic";
+    Rparam.topic.topicDataType = topicDataType; //Must be registered before the creation of the subscriber
+    Rparam.topic.topicName = topicName;
     eprosima::fastrtps::rtps::Locator_t locator;
     IPLocator::setIPv4(locator, 239, 255, 0 , 1);
     locator.port = 7900;
@@ -85,9 +56,7 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_)
     m_listener.participant_ID = mp_participant->getGuid();
     mp_subscriber = Domain::createSubscriber(mp_participant, Rparam, static_cast<SubscriberListener*>(&m_listener));
     if(mp_subscriber == nullptr)
-    {
         return false;
-    }
     return true;
 }
 

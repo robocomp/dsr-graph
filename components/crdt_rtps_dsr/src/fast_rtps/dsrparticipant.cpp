@@ -66,14 +66,16 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init()
 
     //Register the type
     eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType*>(&dsrdeltaType));
-
-    
-
     return std::make_tuple(true, mp_participant);
 }
 
 eprosima::fastrtps::rtps::GUID_t DSRParticipant::getID() const
 {   
     return mp_participant->getGuid();
+}
+
+const char * DSRParticipant::getTopicName() const
+{   
+    return dsrdeltaType.getName();
 }
 

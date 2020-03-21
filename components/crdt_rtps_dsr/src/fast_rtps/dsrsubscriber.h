@@ -28,36 +28,13 @@
 #include <fastrtps/subscriber/SampleInfo.h>
 #include "dsrdeltaPubSubTypes.h"
 
-// class FPSCounter
-// {
-// 	public:
-// 		FPSCounter()
-// 		{
-// 			begin = std::chrono::high_resolution_clock::now();
-// 		}
-//     float print( const unsigned int msPeriod = 1000, float bits=0)
-// 		{
-// 			auto end = std::chrono::high_resolution_clock::now();
-// 			auto elapsed = std::chrono::duration<double>(end - begin).count() * 1000;
-// 			if( elapsed > msPeriod)
-// 			{
-// 				std::cout << "Epoch time = " << elapsed << "ms. Fps = " << cont << ", bits " << bits * cont << " bits " << bits <<" " << cont << std::endl;
-// 				begin = std::chrono::high_resolution_clock::now();
-// 				cont = 0;		
-// 			}
-// 			cont++;
-// 			return elapsed;
-// 		}
-// 	std::chrono::time_point<std::chrono::high_resolution_clock> begin;
-// 	std::uint32_t cont = 0;
-// };
 
 class DSRSubscriber
 {
 public:
 	DSRSubscriber();
 	virtual ~DSRSubscriber();
-	bool init(eprosima::fastrtps::Participant *mp_participant_);
+	bool init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType);
 	void run();
 	
 private:

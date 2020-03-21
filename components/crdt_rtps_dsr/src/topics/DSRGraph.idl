@@ -1,0 +1,19 @@
+
+struct EdgeAttribs
+{ 
+    string label;
+    unsigned long from;
+    unsigned long to;
+    map<unsigned long, string> attrs; 
+};
+struct Content
+{ 
+    string type;
+    unsigned long id;
+    map<unsigned long, string> attrs;
+    map<unsigned long, EdgeAttribs> fano;
+};
+struct DSRGraphTopic
+{  
+    map<unsigned long, Content> DSRGraph;
+};
