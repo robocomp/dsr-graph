@@ -1,0 +1,14 @@
+DESCRIPCION DE LOS PROCESOS
+
+En void CRDTGraph::read_from_file(const std::string &file_name) que sería creación del grafo se llama a los métodos:
+
+422    insert_or_assign(node_id, RoboCompDSR::Node{node_type, node_id});
+423    add_node_attrib(node_id, "level", std::int32_t(0));
+424    add_node_attrib(node_id, "parent", std::int32_t(0));
+
+446    add_node_attribs(node_id, gatts);
+
+En void SpecificWorker::test_laser()
+
+93     gcrdt->add_edge_attribs(world_id, base_id, RoboCompDSR::Attribs{std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
+121    gcrdt->add_node_attribs(node_id, ma);

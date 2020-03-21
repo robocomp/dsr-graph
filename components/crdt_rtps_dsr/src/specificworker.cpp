@@ -127,62 +127,62 @@ void SpecificWorker::test_laser()
     //}
 }
 
-void SpecificWorker::test_nodes_mov() {
-    static int cont = 0;
-    if (cont<LAPS) {
-        try {
-            for (auto x : gcrdt->get_list()) {
-                for (auto &[k, v] : x.attrs) {
-                    if(k == "pos_x" || k == "pos_y") {
-                        std::string nValue = std::to_string(std::stoi(v.value) + dist(mt));
-                        cout << "Nodo: "<<x.id<<", antes: "<<v<<", ahora: "<<nValue<<endl;
-                        gcrdt->add_node_attrib(x.id, k, v.type, nValue, v.length);
-                    }
-                }
-            }
-            std::cout<<"Working..."<<cont<<std::endl;
-            cont++;
-//            auto toDelete = randomNode(mt);
-//            std::cout<<"Deleting.... "<<toDelete<<std::endl;
-//            gcrdt->delete_node(toDelete);
-        }
-        catch (const Ice::Exception &e) {
-            std::cout << "Error reading from Laser" << e << std::endl;
-        }
-    } else if (cont == LAPS)
-    {
-//        auto to_delete = randomNode(mt);
-////        int to_delete = 118;
-//        std::cout<<"Antes "<<to_delete<<std::endl;
-//        gcrdt->delete_node(to_delete);
-//        std::cout<<"Fin "<<std::endl;
-        cont++;
-    } else
-        std::cout<<"nada "<<std::endl;
-}
+// void SpecificWorker::test_nodes_mov() {
+//     static int cont = 0;
+//     if (cont<LAPS) {
+//         try {
+//             for (auto x : gcrdt->get_list()) {
+//                 for (auto &[k, v] : x.attrs) {
+//                     if(k == "pos_x" || k == "pos_y") {
+//                         std::string nValue = std::to_string(std::stoi(v.value) + dist(mt));
+//                         cout << "Nodo: "<<x.id<<", antes: "<<v<<", ahora: "<<nValue<<endl;
+//                         gcrdt->add_node_attrib(x.id, k, v.type, nValue, v.length);
+//                     }
+//                 }
+//             }
+//             std::cout<<"Working..."<<cont<<std::endl;
+//             cont++;
+// //            auto toDelete = randomNode(mt);
+// //            std::cout<<"Deleting.... "<<toDelete<<std::endl;
+// //            gcrdt->delete_node(toDelete);
+//         }
+//         catch (const Ice::Exception &e) {
+//             std::cout << "Error reading from Laser" << e << std::endl;
+//         }
+//     } else if (cont == LAPS)
+//     {
+// //        auto to_delete = randomNode(mt);
+// ////        int to_delete = 118;
+// //        std::cout<<"Antes "<<to_delete<<std::endl;
+// //        gcrdt->delete_node(to_delete);
+// //        std::cout<<"Fin "<<std::endl;
+//         cont++;
+//     } else
+//         std::cout<<"nada "<<std::endl;
+// }
 
-void SpecificWorker::test_node_random()
-{   static int cont = 0;
-    if (cont<NODES) {
-        try {
-            int to_move = randomNode(mt);
-            if (gcrdt->in(to_move))
-            {
-                std::cout << "[" << cont << "] to_move: " << to_move << std::endl;
-                float p_x = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_x");
-                p_x += dist(mt);
-                float p_y = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_y");
-                p_y += dist(mt);
-                gcrdt->add_node_attrib(to_move, "pos_x", p_x);
-                gcrdt->add_node_attrib(to_move, "pos_y", p_y);
-            }
-        } catch (const std::exception &e) {
-            std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
-                      << std::endl;
-        };
-        cont++;
-    }
-}
+// void SpecificWorker::test_node_random()
+// {   static int cont = 0;
+//     if (cont<NODES) {
+//         try {
+//             int to_move = randomNode(mt);
+//             if (gcrdt->in(to_move))
+//             {
+//                 std::cout << "[" << cont << "] to_move: " << to_move << std::endl;
+//                 float p_x = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_x");
+//                 p_x += dist(mt);
+//                 float p_y = gcrdt->get_node_attrib_by_name<float>(to_move, "pos_y");
+//                 p_y += dist(mt);
+//                 gcrdt->add_node_attrib(to_move, "pos_x", p_x);
+//                 gcrdt->add_node_attrib(to_move, "pos_y", p_y);
+//             }
+//         } catch (const std::exception &e) {
+//             std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
+//                       << std::endl;
+//         };
+//         cont++;
+//     }
+// }
 
 // void SpecificWorker::tester() {
 //     try {
