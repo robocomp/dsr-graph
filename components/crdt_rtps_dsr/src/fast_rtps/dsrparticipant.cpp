@@ -65,7 +65,8 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init()
     }
 
     //Register the type
-    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType*>(&dsrdeltaType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType*>(&dsrgraphType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType*>(&graphrequestType));
     return std::make_tuple(true, mp_participant);
 }
 
@@ -74,8 +75,12 @@ eprosima::fastrtps::rtps::GUID_t DSRParticipant::getID() const
     return mp_participant->getGuid();
 }
 
-const char * DSRParticipant::getTopicName() const
+const char * DSRParticipant::getDSRTopicName() const
 {   
-    return dsrdeltaType.getName();
+    return dsrgraphType.getName();
 }
 
+const char * DSRParticipant::getRequestTopicName() const
+{   
+    return graphrequestType.getName();
+}

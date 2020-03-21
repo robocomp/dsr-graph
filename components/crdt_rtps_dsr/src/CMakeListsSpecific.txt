@@ -13,6 +13,8 @@ SET ( SOURCES
   fast_rtps/dsrparticipant.cpp
   topics/DSRGraphPubSubTypes.cxx
   topics/GraphRequestPubSubTypes.cxx
+  topics/DSRGraph.cxx
+  topics/GraphRequest.cxx
 
 )
 
