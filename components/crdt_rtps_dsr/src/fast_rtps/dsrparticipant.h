@@ -22,7 +22,8 @@
 #define _CADENA_PARTICIPANT_H_
 
 #include <fastrtps/fastrtps_fwd.h>
-#include "dsrdeltaPubSubTypes.h"
+#include "topics/DSRGraphPubSubTypes.h"
+#include "topics/GraphRequestPubSubTypes.h"
 #include "dsrpublisher.h"
 #include "dsrsubscriber.h"
 
@@ -34,12 +35,15 @@ public:
 	std::tuple<bool, eprosima::fastrtps::Participant *> init();
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getID() const ;
+	const char* getTopicName() const;
 
 private:
 	eprosima::fastrtps::Participant *mp_participant;
     eprosima::fastrtps::Publisher *mp_publisher;
     eprosima::fastrtps::Subscriber *mp_subscriber;
+
 	DSRDeltaPubSubType dsrdeltaType;
+	GraphRequestPubSubType graphrequestType;
 
 };
 
