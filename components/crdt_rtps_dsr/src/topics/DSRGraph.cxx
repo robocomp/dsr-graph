@@ -32,15 +32,239 @@ using namespace eprosima::fastcdr::exception;
 
 #include <utility>
 
+AttribValue::AttribValue()
+{
+    // m_type com.eprosima.idl.parser.typecode.StringTypeCode@8646db9
+    m_type ="";
+    // m_value com.eprosima.idl.parser.typecode.StringTypeCode@37374a5e
+    m_value ="";
+    // m_length com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4671e53b
+    m_length = 0;
+
+}
+
+AttribValue::~AttribValue()
+{
+
+
+
+}
+
+AttribValue::AttribValue(const AttribValue &x)
+{
+    m_type = x.m_type;
+    m_value = x.m_value;
+    m_length = x.m_length;
+}
+
+AttribValue::AttribValue(AttribValue &&x)
+{
+    m_type = std::move(x.m_type);
+    m_value = std::move(x.m_value);
+    m_length = x.m_length;
+}
+
+AttribValue& AttribValue::operator=(const AttribValue &x)
+{
+
+    m_type = x.m_type;
+    m_value = x.m_value;
+    m_length = x.m_length;
+
+    return *this;
+}
+
+AttribValue& AttribValue::operator=(AttribValue &&x)
+{
+
+    m_type = std::move(x.m_type);
+    m_value = std::move(x.m_value);
+    m_length = x.m_length;
+
+    return *this;
+}
+
+size_t AttribValue::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+
+    return current_alignment - initial_alignment;
+}
+
+size_t AttribValue::getCdrSerializedSize(const AttribValue& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.type().size() + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.value().size() + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+
+    return current_alignment - initial_alignment;
+}
+
+void AttribValue::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_type;
+    scdr << m_value;
+    scdr << m_length;
+}
+
+void AttribValue::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_type;
+    dcdr >> m_value;
+    dcdr >> m_length;
+}
+
+/*!
+ * @brief This function copies the value in member type
+ * @param _type New value to be copied in member type
+ */
+void AttribValue::type(const std::string &_type)
+{
+m_type = _type;
+}
+
+/*!
+ * @brief This function moves the value in member type
+ * @param _type New value to be moved in member type
+ */
+void AttribValue::type(std::string &&_type)
+{
+m_type = std::move(_type);
+}
+
+/*!
+ * @brief This function returns a constant reference to member type
+ * @return Constant reference to member type
+ */
+const std::string& AttribValue::type() const
+{
+    return m_type;
+}
+
+/*!
+ * @brief This function returns a reference to member type
+ * @return Reference to member type
+ */
+std::string& AttribValue::type()
+{
+    return m_type;
+}
+/*!
+ * @brief This function copies the value in member value
+ * @param _value New value to be copied in member value
+ */
+void AttribValue::value(const std::string &_value)
+{
+m_value = _value;
+}
+
+/*!
+ * @brief This function moves the value in member value
+ * @param _value New value to be moved in member value
+ */
+void AttribValue::value(std::string &&_value)
+{
+m_value = std::move(_value);
+}
+
+/*!
+ * @brief This function returns a constant reference to member value
+ * @return Constant reference to member value
+ */
+const std::string& AttribValue::value() const
+{
+    return m_value;
+}
+
+/*!
+ * @brief This function returns a reference to member value
+ * @return Reference to member value
+ */
+std::string& AttribValue::value()
+{
+    return m_value;
+}
+/*!
+ * @brief This function sets a value in member length
+ * @param _length New value for member length
+ */
+void AttribValue::length(int32_t _length)
+{
+m_length = _length;
+}
+
+/*!
+ * @brief This function returns the value of member length
+ * @return Value of member length
+ */
+int32_t AttribValue::length() const
+{
+    return m_length;
+}
+
+/*!
+ * @brief This function returns a reference to member length
+ * @return Reference to member length
+ */
+int32_t& AttribValue::length()
+{
+    return m_length;
+}
+
+
+size_t AttribValue::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+
+    return current_align;
+}
+
+bool AttribValue::isKeyDefined()
+{
+   return false;
+}
+
+void AttribValue::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+     
+}
+
 EdgeAttribs::EdgeAttribs()
 {
-    // m_label com.eprosima.idl.parser.typecode.StringTypeCode@7b49cea0
+    // m_label com.eprosima.idl.parser.typecode.StringTypeCode@530612ba
     m_label ="";
-    // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@887af79
+    // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@2a40cd94
     m_from = 0;
-    // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@7fac631b
+    // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@f4168b8
     m_to = 0;
-    // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@5b87ed94
+    // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@3bd94634
 
 
 }
@@ -108,10 +332,9 @@ size_t EdgeAttribs::getMaxCdrSerializedSize(size_t current_alignment)
 
     for(size_t a = 0; a < 100; ++a)
     {
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+        current_alignment += 255 + eprosima::fastcdr::Cdr::alignment(current_alignment, 255);
 
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
-
+        current_alignment += AttribValue::getMaxCdrSerializedSize(current_alignment);
     }
 
 
@@ -137,8 +360,8 @@ size_t EdgeAttribs::getCdrSerializedSize(const EdgeAttribs& data, size_t current
     for(auto a : data.attrs())
     {
         (void)a;
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + a.second.size() + 1;
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + a.first.size() + 1;
+        current_alignment += AttribValue::getCdrSerializedSize((a.second), current_alignment);
 
     }
 
@@ -204,7 +427,7 @@ std::string& EdgeAttribs::label()
  * @brief This function sets a value in member from
  * @param _from New value for member from
  */
-void EdgeAttribs::from(uint32_t _from)
+void EdgeAttribs::from(int32_t _from)
 {
 m_from = _from;
 }
@@ -213,7 +436,7 @@ m_from = _from;
  * @brief This function returns the value of member from
  * @return Value of member from
  */
-uint32_t EdgeAttribs::from() const
+int32_t EdgeAttribs::from() const
 {
     return m_from;
 }
@@ -222,7 +445,7 @@ uint32_t EdgeAttribs::from() const
  * @brief This function returns a reference to member from
  * @return Reference to member from
  */
-uint32_t& EdgeAttribs::from()
+int32_t& EdgeAttribs::from()
 {
     return m_from;
 }
@@ -231,7 +454,7 @@ uint32_t& EdgeAttribs::from()
  * @brief This function sets a value in member to
  * @param _to New value for member to
  */
-void EdgeAttribs::to(uint32_t _to)
+void EdgeAttribs::to(int32_t _to)
 {
 m_to = _to;
 }
@@ -240,7 +463,7 @@ m_to = _to;
  * @brief This function returns the value of member to
  * @return Value of member to
  */
-uint32_t EdgeAttribs::to() const
+int32_t EdgeAttribs::to() const
 {
     return m_to;
 }
@@ -249,7 +472,7 @@ uint32_t EdgeAttribs::to() const
  * @brief This function returns a reference to member to
  * @return Reference to member to
  */
-uint32_t& EdgeAttribs::to()
+int32_t& EdgeAttribs::to()
 {
     return m_to;
 }
@@ -258,7 +481,7 @@ uint32_t& EdgeAttribs::to()
  * @brief This function copies the value in member attrs
  * @param _attrs New value to be copied in member attrs
  */
-void EdgeAttribs::attrs(const std::map<uint32_t, std::string> &_attrs)
+void EdgeAttribs::attrs(const std::map<std::string, AttribValue> &_attrs)
 {
 m_attrs = _attrs;
 }
@@ -267,7 +490,7 @@ m_attrs = _attrs;
  * @brief This function moves the value in member attrs
  * @param _attrs New value to be moved in member attrs
  */
-void EdgeAttribs::attrs(std::map<uint32_t, std::string> &&_attrs)
+void EdgeAttribs::attrs(std::map<std::string, AttribValue> &&_attrs)
 {
 m_attrs = std::move(_attrs);
 }
@@ -276,7 +499,7 @@ m_attrs = std::move(_attrs);
  * @brief This function returns a constant reference to member attrs
  * @return Constant reference to member attrs
  */
-const std::map<uint32_t, std::string>& EdgeAttribs::attrs() const
+const std::map<std::string, AttribValue>& EdgeAttribs::attrs() const
 {
     return m_attrs;
 }
@@ -285,14 +508,14 @@ const std::map<uint32_t, std::string>& EdgeAttribs::attrs() const
  * @brief This function returns a reference to member attrs
  * @return Reference to member attrs
  */
-std::map<uint32_t, std::string>& EdgeAttribs::attrs()
+std::map<std::string, AttribValue>& EdgeAttribs::attrs()
 {
     return m_attrs;
 }
 
 size_t EdgeAttribs::getKeyMaxCdrSerializedSize(size_t current_alignment)
 {
-	size_t current_align = current_alignment;
+    size_t current_align = current_alignment;
 
 
 
@@ -310,27 +533,27 @@ bool EdgeAttribs::isKeyDefined()
 
 void EdgeAttribs::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
-	(void) scdr;
-	 
-	 
-	 
-	 
+    (void) scdr;
+     
+     
+     
+     
 }
 
-Content::Content()
+Node::Node()
 {
-    // m_type com.eprosima.idl.parser.typecode.StringTypeCode@4abdb505
+    // m_type com.eprosima.idl.parser.typecode.StringTypeCode@5cdd8682
     m_type ="";
-    // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@7ce6a65d
+    // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@d6da883
     m_id = 0;
-    // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@1500955a
+    // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@45afc369
 
-    // m_fano com.eprosima.idl.parser.typecode.MapTypeCode@e874448
+    // m_fano com.eprosima.idl.parser.typecode.MapTypeCode@799d4f69
 
 
 }
 
-Content::~Content()
+Node::~Node()
 {
 
 
@@ -338,7 +561,7 @@ Content::~Content()
 
 }
 
-Content::Content(const Content &x)
+Node::Node(const Node &x)
 {
     m_type = x.m_type;
     m_id = x.m_id;
@@ -346,7 +569,7 @@ Content::Content(const Content &x)
     m_fano = x.m_fano;
 }
 
-Content::Content(Content &&x)
+Node::Node(Node &&x)
 {
     m_type = std::move(x.m_type);
     m_id = x.m_id;
@@ -354,7 +577,7 @@ Content::Content(Content &&x)
     m_fano = std::move(x.m_fano);
 }
 
-Content& Content::operator=(const Content &x)
+Node& Node::operator=(const Node &x)
 {
 
     m_type = x.m_type;
@@ -365,7 +588,7 @@ Content& Content::operator=(const Content &x)
     return *this;
 }
 
-Content& Content::operator=(Content &&x)
+Node& Node::operator=(Node &&x)
 {
 
     m_type = std::move(x.m_type);
@@ -376,7 +599,7 @@ Content& Content::operator=(Content &&x)
     return *this;
 }
 
-size_t Content::getMaxCdrSerializedSize(size_t current_alignment)
+size_t Node::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -390,10 +613,9 @@ size_t Content::getMaxCdrSerializedSize(size_t current_alignment)
 
     for(size_t a = 0; a < 100; ++a)
     {
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+        current_alignment += 255 + eprosima::fastcdr::Cdr::alignment(current_alignment, 255);
 
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
-
+        current_alignment += AttribValue::getMaxCdrSerializedSize(current_alignment);
     }
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
@@ -409,7 +631,7 @@ size_t Content::getMaxCdrSerializedSize(size_t current_alignment)
     return current_alignment - initial_alignment;
 }
 
-size_t Content::getCdrSerializedSize(const Content& data, size_t current_alignment)
+size_t Node::getCdrSerializedSize(const Node& data, size_t current_alignment)
 {
     (void)data;
     size_t initial_alignment = current_alignment;
@@ -425,8 +647,8 @@ size_t Content::getCdrSerializedSize(const Content& data, size_t current_alignme
     for(auto a : data.attrs())
     {
         (void)a;
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + a.second.size() + 1;
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + a.first.size() + 1;
+        current_alignment += AttribValue::getCdrSerializedSize((a.second), current_alignment);
 
     }
 
@@ -437,6 +659,8 @@ size_t Content::getCdrSerializedSize(const Content& data, size_t current_alignme
     {
         (void)a;
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
         current_alignment += EdgeAttribs::getCdrSerializedSize((a.second), current_alignment);
 
     }
@@ -446,7 +670,7 @@ size_t Content::getCdrSerializedSize(const Content& data, size_t current_alignme
     return current_alignment - initial_alignment;
 }
 
-void Content::serialize(eprosima::fastcdr::Cdr &scdr) const
+void Node::serialize(eprosima::fastcdr::Cdr &scdr) const
 {
 
     scdr << m_type;
@@ -455,7 +679,7 @@ void Content::serialize(eprosima::fastcdr::Cdr &scdr) const
     scdr << m_fano;
 }
 
-void Content::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void Node::deserialize(eprosima::fastcdr::Cdr &dcdr)
 {
 
     dcdr >> m_type;
@@ -468,7 +692,7 @@ void Content::deserialize(eprosima::fastcdr::Cdr &dcdr)
  * @brief This function copies the value in member type
  * @param _type New value to be copied in member type
  */
-void Content::type(const std::string &_type)
+void Node::type(const std::string &_type)
 {
 m_type = _type;
 }
@@ -477,7 +701,7 @@ m_type = _type;
  * @brief This function moves the value in member type
  * @param _type New value to be moved in member type
  */
-void Content::type(std::string &&_type)
+void Node::type(std::string &&_type)
 {
 m_type = std::move(_type);
 }
@@ -486,7 +710,7 @@ m_type = std::move(_type);
  * @brief This function returns a constant reference to member type
  * @return Constant reference to member type
  */
-const std::string& Content::type() const
+const std::string& Node::type() const
 {
     return m_type;
 }
@@ -495,7 +719,7 @@ const std::string& Content::type() const
  * @brief This function returns a reference to member type
  * @return Reference to member type
  */
-std::string& Content::type()
+std::string& Node::type()
 {
     return m_type;
 }
@@ -503,7 +727,7 @@ std::string& Content::type()
  * @brief This function sets a value in member id
  * @param _id New value for member id
  */
-void Content::id(uint32_t _id)
+void Node::id(int32_t _id)
 {
 m_id = _id;
 }
@@ -512,7 +736,7 @@ m_id = _id;
  * @brief This function returns the value of member id
  * @return Value of member id
  */
-uint32_t Content::id() const
+int32_t Node::id() const
 {
     return m_id;
 }
@@ -521,7 +745,7 @@ uint32_t Content::id() const
  * @brief This function returns a reference to member id
  * @return Reference to member id
  */
-uint32_t& Content::id()
+int32_t& Node::id()
 {
     return m_id;
 }
@@ -530,7 +754,7 @@ uint32_t& Content::id()
  * @brief This function copies the value in member attrs
  * @param _attrs New value to be copied in member attrs
  */
-void Content::attrs(const std::map<uint32_t, std::string> &_attrs)
+void Node::attrs(const std::map<std::string, AttribValue> &_attrs)
 {
 m_attrs = _attrs;
 }
@@ -539,7 +763,7 @@ m_attrs = _attrs;
  * @brief This function moves the value in member attrs
  * @param _attrs New value to be moved in member attrs
  */
-void Content::attrs(std::map<uint32_t, std::string> &&_attrs)
+void Node::attrs(std::map<std::string, AttribValue> &&_attrs)
 {
 m_attrs = std::move(_attrs);
 }
@@ -548,7 +772,7 @@ m_attrs = std::move(_attrs);
  * @brief This function returns a constant reference to member attrs
  * @return Constant reference to member attrs
  */
-const std::map<uint32_t, std::string>& Content::attrs() const
+const std::map<std::string, AttribValue>& Node::attrs() const
 {
     return m_attrs;
 }
@@ -557,7 +781,7 @@ const std::map<uint32_t, std::string>& Content::attrs() const
  * @brief This function returns a reference to member attrs
  * @return Reference to member attrs
  */
-std::map<uint32_t, std::string>& Content::attrs()
+std::map<std::string, AttribValue>& Node::attrs()
 {
     return m_attrs;
 }
@@ -565,7 +789,7 @@ std::map<uint32_t, std::string>& Content::attrs()
  * @brief This function copies the value in member fano
  * @param _fano New value to be copied in member fano
  */
-void Content::fano(const std::map<uint32_t, EdgeAttribs> &_fano)
+void Node::fano(const std::map<uint32_t, EdgeAttribs> &_fano)
 {
 m_fano = _fano;
 }
@@ -574,7 +798,7 @@ m_fano = _fano;
  * @brief This function moves the value in member fano
  * @param _fano New value to be moved in member fano
  */
-void Content::fano(std::map<uint32_t, EdgeAttribs> &&_fano)
+void Node::fano(std::map<uint32_t, EdgeAttribs> &&_fano)
 {
 m_fano = std::move(_fano);
 }
@@ -583,7 +807,7 @@ m_fano = std::move(_fano);
  * @brief This function returns a constant reference to member fano
  * @return Constant reference to member fano
  */
-const std::map<uint32_t, EdgeAttribs>& Content::fano() const
+const std::map<uint32_t, EdgeAttribs>& Node::fano() const
 {
     return m_fano;
 }
@@ -592,14 +816,14 @@ const std::map<uint32_t, EdgeAttribs>& Content::fano() const
  * @brief This function returns a reference to member fano
  * @return Reference to member fano
  */
-std::map<uint32_t, EdgeAttribs>& Content::fano()
+std::map<uint32_t, EdgeAttribs>& Node::fano()
 {
     return m_fano;
 }
 
-size_t Content::getKeyMaxCdrSerializedSize(size_t current_alignment)
+size_t Node::getKeyMaxCdrSerializedSize(size_t current_alignment)
 {
-	size_t current_align = current_alignment;
+    size_t current_align = current_alignment;
 
 
 
@@ -610,23 +834,23 @@ size_t Content::getKeyMaxCdrSerializedSize(size_t current_alignment)
     return current_align;
 }
 
-bool Content::isKeyDefined()
+bool Node::isKeyDefined()
 {
    return false;
 }
 
-void Content::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+void Node::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
-	(void) scdr;
-	 
-	 
-	 
-	 
+    (void) scdr;
+     
+     
+     
+     
 }
 
 DSRGraphTopic::DSRGraphTopic()
 {
-    // m_DSRGraph com.eprosima.idl.parser.typecode.MapTypeCode@59906517
+    // m_DSRGraph com.eprosima.idl.parser.typecode.MapTypeCode@365c30cc
 
 
 }
@@ -672,7 +896,7 @@ size_t DSRGraphTopic::getMaxCdrSerializedSize(size_t current_alignment)
     {
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
-        current_alignment += Content::getMaxCdrSerializedSize(current_alignment);
+        current_alignment += AttribValue::getMaxCdrSerializedSize(current_alignment);
     }
 
     return current_alignment - initial_alignment;
@@ -690,7 +914,9 @@ size_t DSRGraphTopic::getCdrSerializedSize(const DSRGraphTopic& data, size_t cur
     {
         (void)a;
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-        current_alignment += Content::getCdrSerializedSize((a.second), current_alignment);
+
+
+        current_alignment += AttribValue::getCdrSerializedSize((a.second), current_alignment);
 
     }
 
@@ -712,7 +938,7 @@ void DSRGraphTopic::deserialize(eprosima::fastcdr::Cdr &dcdr)
  * @brief This function copies the value in member DSRGraph
  * @param _DSRGraph New value to be copied in member DSRGraph
  */
-void DSRGraphTopic::DSRGraph(const std::map<uint32_t, Content> &_DSRGraph)
+void DSRGraphTopic::DSRGraph(const std::map<uint32_t, AttribValue> &_DSRGraph)
 {
 m_DSRGraph = _DSRGraph;
 }
@@ -721,7 +947,7 @@ m_DSRGraph = _DSRGraph;
  * @brief This function moves the value in member DSRGraph
  * @param _DSRGraph New value to be moved in member DSRGraph
  */
-void DSRGraphTopic::DSRGraph(std::map<uint32_t, Content> &&_DSRGraph)
+void DSRGraphTopic::DSRGraph(std::map<uint32_t, AttribValue> &&_DSRGraph)
 {
 m_DSRGraph = std::move(_DSRGraph);
 }
@@ -730,7 +956,7 @@ m_DSRGraph = std::move(_DSRGraph);
  * @brief This function returns a constant reference to member DSRGraph
  * @return Constant reference to member DSRGraph
  */
-const std::map<uint32_t, Content>& DSRGraphTopic::DSRGraph() const
+const std::map<uint32_t, AttribValue>& DSRGraphTopic::DSRGraph() const
 {
     return m_DSRGraph;
 }
@@ -739,14 +965,14 @@ const std::map<uint32_t, Content>& DSRGraphTopic::DSRGraph() const
  * @brief This function returns a reference to member DSRGraph
  * @return Reference to member DSRGraph
  */
-std::map<uint32_t, Content>& DSRGraphTopic::DSRGraph()
+std::map<uint32_t, AttribValue>& DSRGraphTopic::DSRGraph()
 {
     return m_DSRGraph;
 }
 
 size_t DSRGraphTopic::getKeyMaxCdrSerializedSize(size_t current_alignment)
 {
-	size_t current_align = current_alignment;
+    size_t current_align = current_alignment;
 
 
 
@@ -760,6 +986,1118 @@ bool DSRGraphTopic::isKeyDefined()
 
 void DSRGraphTopic::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
-	(void) scdr;
-	 
+    (void) scdr;
+     
+}
+
+GraphRequest::GraphRequest()
+{
+    // m_from com.eprosima.idl.parser.typecode.StringTypeCode@b59d31
+    m_from ="";
+
+}
+
+GraphRequest::~GraphRequest()
+{
+}
+
+GraphRequest::GraphRequest(const GraphRequest &x)
+{
+    m_from = x.m_from;
+}
+
+GraphRequest::GraphRequest(GraphRequest &&x)
+{
+    m_from = std::move(x.m_from);
+}
+
+GraphRequest& GraphRequest::operator=(const GraphRequest &x)
+{
+
+    m_from = x.m_from;
+
+    return *this;
+}
+
+GraphRequest& GraphRequest::operator=(GraphRequest &&x)
+{
+
+    m_from = std::move(x.m_from);
+
+    return *this;
+}
+
+size_t GraphRequest::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
+
+    return current_alignment - initial_alignment;
+}
+
+size_t GraphRequest::getCdrSerializedSize(const GraphRequest& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.from().size() + 1;
+
+    return current_alignment - initial_alignment;
+}
+
+void GraphRequest::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_from;
+}
+
+void GraphRequest::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_from;
+}
+
+/*!
+ * @brief This function copies the value in member from
+ * @param _from New value to be copied in member from
+ */
+void GraphRequest::from(const std::string &_from)
+{
+m_from = _from;
+}
+
+/*!
+ * @brief This function moves the value in member from
+ * @param _from New value to be moved in member from
+ */
+void GraphRequest::from(std::string &&_from)
+{
+m_from = std::move(_from);
+}
+
+/*!
+ * @brief This function returns a constant reference to member from
+ * @return Constant reference to member from
+ */
+const std::string& GraphRequest::from() const
+{
+    return m_from;
+}
+
+/*!
+ * @brief This function returns a reference to member from
+ * @return Reference to member from
+ */
+std::string& GraphRequest::from()
+{
+    return m_from;
+}
+
+size_t GraphRequest::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+    return current_align;
+}
+
+bool GraphRequest::isKeyDefined()
+{
+   return false;
+}
+
+void GraphRequest::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+}
+
+PairInt::PairInt()
+{
+    // m_first com.eprosima.idl.parser.typecode.PrimitiveTypeCode@62fdb4a6
+    m_first = 0;
+    // m_second com.eprosima.idl.parser.typecode.PrimitiveTypeCode@11e21d0e
+    m_second = 0;
+
+}
+
+PairInt::~PairInt()
+{
+
+
+}
+
+PairInt::PairInt(const PairInt &x)
+{
+    m_first = x.m_first;
+    m_second = x.m_second;
+}
+
+PairInt::PairInt(PairInt &&x)
+{
+    m_first = x.m_first;
+    m_second = x.m_second;
+}
+
+PairInt& PairInt::operator=(const PairInt &x)
+{
+
+    m_first = x.m_first;
+    m_second = x.m_second;
+
+    return *this;
+}
+
+PairInt& PairInt::operator=(PairInt &&x)
+{
+
+    m_first = x.m_first;
+    m_second = x.m_second;
+
+    return *this;
+}
+
+size_t PairInt::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+
+    return current_alignment - initial_alignment;
+}
+
+size_t PairInt::getCdrSerializedSize(const PairInt& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+
+    return current_alignment - initial_alignment;
+}
+
+void PairInt::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_first;
+    scdr << m_second;
+}
+
+void PairInt::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_first;
+    dcdr >> m_second;
+}
+
+/*!
+ * @brief This function sets a value in member first
+ * @param _first New value for member first
+ */
+void PairInt::first(int32_t _first)
+{
+m_first = _first;
+}
+
+/*!
+ * @brief This function returns the value of member first
+ * @return Value of member first
+ */
+int32_t PairInt::first() const
+{
+    return m_first;
+}
+
+/*!
+ * @brief This function returns a reference to member first
+ * @return Reference to member first
+ */
+int32_t& PairInt::first()
+{
+    return m_first;
+}
+
+/*!
+ * @brief This function sets a value in member second
+ * @param _second New value for member second
+ */
+void PairInt::second(int32_t _second)
+{
+m_second = _second;
+}
+
+/*!
+ * @brief This function returns the value of member second
+ * @return Value of member second
+ */
+int32_t PairInt::second() const
+{
+    return m_second;
+}
+
+/*!
+ * @brief This function returns a reference to member second
+ * @return Reference to member second
+ */
+int32_t& PairInt::second()
+{
+    return m_second;
+}
+
+
+size_t PairInt::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+    return current_align;
+}
+
+bool PairInt::isKeyDefined()
+{
+   return false;
+}
+
+void PairInt::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+}
+
+DotContext::DotContext()
+{
+    // m_cc com.eprosima.idl.parser.typecode.MapTypeCode@5d20e46
+
+    // m_dc com.eprosima.idl.parser.typecode.SequenceTypeCode@709ba3fb
+
+
+}
+
+DotContext::~DotContext()
+{
+
+
+}
+
+DotContext::DotContext(const DotContext &x)
+{
+    m_cc = x.m_cc;
+    m_dc = x.m_dc;
+}
+
+DotContext::DotContext(DotContext &&x)
+{
+    m_cc = std::move(x.m_cc);
+    m_dc = std::move(x.m_dc);
+}
+
+DotContext& DotContext::operator=(const DotContext &x)
+{
+
+    m_cc = x.m_cc;
+    m_dc = x.m_dc;
+
+    return *this;
+}
+
+DotContext& DotContext::operator=(DotContext &&x)
+{
+
+    m_cc = std::move(x.m_cc);
+    m_dc = std::move(x.m_dc);
+
+    return *this;
+}
+
+size_t DotContext::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(size_t a = 0; a < 100; ++a)
+    {
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    }
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    for(size_t a = 0; a < 100; ++a)
+    {
+        current_alignment += PairInt::getMaxCdrSerializedSize(current_alignment);}
+
+
+    return current_alignment - initial_alignment;
+}
+
+size_t DotContext::getCdrSerializedSize(const DotContext& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(auto a : data.cc())
+    {
+        (void)a;
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+
+    }
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    for(size_t a = 0; a < data.dc().size(); ++a)
+    {
+        current_alignment += PairInt::getCdrSerializedSize(data.dc().at(a), current_alignment);}
+
+
+    return current_alignment - initial_alignment;
+}
+
+void DotContext::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_cc;
+    scdr << m_dc;
+}
+
+void DotContext::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_cc;
+    dcdr >> m_dc;
+}
+
+/*!
+ * @brief This function copies the value in member cc
+ * @param _cc New value to be copied in member cc
+ */
+void DotContext::cc(const std::map<int32_t, int32_t> &_cc)
+{
+m_cc = _cc;
+}
+
+/*!
+ * @brief This function moves the value in member cc
+ * @param _cc New value to be moved in member cc
+ */
+void DotContext::cc(std::map<int32_t, int32_t> &&_cc)
+{
+m_cc = std::move(_cc);
+}
+
+/*!
+ * @brief This function returns a constant reference to member cc
+ * @return Constant reference to member cc
+ */
+const std::map<int32_t, int32_t>& DotContext::cc() const
+{
+    return m_cc;
+}
+
+/*!
+ * @brief This function returns a reference to member cc
+ * @return Reference to member cc
+ */
+std::map<int32_t, int32_t>& DotContext::cc()
+{
+    return m_cc;
+}
+/*!
+ * @brief This function copies the value in member dc
+ * @param _dc New value to be copied in member dc
+ */
+void DotContext::dc(const std::vector<PairInt> &_dc)
+{
+m_dc = _dc;
+}
+
+/*!
+ * @brief This function moves the value in member dc
+ * @param _dc New value to be moved in member dc
+ */
+void DotContext::dc(std::vector<PairInt> &&_dc)
+{
+m_dc = std::move(_dc);
+}
+
+/*!
+ * @brief This function returns a constant reference to member dc
+ * @return Constant reference to member dc
+ */
+const std::vector<PairInt>& DotContext::dc() const
+{
+    return m_dc;
+}
+
+/*!
+ * @brief This function returns a reference to member dc
+ * @return Reference to member dc
+ */
+std::vector<PairInt>& DotContext::dc()
+{
+    return m_dc;
+}
+
+size_t DotContext::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+    return current_align;
+}
+
+bool DotContext::isKeyDefined()
+{
+   return false;
+}
+
+void DotContext::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+}
+
+DotKernel::DotKernel()
+{
+    // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@7ff2a664
+
+    // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@525b461a
+
+
+}
+
+DotKernel::~DotKernel()
+{
+
+
+}
+
+DotKernel::DotKernel(const DotKernel &x)
+{
+    m_ds = x.m_ds;
+    m_cbase = x.m_cbase;
+}
+
+DotKernel::DotKernel(DotKernel &&x)
+{
+    m_ds = std::move(x.m_ds);
+    m_cbase = std::move(x.m_cbase);
+}
+
+DotKernel& DotKernel::operator=(const DotKernel &x)
+{
+
+    m_ds = x.m_ds;
+    m_cbase = x.m_cbase;
+
+    return *this;
+}
+
+DotKernel& DotKernel::operator=(DotKernel &&x)
+{
+
+    m_ds = std::move(x.m_ds);
+    m_cbase = std::move(x.m_cbase);
+
+    return *this;
+}
+
+size_t DotKernel::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(size_t a = 0; a < 100; ++a)
+    {
+        current_alignment += 0 + eprosima::fastcdr::Cdr::alignment(current_alignment, 0);
+
+        current_alignment += Node::getMaxCdrSerializedSize(current_alignment);
+    }
+
+    current_alignment += DotContext::getMaxCdrSerializedSize(current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+size_t DotKernel::getCdrSerializedSize(const DotKernel& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(auto a : data.ds())
+    {
+        (void)a;
+        current_alignment += PairInt::getCdrSerializedSize((a.first), current_alignment);
+        current_alignment += Node::getCdrSerializedSize((a.second), current_alignment);
+
+    }
+
+
+    current_alignment += DotContext::getCdrSerializedSize(data.cbase(), current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+void DotKernel::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_ds;
+    scdr << m_cbase;
+}
+
+void DotKernel::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_ds;
+    dcdr >> m_cbase;
+}
+
+/*!
+ * @brief This function copies the value in member ds
+ * @param _ds New value to be copied in member ds
+ */
+void DotKernel::ds(const std::map<PairInt, Node> &_ds)
+{
+m_ds = _ds;
+}
+
+/*!
+ * @brief This function moves the value in member ds
+ * @param _ds New value to be moved in member ds
+ */
+void DotKernel::ds(std::map<PairInt, Node> &&_ds)
+{
+m_ds = std::move(_ds);
+}
+
+/*!
+ * @brief This function returns a constant reference to member ds
+ * @return Constant reference to member ds
+ */
+const std::map<PairInt, Node>& DotKernel::ds() const
+{
+    return m_ds;
+}
+
+/*!
+ * @brief This function returns a reference to member ds
+ * @return Reference to member ds
+ */
+std::map<PairInt, Node>& DotKernel::ds()
+{
+    return m_ds;
+}
+/*!
+ * @brief This function copies the value in member cbase
+ * @param _cbase New value to be copied in member cbase
+ */
+void DotKernel::cbase(const DotContext &_cbase)
+{
+m_cbase = _cbase;
+}
+
+/*!
+ * @brief This function moves the value in member cbase
+ * @param _cbase New value to be moved in member cbase
+ */
+void DotKernel::cbase(DotContext &&_cbase)
+{
+m_cbase = std::move(_cbase);
+}
+
+/*!
+ * @brief This function returns a constant reference to member cbase
+ * @return Constant reference to member cbase
+ */
+const DotContext& DotKernel::cbase() const
+{
+    return m_cbase;
+}
+
+/*!
+ * @brief This function returns a reference to member cbase
+ * @return Reference to member cbase
+ */
+DotContext& DotKernel::cbase()
+{
+    return m_cbase;
+}
+
+size_t DotKernel::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+    return current_align;
+}
+
+bool DotKernel::isKeyDefined()
+{
+   return false;
+}
+
+void DotKernel::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+}
+
+AworSet::AworSet()
+{
+    // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6591f517
+    m_id = 0;
+    // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@345965f2
+
+
+}
+
+AworSet::~AworSet()
+{
+
+
+}
+
+AworSet::AworSet(const AworSet &x)
+{
+    m_id = x.m_id;
+    m_dk = x.m_dk;
+}
+
+AworSet::AworSet(AworSet &&x)
+{
+    m_id = x.m_id;
+    m_dk = std::move(x.m_dk);
+}
+
+AworSet& AworSet::operator=(const AworSet &x)
+{
+
+    m_id = x.m_id;
+    m_dk = x.m_dk;
+
+    return *this;
+}
+
+AworSet& AworSet::operator=(AworSet &&x)
+{
+
+    m_id = x.m_id;
+    m_dk = std::move(x.m_dk);
+
+    return *this;
+}
+
+size_t AworSet::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += DotKernel::getMaxCdrSerializedSize(current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+size_t AworSet::getCdrSerializedSize(const AworSet& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += DotKernel::getCdrSerializedSize(data.dk(), current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+void AworSet::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_id;
+    scdr << m_dk;
+}
+
+void AworSet::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_id;
+    dcdr >> m_dk;
+}
+
+/*!
+ * @brief This function sets a value in member id
+ * @param _id New value for member id
+ */
+void AworSet::id(int32_t _id)
+{
+m_id = _id;
+}
+
+/*!
+ * @brief This function returns the value of member id
+ * @return Value of member id
+ */
+int32_t AworSet::id() const
+{
+    return m_id;
+}
+
+/*!
+ * @brief This function returns a reference to member id
+ * @return Reference to member id
+ */
+int32_t& AworSet::id()
+{
+    return m_id;
+}
+
+/*!
+ * @brief This function copies the value in member dk
+ * @param _dk New value to be copied in member dk
+ */
+void AworSet::dk(const DotKernel &_dk)
+{
+m_dk = _dk;
+}
+
+/*!
+ * @brief This function moves the value in member dk
+ * @param _dk New value to be moved in member dk
+ */
+void AworSet::dk(DotKernel &&_dk)
+{
+m_dk = std::move(_dk);
+}
+
+/*!
+ * @brief This function returns a constant reference to member dk
+ * @return Constant reference to member dk
+ */
+const DotKernel& AworSet::dk() const
+{
+    return m_dk;
+}
+
+/*!
+ * @brief This function returns a reference to member dk
+ * @return Reference to member dk
+ */
+DotKernel& AworSet::dk()
+{
+    return m_dk;
+}
+
+size_t AworSet::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+    return current_align;
+}
+
+bool AworSet::isKeyDefined()
+{
+   return false;
+}
+
+void AworSet::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+}
+
+OrMap::OrMap()
+{
+    // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@279ad2e3
+    m_id = 0;
+    // m_m com.eprosima.idl.parser.typecode.MapTypeCode@58134517
+
+    // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@525b461a
+
+
+}
+
+OrMap::~OrMap()
+{
+
+
+
+}
+
+OrMap::OrMap(const OrMap &x)
+{
+    m_id = x.m_id;
+    m_m = x.m_m;
+    m_cbase = x.m_cbase;
+}
+
+OrMap::OrMap(OrMap &&x)
+{
+    m_id = x.m_id;
+    m_m = std::move(x.m_m);
+    m_cbase = std::move(x.m_cbase);
+}
+
+OrMap& OrMap::operator=(const OrMap &x)
+{
+
+    m_id = x.m_id;
+    m_m = x.m_m;
+    m_cbase = x.m_cbase;
+
+    return *this;
+}
+
+OrMap& OrMap::operator=(OrMap &&x)
+{
+
+    m_id = x.m_id;
+    m_m = std::move(x.m_m);
+    m_cbase = std::move(x.m_cbase);
+
+    return *this;
+}
+
+size_t OrMap::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(size_t a = 0; a < 100; ++a)
+    {
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+        current_alignment += AworSet::getMaxCdrSerializedSize(current_alignment);
+    }
+
+    current_alignment += DotContext::getMaxCdrSerializedSize(current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+size_t OrMap::getCdrSerializedSize(const OrMap& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+    for(auto a : data.m())
+    {
+        (void)a;
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+        current_alignment += AworSet::getCdrSerializedSize((a.second), current_alignment);
+
+    }
+
+
+    current_alignment += DotContext::getCdrSerializedSize(data.cbase(), current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+void OrMap::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+
+    scdr << m_id;
+    scdr << m_m;
+    scdr << m_cbase;
+}
+
+void OrMap::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+
+    dcdr >> m_id;
+    dcdr >> m_m;
+    dcdr >> m_cbase;
+}
+
+/*!
+ * @brief This function sets a value in member id
+ * @param _id New value for member id
+ */
+void OrMap::id(int32_t _id)
+{
+m_id = _id;
+}
+
+/*!
+ * @brief This function returns the value of member id
+ * @return Value of member id
+ */
+int32_t OrMap::id() const
+{
+    return m_id;
+}
+
+/*!
+ * @brief This function returns a reference to member id
+ * @return Reference to member id
+ */
+int32_t& OrMap::id()
+{
+    return m_id;
+}
+
+/*!
+ * @brief This function copies the value in member m
+ * @param _m New value to be copied in member m
+ */
+void OrMap::m(const std::map<uint32_t, AworSet> &_m)
+{
+m_m = _m;
+}
+
+/*!
+ * @brief This function moves the value in member m
+ * @param _m New value to be moved in member m
+ */
+void OrMap::m(std::map<uint32_t, AworSet> &&_m)
+{
+m_m = std::move(_m);
+}
+
+/*!
+ * @brief This function returns a constant reference to member m
+ * @return Constant reference to member m
+ */
+const std::map<uint32_t, AworSet>& OrMap::m() const
+{
+    return m_m;
+}
+
+/*!
+ * @brief This function returns a reference to member m
+ * @return Reference to member m
+ */
+std::map<uint32_t, AworSet>& OrMap::m()
+{
+    return m_m;
+}
+/*!
+ * @brief This function copies the value in member cbase
+ * @param _cbase New value to be copied in member cbase
+ */
+void OrMap::cbase(const DotContext &_cbase)
+{
+m_cbase = _cbase;
+}
+
+/*!
+ * @brief This function moves the value in member cbase
+ * @param _cbase New value to be moved in member cbase
+ */
+void OrMap::cbase(DotContext &&_cbase)
+{
+m_cbase = std::move(_cbase);
+}
+
+/*!
+ * @brief This function returns a constant reference to member cbase
+ * @return Constant reference to member cbase
+ */
+const DotContext& OrMap::cbase() const
+{
+    return m_cbase;
+}
+
+/*!
+ * @brief This function returns a reference to member cbase
+ * @return Reference to member cbase
+ */
+DotContext& OrMap::cbase()
+{
+    return m_cbase;
+}
+
+size_t OrMap::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t current_align = current_alignment;
+
+
+
+
+
+
+    return current_align;
+}
+
+bool OrMap::isKeyDefined()
+{
+   return false;
+}
+
+void OrMap::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+    (void) scdr;
+     
+     
+     
 }

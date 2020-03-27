@@ -25,7 +25,7 @@
 
 #include <fastrtps/fastrtps_fwd.h>
 #include <fastrtps/publisher/PublisherListener.h>
-#include "topics/DSRGraphPubSubTypes.h"
+#include "../topics/DSRGraphPubSubTypes.h"
 
 class DSRPublisher
 {
@@ -35,7 +35,7 @@ public:
 	bool init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType);
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getParticipantID() const ;
-
+	bool write(void* object);
 private:
 	eprosima::fastrtps::Participant *mp_participant;
 	eprosima::fastrtps::Publisher *mp_publisher;
