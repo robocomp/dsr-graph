@@ -60,6 +60,9 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_, const
     return true;
 }
 
+
+
+
 ///////////////////////////////////////////
 /// Callbacks
 ///////////////////////////////////////////

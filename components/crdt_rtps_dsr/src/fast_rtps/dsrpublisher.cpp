@@ -70,6 +70,10 @@ eprosima::fastrtps::rtps::GUID_t DSRPublisher::getParticipantID() const
     return mp_participant->getGuid();
 }
 
+bool DSRPublisher::write(void* object) {
+    return mp_publisher->write(object);
+}
+
 void DSRPublisher::PubListener::onPublicationMatched(eprosima::fastrtps::Publisher* pub, eprosima::fastrtps::rtps::MatchingInfo& info)
 {
     (void)pub;
