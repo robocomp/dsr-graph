@@ -27,14 +27,23 @@
 #include <fastrtps/subscriber/SubscriberListener.h>
 #include <fastrtps/subscriber/SampleInfo.h>
 #include "dsrdeltaPubSubTypes.h"
+#include <functional>
 
+/*
+namespace CRDT {
+	class CRDTGraph;
+}
+#include <../../../graph-related-classes/CRDT.h>
+*/
 
 class DSRSubscriber
 {
 public:
 	DSRSubscriber();
 	virtual ~DSRSubscriber();
-	bool init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType);
+	bool init(eprosima::fastrtps::Participant *mp_participant_, 
+				const char* topicName, const char* topicDataType, 
+				std::function<void(eprosima::fastrtps::Subscriber* sub)>  f_);
 	void run();
 	
 private:
@@ -52,6 +61,11 @@ private:
 		int n_matched;
 		int n_msg;
 		eprosima::fastrtps::rtps::GUID_t participant_ID;
+
+		//int *work;
+		//CRDT::CRDTGraph *graph;
+		std::function<void(eprosima::fastrtps::Subscriber* sub)>  f;
+
 	} m_listener;
 	
 };

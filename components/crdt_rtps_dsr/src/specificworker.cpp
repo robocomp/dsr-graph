@@ -91,8 +91,15 @@ void SpecificWorker::test_laser()
             rt.setTr(QVec::vec3(bState.x, 0, bState.z));
             rt.setRX(0.f); rt.setRY(bState.alpha); rt.setRZ(0.f);
             // add Rt mat as the edge attribute between world and robot
-            gcrdt->add_edge_attribs(world_id, base_id, 
-                        RoboCompDSR::Attribs{std::make_pair("RT", RoboCompDSR::AttribValue{"RTMat", rt.serializeAsString(), 1})});
+            AttribValue at;
+            at.type("RTMat");
+            at.value(rt.serializeAsString());
+            at.length(1);
+
+            std::map<std::string, AttribValue> attribMap;
+            attribMap.insert (std::make_pair("RT", at));
+
+            gcrdt->add_edge_attribs(world_id, base_id, attribMap);
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Base" << e << std::endl;}
         // get laser values
@@ -115,9 +122,21 @@ void SpecificWorker::test_laser()
             for (auto &x : angles)
                 a += std::to_string(x) + " ";
             // insert both strings as attributes
-            RoboCompDSR::Attribs ma;
-            ma.insert_or_assign("laser_data_dists", RoboCompDSR::AttribValue{"vector<float>", s, (int) dists.size()});
-            ma.insert_or_assign("laser_data_angles", RoboCompDSR::AttribValue{"vector<float>", a, (int) angles.size()});
+            std::map<std::string, AttribValue> ma;
+
+            AttribValue at;
+            at.type("vector<float>");
+            at.value(s);
+            at.length((int) dists.size());
+
+            ma.insert_or_assign("laser_data_dists", at);
+
+            AttribValue at2;
+            at2.type("vector<float>");
+            at2.value(a);
+            at2.length((int) angles.size());
+
+            ma.insert_or_assign("laser_data_angles", at2);
             // add attributes to node
             gcrdt->add_node_attribs(node_id, ma);
         }
@@ -191,7 +210,7 @@ void SpecificWorker::test_laser()
 //         if (laps < LAPS) {
 //             try {
 //                 cont++;
-//                 auto test = RoboCompDSR::Node{
+//                 auto test = Node{
 //                         "foo_id:" + std::to_string(cont) + "_laps:" + std::to_string(laps) + "_" + agent_name, cont};
 // //            std::cout <<" New node: "<< test << std::endl;
 //                 gcrdt->insert_or_assign(cont, test);

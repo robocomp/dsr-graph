@@ -1,5 +1,0 @@
-// Topic for full graph requests
-struct GraphRequest
-{
-    string from;
-};

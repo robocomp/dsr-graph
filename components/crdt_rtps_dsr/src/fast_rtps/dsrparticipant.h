@@ -36,15 +36,21 @@ public:
 	eprosima::fastrtps::rtps::GUID_t getID() const ;
 	const char* getDSRTopicName() const;
 	const char* getRequestTopicName() const;
-
+	const char* getAnswerTopicName() const;
 private:
-	eprosima::fastrtps::Participant *mp_participant;
-    eprosima::fastrtps::Publisher *mp_publisher;
-    eprosima::fastrtps::Subscriber *mp_subscriber;
-	eprosima::fastrtps::Subscriber *mp_subscriber_graph_request;
+	eprosima::fastrtps::Participant *mp_participant; //"DSR"
+    eprosima::fastrtps::Publisher *mp_publisher; //"DSR"
+	eprosima::fastrtps::Subscriber *mp_subscriber; //"DSR"
+ 	AworSetPubSubType dsrgraphType;
 
-	DSRGraphTopicPubSubType dsrgraphType;
+	eprosima::fastrtps::Subscriber *mp_subscriber_graph_request; // "DSR_GRAPH_REQUEST"
 	GraphRequestPubSubType graphrequestType;
+    
+	eprosima::fastrtps::Publisher *mp_publisher_topic_answer; //"DSR_GRAPH_ANSWER"
+	eprosima::fastrtps::Subscriber *mp_subscriber_topic_answer; ///"DSR_GRAPH_ANSWER"
+	OrMapPubSubType graphRequestAnswerType;
+
+	//DSRGraphTopicPubSubType dsrgraphType;
 
 };
 
