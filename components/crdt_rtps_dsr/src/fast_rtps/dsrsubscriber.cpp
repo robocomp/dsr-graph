@@ -38,7 +38,9 @@ DSRSubscriber::~DSRSubscriber()
     	//Domain::removeParticipant(mp_participant);
 }
 
-bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType)
+bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_, 
+                        const char* topicName, const char* topicDataType, 
+                        std::function<void(Subscriber* sub)>  f_)
 {
     mp_participant = mp_participant_;
     
@@ -53,7 +55,10 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_, const
     Rparam.multicastLocatorList.push_back(locator);
     Rparam.qos.m_reliability.kind = eprosima::fastrtps::RELIABLE_RELIABILITY_QOS;
     Rparam.historyMemoryPolicy = eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-    m_listener.participant_ID = mp_participant->getGuid();
+    m_listener.participant_ID = mp_participant->getGuid(); 
+    m_listener.f = f_;
+   // m_listener.work = work_;
+   // m_listener.graph = graph_;
     mp_subscriber = Domain::createSubscriber(mp_participant, Rparam, static_cast<SubscriberListener*>(&m_listener));
     if(mp_subscriber == nullptr)
         return false;
@@ -83,20 +88,21 @@ void DSRSubscriber::SubListener::onSubscriptionMatched(Subscriber* sub, Matching
 }
 
 void DSRSubscriber::SubListener::onNewDataMessage(Subscriber* sub)
-{
+{ 
     // Take data
-    DSRDelta st;
-    std::cout << "participant_ID " << participant_ID  << std::endl;
-    if(sub->takeNextData(&st, &m_info))
-    {
-        if(m_info.sampleKind == ALIVE)
-            if( m_info.sample_identity.writer_guid().is_on_same_process_as(participant_ID) == false)
-            {
-                ++n_msg;
-                std::cout << "Sample received, count=" << n_msg << " " << st.load().size() * 4 << " " << m_info.sample_identity.writer_guid() << std::endl;
-            }
-    }
+    // DSRDelta st;
+    // std::cout << "participant_ID " << participant_ID  << std::endl;
+    // if(sub->takeNextData(&st, &m_info))
+    // {
+    //     if(m_info.sampleKind == ALIVE)
+    //         if( m_info.sample_identity.writer_guid().is_on_same_process_as(participant_ID) == false)
+    //         {
+    //             ++n_msg;
+    //             std::cout << "Sample received, count=" << n_msg << " " << st.load().size() * 4 << " " << m_info.sample_identity.writer_guid() << std::endl;
+    //         }
+    // }
     //fps.print(1000, st.load().size() * 4 * 8);
+    f(sub);
 }
 
 void DSRSubscriber::run()
