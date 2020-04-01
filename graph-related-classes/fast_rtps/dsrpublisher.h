@@ -35,7 +35,10 @@ public:
 	bool init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType);
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getParticipantID() const ;
-	bool write(void* object);
+	bool write(OrMap* object);
+	bool write(AworSet* object);
+	bool write(GraphRequest* object);
+
 private:
 	eprosima::fastrtps::Participant *mp_participant;
 	eprosima::fastrtps::Publisher *mp_publisher;

@@ -72,6 +72,11 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init()
     return std::make_tuple(true, mp_participant);
 }
 
+eprosima::fastrtps::Participant* DSRParticipant::getParticipant() 
+{
+    return mp_participant;
+}
+
 eprosima::fastrtps::rtps::GUID_t DSRParticipant::getID() const
 {   
     return mp_participant->getGuid();

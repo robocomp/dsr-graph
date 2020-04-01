@@ -75,15 +75,15 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
 void DSRSubscriber::SubListener::onSubscriptionMatched(Subscriber* sub, MatchingInfo& info)
 {
     (void)sub;
-    if (info.status == MATCHED_MATCHING)
+    if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING)
     {
         n_matched++;
-        std::cout << "Subscriber matched" << std::endl;
+        std::cout << "Publisher matched "<< info.remoteEndpointGuid << std::endl;
     }
     else
     {
         n_matched--;
-        std::cout << "Subscriber unmatched" << std::endl;
+        std::cout << "Publisher unmatched" << info.remoteEndpointGuid <<  std::endl;
     }
 }
 
@@ -102,6 +102,8 @@ void DSRSubscriber::SubListener::onNewDataMessage(Subscriber* sub)
     //         }
     // }
     //fps.print(1000, st.load().size() * 4 * 8);
+    std::cout << "New message. "<< participant_ID <<std::endl;
+
     f(sub);
 }
 
