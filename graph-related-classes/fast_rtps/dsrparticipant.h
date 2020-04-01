@@ -37,8 +37,11 @@ public:
 	const char* getDSRTopicName() const;
 	const char* getRequestTopicName() const;
 	const char* getAnswerTopicName() const;
+
+	eprosima::fastrtps::Participant* getParticipant();
+
 private:
-	eprosima::fastrtps::Participant *mp_participant; //"DSR"
+	eprosima::fastrtps::Participant *mp_participant; 
     eprosima::fastrtps::Publisher *mp_publisher; //"DSR"
 	eprosima::fastrtps::Subscriber *mp_subscriber; //"DSR"
  	AworSetPubSubType dsrgraphType;

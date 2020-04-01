@@ -26,7 +26,6 @@
 #include <fastrtps/fastrtps_fwd.h>
 #include <fastrtps/subscriber/SubscriberListener.h>
 #include <fastrtps/subscriber/SampleInfo.h>
-#include "dsrdeltaPubSubTypes.h"
 #include <functional>
 
 /*
@@ -45,7 +44,7 @@ public:
 				const char* topicName, const char* topicDataType, 
 				std::function<void(eprosima::fastrtps::Subscriber* sub)>  f_);
 	void run();
-	
+
 private:
 	eprosima::fastrtps::Participant *mp_participant;
 	eprosima::fastrtps::Subscriber *mp_subscriber;

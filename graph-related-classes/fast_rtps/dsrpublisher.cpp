@@ -70,7 +70,16 @@ eprosima::fastrtps::rtps::GUID_t DSRPublisher::getParticipantID() const
     return mp_participant->getGuid();
 }
 
-bool DSRPublisher::write(void* object) {
+bool DSRPublisher::write(OrMap *object) {
+    return mp_publisher->write(object);
+}
+
+bool DSRPublisher::write(GraphRequest *object) {
+    return mp_publisher->write(object);
+}
+
+
+bool DSRPublisher::write(AworSet *object) {
     return mp_publisher->write(object);
 }
 
@@ -80,12 +89,12 @@ void DSRPublisher::PubListener::onPublicationMatched(eprosima::fastrtps::Publish
     if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING)
     {
         n_matched++;
-        std::cout << "Publisher matched" << std::endl;
+        std::cout << "Publisher matched "<< info.remoteEndpointGuid << std::endl;
     }
     else
     {
         n_matched--;
-        std::cout << "Publisher unmatched" << std::endl;
+        std::cout << "Publisher unmatched" << info.remoteEndpointGuid <<  std::endl;
     }
 }
 

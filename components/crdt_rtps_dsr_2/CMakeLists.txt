@@ -1,4 +1,4 @@
-project(Crdt_Rtps_Dsr)
+project(Crdt_Rtps_Dsr2)
 
 cmake_minimum_required( VERSION 2.8 )
 
