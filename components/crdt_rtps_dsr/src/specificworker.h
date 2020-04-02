@@ -33,6 +33,7 @@ class SpecificWorker : public GenericWorker
 	private:
 		InnerModel *innerModel;
 		std::string agent_name;
+		bool read_file = true;
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 

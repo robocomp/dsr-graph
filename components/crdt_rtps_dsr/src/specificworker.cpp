@@ -33,8 +33,10 @@ SpecificWorker::~SpecificWorker() {
 
 }
 
-bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
+bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) 
+{
     agent_name = params["agent_name"].value;
+    read_file = params["read_file"].value == "true";
     return true;
 }
 
@@ -45,11 +47,20 @@ void SpecificWorker::initialize(int period) {
     gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
 
     // read graph content from file
-    gcrdt->read_from_file("caca.xml");
-
-    gcrdt->start_fullgraph_server_thread();
-    //gcrdt->start_fullgraph_request_thread();
-    //gcrdt->start_subscription_thread(true);
+    if(read_file)
+    {
+        gcrdt->read_from_file("caca.xml");
+        gcrdt->start_fullgraph_server_thread();
+        gcrdt->start_subscription_thread(true);
+    }
+    else
+    {
+        gcrdt->start_fullgraph_request_thread();
+        // wait until graph read
+        sleep(TIMEOUT);
+        //gcrdt->start_fullgraph_server_thread();
+        //gcrdt->start_subscription_thread(true);
+    }
 
     sleep(TIMEOUT);
     //gcrdt->start_subscription_thread(false);
