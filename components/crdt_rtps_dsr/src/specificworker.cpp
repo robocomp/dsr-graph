@@ -51,7 +51,7 @@ void SpecificWorker::initialize(int period) {
     {
         gcrdt->read_from_file("grafo.xml");
         gcrdt->start_fullgraph_server_thread();
-        //gcrdt->start_subscription_thread(true);
+        gcrdt->start_subscription_thread(true);
 
     }
     else
