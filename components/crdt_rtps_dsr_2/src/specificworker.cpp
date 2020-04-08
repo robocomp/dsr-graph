@@ -48,12 +48,13 @@ void SpecificWorker::initialize(int period) {
     //gcrdt->read_from_file("caca.xml");
 
     //gcrdt->start_fullgraph_server_thread();
-    gcrdt->start_fullgraph_request_thread();
     //gcrdt->start_subscription_thread(true);
     sleep(TIMEOUT);
     //gcrdt->start_subscription_thread(false);
     //gcrdt->print();
     std::cout << "Starting compute" << std::endl;
+
+    gcrdt->start_fullgraph_request_thread();
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));

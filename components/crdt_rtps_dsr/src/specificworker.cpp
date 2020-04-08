@@ -49,17 +49,20 @@ void SpecificWorker::initialize(int period) {
     // read graph content from file
     if(read_file)
     {
-        gcrdt->read_from_file("caca.xml");
+        gcrdt->read_from_file("grafo.xml");
         gcrdt->start_fullgraph_server_thread();
-        gcrdt->start_subscription_thread(true);
+        //gcrdt->start_subscription_thread(true);
+
     }
     else
     {
+        //De momento no funciona bien
         gcrdt->start_fullgraph_request_thread();
+
         // wait until graph read
         sleep(TIMEOUT);
         //gcrdt->start_fullgraph_server_thread();
-        //gcrdt->start_subscription_thread(true);
+        gcrdt->start_subscription_thread(true);
     }
 
     sleep(TIMEOUT);
@@ -75,12 +78,14 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    //timer.start(20);
+    timer.start(100);
 }
 
 void SpecificWorker::compute()
 {
-   test_laser();
+    if(read_file)
+        test_laser();
+
    //   test_nodes_mov();
    // test_node_random();
 }
@@ -107,9 +112,10 @@ void SpecificWorker::test_laser()
             at.type("RTMat");
             at.value(rt.serializeAsString());
             at.length(1);
+            at.key("RT");
 
-            std::map<std::string, AttribValue> attribMap;
-            attribMap.insert (std::make_pair("RT", at));
+            std::vector<AttribValue> attribMap;
+            attribMap.push_back(at);
 
             gcrdt->add_edge_attribs(world_id, base_id, attribMap);
         }
@@ -134,21 +140,22 @@ void SpecificWorker::test_laser()
             for (auto &x : angles)
                 a += std::to_string(x) + " ";
             // insert both strings as attributes
-            std::map<std::string, AttribValue> ma;
+            std::vector<AttribValue> ma;
 
             AttribValue at;
             at.type("vector<float>");
             at.value(s);
             at.length((int) dists.size());
+            at.key("laser_data_dists");
 
-            ma.insert_or_assign("laser_data_dists", at);
+            ma.push_back(at);
 
             AttribValue at2;
             at2.type("vector<float>");
             at2.value(a);
             at2.length((int) angles.size());
-
-            ma.insert_or_assign("laser_data_angles", at2);
+            at2.key("laser_data_angles");
+            ma.push_back(at2);
             // add attributes to node
             gcrdt->add_node_attribs(node_id, ma);
         }
