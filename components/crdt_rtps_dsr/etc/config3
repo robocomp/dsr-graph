@@ -14,3 +14,4 @@ Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 
 agent_name = agent3
+read_file = false

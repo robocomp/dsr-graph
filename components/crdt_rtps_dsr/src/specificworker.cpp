@@ -62,7 +62,7 @@ void SpecificWorker::initialize(int period) {
         // wait until graph read
         sleep(TIMEOUT);
         //gcrdt->start_fullgraph_server_thread();
-        gcrdt->start_subscription_thread(true);
+        //gcrdt->start_subscription_thread(true);
     }
 
     sleep(TIMEOUT);
@@ -78,7 +78,7 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    timer.start(100);
+    timer.start(20);
 }
 
 void SpecificWorker::compute()
@@ -141,7 +141,7 @@ void SpecificWorker::test_laser()
                 a += std::to_string(x) + " ";
             // insert both strings as attributes
             std::vector<AttribValue> ma;
-
+            //std::cout << "Size a, s: " <<  a.size() + s.size() << std::endl;
             AttribValue at;
             at.type("vector<float>");
             at.value(s);
