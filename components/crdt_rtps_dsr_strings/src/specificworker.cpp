@@ -17,7 +17,8 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
-
+#include <iostream>
+#include <boost/format.hpp>
 /**
 * \brief Default constructor
 */
@@ -35,26 +36,41 @@ SpecificWorker::~SpecificWorker() {
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     agent_name = params["agent_name"].value;
+    read_file = params["read_file"].value == "true";
+    write_string = params["write_string"].value == "true";
+
     return true;
 }
 
 void SpecificWorker::initialize(int period) {
-    std::cout << "Initialize worker 2" << std::endl;
+    std::cout << "Initialize worker" << std::endl;
 
     // create graph
     gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
 
     // read graph content from file
-    //gcrdt->read_from_file("caca.xml");
+    if(read_file)
+    {
+        gcrdt->read_from_file("grafo.xml");
+        gcrdt->start_fullgraph_server_thread();
+        gcrdt->start_subscription_thread(true);
 
-    //gcrdt->start_fullgraph_server_thread();
-    //gcrdt->start_subscription_thread(true);
+    }
+    else
+    {
+        //De momento no funciona bien
+        gcrdt->start_fullgraph_request_thread();
+
+        // wait until graph read
+        sleep(TIMEOUT*2);
+        //gcrdt->start_fullgraph_server_thread();
+        gcrdt->start_subscription_thread(true);
+    }
+
     sleep(TIMEOUT);
     //gcrdt->start_subscription_thread(false);
     //gcrdt->print();
     std::cout << "Starting compute" << std::endl;
-
-    gcrdt->start_fullgraph_request_thread();
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
@@ -64,88 +80,50 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    //timer.start(20);
+    timer.start(2000);
 }
 
 void SpecificWorker::compute()
 {
-   test_laser();
+    if (write_string)
+        test_set_string();
    //   test_nodes_mov();
    // test_node_random();
 }
 
 
-void SpecificWorker::test_laser() 
+void SpecificWorker::test_set_string()
 {
     static int cont = 0;
-    //if (cont<LAPS) {
-         // get robot position
-        try {
-            RoboCompGenericBase::TBaseState bState;
-            differentialrobot_proxy->getBaseState(bState);
-            // get corresponding nodes in G
-            auto base_id = gcrdt->get_id_from_name("base");
-            auto world_id = gcrdt->get_id_from_name("world");  
-                    //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
-            // create Rt mat coding the robot's pose in the world
-            RMat::RTMat rt;
-            rt.setTr(QVec::vec3(bState.x, 0, bState.z));
-            rt.setRX(0.f); rt.setRY(bState.alpha); rt.setRZ(0.f);
-            // add Rt mat as the edge attribute between world and robot
-            AttribValue at;
-            at.type("RTMat");
-            at.value(rt.serializeAsString());
-            at.length(1);
-
-            std::map<std::string, AttribValue> attribMap;
-            attribMap.insert (std::make_pair("RT", at));
-
-            gcrdt->add_edge_attribs(world_id, base_id, attribMap);
-        }
-        catch (const Ice::Exception &e) { std::cout << "Error reading from Base" << e << std::endl;}
-        // get laser values
+     if (cont < 2000) {
         try
         {
-            auto ldata = laser_proxy->getLaserData();
-            // extract distances 
-            std::vector<float> dists;
-            std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
-            // get corresponding node
-            int node_id = gcrdt->get_id_from_name("laser");
+
+            int node_id = gcrdt->get_id_from_name("Strings");
             // convert values to string
-            std::string s = "", a = "";
-            for (auto &x : dists)
-                s += std::to_string(x) + " ";
-            // extract angles
-            std::vector<float> angles;
-            std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
-            // convert angles to string
-            for (auto &x : angles)
-                a += std::to_string(x) + " ";
-            // insert both strings as attributes
-            std::map<std::string, AttribValue> ma;
 
-            AttribValue at;
-            at.type("vector<float>");
-            at.value(s);
-            at.length((int) dists.size());
+            if (node_id == -1) return;
 
-            ma.insert_or_assign("laser_data_dists", at);
+            vector<AttribValue> at = gcrdt->get_node_attribs_crdt(node_id);
+            auto val = std::find_if(at.begin(), at.end(), [](const auto element) { return element.key() == "String"; });
+            //generate string;
+            string str;
+            if (agent_name == "agent0" )
+                //str = std::format("{}-{}", "agente0", cont); C++20
+                str = boost::str(boost::format("%s - %d") % agent_name % cont);
+            else
+                //str = std::format("{}-{}", "agente1", cont);
+                str = boost::str(boost::format("%s - %d") % agent_name % cont);
 
-            AttribValue at2;
-            at2.type("vector<float>");
-            at2.value(a);
-            at2.length((int) angles.size());
-
-            ma.insert_or_assign("laser_data_angles", at2);
+            val->value(str);
             // add attributes to node
-            gcrdt->add_node_attribs(node_id, ma);
+            gcrdt->add_node_attribs(node_id, at);
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
-        
+
         std::cout<<"Working..." << cont << std::endl;
         cont++;
-    //}
+    }
 }
 
 // void SpecificWorker::test_nodes_mov() {

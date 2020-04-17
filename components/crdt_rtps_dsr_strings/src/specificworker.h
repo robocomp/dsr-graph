@@ -33,13 +33,15 @@ class SpecificWorker : public GenericWorker
 	private:
 		InnerModel *innerModel;
 		std::string agent_name;
+		bool read_file;
+		bool write_string;
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Tests
 		//void tester();
 		//void test_nodes_mov();
-		void test_laser();
+		void test_set_string();
 		//void test_node_random();
 		// Random
 		std::random_device rd;
