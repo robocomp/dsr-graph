@@ -95,7 +95,6 @@ void SpecificWorker::compute()
 void SpecificWorker::test_set_string()
 {
     static int cont = 0;
-     if (cont < 2000) {
         try
         {
 
@@ -123,7 +122,7 @@ void SpecificWorker::test_set_string()
 
         std::cout<<"Working..." << cont << std::endl;
         cont++;
-    }
+
 }
 
 // void SpecificWorker::test_nodes_mov() {
