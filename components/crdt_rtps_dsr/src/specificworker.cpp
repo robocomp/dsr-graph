@@ -37,6 +37,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
     agent_name = params["agent_name"].value;
     read_file = params["read_file"].value == "true";
+    agent_id = stoi(params["agent_id"].value);
     return true;
 }
 
@@ -44,7 +45,7 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
+    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
 
     // read graph content from file
     if(read_file)
@@ -59,10 +60,6 @@ void SpecificWorker::initialize(int period) {
         //De momento no funciona bien
         gcrdt->start_fullgraph_request_thread();
 
-        // wait until graph read
-        sleep(TIMEOUT);
-        //gcrdt->start_fullgraph_server_thread();
-        //gcrdt->start_subscription_thread(true);
     }
 
     sleep(TIMEOUT);
