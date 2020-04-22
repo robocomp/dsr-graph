@@ -15,3 +15,4 @@ Ice.Trace.Protocol=0
 
 agent_name = agent4
 read_file = false
+agent_id = 3

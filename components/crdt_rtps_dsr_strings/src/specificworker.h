@@ -35,6 +35,7 @@ class SpecificWorker : public GenericWorker
 		std::string agent_name;
 		bool read_file;
 		bool write_string;
+		int agent_id;
 		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 

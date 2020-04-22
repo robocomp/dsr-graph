@@ -38,6 +38,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     agent_name = params["agent_name"].value;
     read_file = params["read_file"].value == "true";
     write_string = params["write_string"].value == "true";
+    agent_id = stoi(params["agent_id"].value);
 
     return true;
 }
@@ -46,7 +47,7 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name); // Init nodes
+    gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
 
     // read graph content from file
     if(read_file)
@@ -58,13 +59,8 @@ void SpecificWorker::initialize(int period) {
     }
     else
     {
-        //De momento no funciona bien
         gcrdt->start_fullgraph_request_thread();
-
-        // wait until graph read
-        sleep(TIMEOUT*2);
-        //gcrdt->start_fullgraph_server_thread();
-        gcrdt->start_subscription_thread(true);
+        //Si se piede el grafo no hace falta iniciar subscription thread, se inicia al sincronizar.
     }
 
     sleep(TIMEOUT);
@@ -80,8 +76,9 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    timer.start(2000);
+    timer.start(300);
 }
+
 
 void SpecificWorker::compute()
 {
@@ -95,8 +92,8 @@ void SpecificWorker::compute()
 void SpecificWorker::test_set_string()
 {
     static int cont = 0;
-        try
-        {
+    if (cont < 1000) {
+        try {
 
             int node_id = gcrdt->get_id_from_name("Strings");
             // convert values to string
@@ -106,13 +103,7 @@ void SpecificWorker::test_set_string()
             vector<AttribValue> at = gcrdt->get_node_attribs_crdt(node_id);
             auto val = std::find_if(at.begin(), at.end(), [](const auto element) { return element.key() == "String"; });
             //generate string;
-            string str;
-            if (agent_name == "agent0" )
-                //str = std::format("{}-{}", "agente0", cont); C++20
-                str = boost::str(boost::format("%s - %d") % agent_name % cont);
-            else
-                //str = std::format("{}-{}", "agente1", cont);
-                str = boost::str(boost::format("%s - %d") % agent_name % cont);
+            string str = boost::str(boost::format("%s - %d") % agent_name % cont);
 
             val->value(str);
             // add attributes to node
@@ -120,9 +111,9 @@ void SpecificWorker::test_set_string()
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
 
-        std::cout<<"Working..." << cont << std::endl;
+        std::cout << "Working..." << cont << std::endl;
         cont++;
-
+    }
 }
 
 // void SpecificWorker::test_nodes_mov() {
