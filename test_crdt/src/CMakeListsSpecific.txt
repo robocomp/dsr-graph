@@ -1,0 +1,24 @@
+# Sources set
+SET ( SOURCES
+  ../../../graph-related-classes/CRDT.cpp
+  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
+  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
+  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  ../../../graph-related-classes/topics/DSRGraph.cxx
+
+)
+
+# Headers set
+SET ( HEADERS
+  ../../../graph-related-classes/CRDT.h
+)
+
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+add_definitions(-g  -fmax-errors=1 )
+set(CMAKE_CXX_STANDARD 17)
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES} fastcdr fastrtps pthread)
+set(CMAKE_BUILD_TYPE Debug)
+
+
