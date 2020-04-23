@@ -97,14 +97,17 @@ void SpecificWorker::test_laser()
             RoboCompGenericBase::TBaseState bState;
             differentialrobot_proxy->getBaseState(bState);
             // get corresponding nodes in G
-            auto base_id = gcrdt->get_id_from_name("base");
-            auto world_id = gcrdt->get_id_from_name("world");  
+            //auto base = gcrdt->get_node("base");
+            //auto world = gcrdt->get_node("world");
                     //OJO: THERE CAN BE SEVERAL EDGES BETWEEN TWO NODES WITH DIFFERENT LABELS
             // create Rt mat coding the robot's pose in the world
             RMat::RTMat rt;
             rt.setTr(QVec::vec3(bState.x, 0, bState.z));
             rt.setRX(0.f); rt.setRY(bState.alpha); rt.setRZ(0.f);
             // add Rt mat as the edge attribute between world and robot
+
+            auto edge = gcrdt->get_edge( "world", "base");
+
             AttribValue at;
             at.type("RTMat");
             at.value(rt.serializeAsString());
@@ -114,7 +117,10 @@ void SpecificWorker::test_laser()
             std::vector<AttribValue> attribMap;
             attribMap.push_back(at);
 
-            gcrdt->add_edge_attribs(world_id, base_id, attribMap);
+            edge.attrs(attribMap);
+
+            gcrdt->insert_or_assign_edge(edge);
+            //gcrdt->add_edge_attribs(world_id, base_id, attribMap);
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Base" << e << std::endl;}
         // get laser values
@@ -125,36 +131,42 @@ void SpecificWorker::test_laser()
             std::vector<float> dists;
             std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
             // get corresponding node
-            int node_id = gcrdt->get_id_from_name("laser");
             // convert values to string
-            std::string s = "", a = "";
-            for (auto &x : dists)
-                s += std::to_string(x) + " ";
+            //std::string s = "", a = "";
+            //for (auto &x : dists)
+            //    s += std::to_string(x) + " ";
             // extract angles
             std::vector<float> angles;
             std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
             // convert angles to string
-            for (auto &x : angles)
-                a += std::to_string(x) + " ";
+            //for (auto &x : angles)
+            //    a += std::to_string(x) + " ";
             // insert both strings as attributes
-            std::vector<AttribValue> ma;
+            //std::vector<AttribValue> ma;
             //std::cout << "Size a, s: " <<  a.size() + s.size() << std::endl;
-            AttribValue at;
-            at.type("vector<float>");
-            at.value(s);
-            at.length((int) dists.size());
-            at.key("laser_data_dists");
+            //AttribValue at;
+            //at.type("vector<float>");
+            //at.value(s);
+            //at.length((int) dists.size());
+            //at.key("laser_data_dists");
 
-            ma.push_back(at);
 
-            AttribValue at2;
-            at2.type("vector<float>");
-            at2.value(a);
-            at2.length((int) angles.size());
-            at2.key("laser_data_angles");
-            ma.push_back(at2);
+            //ma.push_back(at);
+
+            //AttribValue at2;
+            //at2.type("vector<float>");
+            //at2.value(a);
+            //at2.length((int) angles.size());
+            //at2.key("laser_data_angles");
+            //ma.push_back(at2);
             // add attributes to node
-            gcrdt->add_node_attribs(node_id, ma);
+            auto node = gcrdt->get_node("laser");
+
+            gcrdt->add_attrib(node.attrs(), "laser_data_dists", dists);
+            gcrdt->add_attrib(node.attrs(), "laser_data_angles", angles);
+
+            gcrdt->insert_or_assign_node(node);
+            //gcrdt->add_node_attribs(node_id, ma);
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
         

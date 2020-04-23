@@ -95,19 +95,21 @@ void SpecificWorker::test_set_string()
     if (cont < 1000) {
         try {
 
-            int node_id = gcrdt->get_id_from_name("Strings");
+            Node node = gcrdt->get_node("Strings");
             // convert values to string
 
-            if (node_id == -1) return;
+            if (node.id() == -1) return;
 
-            vector<AttribValue> at = gcrdt->get_node_attribs_crdt(node_id);
-            auto val = std::find_if(at.begin(), at.end(), [](const auto element) { return element.key() == "String"; });
-            //generate string;
+            auto val = std::find_if(node.attrs().begin(), node.attrs().end(), [](const auto element) { return element.key() == "String"; });
+
+            if (val == node.attrs().end()) return;
+
             string str = boost::str(boost::format("%s - %d") % agent_name % cont);
-
             val->value(str);
+
+
             // add attributes to node
-            gcrdt->add_node_attribs(node_id, at);
+            gcrdt->insert_or_assign_node(node);
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
 
