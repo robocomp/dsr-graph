@@ -1,5 +1,5 @@
 <AGMModel>
-<symbol id="138" type="rgbd">
+<symbol id="138" type="rgbd" name="rgbd">
 	<attribute key="width" value="640" />
 	<attribute key="ifconfig" value="40000,50000" />
 	<attribute key="noise" value="0" />
@@ -15,7 +15,7 @@
 	<attribute key="color" value="coral" />
 	<attribute key="pos_x" value="-246,617584" />
 </symbol>
-<symbol id="133" type="transform">
+<symbol id="133" type="transform" name="laserPose">
 	<attribute key="mass" value="0" />
 	<attribute key="pos_x" value="-339,240509" />
 	<attribute key="imType" value="transform" />
@@ -27,7 +27,7 @@
 	<attribute key="pos_y" value="-57,383965" />
 	<attribute key="imName" value="laserPose" />
 </symbol>
-<symbol id="131" type="differentialrobot">
+<symbol id="131" type="differentialrobot" name="base">
 	<attribute key="pos_x" value="-235,448044" />
 	<attribute key="noise" value="0" />
 	<attribute key="imType" value="differentialrobot" />
@@ -40,7 +40,7 @@
 	<attribute key="pos_y" value="-168,177170" />
 	<attribute key="imName" value="base" />
 </symbol>
-<symbol id="135" type="plane">
+<symbol id="135" type="plane" name="Strings">
 	<attribute key="imName" value="Strings" />
 	<attribute key="pos_y" value="23,562189" />
 	<attribute key="pz" value="-200" />
@@ -63,7 +63,7 @@
 	<attribute key="depth" value="1" />
 	<attribute key="String" value="" />
 </symbol>
-<symbol id="100" type="world">
+<symbol id="100" type="world" name="world">
 	<attribute key="imType" value="transform" />
 	<attribute key="parent" value="0" />
 	<attribute key="name" value="world [100]" />
