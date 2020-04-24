@@ -44,7 +44,8 @@ void tests_basicos(const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
     n.id(1);
     n.agent_id(0);
     n.type("prueba");
-    n.attrs(vector<AttribValue> { av });
+    n.name("existe");
+    n.attrs(std::map<string, AttribValue> { pair {"prueba", av} });
 
     bool r = gcrdt->insert_or_assign_node(n);
 
@@ -63,7 +64,8 @@ void tests_basicos(const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
     n.id(2);
     n.agent_id(0);
     n.type("prueba");
-    n.attrs(vector<AttribValue> { av });
+    n.name("otroexiste");
+    n.attrs(std::map<string, AttribValue> { pair {"prueba", av} });
 
     r = gcrdt->insert_or_assign_node(n);
 
@@ -138,9 +140,9 @@ void work_nodes(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
         auto n = gcrdt->get_node(135);
         //cout << boost::str(boost::format("Obtenido nodo: thread%d - %d \n")  % id % x);
 
-        auto val = std::find_if(n.attrs().begin(), n.attrs().end(), [](const auto element) { return element.key() == "String"; });
+        auto val = n.attrs().find("String");
         if (val == n.attrs().end()) return;
-        val->value(boost::str(boost::format("thread%d - %d ")  % id % x));
+        val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
         bool res = gcrdt->insert_or_assign_node(n);
 
         ++x;
@@ -165,15 +167,15 @@ void work_edges(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
 
         //cout << boost::str(boost::format("Obtenido edge: thread%d - %d \n")  % id % x);
 
-        auto val = std::find_if(edge.attrs().begin(), edge.attrs().end(), [](const auto element) { return element.key() == "prueba"; });
+        auto val = edge.attrs().find("prueba");
 
         if (val == edge.attrs().end()) {
             AttribValue av;
             av.key("prueba");
             av.value(boost::str(boost::format("thread%d - %d ") % id % x));
-            edge.attrs().push_back(av);
+            edge.attrs().emplace(make_pair("prueba",av));
         } else {
-            val->value(boost::str(boost::format("thread%d - %d ")  % id % x));
+            val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
         }
 
         bool res = gcrdt->insert_or_assign_edge(edge);
