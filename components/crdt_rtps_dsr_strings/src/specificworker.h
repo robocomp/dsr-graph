@@ -8,6 +8,7 @@
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 #include <thread>
+#include <chrono>
 
 
 #define LAPS 50
@@ -44,13 +45,14 @@ class SpecificWorker : public GenericWorker
 		//void tester();
 		//void test_nodes_mov();
 		void test_set_string(int i);
+		void test_create_or_remove_node(int i);
 
 		//void test_node_random();
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;
 		std::uniform_real_distribution<float> dist;
-        std::uniform_int_distribution<int> randomNode;
+        std::uniform_int_distribution<int> randomNode, random_selector, node_selector;
 
 		//threadss
 		std::vector<std::thread> threads;
