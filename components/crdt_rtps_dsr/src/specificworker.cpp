@@ -114,8 +114,8 @@ void SpecificWorker::test_laser()
             at.length(1);
             at.key("RT");
 
-            std::vector<AttribValue> attribMap;
-            attribMap.push_back(at);
+            std::map<string, AttribValue> attribMap;
+            attribMap["RT"] = at;
 
             edge.attrs(attribMap);
 

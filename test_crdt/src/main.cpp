@@ -5,9 +5,19 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <pthread.h>
+#include <numeric>
+#include <vector>
+
 #include "../../graph-related-classes/CRDT.h"
 
-void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
+#include <boost/format.hpp>
+
+static int n_threads = 100;
+static int n_iters = 100;
+static vector<int> time_;
+
+void tests_basicos(const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
 
     //1. Obtener un nodo con el grafo vacío.
 
@@ -34,11 +44,12 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
     n.id(1);
     n.agent_id(0);
     n.type("prueba");
-    n.attrs(vector<AttribValue> { av });
+    n.name("existe");
+    n.attrs(std::map<string, AttribValue> { pair {"prueba", av} });
 
     bool r = gcrdt->insert_or_assign_node(n);
 
-    assert(r == true && gcrdt->get_node("existe") == n);
+    assert(r && gcrdt->get_node("existe") == n);
     std::cout << "Añadir un nodo nuevo. OK" << std::endl;
 
 
@@ -53,7 +64,8 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
     n.id(2);
     n.agent_id(0);
     n.type("prueba");
-    n.attrs(vector<AttribValue> { av });
+    n.name("otroexiste");
+    n.attrs(std::map<string, AttribValue> { pair {"prueba", av} });
 
     r = gcrdt->insert_or_assign_node(n);
 
@@ -64,7 +76,7 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
 
     r = gcrdt->insert_or_assign_edge(ea);
 
-    assert(r == true && gcrdt->get_edge("existe", "otroexiste") == ea);
+    assert(r && gcrdt->get_edge("existe", "otroexiste") == ea);
     std::cout << "Añadir una nuevo edge. OK" << std::endl;
 
     //5. Reemplazar un arco.
@@ -74,26 +86,26 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
     ea.label("RT2");
     r = gcrdt->insert_or_assign_edge(ea);
 
-    assert(r == true && gcrdt->get_edge("existe", "otroexiste") == ea && ea.label() == "RT2");
+    assert(r && gcrdt->get_edge("existe", "otroexiste") == ea && ea.label() == "RT2");
     std::cout << "Reemplazar un edge. OK" << std::endl;
 
     //6. Borrar un arco.
 
     r =  gcrdt->delete_edge("existe", "otroexiste");
 
-    assert(r == true && gcrdt->get_edge("existe", "otroexiste").label() == "error");
+    assert(r && gcrdt->get_edge("existe", "otroexiste").label() == "error");
     std::cout << " Borrar un arco. OK" << std::endl;
 
     //7. Borrar nodo que existe.
     r = gcrdt->insert_or_assign_edge(ea);
 
     r = gcrdt->delete_node("otroexiste");
-    assert(r == true && gcrdt->get_node("otroexiste").id() == -1 && gcrdt->get_node("existe").fano().size() == 0);
+    assert(r && gcrdt->get_node("otroexiste").id() == -1 && gcrdt->get_node("existe").fano().size() == 0);
     std::cout << " Borrar un nodo. OK" << std::endl;
 
     //8. Borrar nodo que no existe.
     r = gcrdt->delete_node("otroexiste");
-    assert(r == false && gcrdt->get_node("otroexiste").id() == -1);
+    assert(!r && gcrdt->get_node("otroexiste").id() == -1);
     std::cout << " Borrar un nodo que no existe. OK" << std::endl;
 
 
@@ -101,7 +113,7 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
 
     r =  gcrdt->delete_edge("existe", "otroexiste");
 
-    assert(r == false && gcrdt->get_edge("existe", "otroexiste").label() == "error");
+    assert(!r && gcrdt->get_edge("existe", "otroexiste").label() == "error");
     std::cout << " Borrar un arco que no existe. OK" << std::endl;
 
 
@@ -112,19 +124,72 @@ void tests_basicos(shared_ptr<CRDT::CRDTGraph> gcrdt) {
 
     r =  gcrdt->insert_or_assign_node(n);
 
-    assert(r == true && gcrdt->get_node("existe") == n);
+    assert(r && gcrdt->get_node("existe") == n);
     std::cout << " Reemplazar un nodo existente. OK" << std::endl;
 
 }
 
-void work(int id) {
-    auto gcrdt = std::make_shared<CRDT::CRDTGraph>(0, "prueba", id); // Init nodes
+void work_nodes(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
 
-    while (1) {
+    int x = 0;
+    while (x < n_iters) {
+        start = std::chrono::system_clock::now();
 
+        auto n = gcrdt->get_node(135);
+        //cout << boost::str(boost::format("Obtenido nodo: thread%d - %d \n")  % id % x);
+
+        auto val = n.attrs().find("String");
+        if (val == n.attrs().end()) return;
+        val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
+        bool res = gcrdt->insert_or_assign_node(n);
+
+        ++x;
+        end = std::chrono::system_clock::now();
+        int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>
+                (end-start).count();
+        time_.emplace_back(elapsed_ms);
     }
 
 }
+
+
+void work_edges(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+    int x = 0;
+    while (x < n_iters) {
+        start = std::chrono::system_clock::now();
+        auto edge = gcrdt->get_edge("base", "rgbd");
+
+        //cout << boost::str(boost::format("Obtenido edge: thread%d - %d \n")  % id % x);
+
+        auto val = edge.attrs().find("prueba");
+
+        if (val == edge.attrs().end()) {
+            AttribValue av;
+            av.key("prueba");
+            av.value(boost::str(boost::format("thread%d - %d ") % id % x));
+            edge.attrs().emplace(make_pair("prueba",av));
+        } else {
+            val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
+        }
+
+        bool res = gcrdt->insert_or_assign_edge(edge);
+
+        ++x;
+        end = std::chrono::system_clock::now();
+        int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>
+                (end-start).count();
+        time_.push_back(elapsed_ms);
+    }
+
+}
+
+
 
 int main() {
 
@@ -132,20 +197,48 @@ int main() {
     auto gcrdt = std::make_shared<CRDT::CRDTGraph>(0, "prueba", 0); // Init nodes
     tests_basicos(gcrdt);
 
+    //Leer grafo desde un fichero.
+    gcrdt->read_from_file("grafo.xml");
+    assert(gcrdt->size() == 6);
+    std::cout << "Cargar grafo desde un fichero. OK" << std::endl;
 
-    /*
-    int n_threads = 10;
+    time_.reserve(n_threads*n_iters);
+
+    //int n_threads = 100;
+
     vector<std::thread> threads;
 
     for (int i = 0 ; i < n_threads;++i) {
-        threads.push_back(std::thread(work, i));
+        threads.emplace_back(std::thread(work_nodes, i, gcrdt));
     }
+
 
     for (auto &th : threads)
     {
         if (th.joinable())
             th.join();
     }
-    */
+
+    std::cout << "Tiempo medio por iteracion (ms): "<< std::accumulate(time_.begin(), time_.end(), 0.0)/time_.size() << std::endl;
+    time_.clear();
+
+    threads.clear();
+
+
+    for (int i = 0 ; i < n_threads;++i) {
+        threads.emplace_back(std::thread(work_edges, i, gcrdt));
+    }
+
+
+    for (auto &th : threads)
+    {
+        if (th.joinable())
+            th.join();
+    }
+
+    std::cout << "Tiempo medio por iteracion (ms): "<< std::accumulate(time_.begin(), time_.end(), 0.0)/time_.size() << std::endl;
+
+    threads.clear();
+
     return 0;
 }
