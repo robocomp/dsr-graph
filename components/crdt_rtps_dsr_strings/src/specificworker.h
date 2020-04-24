@@ -7,6 +7,7 @@
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
+#include <thread>
 
 
 #define LAPS 50
@@ -42,13 +43,17 @@ class SpecificWorker : public GenericWorker
 		// Tests
 		//void tester();
 		//void test_nodes_mov();
-		void test_set_string();
+		void test_set_string(int i);
+
 		//void test_node_random();
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;
 		std::uniform_real_distribution<float> dist;
         std::uniform_int_distribution<int> randomNode;
+
+		//threadss
+		std::vector<std::thread> threads;
 
 };
 

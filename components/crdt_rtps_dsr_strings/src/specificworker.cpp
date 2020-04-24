@@ -48,7 +48,7 @@ void SpecificWorker::initialize(int period) {
 
     // create graph
     gcrdt = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
-
+    
     // read graph content from file
     if(read_file)
     {
@@ -64,52 +64,64 @@ void SpecificWorker::initialize(int period) {
     }
 
     sleep(TIMEOUT);
+    qDebug() << __FUNCTION__ << "Graph loaded";       
+    
     //gcrdt->start_subscription_thread(false);
     //gcrdt->print();
-    std::cout << "Starting compute" << std::endl;
-
+    
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
     setWindowTitle( agent_name.c_str() );
-
+    qDebug() << __FUNCTION__ << "Graph Viewer started";       
+    
     // Random initialization
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    timer.start(300);
+    //timer.start(300);
+
+    // threads
+    threads.resize(5);
+    for(int i=0; auto &t : threads)
+        t = std::move(std::thread(&SpecificWorker::test_set_string, this, i++));
+    qDebug() << __FUNCTION__ << "Threads initiated";       
+    
+    for(auto &t : threads)
+        t.join();
+    qDebug() << __FUNCTION__ << "Threads finished";       
 }
 
 
 void SpecificWorker::compute()
 {
     if (write_string)
-        test_set_string();
+        test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
 }
 
 
-void SpecificWorker::test_set_string()
+void SpecificWorker::test_set_string(int i)
 {
     static int cont = 0;
-    if (cont < 1000) {
+    qDebug() << "Enter thread" << i;
+    while (cont < 10) {
         try {
 
-            Node node = gcrdt->get_node("Strings");
+            //Node node = gcrdt->get_node("Strings");
+            Node node = gcrdt->get_node(135);
+            
             // convert values to string
 
             if (node.id() == -1) return;
-
             auto val = std::find_if(node.attrs().begin(), node.attrs().end(), [](const auto element) { return element.key() == "String"; });
-
             if (val == node.attrs().end()) return;
-
             string str = boost::str(boost::format("%s - %d") % agent_name % cont);
             val->value(str);
-
-
             // add attributes to node
             gcrdt->insert_or_assign_node(node);
+            qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);       
+    
         }
         catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
 
