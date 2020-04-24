@@ -63,7 +63,7 @@ void SpecificWorker::initialize(int period) {
         //Si se piede el grafo no hace falta iniciar subscription thread, se inicia al sincronizar.
     }
 
-    sleep(TIMEOUT);
+    //sleep(TIMEOUT);
     qDebug() << __FUNCTION__ << "Graph loaded";       
     
     //gcrdt->start_subscription_thread(false);
@@ -78,17 +78,24 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    //timer.start(300);
+    random_selector = std::uniform_int_distribution(0,1);
+    node_selector = std::uniform_int_distribution(5000,6000);
+    //timer.start(300)
 
     // threads
-    threads.resize(5);
+    threads.resize(1);
     for(int i=0; auto &t : threads)
-        t = std::move(std::thread(&SpecificWorker::test_set_string, this, i++));
+        t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++));
     qDebug() << __FUNCTION__ << "Threads initiated";       
     
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
     for(auto &t : threads)
         t.join();
     qDebug() << __FUNCTION__ << "Threads finished";       
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[µs]" << std::endl;
 }
 
 
@@ -100,32 +107,61 @@ void SpecificWorker::compute()
    // test_node_random();
 }
 
+void SpecificWorker::test_create_or_remove_node(int i)
+{
+    static int cont = 0;
+    qDebug() << __FUNCTION__ << "Enter thread" << i;
+    while (cont < 100) 
+    {
+        // ramdomly select create or remove
+        if(random_selector(mt) == 0)
+        {
+            qDebug() << __FUNCTION__ << "Create node";
+            // create node
+            Node node;
+            node.type("new_type");
+            node.id(5000+cont);
+            node.agent_id(agent_id);
+            // insert node
+            qDebug() << gcrdt->insert_or_assign_node(node) << gcrdt->size();
+        }
+        // else
+        // {
+        //     qDebug() << __FUNCTION__ << "Remove node";
+        //     int id = node_selector(mt);
+        //     bool r = gcrdt->delete_node(id);
+        //     if(r==false)
+        //         qDebug() << __FUNCTION__ << "Node not found";
+        // }
+        cont++;
+    }
+}
 
 void SpecificWorker::test_set_string(int i)
 {
     static int cont = 0;
-    qDebug() << "Enter thread" << i;
-    while (cont < 10) {
-        try {
+    qDebug() << __FUNCTION__ << "Enter thread" << i;
+    while (cont < 1000) 
+    {
+        // request node
+        Node node = gcrdt->get_node(135);
+        if (node.id() == -1) 
+            return;
 
-            //Node node = gcrdt->get_node("Strings");
-            Node node = gcrdt->get_node(135);
-            
-            // convert values to string
+        // check for attribute
+        //auto val = gcrdt->get_node_attrib_by_name(node, "String");
+        auto val = std::find_if(node.attrs().begin(), node.attrs().end(), [](const auto element) { return element.key() == "String"; });
+        if (val == node.attrs().end()) 
+            return;
 
-            if (node.id() == -1) return;
-            auto val = std::find_if(node.attrs().begin(), node.attrs().end(), [](const auto element) { return element.key() == "String"; });
-            if (val == node.attrs().end()) return;
-            string str = boost::str(boost::format("%s - %d") % agent_name % cont);
-            val->value(str);
-            // add attributes to node
-            gcrdt->insert_or_assign_node(node);
-            qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);       
-    
-        }
-        catch (const Ice::Exception &e) { std::cout << "Error reading from Laser" << e << std::endl; }
+        //std::string str = boost::str(boost::format("%s - %d") % agent_name % cont);
+        std::string str = agent_name + "-" + std::to_string(i) + "_" + std::to_string(cont);
+        val->value(str);
 
-        std::cout << "Working..." << cont << std::endl;
+        // reinsert node
+        gcrdt->insert_or_assign_node(node);
+        qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);       
+
         cont++;
     }
 }
