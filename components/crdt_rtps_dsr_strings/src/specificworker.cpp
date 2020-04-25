@@ -82,7 +82,7 @@ void SpecificWorker::initialize(int period) {
     //timer.start(300)
 
     // threads for testing concurrent accesses inside one agent
-    threads.resize(1);
+    threads.resize(5);
     for(int i=0; auto &t : threads)
         t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++));
     qDebug() << __FUNCTION__ << "Threads initiated";       
@@ -109,7 +109,7 @@ void SpecificWorker::compute()
 // create and insert a new id in the list
 int SpecificWorker::newID()
 {
-    //std::lock_guard<std::mutex>  lock(mut);
+    std::lock_guard<std::mutex>  lock(mut);
     int l = created_nodos.back();
     created_nodos.push_back(++l);
     return l;
@@ -117,7 +117,7 @@ int SpecificWorker::newID()
 // pick a random id from the list of new ones
 int SpecificWorker::removeID()    
 {
-    //std::lock_guard<std::mutex>  lock(mut);
+    std::lock_guard<std::mutex>  lock(mut);
     if(created_nodos.size()==1)
         return -1;
     auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
