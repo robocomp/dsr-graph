@@ -154,16 +154,16 @@ void SpecificWorker::test_create_or_remove_node(int i)
             if (r)
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }
-        else
-        {
-            //qDebug() << __FUNCTION__ << "Remove node";
-            int id = removeID();
-            if(id>-1)
-            {
-                G->delete_node(id);
-                qDebug() << "Deleted node:" << id << " Total size:" << G->size();
-            }
-        }
+        // else
+        // {
+        //     //qDebug() << __FUNCTION__ << "Remove node";
+        //     int id = removeID();
+        //     if(id>-1)
+        //     {
+        //         G->delete_node(id);
+        //         qDebug() << "Deleted node:" << id << " Total size:" << G->size();
+        //     }
+        // }
     }
 }
 
