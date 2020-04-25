@@ -56,10 +56,11 @@ class SpecificWorker : public GenericWorker
 
 		//threadss
 		std::vector<std::thread> threads;
-		std::vector<int> created_nodos{5000};
+		std::vector<int> created_nodos;
 		int newID();
 		int removeID();
 		std::mutex mut;
+		
 };
 
 #endif

@@ -82,7 +82,7 @@ void SpecificWorker::initialize(int period) {
     //timer.start(300)
 
     // threads for testing concurrent accesses inside one agent
-    threads.resize(5);
+    threads.resize(1);
     for(int i=0; auto &t : threads)
         t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++));
     qDebug() << __FUNCTION__ << "Threads initiated";       
@@ -109,16 +109,16 @@ void SpecificWorker::compute()
 // create and insert a new id in the list
 int SpecificWorker::newID()
 {
+    static int node_counter = 5000;
     std::lock_guard<std::mutex>  lock(mut);
-    int l = created_nodos.back();
-    created_nodos.push_back(++l);
-    return l;
+    created_nodos.push_back(++node_counter);
+    return node_counter;
 }
 // pick a random id from the list of new ones
 int SpecificWorker::removeID()    
 {
     std::lock_guard<std::mutex>  lock(mut);
-    if(created_nodos.size()==1)
+    if(created_nodos.size()==0)
         return -1;
     auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
     int l = node_randomizer(mt);
@@ -131,21 +131,23 @@ void SpecificWorker::test_create_or_remove_node(int i)
 {
     static int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < 1000) 
+    while (it++ < 10) 
     {
         // ramdomly select create or remove
         if(random_selector(mt) == 0)
         {
-            qDebug() << __FUNCTION__ << "Create node";
+            //qDebug() << __FUNCTION__ << "Create node";
             // create node
             Node node;
-            node.type("new_type");
+            node.type("plane");
             auto id = newID();
             node.id( id );
             node.agent_id(agent_id);
-            auto at = AttribValue(); 
-            at.key("imName"); at.value("caca");
-            node.attrs()["imName"] = at; 
+            node.name("plane");
+            std::map<string, AttribValue> attrs;
+            G->add_attrib(attrs, "name", std::string("fucking_plane"));
+            G->add_attrib(attrs, "color", std::string("SteelBlue"));
+            node.attrs(attrs);
             
             // insert node
             auto r = G->insert_or_assign_node(node);
@@ -154,7 +156,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
         }
         else
         {
-            qDebug() << __FUNCTION__ << "Remove node";
+            //qDebug() << __FUNCTION__ << "Remove node";
             int id = removeID();
             if(id>-1)
             {
