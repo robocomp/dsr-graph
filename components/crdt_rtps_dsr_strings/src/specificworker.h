@@ -46,6 +46,11 @@ class SpecificWorker : public GenericWorker
 		//void test_nodes_mov();
 		void test_set_string(int i);
 		void test_create_or_remove_node(int i);
+		void test_concurrent_access(int num_threads);
+
+		void write_test_output(std::string result);
+		std::string results_file;
+		std::string MARKER = ";";
 
 		//void test_node_random();
 		// Random
