@@ -72,8 +72,8 @@ void SpecificWorker::initialize(int period) {
     //G->print();
     
     // GraphViewer creation
-    // graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-    // setWindowTitle( agent_name.c_str() );
+    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    setWindowTitle( agent_name.c_str() );
     // qDebug() << __FUNCTION__ << "Graph Viewer started";       
     
     // Random initialization
@@ -89,14 +89,15 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    test_concurrent_access(2);
+    test_concurrent_access(1);
     if (write_string)
         test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
-   exit(0);
+   //exit(0);
 }
 
+// This has to be a RPC call to the idserver component
 // create and insert a new id in the list
 int SpecificWorker::newID()
 {
@@ -140,7 +141,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
 {
     static int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < 1000) 
+    while (it++ < 10) 
     {
         // ramdomly select create or remove
         if(random_selector(mt) == 0)
