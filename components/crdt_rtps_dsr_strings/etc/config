@@ -17,3 +17,5 @@ agent_name = agent0
 read_file = true
 write_string = true
 agent_id = 0
+
+results_file = test_result.txt
