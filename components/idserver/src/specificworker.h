@@ -35,8 +35,15 @@ public:
 	SpecificWorker(TuplePrx tprx);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
+	void initialize();
+	QJsonObject read_json_file();
+	int get_max_id_from_json(QJsonObject jObject);
 
+
+	//Interface DSRGetID
 	int DSRGetID_getID();
+	
+	
 
 public slots:
 	void compute();
