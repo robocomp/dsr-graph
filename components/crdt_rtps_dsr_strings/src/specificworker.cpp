@@ -70,9 +70,9 @@ void SpecificWorker::initialize(int period) {
     //G->print();
     
     // GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-    setWindowTitle( agent_name.c_str() );
-    qDebug() << __FUNCTION__ << "Graph Viewer started";       
+    // graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    // setWindowTitle( agent_name.c_str() );
+    // qDebug() << __FUNCTION__ << "Graph Viewer started";       
     
     // Random initialization
     mt = std::mt19937(rd());
@@ -82,7 +82,7 @@ void SpecificWorker::initialize(int period) {
     //timer.start(300)
 
     // threads for testing concurrent accesses inside one agent
-    threads.resize(1);
+    threads.resize(2);
     for(int i=0; auto &t : threads)
         t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++));
     qDebug() << __FUNCTION__ << "Threads initiated";       
@@ -131,7 +131,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
 {
     static int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < 10) 
+    while (it++ < 1000) 
     {
         // ramdomly select create or remove
         if(random_selector(mt) == 0)
@@ -154,16 +154,17 @@ void SpecificWorker::test_create_or_remove_node(int i)
             if (r)
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }
-        // else
-        // {
-        //     //qDebug() << __FUNCTION__ << "Remove node";
-        //     int id = removeID();
-        //     if(id>-1)
-        //     {
-        //         G->delete_node(id);
-        //         qDebug() << "Deleted node:" << id << " Total size:" << G->size();
-        //     }
-        // }
+        else
+        {
+            //qDebug() << __FUNCTION__ << "Remove node";
+            int id = removeID();
+            if(id>-1)
+            {
+                G->delete_node(id);
+                qDebug() << "Deleted node:" << id << " Total size:" << G->size();
+            }
+        }
+        QCoreApplication::processEvents();
     }
 }
 
