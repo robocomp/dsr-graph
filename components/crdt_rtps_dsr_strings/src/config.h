@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "CrdtComp"
-#define SERVER_FULL_NAME   "RoboComp CrdtComp:: CrdtComp"
+#define PROGRAM_NAME    "crdt_rtps_dsr_strings"
+#define SERVER_FULL_NAME   "RoboComp crdt_rtps_dsr_strings:: crdt_rtps_dsr_strings"
 
 #endif

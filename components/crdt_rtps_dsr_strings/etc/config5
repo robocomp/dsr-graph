@@ -2,8 +2,7 @@ CommonBehavior.Endpoints=tcp -p 10000
 
 
 # Proxies for required interfaces
- LaserProxy = laser:tcp -h localhost -p 10003
- DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
 
