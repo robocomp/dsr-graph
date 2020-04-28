@@ -3,8 +3,8 @@ Development of new DSR shared graph
 
 To install this component, 
 
-- Clone https://github.com/ryanhaining/cppitertools in /usr/local/include
-- Install the middleware Fast-RTPS de eProsima
+* Clone https://github.com/ryanhaining/cppitertools in /usr/local/include
+* Install the middleware Fast-RTPS de eProsima 
 
 git clone https://github.com/eProsima/Fast-CDR.git 
 
@@ -45,15 +45,9 @@ En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función 
  cmake ..
  cmake --build . --target install
 
-
-- Reinstalar fastrtps
-
+* Reinstalar fastrtps
 
 git clone https://github.com/eProsima/Fast-RTPS.git 
 mkdir Fast-RTPS/build && cd Fast-RTPS/build
 cmake ..
 cmake --build . --target install
-
-GitHub
-eProsima/Fast-CDR
-eProsima FastCDR library provides two serialization mechanisms. One is the standard CDR serialization mechanism, while the other is a faster implement...
