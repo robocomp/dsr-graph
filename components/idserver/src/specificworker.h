@@ -49,7 +49,8 @@ public slots:
 	void compute();
 	void initialize(int period);
 private:
-
+	int node_id;
+	std::string dsr_path;
 };
 
 #endif
