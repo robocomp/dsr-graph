@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period) {
     // for(int i=0; const auto [g,d]: *G)
     //     qDebug() << i++;
 
-    G->start_subscription_thread(false);
+    G->start_subscription_thread(true);
     //G->print();
     
     // GraphViewer creation
@@ -90,7 +90,7 @@ void SpecificWorker::initialize(int period) {
     random_selector = std::uniform_int_distribution(0,1);
 
     //timer.start(300);
-    autokill_timer.start(10000);
+    //autokill_timer.start(10000);
     compute();
 }
 
@@ -98,13 +98,14 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    test_concurrent_access(1);
+    //test_concurrent_access(1);
     test_create_or_remove_node(100);
     if (write_string)
         test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
-   
+   G->write_to_json_file(dsr_output_file);
+   exit(0);
 }
 
 
@@ -206,7 +207,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
 {
     static int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < 10) 
+    while (it++ < 100) 
     {
         // ramdomly select create or remove
         if(random_selector(mt) == 0)
@@ -239,6 +240,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
                 qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }
 
