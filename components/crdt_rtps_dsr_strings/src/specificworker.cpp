@@ -184,7 +184,7 @@ void SpecificWorker::test_set_string(int i)
         else 
         {
             std::string str = agent_name + "-" + std::to_string(i) + "_" + std::to_string(cont);
-            node.attrs()["String"].value() = str;
+            node.attrs()["String"].value().str(str);
             // reinsert node
             G->insert_or_assign_node(node);
             qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);       

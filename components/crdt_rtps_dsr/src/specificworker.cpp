@@ -109,9 +109,10 @@ void SpecificWorker::test_laser()
             auto edge = gcrdt->get_edge( "world", "base");
 
             AttribValue at;
-            at.type("RTMat");
-            at.value(rt.serializeAsString());
-            at.length(1);
+            at.type(RT_MAT);
+            Val v;
+            v.str(rt.serializeAsString());
+            at.value(v);
             at.key("RT");
 
             std::map<string, AttribValue> attribMap;
