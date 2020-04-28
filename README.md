@@ -4,6 +4,7 @@ Development of new DSR shared graph
 To install this component, 
 
 * Clone https://github.com/ryanhaining/cppitertools in /usr/local/include
+* Install version 9 of g++
 * Install the middleware Fast-RTPS de eProsima 
 
 git clone https://github.com/eProsima/Fast-CDR.git 
