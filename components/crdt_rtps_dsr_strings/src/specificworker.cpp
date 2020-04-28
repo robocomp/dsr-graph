@@ -82,7 +82,8 @@ void SpecificWorker::initialize(int period) {
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
     random_selector = std::uniform_int_distribution(0,1);
 
-    timer.start(300);
+    //timer.start(300);
+    compute();
 }
 
 
@@ -119,6 +120,30 @@ int SpecificWorker::removeID()
     return val;
 }
 
+// pick a random id from the list of new ones without removing
+int SpecificWorker::getID()
+{
+    std::lock_guard<std::mutex>  lock(mut);
+    if(created_nodos.size()==0)
+        return -1;
+    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
+    int l = node_randomizer(mt);
+    int val = created_nodos.at(l);
+    return val;
+}
+
+pair<int, int> SpecificWorker::removeEdge(){
+    std::lock_guard<std::mutex>  lock(mut);
+    if(created_edges.size()==0)
+        return { -1, -1 };
+    auto edge_randomizer = std::uniform_int_distribution(0, (int)created_edges.size()-1);
+    int l = edge_randomizer(mt);
+    auto val = created_edges.at(l);
+    created_edges.erase(created_edges.begin()+l);
+    return val;
+}
+
+
 void SpecificWorker::test_concurrent_access(int num_threads)
 {
    // threads for testing concurrent accesses inside one agent
@@ -134,7 +159,22 @@ void SpecificWorker::test_concurrent_access(int num_threads)
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    std::string result = "test_concurrent_access"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
+    std::string result = "test_concurrent_access: test_create_or_remove_node"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
+    write_test_output(result);
+
+    threads.resize(num_threads);
+    for(int i=0; auto &t : threads)
+    t = std::move(std::thread(&SpecificWorker::test_create_or_remove_edge, this, i++));
+    qDebug() << __FUNCTION__ << "Threads initiated";
+
+    begin = std::chrono::steady_clock::now();
+    for(auto &t : threads)
+        t.join();
+    qDebug() << __FUNCTION__ << "Threads finished";
+
+    end = std::chrono::steady_clock::now();
+    time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+    result = "test_concurrent_access: test_create_or_remove_edge"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
     write_test_output(result);
 }
 void SpecificWorker::test_create_or_remove_node(int i)
@@ -176,6 +216,56 @@ void SpecificWorker::test_create_or_remove_node(int i)
         }
     }
 }
+
+
+void SpecificWorker::test_create_or_remove_edge(int i)
+{
+    static int it=0;
+    qDebug() << __FUNCTION__ << "Enter thread" << i;
+    while (it++ < 10)
+    {
+        // ramdomly select create or remove
+        if(random_selector(mt) == 0)
+        {
+            //qDebug() << __FUNCTION__ << "Create node";
+            // create edge
+
+            EdgeAttribs edge;
+            edge.label("Edge");
+            //get two ids
+            edge.from(getID());
+            edge.to(getID());
+            std::map<string, AttribValue> attrs;
+            G->add_attrib(attrs, "name", std::string("fucking_plane"));
+            G->add_attrib(attrs, "color", std::string("SteelBlue"));
+            edge.attrs(attrs);
+
+            //qDebug() << "[" <<edge.from() << " - " << edge.to()<< "]";
+            // insert node
+            auto r = G->insert_or_assign_edge(edge);
+            if (r) {
+                created_edges.emplace_back(make_pair(edge.from(), edge.to()));
+                qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
+            }
+        }
+        else
+        {
+            //qDebug() << __FUNCTION__ << "Remove node";
+            int id = removeID();
+            if(id>-1)
+            {
+                //get two ids
+                auto [from, to] = removeEdge();
+                //qDebug() << " remove [" << from << " - " << to << "]";
+
+                auto r = G->delete_edge(from, to);
+                if (r)
+                    qDebug() << "Deleted edge :"  << from << " - " << to ;
+            }
+        }
+    }
+}
+
 
 void SpecificWorker::test_set_string(int i)
 {
