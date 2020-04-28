@@ -54,7 +54,7 @@ void SpecificWorker::initialize(int period) {
     // read graph content from file
     if(read_file)
     {
-        G->read_from_file("grafo.xml");
+        //G->read_from_json_file("grafo.json");
         G->start_fullgraph_server_thread();     // to receive requests form othe starting agents
         G->start_subscription_thread(true);     // regular subscription to deltas
 
@@ -68,7 +68,10 @@ void SpecificWorker::initialize(int period) {
     //sleep(TIMEOUT);
     qDebug() << __FUNCTION__ << "Graph loaded";       
     
-    //G->start_subscription_thread(false);
+    // for(int i=0; const auto [g,d]: *G)
+    //     qDebug() << i++;
+
+    G->start_subscription_thread(false);
     //G->print();
     
     // GraphViewer creation
@@ -95,7 +98,7 @@ void SpecificWorker::compute()
         test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
-   //exit(0);
+   exit(0);
 }
 
 // This has to be a RPC call to the idserver component
