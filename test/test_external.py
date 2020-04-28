@@ -7,10 +7,10 @@ from test.assertions import ApiAssertionsMixin
 
 os.environ['TERM'] = 'xterm'
 
-COMMAND_1= "cd ../components/crdt_rtps_dsr_strings & ls"
-COMMAND_2= "cd ../components/crdt_rtps_dsr_strings & ls"
-JSON_1 = "grafo2.json"
-JSON_2 = "grafo3.json"
+COMMAND_1= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_strings & /bin/crdt_rtps_dsr_strings etc/config"
+COMMAND_2= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_strings & /bin/crdt_rtps_dsr_strings etc/config2"
+JSON_1 = "/home/robocomp/robcomp/components/dsr-graph/etc/agent0_dsr.json"
+JSON_2 = "/home/robocomp/robcomp/components/dsr-graph/etc/agent1_dsr.json"
 
 
 def run_command_in_thread(command):
