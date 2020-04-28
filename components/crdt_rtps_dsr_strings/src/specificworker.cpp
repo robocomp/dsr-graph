@@ -22,7 +22,9 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
+SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
+{
+    connect(&autokill_timer, SIGNAL(timeout()), this, SLOT(autokill()));
 }
 
 /**
@@ -31,7 +33,6 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
 SpecificWorker::~SpecificWorker() {
     std::cout << "Destroying SpecificWorker" << std::endl;
     G.reset();
-
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
@@ -40,8 +41,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     write_string = params["write_string"].value == "true";
     agent_id = stoi(params["agent_id"].value);
 
-    results_file = params["results_file"].value;
-
+    dsr_output_file = params["dsr_output_file"].value;
+    dsr_input_file = params["dsr_input_file"].value;
+    test_output_file = params["test_output_file"].value;
+    
     return true;
 }
 
@@ -54,7 +57,8 @@ void SpecificWorker::initialize(int period) {
     // read graph content from file
     if(read_file)
     {
-        G->read_from_file("grafo.xml");
+        //G->read_from_file("grafo.xml");
+        G->read_from_json_file(dsr_input_file);
         G->start_fullgraph_server_thread();     // to receive requests form othe starting agents
         G->start_subscription_thread(true);     // regular subscription to deltas
 
@@ -68,7 +72,7 @@ void SpecificWorker::initialize(int period) {
     //sleep(TIMEOUT);
     qDebug() << __FUNCTION__ << "Graph loaded";       
     
-    //G->start_subscription_thread(false);
+    G->start_subscription_thread(true);
     //G->print();
     
     // GraphViewer creation
@@ -83,6 +87,7 @@ void SpecificWorker::initialize(int period) {
     random_selector = std::uniform_int_distribution(0,1);
 
     //timer.start(300);
+    autokill_timer.start(10000);
     compute();
 }
 
@@ -91,21 +96,38 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
     test_concurrent_access(1);
+    test_create_or_remove_node(100);
     if (write_string)
         test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
-   //exit(0);
+   
+}
+
+
+void SpecificWorker::autokill()
+{
+    G->write_to_json_file(dsr_output_file);
+    exit(0);
 }
 
 // This has to be a RPC call to the idserver component
 // create and insert a new id in the list
 int SpecificWorker::newID()
 {
-    static int node_counter = 5000;
+    /*static int node_counter = 5000;
     std::lock_guard<std::mutex>  lock(mut);
     created_nodos.push_back(++node_counter);
-    return node_counter;
+    */
+    int node_id;
+    try{
+        node_id = dsrgetid_proxy->getID();
+qDebug()<<"New nodeID: "<<node_id;
+    }catch(...)
+    {
+        qDebug()<<"Error getting new nodeID from idserver, check connection";
+    }
+    return node_id;
 }
 // pick a random id from the list of new ones
 int SpecificWorker::removeID()    
@@ -394,9 +416,9 @@ void SpecificWorker::test_set_string(int i)
 
 void SpecificWorker::write_test_output(std::string result)
 {
-    qDebug()<<"write results"<<QString::fromStdString(results_file)<<QString::fromStdString(result);
+    qDebug()<<"write results"<<QString::fromStdString(test_output_file)<<QString::fromStdString(result);
     std::ofstream out;
-    out.open(results_file, std::ofstream::out | std::ofstream::app);
+    out.open(test_output_file, std::ofstream::out | std::ofstream::app);
     out << result << "\n";
     out.close();
 }

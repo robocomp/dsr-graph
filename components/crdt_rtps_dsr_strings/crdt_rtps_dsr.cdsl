@@ -1,6 +1,11 @@
+import "DSRGetID.idsl";
 
-Component CrdtComp
+Component crdt_rtps_dsr_strings
 {
+	Communications
+    {
+		requires DSRGetID;
+	};
 	language Cpp11;
 	gui Qt(QMainWindow);
 };

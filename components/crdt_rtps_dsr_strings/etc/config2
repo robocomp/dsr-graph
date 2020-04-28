@@ -1,9 +1,8 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10003
 
 
 # Proxies for required interfaces
- LaserProxy = laser:tcp -h localhost -p 10003
- DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
 
@@ -13,7 +12,12 @@ Ice.Warn.Connections=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 
+agent_id = 1
 agent_name = agent1
 read_file = false
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
+dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json
+test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_test.txt
+
+
 write_string = true
-agent_id = 1
