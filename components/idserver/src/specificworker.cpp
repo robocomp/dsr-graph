@@ -36,27 +36,17 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	try
 	{
-//		RoboCompCommonBehavior::Parameter par = params.at("DSRPath");
-//		std::string dsr_path = par.value;
-		
+		RoboCompCommonBehavior::Parameter par = params.at("DSRPath");
+		dsr_path = par.value;
 	}
 	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-	initialize();
 	return true;
-}
-
-void SpecificWorker::initialize()
-{
-	QJsonObject json = read_json_file();
-	qDebug()<<"Max value"<< get_max_id_from_json(json);
 }
 
 QJsonObject SpecificWorker::read_json_file()
 {
 	QFile file;
-    file.setFileName("grafo.json");
+    file.setFileName(QString::fromStdString(dsr_path));
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QString val = file.readAll();
     file.close();
@@ -84,7 +74,10 @@ int SpecificWorker::get_max_id_from_json(QJsonObject jObject)
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
-	this->Period = period;
+	QJsonObject json = read_json_file();
+	node_id = get_max_id_from_json(json);
+	qDebug()<<"Max id readed from file"<< node_id;
+	this->Period = 1000;
 	timer.start(Period);
 
 }
@@ -105,13 +98,11 @@ void SpecificWorker::compute()
 //	}
 }
 
-
-
-
 int SpecificWorker::DSRGetID_getID()
 {
-//implementCODE
-
+	QMutexLocker locker(mutex);
+	node_id++;
+	return node_id;
 }
 
 
