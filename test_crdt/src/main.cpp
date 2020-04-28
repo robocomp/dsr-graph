@@ -35,10 +35,13 @@ void tests_basicos(const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
 
     //3. Añadir nodo.
 
+    Val v;
+    v.str("existe");
+
     AttribValue av;
     av.key("imName");
-    av.value("existe");
-    av.type("string");
+    av.value(v);
+    av.type(STRING);
 
     n = Node();
     n.id(1);
@@ -57,8 +60,10 @@ void tests_basicos(const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
 
     av = AttribValue();
     av.key("imName");
-    av.value("otroexiste");
-    av.type("string");
+    v = Val();
+    v.str("otroexiste");
+    av.value(v);
+    av.type(STRING);
 
     n = Node();
     n.id(2);
@@ -142,7 +147,7 @@ void work_nodes(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
 
         auto val = n.attrs().find("String");
         if (val == n.attrs().end()) return;
-        val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
+        val->second.value().str(boost::str(boost::format("thread%d - %d ")  % id % x));
         bool res = gcrdt->insert_or_assign_node(n);
 
         ++x;
@@ -172,10 +177,10 @@ void work_edges(int id, const shared_ptr<CRDT::CRDTGraph>& gcrdt) {
         if (val == edge.attrs().end()) {
             AttribValue av;
             av.key("prueba");
-            av.value(boost::str(boost::format("thread%d - %d ") % id % x));
+            av.value().str(boost::str(boost::format("thread%d - %d ") % id % x));
             edge.attrs().emplace(make_pair("prueba",av));
         } else {
-            val->second.value(boost::str(boost::format("thread%d - %d ")  % id % x));
+            val->second.value().str(boost::str(boost::format("thread%d - %d ")  % id % x));
         }
 
         bool res = gcrdt->insert_or_assign_edge(edge);
