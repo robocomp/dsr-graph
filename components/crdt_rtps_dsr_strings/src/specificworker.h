@@ -46,7 +46,9 @@ class SpecificWorker : public GenericWorker
 		//void test_nodes_mov();
 		void test_set_string(int i);
 		void test_create_or_remove_node(int i);
+		void test_create_or_remove_edge(int i);
 		void test_concurrent_access(int num_threads);
+
 
 		void write_test_output(std::string result);
 		std::string results_file;
@@ -62,8 +64,13 @@ class SpecificWorker : public GenericWorker
 		//threadss
 		std::vector<std::thread> threads;
 		std::vector<int> created_nodos;
-		int newID();
+        std::vector<std::pair<int, int>> created_edges;
+
+        pair<int, int> removeEdge();
+
+        int newID();
 		int removeID();
+        int getID();
 		std::mutex mut;
 		
 };
