@@ -25,6 +25,7 @@ class SpecificWorker : public GenericWorker
 		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
 	public slots:
+		void autokill();
 		void compute();
 		void initialize(int period);
 
@@ -51,7 +52,9 @@ class SpecificWorker : public GenericWorker
 
 
 		void write_test_output(std::string result);
-		std::string results_file;
+		std::string test_output_file;
+		std::string dsr_output_file;
+		std::string dsr_input_file;
 		std::string MARKER = ";";
 
 		//void test_node_random();
@@ -72,6 +75,7 @@ class SpecificWorker : public GenericWorker
 		int removeID();
         int getID();
 		std::mutex mut;
+		QTimer autokill_timer;
 		
 };
 

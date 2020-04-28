@@ -1,8 +1,6 @@
-project(Crdt_Rtps_Dsr2)
-
 cmake_minimum_required( VERSION 2.8 )
+PROJECT( crdt_rtps_dsr_strings )
 
-set(CMAKE_CXX_STANDARD 17)
 SET(RC_COMPONENT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "component base path" FORCE)
 SET(RC_COMPONENT_DEVEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "component binary path" FORCE)
 #SET(RC_COMPONENT_DEVEL_PATH "${WORKSPACE_PATH}/devel"  CACHE STRING "component binary path")
@@ -16,7 +14,7 @@ SET(RC_COMPONENT_INSTALL_PATH "/opt/robocomp" CACHE STRING "component install pa
 
 SUBDIRS( src )
 
-INSTALL(FILES etc/config DESTINATION ${RC_COMPONENT_INSTALL_PATH}/etc-default/ RENAME CrdtComp.conf )
+INSTALL(FILES etc/config DESTINATION ${RC_COMPONENT_INSTALL_PATH}/etc-default/ RENAME crdt_rtps_dsr_strings.conf )
 
 #ADD_CUSTOM_TARGET(doc doxygen Doxyfile)
-#ADD_CUSTOM_TARGET(installdoc mkdir -p ${RC_COMPONENT_INSTALL_PATH}/doc COMMAND cp -R doc/html ${RC_COMPONENT_INSTALL_PATH}/doc/CrdtComp )
+#ADD_CUSTOM_TARGET(installdoc mkdir -p ${RC_COMPONENT_INSTALL_PATH}/doc COMMAND cp -R doc/html ${RC_COMPONENT_INSTALL_PATH}/doc/crdt_rtps_dsr_strings )
