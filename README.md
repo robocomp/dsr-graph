@@ -48,6 +48,9 @@ En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función 
 * Reinstalar fastrtps
 
 git clone https://github.com/eProsima/Fast-RTPS.git 
+
 mkdir Fast-RTPS/build && cd Fast-RTPS/build
+
 cmake ..
+
 cmake --build . --target install
