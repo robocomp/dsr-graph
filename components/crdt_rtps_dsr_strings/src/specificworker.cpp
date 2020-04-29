@@ -99,7 +99,6 @@ void SpecificWorker::initialize(int period) {
     compute();
 }
 
-
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
@@ -315,10 +314,8 @@ void SpecificWorker::test_set_string(int i, int iter, int delay)
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     bool fail=false;    
-    auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect
-    std::vector<long> keys;
-    for(const auto &[key, ignored]: map)
-        keys.emplace_back(key);
+    //auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect on G
+    auto keys = G->getKeys();
     auto node_randomizer = std::uniform_int_distribution(0, (int)keys.size()-1);
 
     while (it++ < iter) 
