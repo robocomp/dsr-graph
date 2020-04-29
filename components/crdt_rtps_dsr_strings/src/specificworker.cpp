@@ -127,7 +127,8 @@ int SpecificWorker::newID()
     int node_id;
     try{
         node_id = dsrgetid_proxy->getID();
-qDebug()<<"New nodeID: "<<node_id;
+        created_nodos.emplace_back(node_id);
+        qDebug()<<"New nodeID: "<<node_id;
     }catch(...)
     {
         qDebug()<<"Error getting new nodeID from idserver, check connection";
@@ -208,10 +209,10 @@ void SpecificWorker::test_create_or_remove_node(int i)
 {
     static int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < 100) 
+    while (it++ < 1000)
     {
         // ramdomly select create or remove
-        if(random_selector(mt) == 0)
+        if( random_selector(mt)== 0)
         {
             //qDebug() << __FUNCTION__ << "Create node";
             // create node
@@ -241,7 +242,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
                 qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 }
 
@@ -253,6 +254,7 @@ void SpecificWorker::test_create_or_remove_edge(int i)
     while (it++ < 10)
     {
         // ramdomly select create or remove
+
         if(random_selector(mt) == 0)
         {
             //qDebug() << __FUNCTION__ << "Create node";
