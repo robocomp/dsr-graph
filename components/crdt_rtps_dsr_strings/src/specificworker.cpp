@@ -315,7 +315,7 @@ void SpecificWorker::test_set_string(int i, int iter, int delay)
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     bool fail=false;    
-    auto map = G->getCopy();
+    auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect
     std::vector<long> keys;
     for(const auto &[key, ignored]: map)
         keys.emplace_back(key);
