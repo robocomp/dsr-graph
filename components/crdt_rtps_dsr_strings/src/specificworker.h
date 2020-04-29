@@ -45,9 +45,9 @@ class SpecificWorker : public GenericWorker
 		// Tests
 		//void tester();
 		//void test_nodes_mov();
-		void test_set_string(int i);
-		void test_create_or_remove_node(int i);
-		void test_create_or_remove_edge(int i);
+		void test_set_string(int i, int iter, int delay=1);
+		void test_create_or_remove_node(int i, int iter, int delay=1);
+		void test_create_or_remove_edge(int i, int iter, int delay=1);
 		void test_concurrent_access(int num_threads);
 
 
@@ -62,7 +62,7 @@ class SpecificWorker : public GenericWorker
 		std::random_device rd;
 		std::mt19937 mt;
 		std::uniform_real_distribution<float> dist;
-        std::uniform_int_distribution<int> randomNode, random_selector, node_selector;
+        std::uniform_int_distribution<int> randomNode, random_selector, node_selector, random_pos;
 
 		//threadss
 		std::vector<std::thread> threads;
