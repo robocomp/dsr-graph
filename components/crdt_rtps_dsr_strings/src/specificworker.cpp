@@ -65,23 +65,23 @@ void SpecificWorker::initialize(int period) {
     }
     else
     {
+        G->start_subscription_thread(true);     // regular subscription to deltas
         G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-        //Si se piede el grafo no hace falta iniciar subscription thread, se inicia al sincronizar.
     }
 
-    //sleep(TIMEOUT);
+    //sleep(5);
     qDebug() << __FUNCTION__ << "Graph loaded";       
     
     // for(int i=0; const auto [g,d]: *G)
     //     qDebug() << i++;
 
-    G->start_subscription_thread(true);
     //G->print();
     
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
     setWindowTitle( agent_name.c_str() );
-    // qDebug() << __FUNCTION__ << "Graph Viewer started";       
+
+    // qDebug() << __FUNCTION__ << "Graph Viewer started";
     
     // Random initialization
     mt = std::mt19937(rd());
@@ -104,6 +104,7 @@ void SpecificWorker::compute()
         test_set_string(0);
    //   test_nodes_mov();
    // test_node_random();
+   sleep(5);
    G->write_to_json_file(dsr_output_file);
    exit(0);
 }
@@ -219,7 +220,7 @@ void SpecificWorker::test_create_or_remove_node(int i)
             auto id = newID();
             node.id( id );
             node.agent_id(agent_id);
-            node.name("plane");
+            node.name("plane" + std::to_string(id));
             std::map<string, AttribValue> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
