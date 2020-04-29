@@ -15,9 +15,9 @@ Ice.Trace.Protocol=0
 agent_id = 1
 agent_name = agent1
 read_file = false
-dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
-dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json
-test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_test.txt
+dsr_input_file = ../../initial_dsr.json
+dsr_output_file = ../../etc/agent1_dsr.json
+test_output_file = ../../etc/agent1_test.txt
 
 
-write_string = true
+write_string = false

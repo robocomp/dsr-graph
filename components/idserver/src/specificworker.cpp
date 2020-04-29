@@ -102,6 +102,7 @@ int SpecificWorker::DSRGetID_getID()
 {
 	QMutexLocker locker(mutex);
 	node_id++;
+	//Qdebug << "NEW ID:" << node_id;
 	return node_id;
 }
 
