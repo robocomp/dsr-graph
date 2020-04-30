@@ -91,7 +91,7 @@ namespace CRDT
             int get_id_from_name(const std::string &name);
 
             //////////////////////////////////////////////////////
-            ///  
+            ///  Viewer
             //////////////////////////////////////////////////////
 
             Nodes get();
@@ -188,14 +188,12 @@ namespace CRDT
             DSRPublisher dsrpub_request_answer;
             NewMessageFunctor dsrpub_request_answer_call;
 
-        signals:                                                                  // for graphics update
-            void update_node_signal(const std::int32_t, const std::string &type); // Signal to update CRDT
-
-            void update_attrs_signal(const std::int32_t &id, const std::map<string, AttribValue> &attribs); //Signal to show node attribs.
-            void update_edge_signal(const std::int32_t from, const std::int32_t to);                   // Signal to show edge attribs.
-
-            void del_edge_signal(const std::int32_t from, const std::int32_t to, const std::string &edge_tag); // Signal to del edge.
-            void del_node_signal(const std::int32_t from);                                                     // Signal to del node.
+        signals:      // for graphics update
+            void update_node_signal(const std::int32_t, const std::string &type);                               // Signal to update CRDT
+            void update_attrs_signal(const std::int32_t &id, const std::map<string, AttribValue> &attribs);     //Signal to show node attribs.
+            void update_edge_signal(const std::int32_t from, const std::int32_t to);                            // Signal to show edge attribs.
+            void del_edge_signal(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);  // Signal to del edge.
+            void del_node_signal(const std::int32_t from);                                                      // Signal to del node.
     };
 
 } // namespace CRDT

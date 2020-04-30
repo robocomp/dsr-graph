@@ -373,7 +373,7 @@ void CRDTGraph::print()
         {
             std::cout << "      Edge# Label:" << val.label() << " from:" << val.from() << " to:" << val.to()  << std::endl;
             for(auto [k, v] : val.attrs())
-                std::cout << "      Attr# Key:" << v.key() << " Type:" << v.type() << " Value:" << v.value()  << std::endl;    
+                std::cout << "          Attr# Key:" << v.key() << " Type:" << v.type() << " Value:" << v.value()  << std::endl;    
         }
     }
 }

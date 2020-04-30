@@ -82,6 +82,7 @@ void SpecificWorker::initialize(int period) {
     //G->print();
     
     // GraphViewer creation
+    this->guiDlg;
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
     setWindowTitle( agent_name.c_str() );
 

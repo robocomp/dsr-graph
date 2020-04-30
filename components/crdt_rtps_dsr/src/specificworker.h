@@ -20,7 +20,7 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(TuplePrx tprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return gcrdt;};
+		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
 	public slots:
 		void compute();
@@ -35,7 +35,7 @@ class SpecificWorker : public GenericWorker
 		std::string agent_name;
 		bool read_file = true;
 		int agent_id;
-		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
+		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Tests
