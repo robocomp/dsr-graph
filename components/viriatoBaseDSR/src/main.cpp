@@ -113,7 +113,11 @@ void ::viriatoBaseDSR::initialize()
 
 int ::viriatoBaseDSR::run(int argc, char* argv[])
 {
+#ifdef USE_QTGUI
+	QApplication a(argc, argv);  // GUI application
+#else
 	QCoreApplication a(argc, argv);  // NON-GUI application
+#endif
 
 
 	sigset_t sigs;
@@ -130,10 +134,27 @@ int ::viriatoBaseDSR::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	DSRGetIDPrxPtr dsrgetid_proxy;
 	OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
 	initialize();
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
+		}
+		dsrgetid_proxy = Ice::uncheckedCast<DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("DSRGetIDProxy initialized Ok!");
+
 
 	try
 	{
@@ -151,7 +172,7 @@ int ::viriatoBaseDSR::run(int argc, char* argv[])
 	rInfo("OmniRobotProxy initialized Ok!");
 
 
-	tprx = std::make_tuple(omnirobot_proxy);
+	tprx = std::make_tuple(dsrgetid_proxy,omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

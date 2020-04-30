@@ -1,9 +1,14 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10005
 
 
 # Proxies for required interfaces
-OmniRobotProxy = omnirobot:tcp -h localhost -p 0
+OmniRobotProxy = omnirobot:tcp -h localhost -p 10004
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
+agent_id = 5
+agent_name = viriatoBase
+read_file = true
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 
 InnerModelPath = innermodel.xml

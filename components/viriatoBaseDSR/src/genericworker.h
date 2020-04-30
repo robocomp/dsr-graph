@@ -22,8 +22,16 @@
 #include "config.h"
 #include <stdint.h>
 #include <qlog/qlog.h>
+
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
+#include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
+#include <DSRGetID.h>
 #include <GenericBase.h>
 #include <OmniRobot.h>
 
@@ -32,14 +40,19 @@
 #define BASIC_PERIOD 100
 
 using namespace std;
+using namespace RoboCompDSRGetID;
 using namespace RoboCompGenericBase;
 using namespace RoboCompOmniRobot;
 
-using TuplePrx = std::tuple<RoboComp('OmniRobot', 'ice')::('OmniRobot', 'ice')PrxPtr>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker :
-public QObject
+#ifdef USE_QTGUI
+	public QMainWindow, public Ui_guiDlg
+#else
+	public QObject
+ #endif
 {
 Q_OBJECT
 public:
@@ -52,6 +65,7 @@ public:
 	QMutex *mutex;
 
 
+	DSRGetIDPrxPtr dsrgetid_proxy;
 	OmniRobotPrxPtr omnirobot_proxy;
 
 
