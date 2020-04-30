@@ -1,0 +1,11 @@
+import "OmniRobot.idsl";
+
+Component viriatoBaseDSR
+{
+    Communications
+    {
+        requires OmniRobot;
+    };
+    language Cpp11;
+};
+
