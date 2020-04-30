@@ -10,7 +10,7 @@ To install this component,
 git clone https://github.com/eProsima/Fast-CDR.git 
 
 En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función deserialize por esta otra (es la misma solo que Key y Value se definen dentro del bucle) :
-
+```
  template<class _K, class _T>
                     Cdr& deserialize(std::map<_K, _T> &map_t)
                     {
@@ -40,11 +40,13 @@ En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función 
 
                         return *this;
                     }
+```
 
-
+```bash
  mkdir Fast-CDR/build && cd Fast-CDR/build
  cmake ..
  cmake --build . --target install
+ ```
 
 * Reinstalar fastrtps
 
