@@ -1,0 +1,108 @@
+<AGMModel>
+<symbol id="138" type="rgbd" name="rgbd">
+	<attribute key="width" value="640" />
+	<attribute key="ifconfig" value="40000,50000" />
+	<attribute key="noise" value="0" />
+	<attribute key="imType" value="rgbd" />
+	<attribute key="imName" value="rgbd" />
+	<attribute key="pos_y" value="197,922394" />
+	<attribute key="parent" value="131" />
+	<attribute key="focal" value="490" />
+	<attribute key="height" value="480" />
+	<attribute key="name" value="rgbd [138]" />
+	<attribute key="port" value="10096" />
+	<attribute key="level" value="3" />
+	<attribute key="color" value="coral" />
+	<attribute key="pos_x" value="-246,617584" />
+</symbol>
+<symbol id="133" type="transform" name="laserPose">
+	<attribute key="mass" value="0" />
+	<attribute key="pos_x" value="-339,240509" />
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="131" />
+	<attribute key="engine" value="static" />
+	<attribute key="name" value="transform [133]" />
+	<attribute key="level" value="2" />
+	<attribute key="color" value="SteelBlue" />
+	<attribute key="pos_y" value="-57,383965" />
+	<attribute key="imName" value="laserPose" />
+</symbol>
+<symbol id="131" type="differentialrobot" name="base">
+	<attribute key="pos_x" value="-235,448044" />
+	<attribute key="noise" value="0" />
+	<attribute key="imType" value="differentialrobot" />
+	<attribute key="parent" value="100" />
+	<attribute key="name" value="differentialrobot [131]" />
+	<attribute key="port" value="10004" />
+	<attribute key="level" value="1" />
+	<attribute key="color" value="GoldenRod" />
+	<attribute key="collide" value="false" />
+	<attribute key="pos_y" value="-168,177170" />
+	<attribute key="imName" value="base" />
+</symbol>
+<symbol id="135" type="plane" name="Strings">
+	<attribute key="imName" value="Strings" />
+	<attribute key="pos_y" value="23,562189" />
+	<attribute key="pz" value="-200" />
+	<attribute key="collidable" value="false" />
+	<attribute key="imType" value="plane" />
+	<attribute key="ny" value="0" />
+	<attribute key="texture" value="#ff0000" />
+	<attribute key="height" value="100" />
+	<attribute key="level" value="3" />
+	<attribute key="parent" value="133" />
+	<attribute key="pos_x" value="-345,578766" />
+	<attribute key="nx" value="0" />
+	<attribute key="name" value="plane [135]" />
+	<attribute key="py" value="0" />
+	<attribute key="repeat" value="1" />
+	<attribute key="nz" value="1" />
+	<attribute key="px" value="0" />
+	<attribute key="color" value="Khaki" />
+	<attribute key="width" value="100" />
+	<attribute key="depth" value="1" />
+	<attribute key="String" value="" />
+</symbol>
+<symbol id="100" type="world" name="world">
+	<attribute key="imType" value="transform" />
+	<attribute key="parent" value="0" />
+	<attribute key="name" value="world [100]" />
+	<attribute key="level" value="0" />
+	<attribute key="color" value="SeaGreen" />
+	<attribute key="pos_x" value="-90,295357" />
+	<attribute key="pos_y" value="-286,075958" />
+	<attribute key="imName" value="world" />
+</symbol>
+<link src="133" dst="135" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="0" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="131" dst="138" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="210" />
+	<linkAttribute key="tz" value="200" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="131" dst="133" label="RT">
+	<linkAttribute key="tx" value="0" />
+	<linkAttribute key="ty" value="140" />
+	<linkAttribute key="tz" value="200" />
+	<linkAttribute key="rx" value="-0" />
+	<linkAttribute key="ry" value="0" />
+	<linkAttribute key="rz" value="-0" />
+</link>
+<link src="100" dst="131" label="RT">
+	<linkAttribute key="tx" value="-1614.65" />
+	<linkAttribute key="ty" value="0" />
+	<linkAttribute key="tz" value="-1597.64" />
+	<linkAttribute key="rx" value="0" />
+	<linkAttribute key="ry" value="2.12397" />
+	<linkAttribute key="rz" value="0" />
+</link>
+</AGMModel>
