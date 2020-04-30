@@ -1,0 +1,13 @@
+import "Laser.idsl";
+import "DSRGetID.idsl";
+
+Component laserDSR
+{
+    Communications
+    {
+        requires Laser, DSRGetID;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+};
+
