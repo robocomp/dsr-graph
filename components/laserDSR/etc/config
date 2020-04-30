@@ -1,10 +1,15 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10006
 
 
 # Proxies for required interfaces
-DSRGetIDProxy = dsrgetid:tcp -h localhost -p 0
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 LaserProxy = laser:tcp -h localhost -p 10003
 
+
+agent_id = 6
+agent_name = agent6
+read_file = false
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 
 InnerModelPath = innermodel.xml
