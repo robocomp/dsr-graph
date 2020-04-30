@@ -6,7 +6,7 @@ CommonBehavior.Endpoints=tcp -p XXX
 
 agent_id = 0
 agent_name = agent
-read_file = true
+read_dsr = true
 dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 

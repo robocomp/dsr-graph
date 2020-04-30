@@ -99,7 +99,7 @@ void SpecificWorker::updateBState()
 
 	// update bstate in DSR
 	auto node = G->get_node("robot");
-	if (node.id() != -1) //node has to be created
+	if (node.id() != -1)
 	{
 // print value to check if it is changing
 std::cout<<"Actual bState "<< node.attrs()["x"] << " " << node.attrs()["z"] << " " << node.attrs()["alpha"] <<std::endl;
@@ -111,7 +111,7 @@ std::cout<<"Actual bState "<< node.attrs()["x"] << " " << node.attrs()["z"] << "
 		if (r)
 			std::cout << "Update node robot: "<<node.id()<<std::endl;
 	}
-	else
+	else  //node has to be created
 	{
 		try
 		{
