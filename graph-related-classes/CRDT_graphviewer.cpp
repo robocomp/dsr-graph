@@ -75,7 +75,6 @@ GraphViewer::GraphViewer(const std::shared_ptr<SpecificWorker>& worker_) :  gcrd
     connect(gcrdt.get(), &CRDT::CRDTGraph::update_node_signal, this, &GraphViewer::addOrAssignNodeSLOT);
 	connect(gcrdt.get(), &CRDT::CRDTGraph::del_edge_signal, this, &GraphViewer::delEdgeSLOT);
 	connect(gcrdt.get(), &CRDT::CRDTGraph::del_node_signal, this, &GraphViewer::delNodeSLOT);
-
 }
 
 GraphViewer::~GraphViewer()
@@ -116,11 +115,9 @@ void GraphViewer::createGraph()
 				    try{
 					    addEdgeSLOT(edges.from(), edges.to(), edges.label());
 				    } catch(const std::exception &e) { std::cout << e.what() <<" Error accessing " << node.first <<", "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
-
 			}
 		}
 	}catch(const std::exception &e) { std::cout << e.what() << " Error accessing "<< __FUNCTION__<<":"<<__LINE__<< std::endl;}
-
 }
 
 ////////////////////////////////////////
@@ -293,7 +290,6 @@ void GraphViewer::delEdgeSLOT(const std::int32_t from, const std::int32_t to, co
 		    gmap_edges.erase(key);
 		}
 	} catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
-
 }
 
 void GraphViewer::delNodeSLOT(int id)
@@ -305,7 +301,6 @@ void GraphViewer::delNodeSLOT(int id)
             gmap.erase(id);
         }
     } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
-
 }
 
 /*

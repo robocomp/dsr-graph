@@ -42,7 +42,7 @@ namespace DSR
 			~GraphViewer();
 			void itemMoved();
 			void createGraph();
-			std::shared_ptr<CRDT::CRDTGraph> getGraph()  			  		{ return gcrdt;};
+			std::shared_ptr<CRDT::CRDTGraph> getGraph()  			  	{ return gcrdt;};
 			std::map<std::int32_t, GraphNode*> getGMap() const 			{return gmap;};
 			QGraphicsEllipseItem* getCentralPoint() const 				{return central_point;};
 		

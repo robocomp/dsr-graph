@@ -7,8 +7,6 @@
         long length;
     };
 
-
-
     struct EdgeAttribs {
 		string label; //key2
 		long from;
