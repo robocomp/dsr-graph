@@ -29,14 +29,13 @@ QObject()
 
 {
 
-	differentialrobot_proxy = std::get<0>(tprx);
-	laser_proxy = std::get<1>(tprx);
+	dsrgetid_proxy = std::get<0>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
 	#ifdef USE_QTGUI
 		setupUi(this);
-		//show();
+		show();
 	#endif
 	Period = BASIC_PERIOD;
 	connect(&timer, SIGNAL(timeout()), this, SLOT(compute()));
