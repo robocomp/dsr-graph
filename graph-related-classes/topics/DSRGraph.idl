@@ -19,7 +19,6 @@
         string key;
     };
 
-
     struct Node {
         string type;
         string name;

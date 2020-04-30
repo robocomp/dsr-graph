@@ -91,6 +91,8 @@ void SpecificWorker::updateBState()
     try
 	{
 		omnirobot_proxy->getBaseState(bState);
+		qDebug() << bState.x << bState.z;
+
 	}
 	catch(const Ice::Exception &e)
 	{
@@ -98,43 +100,49 @@ void SpecificWorker::updateBState()
 	}
 
 	// update bstate in DSR
-	auto node = G->get_node("robot");
-	if (node.id() != -1)
-	{
-// print value to check if it is changing
-std::cout<<"Actual bState "<< node.attrs()["x"] << " " << node.attrs()["z"] << " " << node.attrs()["alpha"] <<std::endl;
-		
-		G->add_attrib(node.attrs(), "x", std::to_string(bState.x));
-		G->add_attrib(node.attrs(), "z", std::to_string(bState.z));
-		G->add_attrib(node.attrs(), "alpha", std::to_string(bState.alpha));
-		auto r = G->insert_or_assign_node(node);
-		if (r)
-			std::cout << "Update node robot: "<<node.id()<<std::endl;
-	}
-	else  //node has to be created
-	{
-		try
-		{
-			int new_id = dsrgetid_proxy->getID();
-            node.type("robot");
-			node.id(new_id);
-			node.agent_id(agent_id);
-			node.name("robot");
-			std::map<string, AttribValue> attrs;
-			G->add_attrib(attrs, "x", std::to_string(bState.x));
-			G->add_attrib(attrs, "z", std::to_string(bState.z));
-			G->add_attrib(attrs, "alpha", std::to_string(bState.alpha));
-			node.attrs(attrs);
-			auto r = G->insert_or_assign_node(node);
-			if (r)
-				std::cout << "New node robot: "<<node.id()<<std::endl;
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << "Error creating new node robot " << e.what() << '\n';
-		}
-	}
+	auto node = G->get_node("base");
+	//auto node = G->get_node(131);
+	if (node.id() == -1)
+		return;
+	
+	// print value to check if it is changing
+	std::cout<<"Actual bState "<< node.attrs()["x"] << " " << node.attrs()["z"] << " " << node.attrs()["alpha"] <<std::endl;
+	G->add_attrib(node.attrs(), "x", std::to_string(bState.x));
+	G->add_attrib(node.attrs(), "z", std::to_string(bState.z));
+	G->add_attrib(node.attrs(), "alpha", std::to_string(bState.alpha));
+	G->add_attrib(node.attrs(), "pos_x", std::to_string(100));
+	G->add_attrib(node.attrs(), "pos_y", std::to_string(100));
+	
+	//qDebug() << "POSX " << QString::fromStdString(node.attrs()["pos_x"].value());
+	
+	auto r = G->insert_or_assign_node(node);
+	if (r)
+		std::cout << "Update node robot: "<<node.id()<<std::endl;
 }
+	// else  //node has to be created
+	// {
+	// 	try
+	// 	{
+	// 		int new_id = dsrgetid_proxy->getID();
+    //         node.type("robot");
+	// 		node.id(new_id);
+	// 		node.agent_id(agent_id);
+	// 		node.name("robot");
+	// 		std::map<string, AttribValue> attrs;
+	// 		G->add_attrib(attrs, "x", std::to_string(bState.x));
+	// 		G->add_attrib(attrs, "z", std::to_string(bState.z));
+	// 		G->add_attrib(attrs, "alpha", std::to_string(bState.alpha));
+	// 		node.attrs(attrs);
+	// 		auto r = G->insert_or_assign_node(node);
+	// 		if (r)
+	// 			std::cout << "New node robot: "<<node.id()<<std::endl;
+	// 	}
+	// 	catch(const std::exception& e)
+	// 	{
+	// 		std::cerr << "Error creating new node robot " << e.what() << '\n';
+	// 	}
+	// }
+
 
 
 

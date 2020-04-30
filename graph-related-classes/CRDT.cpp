@@ -59,7 +59,8 @@ Node CRDTGraph::get_node(const std::string& name) {
             return n;
         };
         int id = get_id_from_name(name);
-        if (id != -1) {
+        if (id != -1) 
+        {
             auto n = &nodes[id].dots().ds.rbegin()->second;
             if (n->name() == name) return Node(*n);
         }
@@ -467,7 +468,8 @@ std::string CRDTGraph::get_node_type(Node& n) {
     return "error";
 }
 
-int CRDTGraph::get_id_from_name(const std::string &name) {
+int CRDTGraph::get_id_from_name(const std::string &name) 
+{
         auto v = name_map.find(name);
         if (v != name_map.end()) return v->second;
         return   -1;
