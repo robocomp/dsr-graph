@@ -105,7 +105,7 @@ void SpecificWorker::compute()
     qDebug()<<"COMPUTE";
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_concurrent_access(1);
-    //test_create_or_remove_node(100, 10000, 1);
+    //test_create_or_remove_node(100, 10000, 10);
     // if (write_string)
     //     test_set_string(0);
     //   test_nodes_mov();
