@@ -48,7 +48,21 @@ En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función 
  cmake --build . --target install
  ```
 
-* Reinstalar fastrtps
+* Reinstalar fastrtps  
+** dependencies
+  ```
+  sudo apt install libasio-dev/bionic libtinyxml2-dev/bionic
+  ```
+  and https://github.com/eProsima/Fast-RTPS/issues/620#issuecomment-525274544
+  ```
+  git clone https://github.com/eProsima/foonathan_memory_vendor.git
+  cd foonathan_memory_vendor
+  mkdir build && cd build
+  cmake ..
+  cmake --build . --target install
+  ```
+  
+
 
 git clone https://github.com/eProsima/Fast-RTPS.git 
 
