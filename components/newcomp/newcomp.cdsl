@@ -1,9 +1,0 @@
-Component NewComp
-{
-	Communications
-	{
-
-	};
-	language Cpp11;
-};
-
