@@ -7,7 +7,7 @@ LaserProxy = laser:tcp -h localhost -p 10003
 
 
 agent_id = 6
-agent_name = agent6
+agent_name = Laser
 read_file = false
 dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 

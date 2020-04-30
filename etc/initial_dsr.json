@@ -4,10 +4,6 @@
           {
              "attribute": [
                 {
-                   "key": "width",
-                   "value": "640"
-                },
-                {
                    "key": "ifconfig",
                    "value": "40000,50000"
                 },
@@ -17,11 +13,11 @@
                 },
                 {
                    "key": "imType",
-                   "value": "rgbd"
+                   "value": "laser"
                 },
                 {
                    "key": "imName",
-                   "value": "rgbd"
+                   "value": "laser"
                 },
                 {
                    "key": "posy",
@@ -32,16 +28,8 @@
                    "value": "131"
                 },
                 {
-                   "key": "focal",
-                   "value": "490"
-                },
-                {
-                   "key": "height",
-                   "value": "480"
-                },
-                {
                    "key": "name",
-                   "value": "rgbd [138]"
+                   "value": "laser [138]"
                 },
                 {
                    "key": "port",
@@ -61,8 +49,8 @@
                 }
              ],
              "id": "138",
-             "type": "rgbd",
-             "name": "rgbd"
+             "type": "laser",
+             "name": "hokuyo_1"
           },
           {
              "attribute": [
