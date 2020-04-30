@@ -117,7 +117,7 @@ void SpecificWorker::compute()
     qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
     sleep(5);
     G->write_to_json_file(dsr_output_file);
-    exit(0);
+    //exit(0);
 }
 
 
@@ -299,7 +299,7 @@ void SpecificWorker::test_create_or_remove_edge(int i, int iter, int delay)
                 auto [from, to] = removeEdge();
                 //qDebug() << " remove [" << from << " - " << to << "]";
 
-                auto r = G->delete_edge(from, to);
+                auto r = G->delete_edge(from, to, "Edge");
                 if (r)
                     qDebug() << "Deleted edge :"  << from << " - " << to ;
             }
