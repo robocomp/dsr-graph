@@ -41,13 +41,7 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	
-<<<<<<< HEAD
 	
-=======
-	void updateBState();
-	void setBaseSpeed(float adv, float rot);
-	bool readSpeedCommand(float &adv, float &rot);
->>>>>>> 39981cecc1ea26e026a85b63f13607fd2fb7a25f
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
@@ -57,17 +51,9 @@ public slots:
 
 private:
 	std::shared_ptr<InnerModel> innerModel;
-<<<<<<< HEAD
-	RoboCompGenericBase::TBaseState bState;
-=======
-	float last_adv;
-	float last_rot;
->>>>>>> 39981cecc1ea26e026a85b63f13607fd2fb7a25f
-
-	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> G;
 	std::unique_ptr<DSR::GraphViewer> graph_viewer;
-
+	RoboCompGenericBase::TBaseState bState;
 	//params
 	std::string agent_name;
 	int agent_id;
