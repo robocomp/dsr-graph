@@ -68,8 +68,8 @@ void SpecificWorker::initialize(int period)
 
 /*************** UNCOMMENT IF NEEDED **********/
 	// GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-    setWindowTitle( agent_name.c_str() );
+//    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+//    setWindowTitle( agent_name.c_str() );
 
 	this->Period = period;
 	timer.start(Period);
@@ -78,60 +78,55 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    updateLaser();
+//computeCODE
+//QMutexLocker locker(mutex);
+	auto node = G->get_node("hokuyo_1");
+	if (node.id() == -1)
+		return;
+
+	const vector<float> lAngles = G->get_node_attrib_by_name<vector<float>>(node, "laser_data_angles");
+	const vector<float> lDists = G->get_node_attrib_by_name<vector<float>>(node, "laser_data_dists");
+
+	// check if there is any obstacle in fron of robot
+	int pos = 0;
+	bool rotate = false;
+	for (const float &value: lAngles)
+	{
+		if (fabs(value) < CHECK_ANGLE)
+		{
+			if (lDists[pos] < MIN_DISTANCE)
+			{
+				rotate = true;
+				break;
+			}
+		}
+		pos++;
+	}
+	if (rotate) //obstacle in front of robot => rotate
+	{
+		setBaseSpeed(0, 0.6);
+	}
+	else //robot keep straight
+	{
+		setBaseSpeed(250, 0);
+	}
+
 }
 
 
-void SpecificWorker::updateLaser()
-{
-	RoboCompLaser::TLaserData ldata;
-    try
-	{
-		ldata = laser_proxy->getLaserData();
-	}
-	catch(const Ice::Exception &e)
-	{ std::cout << "Error reading laser " << e << std::endl;	}
-    // transform data
-    std::vector<float> dists;
-    std::transform(ldata.begin(), ldata.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
-    std::vector<float> angles;
-    std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
 
-	// update laser in DSR
-	auto node = G->get_node("hokuyo_1");
-	if (node.id() != -1)
-	{
-		auto &nat = node.attrs();
-		G->add_attrib(nat, "laser_data_dists", dists);
-        G->add_attrib(nat, "laser_data_angles", angles);
-		G->add_attrib(nat, "posx", nat["posx"].value());
-		G->add_attrib(nat, "posy", nat["posy"].value());
-		auto r = G->insert_or_assign_node(node);
-		if (r)
-			std::cout << "Update node robot: "<<node.id()<<" with laser data"<<std::endl;
-	}
-	else  //node has to be created
-	{
-		try
-		{
-			int new_id = dsrgetid_proxy->getID();
-            node.type("robot");
-			node.id(new_id);
-			node.agent_id(agent_id);
-			node.name("robot");
-			std::map<string, AttribValue> attrs;
-			G->add_attrib(attrs, "laser_data_dists", dists);
-            G->add_attrib(attrs, "laser_data_angles", angles);
-			node.attrs(attrs);
-			auto r = G->insert_or_assign_node(node);
-			if (r)
-				std::cout << "New node robot: "<<node.id()<<std::endl;
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << "Error creating new node robot " << e.what() << '\n';
-		}
-	}
+void SpecificWorker::setBaseSpeed(float adv, float rot)
+{
+	// update bstate in DSR
+	auto node = G->get_node("base");
+	if (node.id() == -1)
+		return;
+	G->add_attrib(node.attrs(), "advSpeed", adv);
+	G->add_attrib(node.attrs(), "rotVel", rot);
+	
+	auto r = G->insert_or_assign_node(node);
+	if (r)
+		std::cout << "Update node robot: "<<node.id()<< " with speed(adv,rot): "<<adv << "," << rot << std::endl;
 }
 
 

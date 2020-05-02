@@ -41,28 +41,17 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	
-<<<<<<< HEAD
-	
-=======
-	void updateBState();
-	void setBaseSpeed(float adv, float rot);
-	bool readSpeedCommand(float &adv, float &rot);
->>>>>>> 39981cecc1ea26e026a85b63f13607fd2fb7a25f
+	void setBaseSpeed(float adv, float rot);	
+
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
 public slots:
 	void compute();
 	void initialize(int period);
-
+	
 private:
 	std::shared_ptr<InnerModel> innerModel;
-<<<<<<< HEAD
-	RoboCompGenericBase::TBaseState bState;
-=======
-	float last_adv;
-	float last_rot;
->>>>>>> 39981cecc1ea26e026a85b63f13607fd2fb7a25f
 
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> G;
@@ -74,9 +63,9 @@ private:
 	bool read_dsr;
 	std::string dsr_input_file;
 
-	void updateBState();
-	void checkNewCommand();
-	bool areDifferent(float a, float b, float epsilon);
+	float CHECK_ANGLE = 0.75;
+	int MIN_DISTANCE = 400;
+
 };
 
 #endif

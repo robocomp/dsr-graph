@@ -48,7 +48,8 @@ CRDTGraph::~CRDTGraph()
 /// NODE METHODS
 /////////////////////////////////////
 
-Node CRDTGraph::get_node(const std::string& name) {
+Node CRDTGraph::get_node(const std::string& name) 
+{
     std::shared_lock<std::shared_mutex>  lock(_mutex);
     try {
         if (name.empty()) {
@@ -134,7 +135,6 @@ bool CRDTGraph::delete_node(const std::string& name) {
         emit del_edge_signal(id0, id1, label);
     }
     return true;
-
 
 }
 

@@ -144,7 +144,15 @@
                 {
                    "key": "imName",
                    "value": "base"
-                }
+                },
+                {
+                  "key": "advance_speed",
+                  "value": "0"
+               },
+               {
+                  "key": "rotation_speed",
+                  "value": "0"
+               }
              ],
              "id": "131",
              "type": "differentialrobot",

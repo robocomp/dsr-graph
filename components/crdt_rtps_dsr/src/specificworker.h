@@ -7,7 +7,7 @@
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
-
+#include "inner_api.h"
 
 #define LAPS 50
 #define NODES 1500
@@ -49,6 +49,8 @@ class SpecificWorker : public GenericWorker
 		std::uniform_real_distribution<float> dist;
         std::uniform_int_distribution<int> randomNode;
 
+		// InnerAPI
+		std::unique_ptr<InnerAPI> innermodel;
 };
 
 #endif

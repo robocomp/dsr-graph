@@ -81,7 +81,7 @@ void SpecificWorker::initialize(int period) {
 
 void SpecificWorker::compute()
 {
-
+    //innermodel->transform("base", QVec::vec3(), "world");
 }
 
 

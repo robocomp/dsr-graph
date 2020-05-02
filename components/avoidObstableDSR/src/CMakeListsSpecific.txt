@@ -6,13 +6,12 @@ SET ( SOURCES
   ../../../graph-related-classes/CRDT_graphviewer.cpp
   ../../../graph-related-classes/CRDT_graphnode.cpp
   ../../../graph-related-classes/CRDT_graphedge.cpp
-  # DataStorm.cpp
   ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
   ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
-  inner_api.cpp
+
 )
 
 # Headers set
@@ -28,9 +27,9 @@ SET ( HEADERS
 
 find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
-add_definitions(-g  -fmax-errors=1 )
 set(CMAKE_CXX_STANDARD 17)
-SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES} -lDataStorm  fastcdr fastrtps)
+add_definitions(-g  -fmax-errors=1 -std=c++2a )
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES}  fastcdr fastrtps)
 set(CMAKE_BUILD_TYPE Debug)
 
 

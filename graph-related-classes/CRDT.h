@@ -41,6 +41,40 @@ namespace CRDT
     using Attribs = std::unordered_map<std::string, MTypes>;
 
     /////////////////////////////////////////////////////////////////
+    /// DSR Exceptions
+    /////////////////////////////////////////////////////////////////
+    class DSRException : std::runtime_error
+    {
+        public:
+            explicit DSRException(const std::string &message): std::runtime_error(buildMsg(message)){};
+        private:
+        std::string buildMsg(const std::string &message)
+        {
+            std::ostringstream buffer;
+            buffer << "DSRException: " << message;
+            return buffer.str();
+        };
+    };
+
+    /////////////////////////////////////////////////////////////////
+    /// Wrapper for Node struct to include nice access API
+    /////////////////////////////////////////////////////////////////
+    class Vertex: public enable_shared_from_this<Vertex>
+    {
+        public:
+            Vertex(N _node) : node(std::move(_node)) {};
+            Vertex(Vertex &v) : node(std::move(v.node)) {};
+            std::shared_ptr<Vertex> ptr() { return shared_from_this();}
+            int id() const {return node.id();};
+            int getLevel() const {return 0;};
+            int getParentId() const {return 0;};
+            RTMat getEdgeRTAttr(std::pair<int,std::string>){ return RTMat();};
+        private:
+            N node;
+
+    };
+
+    /////////////////////////////////////////////////////////////////
     /// CRDT API
     /////////////////////////////////////////////////////////////////
 
@@ -71,6 +105,8 @@ namespace CRDT
             std::vector<long> getKeys() const;
             
             // Nodes
+            Vertex getNode(const std::string& name) {return get_node(name); };
+            Vertex getNode(int id) {return get_node(id);};
             Node get_node(const std::string& name);
             Node get_node(int id);
             bool insert_or_assign_node(const N &node);
@@ -91,15 +127,21 @@ namespace CRDT
             int get_id_from_name(const std::string &name);
 
             //////////////////////////////////////////////////////
-            ///  Viewer
+            ///  Not sure who uses these
             //////////////////////////////////////////////////////
 
             Nodes get();
             N get(int id);
             
-            // gets a const node ref and searches an attrib by name. With a map should be constant time.
+            //////////////////////////////////////////////////////
+            /// API to access attributes
+            //////////////////////////////////////////////////////
+            uint getLevel(){return 0;};
+            long getParentId(){return 0;};
+            // gets a const node ref and searches an attrib by its name. 
             AttribValue get_node_attrib_by_name(const Node& n, const std::string &key);
         
+            // Templated version to convert returned value to template type. 
             template <typename Ta>
             Ta get_node_attrib_by_name(Node& n, const std::string &key)
             {
@@ -116,6 +158,7 @@ namespace CRDT
             std::int32_t get_node_level(Node& n);
             std::string get_node_type(Node& n);
 
+            // Adds an atribute to the map v with name att_name and one of the permitted types
             void add_attrib(std::map<string, AttribValue> &v, std::string att_name, CRDT::MTypes att_value);
             //void add_edge_attribs(vector<EdgeAttribs> &v, EdgeAttribs& ea);
 
