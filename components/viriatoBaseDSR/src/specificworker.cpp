@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <limits>
 
 /**
 * \brief Default constructor
@@ -73,53 +74,96 @@ void SpecificWorker::initialize(int period)
 
 	this->Period = period;
 	timer.start(Period);
-
 }
 
 void SpecificWorker::compute()
 {
-//computeCODE
-	std::cout<< "Compute" << std::endl;
-//QMutexLocker locker(mutex);
 	updateBState();
-
+	checkNewCommand();
 }
 
 void SpecificWorker::updateBState()
 {
-	RoboCompGenericBase::TBaseState bState;
     try
 	{
 		omnirobot_proxy->getBaseState(bState);
-		qDebug() << bState.x << bState.z;
-
 	}
 	catch(const Ice::Exception &e)
-	{
-		std::cout << "Error reading bState from omnirobot " << e << std::endl;
-	}
+	{ std::cout << "Error reading bState from omnirobot " << e << std::endl; }
+
+	// // New API proposal
+	// auto [node, success] = G->getNode("base");
+	
+	// node->addOrAssignAttrib("id", val);
+	// auto att = node->getAttrib("id");
+	// auto atts = node->getAttribsByType("type");
+	// auto edge = node->getEdge(key(to, "type"))
+	// node->removeAttrib("id")
+	// node->removeEdge(key(to, "type"))
+	// RTMat node->getEdgeRTAttrib(to)
+
+	// auto eatt = edge->getAttrib("name");
+	// edge->addOrAssignAttrib("name", val);
+	// auto eatt = edge->removeAttrib("name");
+	// auto eatts = edge->getAttribsByType("type");
+	// RTMat edge->getRTAttrib();
+	
+	// G->insertOrAssignNode(node);
+	// G->removeNode(node);
 
 	// update bstate in DSR
-	auto node = G->get_node("base");
-	//auto node = G->get_node(131);
-	if (node.id() == -1)
+	auto base = G->get_node("base");
+	if (base.id() == -1)
 		return;
-	
+	auto &n_at = base.attrs();
 	// print value to check if it is changing
-	std::cout<<"Actual bState "<< node.attrs()["x"] << " " << node.attrs()["z"] << " " << node.attrs()["alpha"] <<std::endl;
-	G->add_attrib(node.attrs(), "x", std::to_string(bState.x));
-	G->add_attrib(node.attrs(), "z", std::to_string(bState.z));
-	G->add_attrib(node.attrs(), "alpha", std::to_string(bState.alpha));
-	G->add_attrib(node.attrs(), "pos_x", std::to_string(100));
-	G->add_attrib(node.attrs(), "pos_y", std::to_string(100));
-	
-	//qDebug() << "POSX " << QString::fromStdString(node.attrs()["pos_x"].value());
-	
-	auto r = G->insert_or_assign_node(node);
-	if (r)
-		std::cout << "Update node robot: "<<node.id()<<std::endl;
+	G->add_attrib(n_at, "x", std::to_string(bState.x));
+	G->add_attrib(n_at, "z", std::to_string(bState.z));
+	G->add_attrib(n_at, "alpha", std::to_string(bState.alpha));
+	G->add_attrib(n_at, "pos_x", std::to_string(100));
+	G->add_attrib(n_at, "pos_y", std::to_string(100));
+		
+	G->insert_or_assign_node(base);
 }
-	// else  //node has to be created
+
+// Check if rotation_speed or advance_speed have changed and move the robot consequently
+void SpecificWorker::checkNewCommand()
+{
+	auto base = G->get_node("base");
+	if(base.id() == -1)
+		return;
+
+	const float desired_z_speed = G->get_node_attrib_by_name<float>(base, "advance_speed");
+	const float desired_rot_speed = G->get_node_attrib_by_name<float>(base, "rotation_speed");
+
+	// Check de values are within robot's accepted range. Read them from config
+	const float lowerA = -1000, upperA = 1000, lowerR = -1, upperR = 1;
+	if( !(lowerA < desired_z_speed and desired_z_speed < upperA and lowerR < desired_rot_speed and desired_rot_speed < upperR))
+	{
+		qDebug() << __FUNCTION__ << "Desired speed values out of bounds:" << desired_z_speed << desired_rot_speed << "where bounds are:" << lowerA << upperA << lowerR << upperR;
+		return;
+	}
+
+	if( areDifferent(bState.advVz, desired_z_speed, FLT_EPSILON) or areDifferent(bState.rotV, desired_rot_speed, FLT_EPSILON))
+	{
+		qDebug() << __FUNCTION__ << "Diff detected" << desired_z_speed << bState.advVz << desired_rot_speed << bState.rotV;
+		try
+		{
+			omnirobot_proxy->setSpeedBase(0, desired_z_speed, desired_rot_speed);
+		}
+		catch(const RoboCompGenericBase::HardwareFailedException &re)
+		{ std::cout << re << '\n';}
+		catch(const Ice::Exception &e)
+		{ std::cout << e.what() << '\n';}
+	}
+}
+
+bool SpecificWorker::areDifferent(float a, float b, float epsilon)
+{ 
+	return !((fabs(a - b) <= epsilon * std::max(fabs(a), fabs(b)))); 
+};
+
+// else  //node has to be created
 	// {
 	// 	try
 	// 	{
@@ -142,9 +186,3 @@ void SpecificWorker::updateBState()
 	// 		std::cerr << "Error creating new node robot " << e.what() << '\n';
 	// 	}
 	// }
-
-
-
-
-
-

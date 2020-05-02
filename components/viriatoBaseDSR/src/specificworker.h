@@ -41,7 +41,7 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	
-	void updateBState();
+	
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
@@ -51,6 +51,7 @@ public slots:
 
 private:
 	std::shared_ptr<InnerModel> innerModel;
+	RoboCompGenericBase::TBaseState bState;
 
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> G;
@@ -62,6 +63,9 @@ private:
 	bool read_dsr;
 	std::string dsr_input_file;
 
+	void updateBState();
+	void checkNewCommand();
+	bool areDifferent(float a, float b, float epsilon);
 };
 
 #endif
