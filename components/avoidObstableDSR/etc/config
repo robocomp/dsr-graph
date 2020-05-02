@@ -1,5 +1,13 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10007
 
+
+# Proxies for required interfaces
+
+
+agent_id = 7
+agent_name = agent7
+read_dsr = false
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 
 InnerModelPath = innermodel.xml

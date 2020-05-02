@@ -30,6 +30,9 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 
+#include "../../../graph-related-classes/CRDT.h"
+#include "../../../graph-related-classes/CRDT_graphviewer.h"
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -37,13 +40,31 @@ public:
 	SpecificWorker(TuplePrx tprx);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
+	
+	void setBaseSpeed(float adv, float rot);	
 
+	// DSR
+	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
 public slots:
 	void compute();
 	void initialize(int period);
+	
 private:
 	std::shared_ptr<InnerModel> innerModel;
+
+	// DSR
+	std::shared_ptr<CRDT::CRDTGraph> G;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+
+	//params
+	std::string agent_name;
+	int agent_id;
+	bool read_dsr;
+	std::string dsr_input_file;
+
+	float CHECK_ANGLE = 0.75;
+	int MIN_DISTANCE = 400;
 
 };
 
