@@ -42,6 +42,8 @@ public:
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	
 	void updateBState();
+	void setBaseSpeed(float adv, float rot);
+	bool readSpeedCommand(float &adv, float &rot);
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
@@ -51,6 +53,8 @@ public slots:
 
 private:
 	std::shared_ptr<InnerModel> innerModel;
+	float last_adv;
+	float last_rot;
 
 	// DSR
 	std::shared_ptr<CRDT::CRDTGraph> G;

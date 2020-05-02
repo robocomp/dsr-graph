@@ -82,7 +82,12 @@ void SpecificWorker::compute()
 	std::cout<< "Compute" << std::endl;
 //QMutexLocker locker(mutex);
 	updateBState();
-
+	float adv = 0;
+	float rot = 0;
+	if (readSpeedCommand(adv, rot))
+	{
+		setBaseSpeed(adv, rot);
+	}
 }
 
 void SpecificWorker::updateBState()
@@ -144,6 +149,39 @@ void SpecificWorker::updateBState()
 	// }
 
 
+bool SpecificWorker::readSpeedCommand(float &adv, float &rot)
+{
+	auto node = G->get_node("base");
+	//auto node = G->get_node(131);
+	if (node.id() != -1)
+	{
+		try{
+			adv = G->get_node_attrib_by_name<float>(node, "advSpeed");
+			rot = G->get_node_attrib_by_name<float>(node, "rotVel");
+			qDebug()<<"Speed read from DSR: "<<adv << rot;
+			return (last_adv != adv or last_rot != rot);
+		}catch(...) {}
+	}
+	return false;
+}
+
+void SpecificWorker::setBaseSpeed(float adv, float rot)
+{
+	if (adv != last_adv or rot != last_rot)
+	{
+		try
+		{
+qDebug()<<"set Base speed"<<adv << rot;
+			omnirobot_proxy->setSpeedBase(0, adv, rot);
+			last_adv = adv;
+			last_rot = rot;
+		}
+		catch(const Ice::Exception &e)
+		{
+			std::cout << "Error setting speed to omnirobot " << e << std::endl;
+		}
+	}
+}
 
 
 
