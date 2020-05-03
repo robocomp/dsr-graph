@@ -6,13 +6,12 @@ SET ( SOURCES
   ../../../graph-related-classes/CRDT_graphviewer.cpp
   ../../../graph-related-classes/CRDT_graphnode.cpp
   ../../../graph-related-classes/CRDT_graphedge.cpp
-  # DataStorm.cpp
   ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
   ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
-  inner_api.cpp
+  ../../../graph-related-classes/inner_api.cpp
 )
 
 # Headers set

@@ -29,9 +29,9 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "../../../graph-related-classes/inner_api.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -52,7 +52,7 @@ public slots:
 private:
 	std::shared_ptr<InnerModel> innerModel;
 	std::shared_ptr<CRDT::CRDTGraph> G;
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer; 
 	RoboCompGenericBase::TBaseState bState;
 	//params
 	std::string agent_name;
@@ -63,6 +63,9 @@ private:
 	void updateBState();
 	void checkNewCommand();
 	bool areDifferent(float a, float b, float epsilon);
+
+	// InnerAPI
+	std::unique_ptr<InnerAPI> innermodel;
 };
 
 #endif

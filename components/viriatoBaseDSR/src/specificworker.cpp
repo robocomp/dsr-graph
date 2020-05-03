@@ -53,12 +53,17 @@ void SpecificWorker::initialize(int period)
 
 	// create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
+
+	// InnerAPI
+	innermodel = std::make_unique<InnerAPI>(G);
+
 	// read graph content from file
     if(read_dsr)
     {
         G->read_from_json_file(dsr_input_file);
         G->start_fullgraph_server_thread();     // to receive requests form othe starting agents
         G->start_subscription_thread(true);     // regular subscription to deltas
+		G->print();
     }
     else
     {
@@ -73,6 +78,7 @@ void SpecificWorker::initialize(int period)
     setWindowTitle( agent_name.c_str() );
 
 	this->Period = period;
+	//timer.setSingleShot(true);
 	timer.start(Period);
 }
 
@@ -91,39 +97,28 @@ void SpecificWorker::updateBState()
 	catch(const Ice::Exception &e)
 	{ std::cout << "Error reading bState from omnirobot " << e << std::endl; }
 
-	// // New API proposal
-	// auto [node, success] = G->getNode("base");
-	
-	// node->addOrAssignAttrib("id", val);
-	// auto att = node->getAttrib("id");
-	// auto atts = node->getAttribsByType("type");
-	// auto edge = node->getEdge(key(to, "type"))
-	// node->removeAttrib("id")
-	// node->removeEdge(key(to, "type"))
-	// RTMat node->getEdgeRTAttrib(to)
-
-	// auto eatt = edge->getAttrib("name");
-	// edge->addOrAssignAttrib("name", val);
-	// auto eatt = edge->removeAttrib("name");
-	// auto eatts = edge->getAttribsByType("type");
-	// RTMat edge->getRTAttrib();
-	
-	// G->insertOrAssignNode(node);
-	// G->removeNode(node);
-
 	// update bstate in DSR
 	auto base = G->get_node("base");
-	if (base.id() == -1)
-		return;
-	auto &n_at = base.attrs();
-	// print value to check if it is changing
-	G->add_attrib(n_at, "x", std::to_string(bState.x));
-	G->add_attrib(n_at, "z", std::to_string(bState.z));
-	G->add_attrib(n_at, "alpha", std::to_string(bState.alpha));
-	G->add_attrib(n_at, "pos_x", std::to_string(100));
-	G->add_attrib(n_at, "pos_y", std::to_string(100));
-		
-	G->insert_or_assign_node(base);
+	if (base.id() == -1) return;
+	// auto &n_at = base.attrs();
+	// G->add_attrib(n_at, "x", std::to_string(bState.x));
+	// G->add_attrib(n_at, "z", std::to_string(bState.z));
+	// G->add_attrib(n_at, "alpha", std::to_string(bState.alpha));
+	// G->add_attrib(n_at, "pos_x", n_at["pos_x"].value());
+	// G->add_attrib(n_at, "pos_y", n_at["pos_y"].value());;	
+	// G->insert_or_assign_node(base);
+
+	// Base position as RT edge
+	auto world = G->getNode("world");
+	if (base.id() == -1) return;
+	world->insertOrAssignRTEdge(base.id(), std::vector<double>{bState.x, 0., bState.z, 0., bState.alpha, 0.});
+	G->insert_or_assign_node(world->getNode());
+	
+	// check
+	QVec dsr = innermodel->transformS("box_2", QVec::vec3(0,0,0), "hokuyo_base");
+	qDebug() << "bState:" << bState.x << bState.z; 
+	dsr.print("from rt");
+	qDebug() << "------------------------";
 }
 
 // Check if rotation_speed or advance_speed have changed and move the robot consequently

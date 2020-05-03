@@ -98,14 +98,14 @@ void SpecificWorker::updateLaser()
     std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
 
 	// update laser in DSR
-	auto node = G->get_node("hokuyo_1");
+	auto node = G->get_node("hokuyo_base");
 	if (node.id() != -1)
 	{
 		auto &nat = node.attrs();
 		G->add_attrib(nat, "laser_data_dists", dists);
         G->add_attrib(nat, "laser_data_angles", angles);
-		G->add_attrib(nat, "posx", nat["posx"].value());
-		G->add_attrib(nat, "posy", nat["posy"].value());
+		G->add_attrib(nat, "pos_x", nat["pos_x"].value());
+		G->add_attrib(nat, "pos_y", nat["pos_y"].value());
 		auto r = G->insert_or_assign_node(node);
 		if (r)
 			std::cout << "Update node robot: "<<node.id()<<" with laser data"<<std::endl;

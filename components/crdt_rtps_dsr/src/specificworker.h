@@ -7,7 +7,7 @@
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
-#include "inner_api.h"
+#include "../../../graph-related-classes/inner_api.h"
 
 #define LAPS 50
 #define NODES 1500
@@ -32,9 +32,13 @@ class SpecificWorker : public GenericWorker
 
 	private:
 		InnerModel *innerModel;
+
+		//params
 		std::string agent_name;
 		bool read_file = true;
 		int agent_id;
+		std::string dsr_input_file;
+
 		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 

@@ -20,7 +20,7 @@
                    "value": "laser"
                 },
                 {
-                   "key": "posy",
+                   "key": "pos_y",
                    "value": "197,922394"
                 },
                 {
@@ -37,72 +37,25 @@
                 },
                 {
                    "key": "level",
-                   "value": "3"
+                   "value": "2"
                 },
                 {
                    "key": "color",
                    "value": "coral"
                 },
                 {
-                   "key": "posx",
+                   "key": "pos_x",
                    "value": "-246,617584"
                 }
              ],
              "id": "138",
              "type": "laser",
-             "name": "hokuyo_1"
+             "name": "hokuyo_base"
           },
           {
              "attribute": [
                 {
-                   "key": "mass",
-                   "value": "0"
-                },
-                {
-                   "key": "posx",
-                   "value": "-339,240509"
-                },
-                {
-                   "key": "imType",
-                   "value": "transform"
-                },
-                {
-                   "key": "parent",
-                   "value": "131"
-                },
-                {
-                   "key": "engine",
-                   "value": "static"
-                },
-                {
-                   "key": "name",
-                   "value": "transform [133]"
-                },
-                {
-                   "key": "level",
-                   "value": "2"
-                },
-                {
-                   "key": "color",
-                   "value": "SteelBlue"
-                },
-                {
-                   "key": "posy",
-                   "value": "-57,383965"
-                },
-                {
-                   "key": "imName",
-                   "value": "laserPose"
-                }
-             ],
-             "id": "133",
-             "type": "transform",
-             "name": "laserPose"
-          },
-          {
-             "attribute": [
-                {
-                   "key": "posx",
+                   "key": "pos_x",
                    "value": "-235,448044"
                 },
                 {
@@ -138,7 +91,7 @@
                    "value": "false"
                 },
                 {
-                   "key": "posy",
+                   "key": "pos_y",
                    "value": "-168,177170"
                 },
                 {
@@ -165,12 +118,8 @@
                    "value": "Strings"
                 },
                 {
-                   "key": "posy",
+                   "key": "pos_y",
                    "value": "23,562189"
-                },
-                {
-                   "key": "pz",
-                   "value": "-200"
                 },
                 {
                    "key": "collidable",
@@ -181,7 +130,7 @@
                    "value": "plane"
                 },
                 {
-                   "key": "ny",
+                   "key": "nx",
                    "value": "0"
                 },
                 {
@@ -190,23 +139,23 @@
                 },
                 {
                    "key": "height",
-                   "value": "100"
+                   "value": "400"
                 },
                 {
                    "key": "level",
-                   "value": "3"
+                   "value": "1"
                 },
                 {
                    "key": "parent",
-                   "value": "133"
+                   "value": "100"
                 },
                 {
-                   "key": "posx",
-                   "value": "-345,578766"
+                   "key": "pos_x",
+                   "value": "245,578766"
                 },
                 {
                    "key": "nx",
-                   "value": "0"
+                   "value": "1"
                 },
                 {
                    "key": "name",
@@ -222,7 +171,7 @@
                 },
                 {
                    "key": "nz",
-                   "value": "1"
+                   "value": "0"
                 },
                 {
                    "key": "px",
@@ -234,11 +183,11 @@
                 },
                 {
                    "key": "width",
-                   "value": "100"
+                   "value": "400"
                 },
                 {
                    "key": "depth",
-                   "value": "1"
+                   "value": "400"
                 },
                 {
                    "key": "String",
@@ -247,7 +196,7 @@
              ],
              "id": "135",
              "type": "plane",
-             "name": "Strings"
+             "name": "box_2"
           },
           {
              "attribute": [
@@ -272,11 +221,11 @@
                    "value": "SeaGreen"
                 },
                 {
-                   "key": "posx",
+                   "key": "pos_x",
                    "value": "-90,295357"
                 },
                 {
-                   "key": "posy",
+                   "key": "pos_y",
                    "value": "-286,075958"
                 },
                 {
@@ -290,37 +239,6 @@
           }
        ],
        "link": [
-          {
-             "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "0"
-                },
-                {
-                   "key": "ty",
-                   "value": "0"
-                },
-                {
-                   "key": "tz",
-                   "value": "0"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0"
-                },
-                {
-                   "key": "ry",
-                   "value": "0"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0"
-                }
-             ],
-             "src": "133",
-             "dst": "135",
-             "label": "RT"
-          },
           {
              "linkAttribute": [
                 {
@@ -356,15 +274,15 @@
              "linkAttribute": [
                 {
                    "key": "tx",
-                   "value": "0"
+                   "value": "1300"
                 },
                 {
                    "key": "ty",
-                   "value": "140"
+                   "value": "0"
                 },
                 {
                    "key": "tz",
-                   "value": "200"
+                   "value": "1200"
                 },
                 {
                    "key": "rx",
@@ -379,8 +297,8 @@
                    "value": "-0"
                 }
              ],
-             "src": "131",
-             "dst": "133",
+             "src": "100",
+             "dst": "135",
              "label": "RT"
           },
           {

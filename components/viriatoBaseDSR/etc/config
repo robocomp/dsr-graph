@@ -7,7 +7,7 @@ DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 agent_id = 5
 agent_name = viriatoBase
-read_dsr = false
+read_dsr = true
 dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 

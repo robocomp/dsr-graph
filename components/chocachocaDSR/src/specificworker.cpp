@@ -81,7 +81,7 @@ void SpecificWorker::compute()
     const float threshold = 200; // millimeters
     float rot = 0.6;  // rads per second
     
-    auto laser = G->get_node("hokuyo_1");
+    auto laser = G->get_node("hokuyo_base");
     auto base = G->get_node("base");
     auto &b_at = base.attrs();
     std::vector<float> l_angles = G->get_node_attrib_by_name<std::vector<float>>(laser, "laser_data_angles");

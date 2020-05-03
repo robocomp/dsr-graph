@@ -220,8 +220,8 @@ void GraphViewer::addOrAssignNodeSLOT(int id, const std::string &type)
     float posx = 10; float posy = 10;
 	try
 	{
-        posx = std::stof((std::string)gcrdt->get_node_attrib_by_name(n, "posx").value());
-        posy = std::stof((std::string)gcrdt->get_node_attrib_by_name(n, "posy").value());
+        posx = std::stof((std::string)gcrdt->get_node_attrib_by_name(n, "pos_x").value());
+        posy = std::stof((std::string)gcrdt->get_node_attrib_by_name(n, "pos_y").value());
 	}
 	catch(const std::exception &e)
 	{

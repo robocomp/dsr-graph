@@ -11,6 +11,13 @@
 #include <thread>
 #include <mutex>
 #include <shared_mutex>
+#include <any>
+#include <memory>
+#include <vector>
+#include <variant>
+#include <qmat/QMatAll>
+#include <typeinfo>
+#include <iter/zip.hpp>
 
 #include "libs/delta-crdts.cc"
 #include "fast_rtps/dsrparticipant.h"
@@ -18,12 +25,7 @@
 #include "fast_rtps/dsrsubscriber.h"
 #include "topics/DSRGraphPubSubTypes.h"
 
-#include <any>
-#include <memory>
-#include <vector>
-#include <variant>
-#include <qmat/QMatAll>
-#include <typeinfo>
+
 
 #define NO_PARENT -1
 #define TIMEOUT 5
@@ -59,19 +61,88 @@ namespace CRDT
     /////////////////////////////////////////////////////////////////
     /// Wrapper for Node struct to include nice access API
     /////////////////////////////////////////////////////////////////
-    class Vertex: public enable_shared_from_this<Vertex>
+    // // New API proposal
+	// auto [node, success] = G->getNode("base");
+	
+	// node->addOrAssignAttrib("id", val);
+	// auto att = node->getAttrib("id");
+	// auto atts = node->getAttribsByType("type");
+	// auto edge = node->getEdge(key(to, "type"))
+	// node->removeAttrib("id")
+	// node->removeEdge(key(to, "type"))
+	// RTMat node->getEdgeRTAttrib(to)
+
+	// auto eatt = edge->getAttrib("name");
+	// edge->addOrAssignAttrib("name", val);
+	// auto eatt = edge->removeAttrib("name");
+	// auto eatts = edge->getAttribsByType("type");
+	// RTMat edge->getRTAttrib();
+	
+	// G->insertOrAssignNode(node);
+	// G->removeNode(node);
+    class Vertex
     {
         public:
             Vertex(N _node) : node(std::move(_node)) {};
             Vertex(Vertex &v) : node(std::move(v.node)) {};
-            std::shared_ptr<Vertex> ptr() { return shared_from_this();}
+            N& getNode() { return node; };
             int id() const {return node.id();};
-            int getLevel() const {return 0;};
-            int getParentId() const {return 0;};
-            RTMat getEdgeRTAttr(std::pair<int,std::string>){ return RTMat();};
+            int getLevel() const { return std::stoi(getAttrib("level").value()); };
+            int getParentId() const { return std::stoi(getAttrib("parent").value()); };
+            AttribValue getAttrib(const std::string &name) const 
+            {
+                auto value  = node.attrs().find(name);
+                 if (value != node.attrs().end()) 
+                    return value->second;
+                AttribValue av;
+                av.type("unknown");
+                av.value("unknow");
+                av.key(name);
+                av.length(0);
+                return av;
+            };     
+            RTMat getEdgeRT(int to) 
+            {
+                for(auto &[key, edge]: node.fano())
+                {
+                    std::cout << edge.to() << " " << edge.label() << std::endl;
+                    if(edge.to() == to and edge.label() == "RT")
+                    {   
+                        // std::istringstream all(edge.attrs()["RT"].value());
+                        // double rx, ry, rz, tx, ty, tz;
+                        // std::string w;
+                        // all >> w; tx = std::stod(w); all >> w; ty = std::stod(w); all >> w; tz = std::stod(w);
+                        // all >> w; rx = std::stod(w); all >> w; ry = std::stod(w); all >> w; rz = std::stod(w);
+                        auto &ats = edge.attrs();
+                        return RTMat( std::stod(ats["rx"].value()),
+                                      std::stod(ats["ry"].value()),
+                                      std::stod(ats["rz"].value()),
+                                      std::stod(ats["tx"].value()),
+                                      std::stod(ats["ty"].value()),
+                                      std::stod(ats["tz"].value()));
+                    }
+                }
+                return RTMat();
+            }
+            EdgeAttribs edge(int to, const std::string &label) { edgeKey key; key.to(to); key.key(label); return node.fano()[key];};
+            void insertOrAssignRTEdge(int to, const std::vector<double> &values) 
+            { 
+                if(values.size() < 6)
+                    return;
+                EdgeAttribs rt_edge; 
+                rt_edge.label("RT"); rt_edge.from(node.id()); rt_edge.to(to);
+                edgeKey key; key.to(to); key.key("RT");
+                AttribValue rv; 
+                std::vector<string> key_list{"tx","ty","tz","rx","ry","rz"};
+                for(const auto& [key, val]: iter::zip(key_list, values))
+                {
+                    rv.key(key); rv.type("double"); rv.value(std::to_string(val)); rv.length(1);
+                    rt_edge.attrs().insert_or_assign(key, rv);
+                }
+                node.fano().insert_or_assign(key, rt_edge);
+            }
         private:
             N node;
-
     };
 
     /////////////////////////////////////////////////////////////////
@@ -105,13 +176,15 @@ namespace CRDT
             std::vector<long> getKeys() const;
             
             // Nodes
-            Vertex getNode(const std::string& name) {return get_node(name); };
-            Vertex getNode(int id) {return get_node(id);};
+            std::shared_ptr<Vertex> getNode(const std::string& name) { return std::make_shared<Vertex>(get_node(name));};
+            std::shared_ptr<Vertex> getNode(int id)                  { return std::make_shared<Vertex>(get_node(id));};
             Node get_node(const std::string& name);
             Node get_node(int id);
             bool insert_or_assign_node(const N &node);
             bool delete_node(const std::string &name);
             bool delete_node(int id);
+
+            // not working yet
             typename std::map<int, aworset<N,int>>::const_iterator begin() const { return nodes.getMap().begin(); };
             typename std::map<int, aworset<N,int>>::const_iterator end() const { return nodes.getMap().end(); };
 

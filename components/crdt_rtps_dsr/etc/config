@@ -5,7 +5,10 @@ CommonBehavior.Endpoints=tcp -p 10000
 LaserProxy = laser:tcp -h localhost -p 10003
 DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
 
-
+agent_name = crdt
+read_file = true;
+agent_id = 0
+dsr_input_file = ../../etc/initial_dsr.json
 
 InnerModelPath = innermodel.xml
 

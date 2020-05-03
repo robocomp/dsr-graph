@@ -11,7 +11,7 @@ SET ( SOURCES
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
-
+  ../../../graph-related-classes/inner_api.cpp
 )
 
 # Headers set
