@@ -21,7 +21,7 @@ InnerAPI::ListsPtr InnerAPI::setLists(const std::string &destId, const std::stri
 	int minLevel = std::min(a->getLevel(), b->getLevel());
 	while (a->getLevel() >= minLevel)
 	{
-        qDebug() << "listaA" << a->id() << a->getLevel() << a->getParentId();
+        //qDebug() << "listaA" << a->id() << a->getLevel() << a->getParentId();
 		auto p_node = G->getNode(a->getParentId());
       	if(p_node->id() == -1)
 			break;
@@ -30,14 +30,14 @@ InnerAPI::ListsPtr InnerAPI::setLists(const std::string &destId, const std::stri
 	}
 	while (b->getLevel() >= minLevel)
 	{
-        qDebug() << "listaB" << b->id() << b->getLevel();
+        //qDebug() << "listaB" << b->id() << b->getLevel();
 		auto p_node = G->getNode(b->getParentId());
 		if(p_node->id() == -1)
 			break;
         listB.push_front(p_node->edge(b->id(), "RT"));
 		b = p_node;
 	}
-	// while (b->id() != a->id())
+	// while (b->id() != a->id())  		// Estaba en InnerModel pero no sé bien cuándo hace falta
 	// {
 	// 	listA.push_back(a);
 	// 	listB.push_front(b);
@@ -58,34 +58,28 @@ RTMat InnerAPI::getTransformationMatrixS(const std::string &dest, const std::str
 	// {
 
     auto [listA, listB] = setLists(dest, orig);
-    qDebug() << "Listas";
-    for(auto a : listA)
-        qDebug() << QString::fromStdString(a.label());
-    for(auto b : listB)
-        qDebug() << QString::fromStdString(b.label());
-
+    // for(auto a : listA)	
+    //     qDebug() << QString::fromStdString(a.label());
+    // for(auto b : listB)
+    //     qDebug() << QString::fromStdString(b.label());
     auto rt = [](EdgeAttribs &edge){ auto &ats = edge.attrs(); return RTMat(  std::stod(ats["rx"].value()),
-                                                        std::stod(ats["ry"].value()),
-                                                        std::stod(ats["rz"].value()),
-                                                        std::stod(ats["tx"].value()),
-                                                        std::stod(ats["ty"].value()),
-                                                        std::stod(ats["tz"].value()));}; 
-
+                                                        					  std::stod(ats["ry"].value()),
+                                                        					  std::stod(ats["rz"].value()),
+                                                        					  std::stod(ats["tx"].value()),
+                                                        					  std::stod(ats["ty"].value()),
+                                                        					  std::stod(ats["tz"].value()));}; 
     for(auto &edge: listA )
     {
         ret = ((RTMat)(rt(edge))).operator*(ret);
-        rt(edge).print("ListA");
+        //rt(edge).print("ListA");
     }
-        
     for(auto &edge: listB )
     {
         ret = rt(edge).invert() * ret;
-        rt(edge).print("ListB");
+        //rt(edge).print("ListB");
     }
-
     //	localHashTr[QPair<QString, QString>(to, from)] = ret;
     //}
-
 	return ret;
 }
 
@@ -119,5 +113,15 @@ QVec InnerAPI::transformS(const std::string &destId, const QVec &initVec, const 
 
  QVec InnerAPI::transformS( const std::string &destId, const std::string &origId)
  {
-	 return transformS(destId, QVec::vec3(0.,0.,0.), origId);
+	return transformS(destId, QVec::vec3(0.,0.,0.), origId);
+ }
+
+ QVec InnerAPI::transform(const QString & destId, const QVec &origVec, const QString & origId)
+ {
+	return transformS(destId.toStdString(), origVec, origId.toStdString());
+ }
+
+ QVec InnerAPI::transform( const QString &destId, const QString & origId)
+ {
+ 	return transformS(destId.toStdString(), QVec::vec3(0.,0.,0.), origId.toStdString());
  }
