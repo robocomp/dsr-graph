@@ -91,6 +91,17 @@ bool CRDTGraph::insert_or_assign_node(const N &node) {
     return r;
 }
 
+bool CRDTGraph::insert_or_assign_node(const std::shared_ptr<Vertex> &node)
+{   
+    bool r;
+    {
+        std::unique_lock<std::shared_mutex> lock(_mutex);
+        r = insert_or_assign_node_(node->getNode());
+    }
+    emit update_node_signal(node->id(), node->type());
+    return r;
+}
+
 bool CRDTGraph::insert_or_assign_node_(const N &node) {
     try {
         if (nodes[node.id()].getNodesSimple(node.id()).first == node) {
@@ -341,23 +352,24 @@ bool CRDTGraph::delete_edge_(int from, int to)
 ///// Utils
 /////////////////////////////////////////////////
 
- std::map<long,Node> CRDTGraph::getCopy() const
- {
-    std::map<long,Node> mymap;
-    std::shared_lock<std::shared_mutex>  lock(_mutex);
-    for (auto &[key, val] : nodes.getMap())
-        mymap[key] = val.dots().ds.rbegin()->second;
-    return mymap;
- }
+
+//  std::map<long,Node> CRDTGraph::getCopy() const
+//  {
+//     std::map<long,Node> mymap;
+//     std::shared_lock<std::shared_mutex>  lock(_mutex);
+//     for (auto &[key, val] : nodes.getMap())
+//         mymap[key] = val.dots().ds.rbegin()->second;
+//     return mymap;
+//  }
     
-std::vector<long> CRDTGraph::getKeys() const
- {
-    std::vector<long> keys;
-    std::shared_lock<std::shared_mutex>  lock(_mutex);
-    for (auto &[key, val] : nodes.getMap())
-        keys.emplace_back(key);
-    return keys;
- }
+// std::vector<long> CRDTGraph::getKeys() const
+//  {
+//     std::vector<long> keys;
+//     std::shared_lock<std::shared_mutex>  lock(_mutex);
+//     for (auto &[key, val] : nodes.getMap())
+//         keys.emplace_back(key);
+//     return keys;
+//  }
 
 void CRDTGraph::print()
 {
@@ -424,7 +436,7 @@ N CRDTGraph::get_(int id)
     return n;
 }
 
-AttribValue CRDTGraph::get_node_attrib_by_name(const Node& n, const std::string &key) 
+AttribValue CRDTGraph::get_node_attrib_by_name(const Node& n, const std::string &key) const
 {
     try {
         auto attrs = n.attrs();
@@ -452,7 +464,7 @@ AttribValue CRDTGraph::get_node_attrib_by_name(const Node& n, const std::string 
     };
 }
 
-std::int32_t CRDTGraph::get_node_level(Node& n)
+std::int32_t CRDTGraph::get_node_level(const Node& n) const
 {
     try 
     {
@@ -464,7 +476,18 @@ std::int32_t CRDTGraph::get_node_level(Node& n)
     return -1;
 }
 
-std::string CRDTGraph::get_node_type(Node& n) 
+std::int32_t CRDTGraph::get_node_parent(const Node& n) const
+{
+    try 
+    {
+        return std::stoi(get_node_attrib_by_name(n, "parent").value());
+    } 
+    catch(const std::exception &e){
+        std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl; };
+
+    return -1;
+}
+std::string CRDTGraph::get_node_type(const Node& n) const
 {
     try 
     {

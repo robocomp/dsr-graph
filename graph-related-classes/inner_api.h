@@ -1,8 +1,8 @@
 #ifndef INNER_API
 #define INNER_API
 
-#include "../../../graph-related-classes/CRDT.h"
 #include <qmat/QMatAll>
+#include "CRDT.h"
 
 class InnerAPI
 {

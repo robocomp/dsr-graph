@@ -26,7 +26,6 @@
 #include "topics/DSRGraphPubSubTypes.h"
 
 
-
 #define NO_PARENT -1
 #define TIMEOUT 5
 
@@ -61,32 +60,15 @@ namespace CRDT
     /////////////////////////////////////////////////////////////////
     /// Wrapper for Node struct to include nice access API
     /////////////////////////////////////////////////////////////////
-    // // New API proposal
-	// auto [node, success] = G->getNode("base");
-	
-	// node->addOrAssignAttrib("id", val);
-	// auto att = node->getAttrib("id");
-	// auto atts = node->getAttribsByType("type");
-	// auto edge = node->getEdge(key(to, "type"))
-	// node->removeAttrib("id")
-	// node->removeEdge(key(to, "type"))
-	// RTMat node->getEdgeRTAttrib(to)
-
-	// auto eatt = edge->getAttrib("name");
-	// edge->addOrAssignAttrib("name", val);
-	// auto eatt = edge->removeAttrib("name");
-	// auto eatts = edge->getAttribsByType("type");
-	// RTMat edge->getRTAttrib();
-	
-	// G->insertOrAssignNode(node);
-	// G->removeNode(node);
-    class Vertex
+    
+    class Vertex            // NOT TO BE USED
     {
         public:
             Vertex(N _node) : node(std::move(_node)) {};
             Vertex(Vertex &v) : node(std::move(v.node)) {};
             N& getNode() { return node; };
-            int id() const {return node.id();};
+            int id() const { return node.id(); };
+            std::string type() const { return node.type(); };
             int getLevel() const { return std::stoi(getAttrib("level").value()); };
             int getParentId() const { return std::stoi(getAttrib("parent").value()); };
             AttribValue getAttrib(const std::string &name) const 
@@ -146,7 +128,7 @@ namespace CRDT
     };
 
     /////////////////////////////////////////////////////////////////
-    /// CRDT API
+    /// CRDT Graph class
     /////////////////////////////////////////////////////////////////
 
     class CRDTGraph : public QObject
@@ -169,58 +151,93 @@ namespace CRDT
             // Utils
             void read_from_file(const std::string &xml_file_path);
             void read_from_json_file(const std::string &json_file_path);
-            void write_to_json_file(const std::string &json_file_path);
+            void write_to_json_file(const std::string &json_file_path);           
             bool empty(const int &id);
             void print();
             std::map<long,Node> getCopy() const;
             std::vector<long> getKeys() const;
             
+            //////////////////////////////////////////////////////////////////////////
             // Nodes
+            /////////////////////////////////////////////////////////////////////////
             std::shared_ptr<Vertex> getNode(const std::string& name) { return std::make_shared<Vertex>(get_node(name));};
             std::shared_ptr<Vertex> getNode(int id)                  { return std::make_shared<Vertex>(get_node(id));};
+            /**
+             * @brief Returns a copy of the node by its name (thread safe)
+             * 
+             * @param name 
+             * @return Node 
+             */
             Node get_node(const std::string& name);
             Node get_node(int id);
             bool insert_or_assign_node(const N &node);
+            bool insert_or_assign_node(const std::shared_ptr<Vertex> &node);
             bool delete_node(const std::string &name);
             bool delete_node(int id);
+            std::map<int, Node> get_node_neighboors(const Node &node);    // to be implemented
+            std::map<int, Node> get_node_neighboors_of_type(const Node &node, const std::string &type);    // to be implemented
+         
+            std::string get_name_from_id(std::int32_t id);
+            int get_id_from_name(const std::string &name);
+            
+            /**
+             * @brief Get the node's level 
+             * 
+             * @param n 
+             * @return std::int32_t 
+             */
+            std::int32_t get_node_level(const Node& n) const ;
+            /**
+             * @brief Get the node level of object
+             * 
+             * @param n 
+             * @return std::int32_t 
+             */
+            std::int32_t get_node_parent(const Node& n) const;
+            /**
+             * @brief Get the node type of object
+             * 
+             * @param n 
+             * @return std::string 
+             */
+            std::string get_node_type(const Node& n) const;
+            /**
+             * @brief Get the node's attrib by its name 
+             * 
+             * @param n 
+             * @param key 
+             * @return AttribValue 
+             */
+            AttribValue get_node_attrib_by_name(const Node& n, const std::string &key) const;
+            /**
+             * @brief  Templated version to convert returned value of node's attrib to desired type. 
+             * 
+             * @tparam Ta 
+             * @param n 
+             * @param key 
+             * @return Ta 
+             */
+            template <typename Ta>
+            Ta get_node_attrib_by_name(const Node& n, const std::string &key) 
+            {
+                AttribValue av = get_node_attrib_by_name(n, key);
+                return icevalue_to_nativetype<Ta>(key, av.value());
+            }
+            /**
+             * @brief Adds an atribute to the attributes map v with name att_name and one of the permitted types
+             * TO BE CHANGED by Unions
+             * @param v 
+             * @param att_name 
+             * @param att_value 
+             */
+            void add_attrib(std::map<string, AttribValue> &v, std::string att_name, CRDT::MTypes att_value);
+            //void add_edge_attribs(vector<EdgeAttribs> &v, EdgeAttribs& ea);
 
             // not working yet
             typename std::map<int, aworset<N,int>>::const_iterator begin() const { return nodes.getMap().begin(); };
             typename std::map<int, aworset<N,int>>::const_iterator end() const { return nodes.getMap().end(); };
 
-            //Edges
-            EdgeAttribs get_edge(const std::string& from, const std::string& to, const std::string& key);
-            EdgeAttribs get_edge(int from, int to, const std::string& key);
-
-            bool insert_or_assign_edge(const EdgeAttribs& attrs);
-            bool delete_edge(const std::string& from, const std::string& t);
-            bool delete_edge(int from, int t);
-
-            std::string get_name_from_id(std::int32_t id);
-            int get_id_from_name(const std::string &name);
-
-            //////////////////////////////////////////////////////
-            ///  Not sure who uses these
-            //////////////////////////////////////////////////////
-
-            Nodes get();
-            N get(int id);
-            
-            //////////////////////////////////////////////////////
-            /// API to access attributes
-            //////////////////////////////////////////////////////
-            uint getLevel(){return 0;};
-            long getParentId(){return 0;};
-            // gets a const node ref and searches an attrib by its name. 
-            AttribValue get_node_attrib_by_name(const Node& n, const std::string &key);
-        
-            // Templated version to convert returned value to template type. 
-            template <typename Ta>
-            Ta get_node_attrib_by_name(Node& n, const std::string &key)
-            {
-                AttribValue av = get_node_attrib_by_name(n, key);
-                return icevalue_to_nativetype<Ta>(key, av.value());
-            }
+             // Return type conversion methods to be replaced by Union stuff
             std::tuple<std::string, std::string, int> mtype_to_icevalue(const MTypes &t);
             template <typename Ta>
             Ta icevalue_to_nativetype(const std::string &name, const std::string &val)
@@ -228,12 +245,25 @@ namespace CRDT
                 return std::get<Ta>(icevalue_to_mtypes(name, val));
             };
             MTypes icevalue_to_mtypes(const std::string &name, const std::string &val);
-            std::int32_t get_node_level(Node& n);
-            std::string get_node_type(Node& n);
 
-            // Adds an atribute to the map v with name att_name and one of the permitted types
-            void add_attrib(std::map<string, AttribValue> &v, std::string att_name, CRDT::MTypes att_value);
-            //void add_edge_attribs(vector<EdgeAttribs> &v, EdgeAttribs& ea);
+            ///////////////////////////////////
+            // Edges
+            ///////////////////////////////////
+            EdgeAttribs get_edge(const std::string& from, const std::string& to, const std::string& key);
+            EdgeAttribs get_edge(int from, int to, const std::string& key);
+            bool insert_or_assign_edge(const EdgeAttribs& attrs);
+            bool delete_edge(const std::string& from, const std::string& t);
+            bool delete_edge(int from, int t);
+            RTMat get_edge_RT(const Node &n, int to);                                                  // to be implemented
+            void insert_or_assign_edge_RT(const Node &n, int to, const std::vector<double> &values);   // to be implemented
+            map<edgeKey, EdgeAttribs> get_all_edges(const Node &n);                                    // to be implemented
+            map<edgeKey, EdgeAttribs> get_all_edges_of_type(const Node &n);                            // to be implemented
+
+            //////////////////////////////////////////////////////
+            ///  Not sure who uses these
+            //////////////////////////////////////////////////////
+            Nodes get();
+            N get(int id);
 
             //For debug
             int count = 0;
@@ -243,7 +273,6 @@ namespace CRDT
             int graph_root;
             bool work;
             mutable std::shared_mutex _mutex;
-            //std::thread read_thread, request_thread, server_thread; // Threads
             std::string filter;
             std::string agent_name;
             const int agent_id;
@@ -251,6 +280,7 @@ namespace CRDT
             std::map<string, int> name_map;     // mapping between name and id of nodes
             std::map<int, string> id_map;
 
+           
             bool in(const int &id);
             N get_(int id);
             bool insert_or_assign_node_(const N &node);

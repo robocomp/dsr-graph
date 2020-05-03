@@ -112,7 +112,7 @@ void SpecificWorker::updateBState()
 	auto world = G->getNode("world");
 	if (base.id() == -1) return;
 	world->insertOrAssignRTEdge(base.id(), std::vector<double>{bState.x, 0., bState.z, 0., bState.alpha, 0.});
-	G->insert_or_assign_node(world->getNode());
+	G->insert_or_assign_node(world);
 	
 	// check
 	QVec dsr = innermodel->transformS("box_2", QVec::vec3(0,0,0), "hokuyo_base");
