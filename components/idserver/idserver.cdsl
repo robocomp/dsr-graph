@@ -8,5 +8,6 @@ Component idserver
         implements DSRGetID;
     };
     language Cpp11;
+    gui Qt(QMainWindow);
 };
 

@@ -21,12 +21,22 @@
 * \brief Default constructor
 */
 GenericWorker::GenericWorker(TuplePrx tprx) :
+#ifdef USE_QTGUI
+Ui_guiDlg()
+#else
 QObject()
+#endif
+
 {
 
 
 	mutex = new QMutex(QMutex::Recursive);
 
+
+	#ifdef USE_QTGUI
+		setupUi(this);
+		show();
+	#endif
 	Period = BASIC_PERIOD;
 	connect(&timer, SIGNAL(timeout()), this, SLOT(compute()));
 
@@ -54,4 +64,3 @@ void GenericWorker::setPeriod(int p)
 	Period = p;
 	timer.start(Period);
 }
-
