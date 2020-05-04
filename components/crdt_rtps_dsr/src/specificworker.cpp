@@ -50,6 +50,7 @@ void SpecificWorker::initialize(int period) {
 
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
+    G->print();
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
