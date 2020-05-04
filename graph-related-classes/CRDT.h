@@ -25,9 +25,10 @@
 #include "fast_rtps/dsrsubscriber.h"
 #include "topics/DSRGraphPubSubTypes.h"
 
-
 #define NO_PARENT -1
 #define TIMEOUT 5
+
+using namespace std::chrono_literals;
 
 // Overload pattern used inprintVisitor
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
@@ -61,12 +62,12 @@ namespace CRDT
     /// Wrapper for Node struct to include nice access API
     /////////////////////////////////////////////////////////////////
     
-    class Vertex            // NOT TO BE USED
+    class Vertex   
     {
         public:
             Vertex(N _node) : node(std::move(_node)) {};
             Vertex(Vertex &v) : node(std::move(v.node)) {};
-            N& getNode() { return node; };
+            N& getNode() { return node; };              // so it can be reinserted
             int id() const { return node.id(); };
             std::string type() const { return node.type(); };
             int getLevel() const { return std::stoi(getAttrib("level").value()); };
@@ -140,7 +141,7 @@ namespace CRDT
             ~CRDTGraph();
 
             // threads
-            void start_fullgraph_request_thread();
+            bool start_fullgraph_request_thread();
             void start_fullgraph_server_thread();
             void start_subscription_thread(bool showReceived);
 
@@ -314,7 +315,7 @@ namespace CRDT
             // Threads handlers
             void subscription_thread(bool showReceived);
             void fullgraph_server_thread();
-            void fullgraph_request_thread();
+            bool fullgraph_request_thread();
 
             // Translators
             AworSet translateAwCRDTtoICE(int id, aworset<N, int> &data);
