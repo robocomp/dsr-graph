@@ -38,6 +38,14 @@ CRDTGraph::CRDTGraph(int root, std::string name, int id) : agent_id(id) {
     dsrpub_graph_request.init(participant_handle, "DSR_GRAPH_REQUEST", dsrparticipant.getRequestTopicName());
     dsrpub_request_answer.init(participant_handle, "DSR_GRAPH_ANSWER", dsrparticipant.getAnswerTopicName());
 
+    // RTPS Initialize comms threads
+    start_subscription_thread(true);     // regular subscription to deltas
+    bool res = start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
+    if(res == false)
+        qFatal("CRDTGraph aborting: could not get DSR from the network");  //JC ¿se pueden limpiar aquí cosas antes de salir?
+
+    qDebug() << __FUNCTION__ << "Constructor finished OK";
+
 }
 
 CRDTGraph::~CRDTGraph() 
@@ -587,8 +595,8 @@ void CRDTGraph::join_full_graph(OrMap full_graph)
             emit update_node_signal(id, type);
 }
 
-void CRDTGraph::start_fullgraph_request_thread() {
-    fullgraph_request_thread();
+bool CRDTGraph::start_fullgraph_request_thread() {
+    return fullgraph_request_thread();
 }
 
 void CRDTGraph::start_fullgraph_server_thread() {
@@ -705,10 +713,9 @@ void CRDTGraph::fullgraph_server_thread()
     dsrsub_graph_request.init(dsrparticipant.getParticipant(), "DSR_GRAPH_REQUEST", dsrparticipant.getRequestTopicName(), dsrpub_graph_request_call);
 };
 
-void CRDTGraph::fullgraph_request_thread() {
-
+bool CRDTGraph::fullgraph_request_thread() 
+{
     bool sync = false;
-
     // Answer Topic
     auto lambda_request_answer = [&sync] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
 
@@ -730,17 +737,24 @@ void CRDTGraph::fullgraph_request_thread() {
     dsrpub_request_answer_call = NewMessageFunctor(this, &work, lambda_request_answer);
     dsrsub_request_answer.init(dsrparticipant.getParticipant(), "DSR_GRAPH_ANSWER", dsrparticipant.getAnswerTopicName(),dsrpub_request_answer_call);
 
-    sleep(1);
+    //sleep(1);
+    std::this_thread::sleep_for(300ms);
 
     std::cout << " Requesting the complete graph " << std::endl;
     GraphRequest gr;
     gr.from(agent_name);
     dsrpub_graph_request.write(&gr);
 
-    while (!sync) {
-        sleep(1);
+    bool timeout = false;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    while (!sync and !timeout) 
+    {
+        std::this_thread::sleep_for(500ms);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        timeout = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > TIMEOUT;
     }
     eprosima::fastrtps::Domain::removeSubscriber(dsrsub_request_answer.getSubscriber());
+    return sync;
     //start_subscription_thread(true);
 }
 

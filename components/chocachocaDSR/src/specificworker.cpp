@@ -85,6 +85,8 @@ void SpecificWorker::compute()
     auto base = G->get_node("base");
     auto &b_at = base.attrs();
     std::vector<float> l_angles = G->get_node_attrib_by_name<std::vector<float>>(laser, "laser_data_angles");
+    //std::vector<float> l_angles = G->get_node_attrib_by_name<std::vector<float>>("hokuyo_base", "laser_data_angles");
+    
     std::vector<float> l_dists = G->get_node_attrib_by_name<std::vector<float>>(laser, "laser_data_dists");
 
     std::sort( l_dists.begin(), l_dists.end(), [](const float a, const float b){ return  a < b; });      
