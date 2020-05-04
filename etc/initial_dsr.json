@@ -1,423 +1,337 @@
 {
-    "DSRModel": {
-       "symbol": [
-          {
-             "attribute": [
-                {
-                   "key": "width",
-                   "value": "640"
-                },
-                {
-                   "key": "ifconfig",
-                   "value": "40000,50000"
-                },
-                {
-                   "key": "noise",
-                   "value": "0"
-                },
-                {
-                   "key": "imType",
-                   "value": "rgbd"
-                },
-                {
-                   "key": "imName",
-                   "value": "rgbd"
-                },
-                {
-                   "key": "posy",
-                   "value": "197,922394"
-                },
-                {
-                   "key": "parent",
-                   "value": "131"
-                },
-                {
-                   "key": "focal",
-                   "value": "490"
-                },
-                {
-                   "key": "height",
-                   "value": "480"
-                },
-                {
-                   "key": "name",
-                   "value": "rgbd [138]"
-                },
-                {
-                   "key": "port",
-                   "value": "10096"
-                },
-                {
-                   "key": "level",
-                   "value": "3"
-                },
-                {
-                   "key": "color",
-                   "value": "coral"
-                },
-                {
-                   "key": "posx",
-                   "value": "-246,617584"
-                }
-             ],
-             "id": "138",
-             "type": "rgbd",
-             "name": "rgbd"
-          },
-          {
-             "attribute": [
-                {
-                   "key": "mass",
-                   "value": "0"
-                },
-                {
-                   "key": "posx",
-                   "value": "-339,240509"
-                },
-                {
-                   "key": "imType",
-                   "value": "transform"
-                },
-                {
-                   "key": "parent",
-                   "value": "131"
-                },
-                {
-                   "key": "engine",
-                   "value": "static"
-                },
-                {
-                   "key": "name",
-                   "value": "transform [133]"
-                },
-                {
-                   "key": "level",
-                   "value": "2"
-                },
-                {
-                   "key": "color",
-                   "value": "SteelBlue"
-                },
-                {
-                   "key": "posy",
-                   "value": "-57,383965"
-                },
-                {
-                   "key": "imName",
-                   "value": "laserPose"
-                }
-             ],
-             "id": "133",
-             "type": "transform",
-             "name": "laserPose"
-          },
-          {
-             "attribute": [
-                {
-                   "key": "posx",
-                   "value": "-235,448044"
-                },
-                {
-                   "key": "noise",
-                   "value": "0"
-                },
-                {
-                   "key": "imType",
-                   "value": "differentialrobot"
-                },
-                {
-                   "key": "parent",
-                   "value": "100"
-                },
-                {
-                   "key": "name",
-                   "value": "differentialrobot [131]"
-                },
-                {
-                   "key": "port",
-                   "value": "10004"
-                },
-                {
-                   "key": "level",
-                   "value": "1"
-                },
-                {
-                   "key": "color",
-                   "value": "GoldenRod"
-                },
-                {
-                   "key": "collide",
-                   "value": "false"
-                },
-                {
-                   "key": "posy",
-                   "value": "-168,177170"
-                },
-                {
-                   "key": "imName",
-                   "value": "base"
-                }
-             ],
-             "id": "131",
-             "type": "differentialrobot",
-             "name": "base"
-          },
-          {
-             "attribute": [
-                {
-                   "key": "imName",
-                   "value": "Strings"
-                },
-                {
-                   "key": "posy",
-                   "value": "23,562189"
-                },
-                {
-                   "key": "pz",
-                   "value": "-200"
-                },
-                {
-                   "key": "collidable",
-                   "value": "false"
-                },
-                {
-                   "key": "imType",
-                   "value": "plane"
-                },
-                {
-                   "key": "ny",
-                   "value": "0"
-                },
-                {
-                   "key": "texture",
-                   "value": "#ff0000"
-                },
-                {
-                   "key": "height",
-                   "value": "100"
-                },
-                {
-                   "key": "level",
-                   "value": "3"
-                },
-                {
-                   "key": "parent",
-                   "value": "133"
-                },
-                {
-                   "key": "posx",
-                   "value": "-345,578766"
-                },
-                {
-                   "key": "nx",
-                   "value": "0"
-                },
-                {
-                   "key": "name",
-                   "value": "plane [135]"
-                },
-                {
-                   "key": "py",
-                   "value": "0"
-                },
-                {
-                   "key": "repeat",
-                   "value": "1"
-                },
-                {
-                   "key": "nz",
-                   "value": "1"
-                },
-                {
-                   "key": "px",
-                   "value": "0"
-                },
-                {
-                   "key": "color",
-                   "value": "Khaki"
-                },
-                {
-                   "key": "width",
-                   "value": "100"
-                },
-                {
-                   "key": "depth",
-                   "value": "1"
-                },
-                {
-                   "key": "String",
-                   "value": ""
-                }
-             ],
-             "id": "135",
-             "type": "plane",
-             "name": "Strings"
-          },
-          {
-             "attribute": [
-                {
-                   "key": "imType",
-                   "value": "transform"
-                },
-                {
-                   "key": "parent",
-                   "value": "0"
-                },
-                {
-                   "key": "name",
-                   "value": "world [100]"
-                },
-                {
-                   "key": "level",
-                   "value": "0"
-                },
-                {
-                   "key": "color",
-                   "value": "SeaGreen"
-                },
-                {
-                   "key": "posx",
-                   "value": "-90,295357"
-                },
-                {
-                   "key": "posy",
-                   "value": "-286,075958"
-                },
-                {
-                   "key": "imName",
-                   "value": "world"
-                }
-             ],
-             "id": "100",
-             "type": "world",
-             "name": "world"
-          }
-       ],
-       "link": [
-          {
-             "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "0"
-                },
-                {
-                   "key": "ty",
-                   "value": "0"
-                },
-                {
-                   "key": "tz",
-                   "value": "0"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0"
-                },
-                {
-                   "key": "ry",
-                   "value": "0"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0"
-                }
-             ],
-             "src": "133",
-             "dst": "135",
-             "label": "RT"
-          },
-          {
-             "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "0"
-                },
-                {
-                   "key": "ty",
-                   "value": "210"
-                },
-                {
-                   "key": "tz",
-                   "value": "200"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0"
-                },
-                {
-                   "key": "ry",
-                   "value": "0"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0"
-                }
-             ],
-             "src": "131",
-             "dst": "138",
-             "label": "RT"
-          },
-          {
-             "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "0"
-                },
-                {
-                   "key": "ty",
-                   "value": "140"
-                },
-                {
-                   "key": "tz",
-                   "value": "200"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0"
-                },
-                {
-                   "key": "ry",
-                   "value": "0"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0"
-                }
-             ],
-             "src": "131",
-             "dst": "133",
-             "label": "RT"
-          },
-          {
-             "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "-1614.65"
-                },
-                {
-                   "key": "ty",
-                   "value": "0"
-                },
-                {
-                   "key": "tz",
-                   "value": "-1597.64"
-                },
-                {
-                   "key": "rx",
-                   "value": "0"
-                },
-                {
-                   "key": "ry",
-                   "value": "2.12397"
-                },
-                {
-                   "key": "rz",
-                   "value": "0"
-                }
-             ],
-             "src": "100",
-             "dst": "131",
-             "label": "RT"
-          }
-       ]
-    }
- }
+   "DSRModel": {
+      "symbol": [
+         {
+            "attribute": [
+               {
+                  "key": "ifconfig",
+                  "value": "40000,50000"
+               },
+               {
+                  "key": "noise",
+                  "value": "0"
+               },
+               {
+                  "key": "imType",
+                  "value": "laser"
+               },
+               {
+                  "key": "imName",
+                  "value": "laser"
+               },
+               {
+                  "key": "pos_y",
+                  "value": "197,922394"
+               },
+               {
+                  "key": "parent",
+                  "value": "131"
+               },
+               {
+                  "key": "name",
+                  "value": "laser [138]"
+               },
+               {
+                  "key": "port",
+                  "value": "10096"
+               },
+               {
+                  "key": "level",
+                  "value": "2"
+               },
+               {
+                  "key": "color",
+                  "value": "coral"
+               },
+               {
+                  "key": "pos_x",
+                  "value": "-246,617584"
+               }
+            ],
+            "id": "138",
+            "type": "laser",
+            "name": "hokuyo_base"
+         },
+         {
+            "attribute": [
+               {
+                  "key": "pos_x",
+                  "value": "-235,448044"
+               },
+               {
+                  "key": "noise",
+                  "value": "0"
+               },
+               {
+                  "key": "imType",
+                  "value": "differentialrobot"
+               },
+               {
+                  "key": "parent",
+                  "value": "100"
+               },
+               {
+                  "key": "name",
+                  "value": "differentialrobot [131]"
+               },
+               {
+                  "key": "port",
+                  "value": "10004"
+               },
+               {
+                  "key": "level",
+                  "value": "1"
+               },
+               {
+                  "key": "color",
+                  "value": "GoldenRod"
+               },
+               {
+                  "key": "collide",
+                  "value": "false"
+               },
+               {
+                  "key": "pos_y",
+                  "value": "-168,177170"
+               },
+               {
+                  "key": "imName",
+                  "value": "base"
+               },
+               {
+                 "key": "advance_speed",
+                 "value": "0"
+              },
+              {
+                 "key": "rotation_speed",
+                 "value": "0"
+              }
+            ],
+            "id": "131",
+            "type": "differentialrobot",
+            "name": "base"
+         },
+         {
+            "attribute": [
+               {
+                  "key": "imName",
+                  "value": "Strings"
+               },
+               {
+                  "key": "pos_y",
+                  "value": "23,562189"
+               },
+               {
+                  "key": "collidable",
+                  "value": "false"
+               },
+               {
+                  "key": "imType",
+                  "value": "plane"
+               },
+               {
+                  "key": "nx",
+                  "value": "0"
+               },
+               {
+                  "key": "texture",
+                  "value": "#ff0000"
+               },
+               {
+                  "key": "height",
+                  "value": "400"
+               },
+               {
+                  "key": "level",
+                  "value": "1"
+               },
+               {
+                  "key": "parent",
+                  "value": "100"
+               },
+               {
+                  "key": "pos_x",
+                  "value": "245,578766"
+               },
+               {
+                  "key": "nx",
+                  "value": "1"
+               },
+               {
+                  "key": "name",
+                  "value": "plane [135]"
+               },
+               {
+                  "key": "py",
+                  "value": "0"
+               },
+               {
+                  "key": "repeat",
+                  "value": "1"
+               },
+               {
+                  "key": "nz",
+                  "value": "0"
+               },
+               {
+                  "key": "px",
+                  "value": "0"
+               },
+               {
+                  "key": "color",
+                  "value": "Khaki"
+               },
+               {
+                  "key": "width",
+                  "value": "400"
+               },
+               {
+                  "key": "depth",
+                  "value": "400"
+               },
+               {
+                  "key": "String",
+                  "value": ""
+               }
+            ],
+            "id": "135",
+            "type": "plane",
+            "name": "box_2"
+         },
+         {
+            "attribute": [
+               {
+                  "key": "imType",
+                  "value": "transform"
+               },
+               {
+                  "key": "parent",
+                  "value": "0"
+               },
+               {
+                  "key": "name",
+                  "value": "world [100]"
+               },
+               {
+                  "key": "level",
+                  "value": "0"
+               },
+               {
+                  "key": "color",
+                  "value": "SeaGreen"
+               },
+               {
+                  "key": "pos_x",
+                  "value": "-90,295357"
+               },
+               {
+                  "key": "pos_y",
+                  "value": "-286,075958"
+               },
+               {
+                  "key": "imName",
+                  "value": "world"
+               }
+            ],
+            "id": "100",
+            "type": "world",
+            "name": "world"
+         }
+      ],
+      "link": [
+         {
+            "linkAttribute": [
+               {
+                  "key": "tx",
+                  "value": "0"
+               },
+               {
+                  "key": "ty",
+                  "value": "210"
+               },
+               {
+                  "key": "tz",
+                  "value": "200"
+               },
+               {
+                  "key": "rx",
+                  "value": "-0"
+               },
+               {
+                  "key": "ry",
+                  "value": "0"
+               },
+               {
+                  "key": "rz",
+                  "value": "-0"
+               }
+            ],
+            "src": "131",
+            "dst": "138",
+            "label": "RT"
+         },
+         {
+            "linkAttribute": [
+               {
+                  "key": "tx",
+                  "value": "1300"
+               },
+               {
+                  "key": "ty",
+                  "value": "0"
+               },
+               {
+                  "key": "tz",
+                  "value": "1200"
+               },
+               {
+                  "key": "rx",
+                  "value": "-0"
+               },
+               {
+                  "key": "ry",
+                  "value": "0"
+               },
+               {
+                  "key": "rz",
+                  "value": "-0"
+               }
+            ],
+            "src": "100",
+            "dst": "135",
+            "label": "RT"
+         },
+         {
+            "linkAttribute": [
+               {
+                  "key": "tx",
+                  "value": "-1614.65"
+               },
+               {
+                  "key": "ty",
+                  "value": "0"
+               },
+               {
+                  "key": "tz",
+                  "value": "-1597.64"
+               },
+               {
+                  "key": "rx",
+                  "value": "0"
+               },
+               {
+                  "key": "ry",
+                  "value": "2.12397"
+               },
+               {
+                  "key": "rz",
+                  "value": "0"
+               }
+            ],
+            "src": "100",
+            "dst": "131",
+            "label": "RT"
+         }
+      ]
+   }
+}
