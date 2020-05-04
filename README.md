@@ -10,38 +10,7 @@ To install this component,
     *  https://github.com/eProsima/Fast-RTPS#manual-installation
     
     You will need three libs: Fast CDR, Foonathan memory and Fast RTPS in this order.
-
-    *  En el fichero Fast-CDR/include/fastcdr/Cdr.h , línea 2146. Cambiar la función deserialize por esta otra (es la misma solo que Key y Value se definen dentro del bucle) :
-```
- template<class _K, class _T>
-                    Cdr& deserialize(std::map<_K, _T> &map_t)
-                    {
-                        uint32_t seqLength = 0;
-                        state state_(*this);
-
-                        *this >> seqLength;
-
-                        try
-                        {
-                            //map_t.resize(seqLength);
-                            for (uint32_t i = 0; i < seqLength; ++i)
-                            {
-                                _K key;
-                                _T value;
-                                *this >> key;
-                                *this >> value;
-                                map_t.emplace(std::pair<_K, _T>(key, value));
-                            }
-                            //return deserializeArray(vector_t.data(), vector_t.size());
-                        }
-                        catch(eprosima::fastcdr::exception::Exception &ex)
-                        {
-                            setState(state_);
-                            ex.raise();
-                        }
-
-                        return *this;
-                    }
+    
 ```
 Compile and install:
 ```bash
