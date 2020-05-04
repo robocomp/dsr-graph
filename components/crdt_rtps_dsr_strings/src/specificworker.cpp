@@ -103,19 +103,19 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    //test_concurrent_access(1);
+    test_concurrent_access(1);
+    //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_create_or_remove_node(100, 10000, 10);
     // if (write_string)
     //     test_set_string(0);
     //   test_nodes_mov();
     // test_node_random();
-    int num_ops = 100000;
+    /*int num_ops = 100000;
     test_set_string(0, num_ops, 0);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
-    sleep(5);
+    qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";*/
+    sleep(25);
     G->write_to_json_file(dsr_output_file);
     //exit(0);
 }
@@ -138,7 +138,7 @@ int SpecificWorker::newID()
     int node_id;
     try{
         node_id = dsrgetid_proxy->getID();
-        created_nodos.emplace_back(node_id);
+        created_nodos.push_back(node_id);
         qDebug()<<"New nodeID: "<<node_id;
     }catch(...)
     {
@@ -188,7 +188,7 @@ void SpecificWorker::test_concurrent_access(int num_threads)
    // threads for testing concurrent accesses inside one agent
     threads.resize(num_threads);
     for(int i=0; auto &t : threads)
-        t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++, 1000, 10));
+        t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++, 2000, 10));
     qDebug() << __FUNCTION__ << "Threads initiated";
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -201,9 +201,10 @@ void SpecificWorker::test_concurrent_access(int num_threads)
     std::string result = "test_concurrent_access: test_create_or_remove_node"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
     write_test_output(result);
 
+
     threads.resize(num_threads);
     for(int i=0; auto &t : threads)
-    t = std::move(std::thread(&SpecificWorker::test_create_or_remove_edge, this, i++, 1000, 10));
+    t = std::move(std::thread(&SpecificWorker::test_create_or_remove_edge, this, i++, 100, 10));
     qDebug() << __FUNCTION__ << "Threads initiated";
 
     begin = std::chrono::steady_clock::now();
@@ -215,6 +216,7 @@ void SpecificWorker::test_concurrent_access(int num_threads)
     time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
     result = "test_concurrent_access: test_create_or_remove_edge"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
     write_test_output(result);
+
 }
 void SpecificWorker::test_create_or_remove_node(int i, int iters, int delay)
 {
@@ -233,9 +235,13 @@ void SpecificWorker::test_create_or_remove_node(int i, int iters, int delay)
             node.id( id );
             node.agent_id(agent_id);
             node.name("plane" + std::to_string(id));
-            std::map<string, AttribValue> attrs;
+            std::map<string, Attribs> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
+            auto dis = std::uniform_real_distribution(-200.0, 200.0);
+            G->add_attrib(attrs, "pos_x", (float)dis(mt));
+            G->add_attrib(attrs, "pos_y", (float)dis(mt));
+
             node.attrs(attrs);
             
             // insert node
@@ -271,12 +277,12 @@ void SpecificWorker::test_create_or_remove_edge(int i, int iter, int delay)
             //qDebug() << __FUNCTION__ << "Create node";
             // create edge
 
-            EdgeAttribs edge;
-            edge.label("Edge");
+            Edge edge;
+            edge.type("Edge");
             //get two ids
             edge.from(getID());
             edge.to(getID());
-            std::map<string, AttribValue> attrs;
+            std::map<string, Attribs> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
             edge.attrs(attrs);
