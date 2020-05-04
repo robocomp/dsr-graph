@@ -59,16 +59,12 @@ void SpecificWorker::initialize(int period) {
     mt = std::mt19937(rd());
     dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
     randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    timer.start(20);
+    timer.start(100);
 }
 
 void SpecificWorker::compute()
 {
-    // if(read_file)
-    //     test_laser();
-
-   //   test_nodes_mov();
-   // test_node_random();
+   
 }
 
 
