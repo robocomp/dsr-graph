@@ -47,23 +47,25 @@ void SpecificWorker::initialize(int period) {
 
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
+    
+    // InnerAPI
     innermodel = std::make_unique<InnerAPI>(G);
 
     // read graph content from file
-    if(read_file)
-    {
-        //G->read_from_file("grafo.xml");
-        G->read_from_json_file(dsr_input_file);
-        G->start_fullgraph_server_thread();
-        G->start_subscription_thread(true);
-        G->print();
-    }
-    else
-    {
+    // if(read_file)
+    // {
+    //     //G->read_from_file("grafo.xml");
+    //     G->read_from_json_file(dsr_input_file);
+    //     G->start_fullgraph_server_thread();
+    //     G->start_subscription_thread(true);
+    //     G->print();
+    // }
+    // else
+    // {
 
-        G->start_subscription_thread(true);     // regular subscription to deltas
-        G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-    }
+    //     G->start_subscription_thread(true);     // regular subscription to deltas
+    //     G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
+    // }
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
@@ -71,8 +73,8 @@ void SpecificWorker::initialize(int period) {
 
     // Random initialization
     // mt = std::mt19937(rd());
-    // dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
-    // randomNode = std::uniform_int_distribution((int)100, (int)140.0);
+    // unif_real = std::uniform_real_distribution((float)-40.0, (float)40.0);
+    // unif_int = std::uniform_int_distribution((int)100, (int)140.0);
     //timer.start(100);
     timer.setSingleShot(true);
     timer.start(10);
@@ -82,6 +84,7 @@ void SpecificWorker::compute()
 {
     qDebug() << __FUNCTION__;
     auto n = G->getNode("world");
+
 
     RTMat r = n->getEdgeRT(131);
     r.print("rt");

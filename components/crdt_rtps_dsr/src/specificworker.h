@@ -47,6 +47,7 @@ class SpecificWorker : public GenericWorker
 		//void test_nodes_mov();
 		void test_laser();
 		//void test_node_random();
+		
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;
