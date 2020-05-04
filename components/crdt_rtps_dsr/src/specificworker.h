@@ -8,7 +8,6 @@
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 
-
 #define LAPS 50
 #define NODES 1500
 #define TIMEOUT 5
@@ -20,7 +19,7 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(TuplePrx tprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return gcrdt;};
+		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
 	public slots:
 		void compute();
@@ -31,18 +30,19 @@ class SpecificWorker : public GenericWorker
 		void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
 
 	private:
-		InnerModel *innerModel;
+		std::shared_ptr<InnerModel> innerModel;
+
+		//params
 		std::string agent_name;
-		bool read_file = true;
 		int agent_id;
-		std::shared_ptr<CRDT::CRDTGraph> gcrdt;
+		std::string dsr_input_file;
+		std::string dsr_output_file;
+		std::string test_output_file;
+		bool read_file = false;
+		
+		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
-		// Tests
-		//void tester();
-		//void test_nodes_mov();
-		void test_laser();
-		//void test_node_random();
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;

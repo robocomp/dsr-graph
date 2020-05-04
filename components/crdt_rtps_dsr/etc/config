@@ -1,11 +1,15 @@
-CommonBehavior.Endpoints=tcp -p 10000
-
+CommonBehavior.Endpoints=tcp -p 10001
 
 # Proxies for required interfaces
 LaserProxy = laser:tcp -h localhost -p 10003
 DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
 
-
+agent_id = 0
+agent_name = agent0
+read_file = true
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
+dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent0_dsr.json
+test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent0_test.txt
 
 InnerModelPath = innermodel.xml
 
