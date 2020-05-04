@@ -98,6 +98,15 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 
     configGetString( "","agent_id", aux.value,"true");
     params["agent_id"] = aux;
+
+	configGetString( "","dsr_input_file", aux.value, "");
+    params["dsr_input_file"] = aux;
+
+	configGetString( "","dsr_output_file", aux.value, "");
+    params["dsr_output_file"] = aux;
+	
+	configGetString( "","test_output_file", aux.value, "");
+    params["test_output_file"] = aux;
 }
 
 //Check parameters and transform them to worker structure
