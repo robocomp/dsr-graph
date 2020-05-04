@@ -50,11 +50,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 
 	// create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
-	// read graph content from file
-    G->read_from_json_file(dsr_input_file);
-    G->start_fullgraph_server_thread();     // to receive requests form othe starting agents
-    G->start_subscription_thread(true);     // regular subscription to deltas
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
 
     get_max_id_from_json();
 	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
