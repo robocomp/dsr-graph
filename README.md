@@ -11,13 +11,12 @@ To install this component,
     
     You will need three libs: Fast CDR, Foonathan memory and Fast RTPS in this order.
     
-```
 Compile and install:
-```bash
+
 mkdir Fast-CDR/build && cd Fast-CDR/build
 cmake ..
 cmake --build . --target install
-```
+
 
 *  Install Foonathan Memory:
     * https://github.com/foonathan/memory
