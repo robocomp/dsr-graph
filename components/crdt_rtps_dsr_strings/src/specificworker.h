@@ -23,7 +23,7 @@ class SpecificWorker : public GenericWorker
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
 		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
-
+        std::string getAgentName() const { return agent_name; };
 	public slots:
 		void autokill();
 		void compute();
