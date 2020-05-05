@@ -38,9 +38,10 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void initialize();
-    std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
-    std::string getAgentName() const { return agent_name; };
-
+    
+	 // DSR
+    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::string agent_name;
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
@@ -53,9 +54,7 @@ private:
 	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	int node_id = -9999;
 
-    // DSR
-    std::shared_ptr<CRDT::CRDTGraph> G;
-    std::string agent_name;
+   
 
 	//params
 	int agent_id;
