@@ -21,9 +21,11 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(TuplePrx tprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
-        std::string getAgentName() const { return agent_name; };
-	public slots:
+
+        std::string agent_name;
+        std::shared_ptr<CRDT::CRDTGraph> G;
+
+    public slots:
 		void autokill();
 		void compute();
 		void initialize(int period);
@@ -34,11 +36,10 @@ class SpecificWorker : public GenericWorker
 
 	private:
 		InnerModel *innerModel;
-		std::string agent_name;
+
 		bool read_file;
 		bool write_string;
 		int agent_id;
-		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Tests
