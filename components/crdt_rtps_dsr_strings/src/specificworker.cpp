@@ -45,7 +45,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_output_file = params["dsr_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
     test_output_file = params["test_output_file"].value;
-
+    dsr_input_file = params["dsr_input_file"].value;    
     return true;
 }
 
