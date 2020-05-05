@@ -68,11 +68,20 @@ void SpecificWorker::compute()
 {
     auto vertex = G->get_vertex("world");
     vertex->print();
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
     auto edge = vertex->get_edge(131, "RT");
     edge->print();
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
     auto edges = vertex->get_edges();
     for(auto e: edges)
         e->print();
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    auto t = vertex->get_attrib_by_name<std::string>("imType");
+    //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
+    std::cout << t << std::endl;
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    auto m = edge->get_attrib_by_name<RTMat>("RT");
+    m.print("RT");
     
 }
 
