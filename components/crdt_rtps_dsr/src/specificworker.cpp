@@ -82,6 +82,10 @@ void SpecificWorker::compute()
     qDebug() << ":::::::::::::::::::::::::::::::::::";
     auto m = edge->get_attrib_by_name<RTMat>("RT");
     m.print("RT");
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    auto innermodel = G->get_inner_api();
+    auto r = innermodel->transform("world", "base");
+    r.print("r");
     
 }
 
