@@ -103,7 +103,7 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    test_concurrent_access(1);
+    //test_concurrent_access(1);
     //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_create_or_remove_node(100, 10000, 10);
     // if (write_string)
@@ -115,7 +115,7 @@ void SpecificWorker::compute()
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
     qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";*/
-    sleep(25);
+    sleep(5);
     G->write_to_json_file(dsr_output_file);
     //exit(0);
 }
