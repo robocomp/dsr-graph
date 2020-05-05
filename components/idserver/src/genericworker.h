@@ -23,6 +23,12 @@
 #include <stdint.h>
 #include <qlog/qlog.h>
 
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
+#include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
 #include <DSRGetID.h>
@@ -38,7 +44,11 @@ using TuplePrx = std::tuple<>;
 
 
 class GenericWorker :
-public QObject
+#ifdef USE_QTGUI
+	public QMainWindow, public Ui_guiDlg
+#else
+	public QObject
+ #endif
 {
 Q_OBJECT
 public:
@@ -64,7 +74,7 @@ private:
 
 public slots:
 	virtual void compute() = 0;
-    virtual void initialize(int period) = 0;
+	virtual void initialize(int period) = 0;
 	
 signals:
 	void kill();

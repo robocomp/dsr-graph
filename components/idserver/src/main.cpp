@@ -113,7 +113,11 @@ void ::idserver::initialize()
 
 int ::idserver::run(int argc, char* argv[])
 {
+#ifdef USE_QTGUI
+	QApplication a(argc, argv);  // GUI application
+#else
 	QCoreApplication a(argc, argv);  // NON-GUI application
+#endif
 
 
 	sigset_t sigs;
@@ -133,7 +137,6 @@ int ::idserver::run(int argc, char* argv[])
 
 	string proxy, tmp;
 	initialize();
-
 
 	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx);
@@ -186,11 +189,10 @@ int ::idserver::run(int argc, char* argv[])
 			adapterDSRGetID->add(dsrgetid, Ice::stringToIdentity("dsrgetid"));
 			adapterDSRGetID->activate();
 			cout << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << tmp << endl;
-			}
-			catch (const IceStorm::TopicExists&){
-				cout << "[" << PROGRAM_NAME << "]: ERROR creating or activating adapter for DSRGetID\n";
-			}
-
+		}
+		catch (const IceStorm::TopicExists&){
+			cout << "[" << PROGRAM_NAME << "]: ERROR creating or activating adapter for DSRGetID\n";
+		}
 
 
 		// Server adapter creation and publication

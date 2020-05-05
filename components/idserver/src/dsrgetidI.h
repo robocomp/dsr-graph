@@ -31,7 +31,7 @@ using namespace RoboCompDSRGetID;
 class DSRGetIDI : public virtual RoboCompDSRGetID::DSRGetID
 {
 public:
-DSRGetIDI(GenericWorker *_worker);
+	DSRGetIDI(GenericWorker *_worker);
 	~DSRGetIDI();
 
 	int getID(const Ice::Current&);
