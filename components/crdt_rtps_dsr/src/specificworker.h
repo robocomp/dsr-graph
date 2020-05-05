@@ -8,10 +8,6 @@
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 
-#define LAPS 50
-#define NODES 1500
-#define TIMEOUT 5
-
 class SpecificWorker : public GenericWorker
 {
 	Q_OBJECT
