@@ -40,6 +40,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     	agent_id = stoi(params["agent_id"].value);
     	dsr_input_file = params["dsr_input_file"].value;
    	 	dsr_output_path = params["dsr_output_path"].value;
+		dsr_write_to_file = params["dsr_write_to_file"].value == "true";
     	this->Period = stoi(params["period"].value);
 		return true;
 	}
@@ -58,6 +59,7 @@ void SpecificWorker::initialize(int period)
     
     get_max_id_from_G();
 	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+	timer.setSingleShot(dsr_write_to_file==false);
 	timer.start(Period);
 }
 

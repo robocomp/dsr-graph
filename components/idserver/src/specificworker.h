@@ -59,6 +59,7 @@ private:
 	std::string dsr_input_file;
 	std::string dsr_output_path;
 	int output_file_count = 0;
+	bool dsr_write_to_file;
 
 	void get_max_id_from_G();
 

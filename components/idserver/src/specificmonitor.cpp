@@ -97,6 +97,8 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
     params["dsr_output_path"] = aux;
 	configGetString( "","period", aux.value, "10000");
     params["period"] = aux;
+	configGetString( "","dsr_write_to_file", aux.value, "false");
+	params["dsr_write_to_file"] = aux;
 }
 
 //Check parameters and transform them to worker structure
