@@ -5,47 +5,58 @@
              "attribute": [
                 {
                    "key": "ifconfig",
-                   "value": "40000,50000"
+                   "value": "40000,50000",
+                   "type": "0"
                 },
                 {
                    "key": "noise",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "imType",
-                   "value": "laser"
+                   "value": "laser",
+                   "type": "0"
                 },
                 {
                    "key": "imName",
-                   "value": "laser"
+                   "value": "laser",
+                   "type": "0"
                 },
                 {
                    "key": "pos_y",
-                   "value": "197,922394"
+                   "value": "197,922394",
+                   "type": "2"
                 },
                 {
                    "key": "parent",
-                   "value": "131"
+                   "value": "131",
+                   "type": "1"
                 },
                 {
                    "key": "name",
-                   "value": "laser [138]"
+                   "value": "laser [138]",
+                   "type": "0"
                 },
                 {
                    "key": "port",
-                   "value": "10096"
+                   "value": "10096",
+                   "type": "1"
                 },
                 {
                    "key": "level",
-                   "value": "2"
+                   "value": "2",
+                   "type": "1"
                 },
                 {
                    "key": "color",
-                   "value": "coral"
+                   "value": "coral",
+                   "type": "0"
                 },
                 {
                    "key": "pos_x",
-                   "value": "-246,617584"
+                   "value": "-246,617584",
+                   "type": "2"
                 }
              ],
              "id": "138",
@@ -57,55 +68,68 @@
              "attribute": [
                 {
                    "key": "pos_x",
-                   "value": "-235,448044"
+                   "value": "-235,448044",
+                   "type": "2"
                 },
                 {
                    "key": "noise",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "imType",
-                   "value": "differentialrobot"
+                   "value": "differentialrobot",
+                   "type": "0"
                 },
                 {
                    "key": "parent",
-                   "value": "100"
+                   "value": "100",
+                   "type": "1"
                 },
                 {
                    "key": "name",
-                   "value": "differentialrobot [131]"
+                   "value": "differentialrobot [131]",
+                   "type": "0"
                 },
                 {
                    "key": "port",
-                   "value": "10004"
+                   "value": "10004",
+                   "type": "1"
                 },
                 {
                    "key": "level",
-                   "value": "1"
+                   "value": "1",
+                   "type": "1"
                 },
                 {
                    "key": "color",
-                   "value": "GoldenRod"
+                   "value": "GoldenRod",
+                   "type": "0"
                 },
                 {
                    "key": "collide",
-                   "value": "false"
+                   "value": "false",
+                   "type": "0"
                 },
                 {
                    "key": "pos_y",
-                   "value": "-168,177170"
+                   "value": "-168,177170",
+                   "type": "2"
                 },
                 {
                    "key": "imName",
-                   "value": "base"
+                   "value": "base",
+                   "type": "0"
                 },
                 {
                   "key": "advance_speed",
-                  "value": "0"
+                  "value": "0",
+                   "type": "2"
                },
                {
                   "key": "rotation_speed",
-                  "value": "0"
+                  "value": "0",
+                   "type": "2"
                }
              ],
              "id": "131",
@@ -115,27 +139,33 @@
              "linkAttribute": [
                 {
                    "key": "tx",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "ty",
-                   "value": "210"
+                   "value": "210",
+                   "type": "1"
                 },
                 {
                    "key": "tz",
-                   "value": "200"
+                   "value": "200",
+                   "type": "1"
                 },
                 {
                    "key": "rx",
-                   "value": "-0"
+                   "value": "-0",
+                   "type": "1"
                 },
                 {
                    "key": "ry",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "rz",
-                   "value": "-0"
+                   "value": "-0",
+                   "type": "1"
                 }
              ],
              "src": "131",
@@ -147,83 +177,103 @@
              "attribute": [
                 {
                    "key": "imName",
-                   "value": "Strings"
+                   "value": "Strings",
+                   "type": "0"
                 },
                 {
                    "key": "pos_y",
-                   "value": "23,562189"
+                   "value": "23,562189",
+                   "type": "2"
                 },
                 {
                    "key": "collidable",
-                   "value": "false"
+                   "value": "false",
+                   "type": "0"
                 },
                 {
                    "key": "imType",
-                   "value": "plane"
+                   "value": "plane",
+                   "type": "0"
                 },
                 {
                    "key": "nx",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "texture",
-                   "value": "#ff0000"
+                   "value": "#ff0000",
+                   "type": "0"
                 },
                 {
                    "key": "height",
-                   "value": "400"
+                   "value": "400",
+                   "type": "1"
                 },
                 {
                    "key": "level",
-                   "value": "1"
+                   "value": "1",
+                   "type": "1"
                 },
                 {
                    "key": "parent",
-                   "value": "100"
+                   "value": "100",
+                   "type": "1"
                 },
                 {
                    "key": "pos_x",
-                   "value": "245,578766"
+                   "value": "245,578766",
+                   "type": "2"
                 },
                 {
                    "key": "nx",
-                   "value": "1"
+                   "value": "1",
+                   "type": "1"
                 },
                 {
                    "key": "name",
-                   "value": "plane [135]"
+                   "value": "plane [135]",
+                   "type": "0"
                 },
                 {
                    "key": "py",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "repeat",
-                   "value": "1"
+                   "value": "1",
+                   "type": "1"
                 },
                 {
                    "key": "nz",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "px",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "color",
-                   "value": "Khaki"
+                   "value": "Khaki",
+                   "type": "0"
                 },
                 {
                    "key": "width",
-                   "value": "400"
+                   "value": "400",
+                   "type": "1"
                 },
                 {
                    "key": "depth",
-                   "value": "400"
+                   "value": "400",
+                   "type": "1"
                 },
                 {
                    "key": "String",
-                   "value": ""
+                   "value": "",
+                   "type": "0"
                 }
              ],
              "id": "135",
@@ -234,35 +284,43 @@
              "attribute": [
                 {
                    "key": "imType",
-                   "value": "transform"
+                   "value": "transform",
+                   "type": "0"
                 },
                 {
                    "key": "parent",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "name",
-                   "value": "world [100]"
+                   "value": "world [100]",
+                   "type": "0"
                 },
                 {
                    "key": "level",
-                   "value": "0"
+                   "value": "0",
+                   "type": "1"
                 },
                 {
                    "key": "color",
-                   "value": "SeaGreen"
+                   "value": "SeaGreen",
+                   "type": "0"
                 },
                 {
                    "key": "pos_x",
-                   "value": "-90,295357"
+                   "value": "-90,295357",
+                   "type": "2"
                 },
                 {
                    "key": "pos_y",
-                   "value": "-286,075958"
+                   "value": "-286,075958",
+                   "type": "2"
                 },
                 {
                    "key": "imName",
-                   "value": "world"
+                   "value": "world",
+                   "type": "0"
                 }
              ],
              "id": "100",
@@ -273,27 +331,33 @@
              "linkAttribute": [
                 {
                    "key": "tx",
-                   "value": "1300"
+                   "value": "1300",
+                   "type": "2"
                 },
                 {
                    "key": "ty",
-                   "value": "0"
+                   "value": "0",
+                   "type": "2"
                 },
                 {
                    "key": "tz",
-                   "value": "1200"
+                   "value": "1200",
+                   "type": "2"
                 },
                 {
                    "key": "rx",
-                   "value": "-0"
+                   "value": "-0",
+                   "type": "2"
                 },
                 {
                    "key": "ry",
-                   "value": "0"
+                   "value": "0",
+                   "type": "2"
                 },
                 {
                    "key": "rz",
-                   "value": "-0"
+                   "value": "-0",
+                   "type": "2"
                 }
              ],
              "src": "100",
@@ -304,27 +368,33 @@
              "linkAttribute": [
                 {
                    "key": "tx",
-                   "value": "-1614.65"
+                   "value": "-1614.65",
+                   "type": "2"
                 },
                 {
                    "key": "ty",
-                   "value": "0"
+                   "value": "0",
+                   "type": "2"
                 },
                 {
                    "key": "tz",
-                   "value": "-1597.64"
+                   "value": "-1597.64",
+                   "type": "2"
                 },
                 {
                    "key": "rx",
-                   "value": "0"
+                   "value": "0",
+                   "type": "2"
                 },
                 {
                    "key": "ry",
-                   "value": "2.12397"
+                   "value": "2.12397",
+                   "type": "2"
                 },
                 {
                    "key": "rz",
-                   "value": "0"
+                   "value": "0",
+                   "type": "2"
                 }
              ],
              "src": "100",
