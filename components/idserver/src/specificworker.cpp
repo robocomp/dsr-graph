@@ -59,8 +59,8 @@ void SpecificWorker::initialize(int period)
     
     get_max_id_from_G();
 	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
-	timer.setSingleShot(dsr_write_to_file==false);
-	timer.start(Period);
+	if(dsr_write_to_file);
+		timer.start(Period);
 }
 
 void SpecificWorker::compute()
