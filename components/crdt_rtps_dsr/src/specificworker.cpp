@@ -35,8 +35,7 @@ SpecificWorker::~SpecificWorker() {
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) 
 {
-    agent_name = params["agent_name"].value;
-    read_file = params["read_file"].value == "true";
+    
     agent_id = stoi(params["agent_id"].value);
     dsr_output_file = params["dsr_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
@@ -50,7 +49,7 @@ void SpecificWorker::initialize(int period)
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
     G->print();
 
     // GraphViewer creation
@@ -66,7 +65,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    auto vertex = G->get_vertex("base");
+    auto vertex = G->get_vertex("world");
     vertex->print();
     auto edge = vertex->get_edge(131, "RT");
     edge->print();
