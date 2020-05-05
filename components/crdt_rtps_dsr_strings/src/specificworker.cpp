@@ -235,7 +235,7 @@ void SpecificWorker::test_create_or_remove_node(int i, int iters, int delay)
             node.id( id );
             node.agent_id(agent_id);
             node.name("plane" + std::to_string(id));
-            std::map<string, Attribs> attrs;
+            std::map<string, Attrib> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
             auto dis = std::uniform_real_distribution(-200.0, 200.0);
@@ -282,7 +282,7 @@ void SpecificWorker::test_create_or_remove_edge(int i, int iter, int delay)
             //get two ids
             edge.from(getID());
             edge.to(getID());
-            std::map<string, Attribs> attrs;
+            std::map<string, Attrib> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
             edge.attrs(attrs);
