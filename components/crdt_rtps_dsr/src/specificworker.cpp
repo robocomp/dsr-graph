@@ -65,6 +65,10 @@ void SpecificWorker::initialize(int period) {
 
 void SpecificWorker::compute()
 {
+    auto vertex = G->get_vertex("base");
+    vertex->print();
+    auto edge = vertex->get_edge(131, "RT");
+    edge->print();
 }
 
 
