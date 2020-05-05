@@ -45,7 +45,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     return true;
 }
 
-void SpecificWorker::initialize(int period) {
+void SpecificWorker::initialize(int period) 
+{
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
@@ -69,6 +70,11 @@ void SpecificWorker::compute()
     vertex->print();
     auto edge = vertex->get_edge(131, "RT");
     edge->print();
+    auto edges = vertex->get_edges();
+    for(auto e: edges)
+        e->print();
+
+
 }
 
 
