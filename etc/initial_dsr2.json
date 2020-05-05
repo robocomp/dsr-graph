@@ -331,7 +331,7 @@
              "linkAttribute": [
                 {
                    "key": "tx",
-                   "value": "1300",
+                   "value": "1300,0",
                    "type": "2"
                 },
                 {
