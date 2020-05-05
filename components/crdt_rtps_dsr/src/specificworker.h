@@ -43,14 +43,13 @@ class SpecificWorker : public GenericWorker
 		std::string test_output_file;
 		bool read_file = false;
 		
-		
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;
-		std::uniform_real_distribution<float> dist;
-        std::uniform_int_distribution<int> randomNode;
+		std::uniform_real_distribution<float> unif_float;
+        std::uniform_int_distribution<int> unif_int;
 
 };
 

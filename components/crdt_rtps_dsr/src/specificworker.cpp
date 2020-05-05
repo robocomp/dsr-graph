@@ -54,18 +54,17 @@ void SpecificWorker::initialize(int period) {
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-    //setWindowTitle( agent_name.c_str() );
-
+    
     // Random initialization
     // mt = std::mt19937(rd());
-    // dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
-    // randomNode = std::uniform_int_distribution((int)100, (int)140.0);
+    // unif_float = std::uniform_real_distribution((float)-40.0, (float)40.0);
+    // unif_int = std::uniform_int_distribution((int)100, (int)140.0);
+    timer.setSingleShot(true);
     timer.start(100);
 }
 
 void SpecificWorker::compute()
 {
-   
 }
 
 
