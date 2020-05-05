@@ -35,7 +35,7 @@ SpecificWorker::~SpecificWorker() {
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) 
 {
-    
+
     agent_id = stoi(params["agent_id"].value);
     dsr_output_file = params["dsr_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
@@ -51,7 +51,8 @@ void SpecificWorker::initialize(int period)
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
     G->print();
-
+    G->start_subscription_thread(true);     // regular subscription to deltas
+    G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
     
