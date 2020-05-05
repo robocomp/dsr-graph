@@ -137,36 +137,16 @@
              "name": "base",
              "links": [{
              "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "0",
-                   "type": "1"
-                },
-                {
-                   "key": "ty",
-                   "value": "210",
-                   "type": "1"
-                },
-                {
-                   "key": "tz",
-                   "value": "200",
-                   "type": "1"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0",
-                   "type": "1"
-                },
-                {
-                   "key": "ry",
-                   "value": "0",
-                   "type": "1"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0",
-                   "type": "1"
-                }
+               {
+                  "key": "trans",
+                  "value": ["0", "210" ,"200"],
+                  "type": "3"
+               },
+               {
+                 "key": "rot",
+                 "value": ["0","0","0"],
+                 "type": "3"
+              }
              ],
              "src": "131",
              "dst": "138",
@@ -329,36 +309,16 @@
              "links":[
              {
              "linkAttribute": [
-                {
-                   "key": "tx",
-                   "value": "1300,0",
-                   "type": "2"
-                },
-                {
-                   "key": "ty",
-                   "value": "0",
-                   "type": "2"
-                },
-                {
-                   "key": "tz",
-                   "value": "1200",
-                   "type": "2"
-                },
-                {
-                   "key": "rx",
-                   "value": "-0",
-                   "type": "2"
-                },
-                {
-                   "key": "ry",
-                   "value": "0",
-                   "type": "2"
-                },
-                {
-                   "key": "rz",
-                   "value": "-0",
-                   "type": "2"
-                }
+               {
+                  "key": "rot",
+                  "value": ["0", "0" ,"0"],
+                  "type": "3"
+               },
+               {
+                 "key": "trans",
+                 "value": ["1300","0","1200"],
+                 "type": "3"
+               }
              ],
              "src": "100",
              "dst": "135",
@@ -367,35 +327,15 @@
           {
              "linkAttribute": [
                 {
-                   "key": "tx",
-                   "value": "-1614.65",
-                   "type": "2"
+                   "key": "rot",
+                   "value": ["0", "2.1239" ,"0"],
+                   "type": "3"
                 },
                 {
-                   "key": "ty",
-                   "value": "0",
-                   "type": "2"
-                },
-                {
-                   "key": "tz",
-                   "value": "-1597.64",
-                   "type": "2"
-                },
-                {
-                   "key": "rx",
-                   "value": "0",
-                   "type": "2"
-                },
-                {
-                   "key": "ry",
-                   "value": "2.12397",
-                   "type": "2"
-                },
-                {
-                   "key": "rz",
-                   "value": "0",
-                   "type": "2"
-                }
+                  "key": "trans",
+                  "value": ["-1614.65","0","-1597.64"],
+                  "type": "3"
+               }
              ],
              "src": "100",
              "dst": "131",
