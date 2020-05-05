@@ -1,10 +1,14 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10008
 
 
-# Endpoints for implemented interfaces
+# Proxies for required interfaces
 DSRGetID.Endpoints=tcp -p 11000
 
-DSRPath = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
+agent_id = 8
+agent_name = idserver
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
+dsr_output_path = /home/robocomp/robocomp/components/dsr-graph/etc/
+period = 10000  # miliseconds period on dsr saving to file
 
 
 Ice.Warn.Connections=0

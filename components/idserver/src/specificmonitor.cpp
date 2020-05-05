@@ -87,9 +87,16 @@ bool SpecificMonitor::sendParamsToWorker(RoboCompCommonBehavior::ParameterList p
 void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 {
 	RoboCompCommonBehavior::Parameter aux;
-	aux.editable = false;
-	configGetString( "","DSRPath", aux.value, "");
-	params["DSRPath"] = aux;
+    configGetString( "","agent_name", aux.value,"");
+    params["agent_name"] = aux;
+    configGetString( "","agent_id", aux.value,"false");
+    params["agent_id"] = aux;
+    configGetString( "","dsr_input_file", aux.value, "");
+    params["dsr_input_file"] = aux;
+	configGetString( "","dsr_output_path", aux.value, "");
+    params["dsr_output_path"] = aux;
+	configGetString( "","period", aux.value, "10000");
+    params["period"] = aux;
 }
 
 //Check parameters and transform them to worker structure

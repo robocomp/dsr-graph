@@ -21,6 +21,9 @@ class SpecificWorker : public GenericWorker
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
 		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
+		std::shared_ptr<CRDT::CRDTGraph> G;
+		std::string agent_name;
+
 	public slots:
 		void compute();
 		void initialize(int period);
@@ -33,14 +36,14 @@ class SpecificWorker : public GenericWorker
 		std::shared_ptr<InnerModel> innerModel;
 
 		//params
-		std::string agent_name;
+		
 		int agent_id;
 		std::string dsr_input_file;
 		std::string dsr_output_file;
 		std::string test_output_file;
 		bool read_file = false;
 		
-		std::shared_ptr<CRDT::CRDTGraph> G;
+		
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 		// Random

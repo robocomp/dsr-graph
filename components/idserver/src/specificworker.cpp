@@ -36,67 +36,50 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	try
 	{
-		RoboCompCommonBehavior::Parameter par = params.at("DSRPath");
-		dsr_path = par.value;
+		agent_name = params["agent_name"].value;
+    	agent_id = stoi(params["agent_id"].value);
+    	dsr_input_file = params["dsr_input_file"].value;
+   	 	dsr_output_path = params["dsr_output_path"].value;
+    	this->Period = stoi(params["period"].value);
+		return true;
 	}
 	catch(const std::exception &e) { qFatal("Error reading config params"); }
 	return true;
 }
 
-QJsonObject SpecificWorker::read_json_file()
-{
-	QFile file;
-    file.setFileName(QString::fromStdString(dsr_path));
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QString val = file.readAll();
-    file.close();
-	QJsonDocument doc = QJsonDocument::fromJson(val.toUtf8());
-	QJsonObject jObject = doc.object();
-	return jObject;
-}
-
-int SpecificWorker::get_max_id_from_json(QJsonObject jObject)
-{
-	int max_id = -9999;
-
-	QJsonObject dsrobject = jObject.value("DSRModel").toObject();
-	QJsonArray jsonArray = dsrobject.value("symbol").toArray();
-
-	foreach (const QJsonValue & value, jsonArray) {
-		 QJsonObject obj = value.toObject();
-		 qDebug()<<"Value"<<obj.value("id");
-		 if (obj.value("id").toString().toInt() > max_id)
-		 	max_id = obj.value("id").toString().toInt();
-	}
-	return max_id;
-}
-
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
-	QJsonObject json = read_json_file();
-	node_id = get_max_id_from_json(json);
-	qDebug()<<"Max id readed from file"<< node_id;
-	this->Period = 1000;
-	timer.start(Period);
 
+	// create graph
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
+	G->print();
+	graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    
+    get_max_id_from_G();
+	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+	timer.start(Period);
 }
 
 void SpecificWorker::compute()
 {
-//computeCODE
-//QMutexLocker locker(mutex);
-//	try
-//	{
-//		camera_proxy->getYImage(0,img, cState, bState);
-//		memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-//		searchTags(image_gray);
-//	}
-//	catch(const Ice::Exception &e)
-//	{
-//		std::cout << "Error reading from Camera" << e << std::endl;
-//	}
+	G->write_to_json_file(dsr_output_path + agent_name + "_" + std::to_string(output_file_count) + ".json");
+    output_file_count++;
 }
+
+void SpecificWorker::get_max_id_from_G()
+{
+	//auto g = G->getCopy();
+	//auto node_id = std::max_element(g.begin(), g.end(), [](const auto &[k1,v1], const auto n1 &[k2,v2]){ return v1.id() > v2.id(); }
+	for (const auto &[key, node] : G->getCopy())
+        if (node.id() > node_id)
+            node_id = node.id();
+    qDebug() << "MAX ID from file:" << node_id;
+}
+
+////////////////////////////////////////////////////////
+//// IMPLEMENTS SECTION
+///////////////////////////////////////////////////////
 
 int SpecificWorker::DSRGetID_getID()
 {

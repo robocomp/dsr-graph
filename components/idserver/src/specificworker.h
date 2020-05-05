@@ -27,6 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include "../../../graph-related-classes/CRDT.h"
+#include "../../../graph-related-classes/CRDT_graphviewer.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -36,21 +38,30 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void initialize();
-	QJsonObject read_json_file();
-	int get_max_id_from_json(QJsonObject jObject);
-
+	
+	// DSR
+	std::shared_ptr<CRDT::CRDTGraph> G;
+	std::string agent_name;
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
-	
-	
 
 public slots:
 	void compute();
 	void initialize(int period);
+
 private:
-	int node_id;
-	std::string dsr_path;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	int node_id = -9999;
+
+	//params
+	int agent_id;
+	std::string dsr_input_file;
+	std::string dsr_output_path;
+	int output_file_count = 0;
+
+	void get_max_id_from_G();
+
 };
 
 #endif
