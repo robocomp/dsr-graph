@@ -38,7 +38,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     
     agent_id = stoi(params["agent_id"].value);
     dsr_output_file = params["dsr_output_file"].value;
-    dsr_input_file = params["dsr_input_file"].value;
+    //dsr_input_file = params["dsr_input_file"].value;
     test_output_file = params["test_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;    
     return true;
@@ -72,8 +72,7 @@ void SpecificWorker::compute()
     auto edges = vertex->get_edges();
     for(auto e: edges)
         e->print();
-
-
+    
 }
 
 
