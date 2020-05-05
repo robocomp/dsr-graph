@@ -19,8 +19,7 @@ class SpecificWorker : public GenericWorker
 		SpecificWorker(TuplePrx tprx);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
-
+		
 		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::string agent_name;
 
