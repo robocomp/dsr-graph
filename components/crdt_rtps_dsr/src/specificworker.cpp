@@ -84,8 +84,16 @@ void SpecificWorker::compute()
     m.print("RT");
     qDebug() << ":::::::::::::::::::::::::::::::::::";
     auto innermodel = G->get_inner_api();
-    auto r = innermodel->transform("world", "base");
-    r.print("r");
+    try
+    {
+        auto r = innermodel->transform("world", "base");
+        r.print("r");
+    }
+    catch(const CRDT::DSRException& e)
+    {
+        std::cout << "SHIT" << '\n';
+    }
+    
     
 }
 
