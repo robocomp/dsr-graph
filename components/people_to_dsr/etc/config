@@ -1,14 +1,20 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10009
 
 
 # Endpoints for subscriptions
-HumanToDSRTopic.Endpoints=tcp -p 0
+HumanToDSRTopic.Endpoints=tcp -p 12000
 
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
 
 InnerModelPath = innermodel.xml
+
+agent_id = 9
+agent_name = people_to_dsr
+dsr_output_path = /home/robocomp/robocomp/components/dsr-graph/etc/
+
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0
