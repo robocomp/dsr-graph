@@ -90,6 +90,7 @@ qDebug()<<person_n->id();
             {
                 std::vector<float> values{person.x, person.y, 5000.0};//person.z};
                 G->add_attrib(edge_p_w->attrs(), "trans", values);
+                G->insert_or_assign_edge(edge_p_w.value());
             }
             for(const auto &[name, key] : person.joints) //update joints edge values
             {
@@ -102,6 +103,7 @@ qDebug()<<person_n->id();
                     {
                         std::vector<float> values{key.x, key.y, key.z};
                         G->add_attrib(edge_p_j->attrs(), "trans", values);
+                        G->insert_or_assign_edge(edge_p_j.value());
                     }
                 }
             }
