@@ -31,20 +31,17 @@
 #include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
-#include <GenericBase.h>
-#include <DifferentialRobot.h>
-#include <Laser.h>
+#include <HumanToDSR.h>
 
 
 #define CHECK_PERIOD 5000
 #define BASIC_PERIOD 100
 
 using namespace std;
-using namespace RoboCompGenericBase;
-using namespace RoboCompDifferentialRobot;
-using namespace RoboCompLaser;
+using namespace RoboCompHumanToDSR;
 
-using TuplePrx = std::tuple<RoboCompDifferentialRobot::DifferentialRobotPrxPtr,RoboCompLaser::LaserPrxPtr>;
+using TuplePrx = std::tuple<>;
+
 
 class GenericWorker :
 #ifdef USE_QTGUI
@@ -64,9 +61,8 @@ public:
 	QMutex *mutex;
 
 
-	DifferentialRobotPrxPtr differentialrobot_proxy;
-	LaserPrxPtr laser_proxy;
 
+	virtual void HumanToDSR_newPeopleData(PeopleData people) = 0;
 
 protected:
 
@@ -78,7 +74,7 @@ private:
 
 public slots:
 	virtual void compute() = 0;
-    virtual void initialize(int period) = 0;
+	virtual void initialize(int period) = 0;
 	
 signals:
 	void kill();

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DSRGraph</string>
+   <string>people_to_dsr</string>
   </property>
  </widget>
  <resources/>

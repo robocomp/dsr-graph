@@ -39,7 +39,9 @@ class SpecificWorker : public GenericWorker
 		bool read_file = false;
 		
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
-
+		QHBoxLayout mainLayout;
+		QWidget window;
+		
 		// Random
 		std::random_device rd;
 		std::mt19937 mt;

@@ -331,8 +331,8 @@ void SpecificWorker::test_set_string(int i, int iter, int delay)
         auto nid = keys.at(node_randomizer(mt));
         //qDebug() << __FUNCTION__ << nid;
         if(nid<0) continue;
-        Node node = G->get_node(nid);
-        if (node.id() == -1) 
+        std::optional<Node> node = G->get_node(nid);
+        if (!node.has_value())
         {
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
             std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
@@ -341,7 +341,7 @@ void SpecificWorker::test_set_string(int i, int iter, int delay)
             break;
         }
         // check for attribute
-        if ( auto iter = node.attrs().find("imName"); iter != node.attrs().end() )
+        if ( auto iter = node->attrs().find("imName"); iter != node->attrs().end() )
         {
             //std::string str = agent_name + "-" + std::to_string(i) + "_" + std::to_string(cont);
             auto name = iter->second.value();
@@ -349,7 +349,7 @@ void SpecificWorker::test_set_string(int i, int iter, int delay)
             iter->second.value() = name;
             //node.attrs()["String"].value() = str;
             // reinsert node
-            G->insert_or_assign_node(node);
+            G->insert_or_assign_node(node.value());
             //qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);
             //qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(std::to_string(random_pos(mt)));
         }

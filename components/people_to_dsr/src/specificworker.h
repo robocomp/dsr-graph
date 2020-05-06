@@ -22,13 +22,13 @@
        @author authorname
 */
 
+
+
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -37,33 +37,14 @@ public:
 	SpecificWorker(TuplePrx tprx);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-	void initialize();
-    
-	 // DSR
-    std::shared_ptr<CRDT::CRDTGraph> G;
-    std::string agent_name;
 
-	//Interface DSRGetID
-	int DSRGetID_getID();
+	void HumanToDSR_newPeopleData(PeopleData people);
 
 public slots:
 	void compute();
 	void initialize(int period);
-
 private:
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
-	QHBoxLayout mainLayout;
-	QWidget window;
-	int node_id = -9999;
-
-	//params
-	int agent_id;
-	std::string dsr_input_file;
-	std::string dsr_output_path;
-	int output_file_count = 0;
-	bool dsr_write_to_file;
-
-	void get_max_id_from_G();
+	std::shared_ptr<InnerModel> innerModel;
 
 };
 
