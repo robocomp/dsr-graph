@@ -66,27 +66,34 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    auto vertex = G->get_vertex("world");
-    vertex->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto edge = vertex->get_edge(131, "RT");
-    edge->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto edges = vertex->get_edges();
-    for(auto e: edges)
-        e->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto t = vertex->get_attrib_by_name<std::string>("imType");
-    //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
-    std::cout << t << std::endl;
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto m = edge->get_attrib_by_name<RTMat>("RT");
-    m.print("RT");
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto innermodel = G->get_inner_api();
-    auto r = innermodel->transform("world", "base");
-    r.print("r");
-    
+    auto vertex_op = G->get_vertex("world");
+    if (vertex_op.has_value()) {
+        auto vertex = vertex_op.value();
+        vertex->print();
+        qDebug() << ":::::::::::::::::::::::::::::::::::";
+        auto edge_op = vertex->get_edge(131, "RT");
+        if(edge_op.has_value()) {
+            auto edge = edge_op.value();
+            edge->print();
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto edges = vertex->get_edges();
+            for (auto e: edges)
+                e->print();
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto t = vertex->get_attrib_by_name<std::string>("imType");
+            //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
+            std::cout << t.value_or("error") << std::endl;
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto m = edge->get_attrib_by_name<RTMat>("RT");
+            if (m.has_value()) {
+                m->print("RT");
+                qDebug() << ":::::::::::::::::::::::::::::::::::";
+                auto innermodel = G->get_inner_api();
+                auto r = innermodel->transform("world", "base");
+                r.print("r");
+            }
+        }
+    }
 }
 
 
