@@ -51,10 +51,14 @@ void SpecificWorker::initialize(int period)
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
     G->print();
-    G->start_subscription_thread(true);     // regular subscription to deltas
-    G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-    // GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    // G->start_subscription_thread(true);     // regular subscription to deltas
+    // G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
+    
+    // Graph viewer
+	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+	mainLayout.addWidget(graph_viewer.get());
+	window.setLayout(&mainLayout);
+	setCentralWidget(&window);
     
     // Random initialization
     // mt = std::mt19937(rd());
@@ -66,35 +70,34 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    auto vertex = G->get_vertex("world");
-    vertex->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto edge = vertex->get_edge(131, "RT");
-    edge->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto edges = vertex->get_edges();
-    for(auto e: edges)
-        e->print();
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto t = vertex->get_attrib_by_name<std::string>("imType");
-    //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
-    std::cout << t << std::endl;
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto m = edge->get_attrib_by_name<RTMat>("RT");
-    m.print("RT");
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    auto innermodel = G->get_inner_api();
-    try
-    {
-        auto r = innermodel->transform("world", "base");
-        r.print("r");
+    auto vertex_op = G->get_vertex("world");
+    if (vertex_op.has_value()) {
+        auto vertex = vertex_op.value();
+        vertex->print();
+        qDebug() << ":::::::::::::::::::::::::::::::::::";
+        auto edge_op = vertex->get_edge(131, "RT");
+        if(edge_op.has_value()) {
+            auto edge = edge_op.value();
+            edge->print();
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto edges = vertex->get_edges();
+            for (auto e: edges)
+                e->print();
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto t = vertex->get_attrib_by_name<std::string>("imType");
+            //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
+            std::cout << t.value_or("error") << std::endl;
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto m = edge->get_attrib_by_name<RTMat>("RT");
+            if (m.has_value()) {
+                m->print("RT");
+                qDebug() << ":::::::::::::::::::::::::::::::::::";
+                auto innermodel = G->get_inner_api();
+                auto r = innermodel->transform("world", "base");
+                r.print("r");
+            }
+        }
     }
-    catch(const CRDT::DSRException& e)
-    {
-        std::cout << "SHIT" << '\n';
-    }
-    
-    
 }
 
 
