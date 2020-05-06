@@ -134,9 +134,26 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	DSRGetIDPrxPtr dsrgetid_proxy;
 
 	string proxy, tmp;
 	initialize();
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
+		}
+		dsrgetid_proxy = Ice::uncheckedCast<DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("DSRGetIDProxy initialized Ok!");
+
 
 	IceStorm::TopicManagerPrxPtr topicManager;
 	try
@@ -149,7 +166,7 @@ int ::people_to_dsr::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::tuple<>();
+	tprx = std::make_tuple(dsrgetid_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

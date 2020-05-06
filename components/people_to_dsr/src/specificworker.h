@@ -29,23 +29,40 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include "../../../graph-related-classes/CRDT.h"
+#include "../../../graph-related-classes/CRDT_graphviewer.h"
 
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 public:
+    std::string agent_name;
+    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::unique_ptr<DSR::GraphViewer> graph_viewer;    
+    
+    
+    
 	SpecificWorker(TuplePrx tprx);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-	void HumanToDSR_newPeopleData(PeopleData people);
+    void HumanToDSR_newPeopleData(PeopleData people);    
 
+private: 
+    int get_new_node_id();
+    int create_node(std::string type, std::string name);
+    bool create_rt_edge(int from, int to, std::vector<float> values);
 public slots:
 	void compute();
 	void initialize(int period);
 private:
 	std::shared_ptr<InnerModel> innerModel;
-
+    
+    int agent_id;
+    std::string dsr_output_path;
+    std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
+            "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"};
+    std::map<std::string, int> peopleHash;
 };
 
 #endif
