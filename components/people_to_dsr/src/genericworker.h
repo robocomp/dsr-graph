@@ -31,6 +31,7 @@
 #include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
+#include <DSRGetID.h>
 #include <HumanToDSR.h>
 
 
@@ -38,9 +39,10 @@
 #define BASIC_PERIOD 100
 
 using namespace std;
+using namespace RoboCompDSRGetID;
 using namespace RoboCompHumanToDSR;
 
-using TuplePrx = std::tuple<>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
 
 
 class GenericWorker :
@@ -61,6 +63,7 @@ public:
 	QMutex *mutex;
 
 
+	DSRGetIDPrxPtr dsrgetid_proxy;
 
 	virtual void HumanToDSR_newPeopleData(PeopleData people) = 0;
 
