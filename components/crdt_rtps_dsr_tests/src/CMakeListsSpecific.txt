@@ -11,6 +11,10 @@ SET ( SOURCES
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
+  tests/CRDT_concurrent_test.cpp
+  tests/CRDT_G_api_test.cpp
+  tests/DSR_test.cpp
+  tests/Test_utils.cpp
 
 )
 
@@ -23,6 +27,10 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graph.h
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
+  tests/CRDT_concurrent_test.h
+  tests/CRDT_G_api_test.h
+  tests/DSR_test.h
+  tests/Test_utils.h
 )
 
 find_package(LibXml2 REQUIRED)

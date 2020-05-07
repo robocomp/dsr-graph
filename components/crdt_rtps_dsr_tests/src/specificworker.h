@@ -10,6 +10,10 @@
 #include <thread>
 #include <chrono>
 
+#include "tests/Test_utils.h"
+#include "tests/CRDT_G_api_test.h"
+#include "tests/CRDT_concurrent_test.h"
+#include "tests/DSR_test.h"
 
 #define LAPS 50
 #define NODES 1500
@@ -57,6 +61,8 @@ class SpecificWorker : public GenericWorker
 		std::string test_output_file;
 		std::string dsr_output_file;
 		std::string dsr_input_file;
+        std::string dsr_test_file;
+        std::string dsr_empty_test_file;
 		std::string MARKER = ";";
 
 		//void test_node_random();
@@ -78,6 +84,12 @@ class SpecificWorker : public GenericWorker
         int getID();
 		std::mutex mut;
 		QTimer autokill_timer;
+
+
+		std::shared_ptr<Test_utils> test;
+		CRDT_G_api_test G_api_test;
+		CRDT_concurrent_test concurrent_test;
+        DSR_test dst_test;
 		
 };
 
