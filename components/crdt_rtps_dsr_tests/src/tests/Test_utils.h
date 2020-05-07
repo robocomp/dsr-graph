@@ -21,7 +21,13 @@ class Test_utils {
     public:
         Test_utils() {};
         Test_utils(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx)
-        : dsrgetid_proxy(id_prx)  {};
+        : dsrgetid_proxy(id_prx)  {
+            mt = std::mt19937(rd());
+            dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
+            randomNode = std::uniform_int_distribution((int)100, (int)140.0);
+            random_pos = std::uniform_int_distribution((int)-200, (int)200);
+            random_selector = std::uniform_int_distribution(0,1);
+        };
 
 
         Test_utils& operator=(Test_utils&& t) {
@@ -36,6 +42,9 @@ class Test_utils {
         int newID();
         int removeID();
         int getID();
+
+        int rnd_selector() { return random_selector(mt); };
+        int rnd_float() { return random_pos(mt); };
 
     private:
         std::random_device rd;

@@ -20,9 +20,10 @@ class CRDT_G_api_test {
 
     private:
 
+
+        shared_ptr<Test_utils> testutils;
         std::string empty_file;
         std::string test_file;
-        shared_ptr<Test_utils> testutils;
         std::chrono::steady_clock::time_point start, end;
         /*
         * Operaciones básicas

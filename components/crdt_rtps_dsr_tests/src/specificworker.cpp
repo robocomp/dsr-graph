@@ -67,18 +67,10 @@ void SpecificWorker::initialize(int period) {
 
     // qDebug() << __FUNCTION__ << "Graph Viewer started";
     
-    // Random initialization
-    mt = std::mt19937(rd());
-    dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
-    randomNode = std::uniform_int_distribution((int)100, (int)140.0);
-    random_pos = std::uniform_int_distribution((int)-200, (int)200);
-    random_selector = std::uniform_int_distribution(0,1);
-
-
 
     test = std::make_shared<Test_utils>(dsrgetid_proxy);
     G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    //CRDT_concurrent_test concurrent_test;
+    concurrent_test = CRDT_concurrent_test(test, 1, 1000);
     //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
@@ -92,6 +84,8 @@ void SpecificWorker::compute()
     qDebug()<<"COMPUTE";
     qDebug()<<"G API TEST:";
     G_api_test.test(G);
+    qDebug()<<"CONCURRENT ACCESS TEST:";
+    concurrent_test.test(G);
     //test_concurrent_access(1);
     //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_create_or_remove_node(100, 10000, 10);
@@ -135,229 +129,6 @@ int SpecificWorker::newID()
         qDebug()<<"Error getting new nodeID from idserver, check connection";
     }
     return node_id;
-}
-// pick a random id from the list of new ones
-int SpecificWorker::removeID()
-{
-    std::lock_guard<std::mutex>  lock(mut);
-    if(created_nodos.size()==0)
-        return -1;
-    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
-    int l = node_randomizer(mt);
-    int val = created_nodos.at(l);
-    created_nodos.erase(created_nodos.begin()+l);
-    return val;
-}
-
-// pick a random id from the list of new ones without removing
-int SpecificWorker::getID()
-{
-    std::lock_guard<std::mutex>  lock(mut);
-    if(created_nodos.size()==0)
-        return -1;
-    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
-    int l = node_randomizer(mt);
-    int val = created_nodos.at(l);
-    return val;
-}
-
-pair<int, int> SpecificWorker::removeEdge(){
-    std::lock_guard<std::mutex>  lock(mut);
-    if(created_edges.size()==0)
-        return { -1, -1 };
-    auto edge_randomizer = std::uniform_int_distribution(0, (int)created_edges.size()-1);
-    int l = edge_randomizer(mt);
-    auto val = created_edges.at(l);
-    created_edges.erase(created_edges.begin()+l);
-    return val;
-}
-
-
-void SpecificWorker::test_concurrent_access(int num_threads)
-{
-   // threads for testing concurrent accesses inside one agent
-    threads.resize(num_threads);
-    for(int i=0; auto &t : threads)
-        t = std::move(std::thread(&SpecificWorker::test_create_or_remove_node, this, i++, 2000, 10));
-    qDebug() << __FUNCTION__ << "Threads initiated";
-
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    for(auto &t : threads)
-        t.join();
-    qDebug() << __FUNCTION__ << "Threads finished";
-
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    std::string result = "test_concurrent_access: test_create_or_remove_node"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
-    write_test_output(result);
-
-
-    threads.resize(num_threads);
-    for(int i=0; auto &t : threads)
-    t = std::move(std::thread(&SpecificWorker::test_create_or_remove_edge, this, i++, 100, 10));
-    qDebug() << __FUNCTION__ << "Threads initiated";
-
-    begin = std::chrono::steady_clock::now();
-    for(auto &t : threads)
-        t.join();
-    qDebug() << __FUNCTION__ << "Threads finished";
-
-    end = std::chrono::steady_clock::now();
-    time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    result = "test_concurrent_access: test_create_or_remove_edge"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
-    write_test_output(result);
-
-}
-void SpecificWorker::test_create_or_remove_node(int i, int iters, int delay)
-{
-    static int it=0;
-    qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < iters)
-    {
-        // ramdomly select create or remove
-        if( random_selector(mt)== 0)
-        {
-            //qDebug() << __FUNCTION__ << "Create node";
-            // create node
-            Node node;
-            node.type("plane");
-            auto id = newID();
-            node.id( id );
-            node.agent_id(agent_id);
-            node.name("plane" + std::to_string(id));
-            std::map<string, Attrib> attrs;
-            G->add_attrib(attrs, "name", std::string("fucking_plane"));
-            G->add_attrib(attrs, "color", std::string("SteelBlue"));
-            auto dis = std::uniform_real_distribution(-200.0, 200.0);
-            G->add_attrib(attrs, "pos_x", (float)dis(mt));
-            G->add_attrib(attrs, "pos_y", (float)dis(mt));
-
-            node.attrs(attrs);
-            
-            // insert node
-            auto r = G->insert_or_assign_node(node);
-            if (r)
-                qDebug() << "Created node:" << id << " Total size:" << G->size();
-        }
-        else
-        {
-            //qDebug() << __FUNCTION__ << "Remove node";
-            int id = removeID();
-            if(id>-1)
-            {
-                G->delete_node(id);
-                qDebug() << "Deleted node:" << id << " Total size:" << G->size();
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    }
-}
-
-
-void SpecificWorker::test_create_or_remove_edge(int i, int iter, int delay)
-{
-    static int it=0;
-    qDebug() << __FUNCTION__ << "Enter thread" << i;
-    while (it++ < iter)
-    {
-        // ramdomly select create or remove
-
-        if(random_selector(mt) == 0)
-        {
-            //qDebug() << __FUNCTION__ << "Create node";
-            // create edge
-
-            Edge edge;
-            edge.type("Edge");
-            //get two ids
-            edge.from(getID());
-            edge.to(getID());
-            std::map<string, Attrib> attrs;
-            G->add_attrib(attrs, "name", std::string("fucking_plane"));
-            G->add_attrib(attrs, "color", std::string("SteelBlue"));
-            edge.attrs(attrs);
-
-            //qDebug() << "[" <<edge.from() << " - " << edge.to()<< "]";
-            // insert node
-            auto r = G->insert_or_assign_edge(edge);
-            if (r) {
-                created_edges.emplace_back(make_pair(edge.from(), edge.to()));
-                qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
-            }
-        }
-        else
-        {
-            //qDebug() << __FUNCTION__ << "Remove node";
-            int id = removeID();
-            if(id>-1)
-            {
-                //get two ids
-                auto [from, to] = removeEdge();
-                //qDebug() << " remove [" << from << " - " << to << "]";
-
-                auto r = G->delete_edge(from, to, "Edge");
-                if (r)
-                    qDebug() << "Deleted edge :"  << from << " - " << to ;
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    }
-}
-
-void SpecificWorker::test_set_string(int i, int iter, int delay)
-{
-    std::string result;
-    static int it = 0;
-    qDebug() << __FUNCTION__ << "Enter thread" << i;
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    bool fail=false;
-    //auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect on G
-    auto keys = G->getKeys();
-    auto node_randomizer = std::uniform_int_distribution(0, (int)keys.size()-1);
-
-    while (it++ < iter)
-    {
-        // request node
-        auto nid = keys.at(node_randomizer(mt));
-        //qDebug() << __FUNCTION__ << nid;
-        if(nid<0) continue;
-        std::optional<Node> node = G->get_node(nid);
-        if (!node.has_value())
-        {
-            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-            std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-            result = "test_set_string" + MARKER +"FAIL" + MARKER + time + MARKER +" error getting node->line:" + std::to_string(__LINE__);
-            fail = true;
-            break;
-        }
-        // check for attribute
-        if ( auto iter = node->attrs().find("imName"); iter != node->attrs().end() )
-        {
-            //std::string str = agent_name + "-" + std::to_string(i) + "_" + std::to_string(cont);
-            auto name = iter->second.value();
-            //it->second.value() = std::to_string(random_pos(mt));
-            iter->second.value() = name;
-            //node.attrs()["String"].value() = str;
-            // reinsert node
-            G->insert_or_assign_node(node.value());
-            //qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(str);
-            //qDebug() << __FUNCTION__ << "Strings:" << QString::fromStdString(std::to_string(random_pos(mt)));
-        }
-        else
-         {
-            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-            std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-            result = "test_set_string" + MARKER + "FAIL" + MARKER + time + MARKER + " error getting attibutte->line:" + std::to_string(__LINE__);
-            fail = true;
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    }
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    if (fail==false)
-        result = "test_set_string"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly";
-    write_test_output(result);
 }
 
 // void SpecificWorker::test_nodes_mov() {
