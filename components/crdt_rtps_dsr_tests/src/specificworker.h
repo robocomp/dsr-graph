@@ -41,6 +41,8 @@ class SpecificWorker : public GenericWorker
 		bool write_string;
 		int agent_id;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+        QHBoxLayout mainLayout;
+        QWidget window;
 
 		// Tests
 		//void tester();

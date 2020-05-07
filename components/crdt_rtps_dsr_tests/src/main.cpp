@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::crdt_rtps_dsr_strings
+/** \mainpage RoboComp::crdt_rtps_dsr_tests
  *
  * \section intro_sec Introduction
  *
- * The crdt_rtps_dsr_strings component...
+ * The crdt_rtps_dsr_tests component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd crdt_rtps_dsr_strings
+ * cd crdt_rtps_dsr_tests
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/crdt_rtps_dsr_strings --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/crdt_rtps_dsr_tests --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *

@@ -83,7 +83,10 @@ void SpecificWorker::initialize(int period) {
     //G->print();
     
     // GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
+    graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+    mainLayout.addWidget(graph_viewer.get());
+    window.setLayout(&mainLayout);
+    setCentralWidget(&window);
     setWindowTitle( agent_name.c_str() );
 
     // qDebug() << __FUNCTION__ << "Graph Viewer started";
@@ -103,18 +106,19 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    //test_concurrent_access(1);
-    //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    test_concurrent_access(1);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_create_or_remove_node(100, 10000, 10);
     // if (write_string)
     //     test_set_string(0);
     //   test_nodes_mov();
     // test_node_random();
-    /*int num_ops = 100000;
+    int num_ops = 100000;
     test_set_string(0, num_ops, 0);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";*/
+    qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
+
     sleep(5);
     G->write_to_json_file(dsr_output_file);
     //exit(0);
