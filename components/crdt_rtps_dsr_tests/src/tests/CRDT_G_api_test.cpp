@@ -18,8 +18,7 @@ void CRDT_G_api_test::get_nonexistent_node(const shared_ptr<CRDT::CRDTGraph>& G)
     std::optional<shared_ptr<CRDT::Vertex>> v_name = G->get_vertex("no existe");
 
     end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
+    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
     if (!n_id.has_value() and !n_name.has_value() and !v_id.has_value()and  !v_name.has_value())
         result = "API TEST: get_nonexistent_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
     else

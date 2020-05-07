@@ -99,7 +99,7 @@ void SpecificWorker::compute()
         qDebug() << ":::::::::::::::::::::::::::::::::::";
         auto m = vertex->get_edge_RT(131);
         if (m.has_value())
-            m->print("RT");
+            m->print("RT");    
     }
    
     qDebug() << ":::::::::::::::::::::::::::::::::::";
@@ -107,6 +107,27 @@ void SpecificWorker::compute()
     auto r = innermodel->transform("world", "base");
     if(r.has_value())
         r.value().print("r");
+
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    Edge edge;
+    edge.to(131); edge.from(100); edge.type("RT");
+    std::map<string, Attrib> attrs;
+    Attrib av;
+    av.type(3);
+    Val value;
+    G->add_attrib(attrs, "rotation_euler_xyz", std::vector<float>{2,2,2});
+    edge.attrs(attrs);
+    G->insert_or_assign_edge(edge);
+
+    // should be 
+    //      v = node->get_edge(to, "RT")
+    //      v->add_attr("RT", 3, {2,2,2})
+    //      G->insert_or_assign_node(v);
+    // o
+    //      G->insert_or_assign_edge_attr(node, to, "RT", 3, {2,2,2});
+    
+
+
 }
 
 

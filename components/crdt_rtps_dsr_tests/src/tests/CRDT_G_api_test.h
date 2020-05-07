@@ -11,7 +11,7 @@
 
 class CRDT_G_api_test {
     public:
-        CRDT_G_api_test()  { };
+        CRDT_G_api_test(){ };
 
         CRDT_G_api_test(const shared_ptr<Test_utils> t, const std::string& file1, const std::string& file2)
         : testutils(t) , empty_file (file1), test_file (file2){};
@@ -19,8 +19,6 @@ class CRDT_G_api_test {
         void test(const shared_ptr<CRDT::CRDTGraph>& G);
 
     private:
-
-
         shared_ptr<Test_utils> testutils;
         std::string empty_file;
         std::string test_file;
