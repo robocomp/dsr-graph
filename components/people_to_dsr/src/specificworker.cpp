@@ -87,7 +87,7 @@ qDebug()<<person_n->id();
         if(person_n.has_value()) //update edges
         {
             qDebug()<<"Person" << QString::fromStdString(person_name) << "update";
-            std::optional<Edge> edge_p_w = G->get_edge(person_n->id(), world_n->id(), "RT");
+            std::optional<Edge> edge_p_w = G->get_edge(world_n->id(), person_n->id(), "RT");
             if(edge_p_w.has_value())
             {
                 std::vector<float> values{person.x, person.y, 5000.0};//person.z};
@@ -100,7 +100,7 @@ qDebug()<<person_n->id();
                 std::optional<Node> joint_n = G->get_node(node_name);
                 if(joint_n.has_value())
                 {
-                    auto edge_p_j = G->get_edge(joint_n->id(), person_n->id(), "RT");
+                    auto edge_p_j = G->get_edge(person_n->id(), joint_n->id(), "RT");
                     if(edge_p_j.has_value())
                     {
                         std::vector<float> values{key.x, key.y, key.z};
@@ -116,13 +116,13 @@ qDebug()<<person_n->id();
             int person_id = create_node("person", person_name);
             if (person_id == -1 ) 
                 return;
-            create_rt_edge(person_id, world_n->id(), std::vector<float>{person.x, person.y, person.z});
+            create_rt_edge(world_n->id(), person_id, std::vector<float>{person.x, person.y, person.z});
             //create joints nodes
             for(std::string name : COCO_IDS)
             {
                 std::string node_name = name + " [" + std::to_string(person_id) + "]";
                 int node_id = create_node("joint", node_name);
-                create_rt_edge(node_id, person_id, std::vector<float>{0.0, 0.0, 0.0});
+                create_rt_edge(person_id, node_id, std::vector<float>{0.0, 0.0, 0.0});
             }
         }
     }
@@ -166,7 +166,7 @@ bool SpecificWorker::create_rt_edge(int from, int to, std::vector<float> values)
     edge_rt.type("RT");
     edge_rt.from(from);
     edge_rt.to(to);
-    G->add_attrib(edge_rt.attrs(), "trans", values);
+    G->add_attrib(edge_rt.attrs(), "translation", values);
     
     return G->insert_or_assign_edge(edge_rt);
 }
