@@ -39,7 +39,8 @@ public:
     std::string agent_name;
     std::shared_ptr<CRDT::CRDTGraph> G;
     std::unique_ptr<DSR::GraphViewer> graph_viewer;    
-    
+    QHBoxLayout mainLayout;
+    QWidget window;
     
     
 	SpecificWorker(TuplePrx tprx);

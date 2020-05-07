@@ -53,8 +53,10 @@ void SpecificWorker::initialize(int period)
     G->start_fullgraph_request_thread();    // for agents that want to request the graph for
 
     // GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(std::shared_ptr<SpecificWorker>(this));
-    setWindowTitle( agent_name.c_str() );
+    graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+	mainLayout.addWidget(graph_viewer.get());
+	window.setLayout(&mainLayout);
+	setCentralWidget(&window);
     
     this->Period = 100000;
     timer.start(Period);
