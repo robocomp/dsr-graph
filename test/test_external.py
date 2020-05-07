@@ -7,8 +7,8 @@ from test.assertions import ApiAssertionsMixin
 
 os.environ['TERM'] = 'xterm'
 
-COMMAND_1= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_strings && bin/crdt_rtps_dsr_strings etc/config"
-COMMAND_2= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_strings && bin/crdt_rtps_dsr_strings etc/config2"
+COMMAND_1= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config"
+COMMAND_2= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config2"
 JSON_1 = "/home/robocomp/robocomp/components/dsr-graph/etc/agent0_dsr.json"
 JSON_2 = "/home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json"
 

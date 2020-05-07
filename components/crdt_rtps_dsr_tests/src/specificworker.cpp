@@ -45,7 +45,9 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_output_file = params["dsr_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
     test_output_file = params["test_output_file"].value;
-    dsr_input_file = params["dsr_input_file"].value;    
+    dsr_input_file = params["dsr_input_file"].value;
+    dsr_test_file = params["dsr_test_file"].value;
+    dsr_empty_test_file = params["dsr_empty_test_file"].value;
     return true;
 }
 
@@ -54,32 +56,6 @@ void SpecificWorker::initialize(int period) {
 
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
-    
-    // read graph content from file
-    if(read_file)
-    {
-        //G->read_from_file("grafo.xml");
-        G->read_from_json_file(dsr_input_file);
-        G->print();
-        G->start_fullgraph_server_thread();     // to receive requests form othe starting agents
-        G->start_subscription_thread(true);     // regular subscription to deltas
-
-    }
-    else
-    {
-        G->start_subscription_thread(true);     // regular subscription to deltas
-        G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-    }
-
-    //sleep(5);
-    qDebug() << __FUNCTION__ << "Graph loaded";       
-    
-    // for(auto kv: *G)
-    // {
-    //     Node node = kv.second.dots().ds.rbegin()->second;
-    //     std::cout << node.id() << std::endl;
-    // }
-
     //G->print();
     
     // GraphViewer creation
@@ -98,29 +74,39 @@ void SpecificWorker::initialize(int period) {
     random_pos = std::uniform_int_distribution((int)-200, (int)200);
     random_selector = std::uniform_int_distribution(0,1);
 
+
+
+    test = std::make_shared<Test_utils>(dsrgetid_proxy);
+    G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
+    //CRDT_concurrent_test concurrent_test;
+    //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
+
+    sleep(5);
     compute();
 }
 
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    test_concurrent_access(1);
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    qDebug()<<"G API TEST:";
+    G_api_test.test(G);
+    //test_concurrent_access(1);
+    //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //test_create_or_remove_node(100, 10000, 10);
     // if (write_string)
     //     test_set_string(0);
     //   test_nodes_mov();
     // test_node_random();
-    int num_ops = 100000;
-    test_set_string(0, num_ops, 0);
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
+    //int num_ops = 100000;
+    //test_set_string(0, num_ops, 0);
+    //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+    //qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
 
-    sleep(5);
-    G->write_to_json_file(dsr_output_file);
+    //sleep(5);
+    //G->write_to_json_file(dsr_output_file);
     //exit(0);
 }
 
@@ -151,7 +137,7 @@ int SpecificWorker::newID()
     return node_id;
 }
 // pick a random id from the list of new ones
-int SpecificWorker::removeID()    
+int SpecificWorker::removeID()
 {
     std::lock_guard<std::mutex>  lock(mut);
     if(created_nodos.size()==0)
