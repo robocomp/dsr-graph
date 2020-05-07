@@ -71,7 +71,8 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     auto vertex_op = G->get_vertex("world");
-    if (vertex_op.has_value()) {
+    if (vertex_op.has_value()) 
+    {
         auto vertex = vertex_op.value();
         vertex->print();
         qDebug() << ":::::::::::::::::::::::::::::::::::";
@@ -85,19 +86,27 @@ void SpecificWorker::compute()
                 e->print();
             qDebug() << ":::::::::::::::::::::::::::::::::::";
             auto t = vertex->get_attrib_by_name<std::string>("imType");
-            //std::string l ="auto t = vertex->get_attrib_by_name<std::string>(""imType"");";
             std::cout << t.value_or("error") << std::endl;
             qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto m = edge->get_attrib_by_name<RTMat>("RT");
-            if (m.has_value()) {
-                m->print("RT");
-                qDebug() << ":::::::::::::::::::::::::::::::::::";
-                auto innermodel = G->get_inner_api();
-                auto r = innermodel->transform("world", "base");
-                r.print("r");
-            }
+            auto v = edge->get_attrib_by_name<QVec>("translation");
+            if (v.has_value())
+                v->print("QVec");
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto r = edge->get_attrib_by_name<QMat>("rotation_euler_xyz");
+            if (r.has_value())
+                r->print("QMat");
         }
+        qDebug() << ":::::::::::::::::::::::::::::::::::";
+        auto m = vertex->get_edge_RT(131);
+        if (m.has_value())
+            m->print("RT");
     }
+   
+    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    auto innermodel = G->get_inner_api();
+    auto r = innermodel->transform("world", "base");
+    if(r.has_value())
+        r.value().print("r");
 }
 
 
