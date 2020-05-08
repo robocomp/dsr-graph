@@ -80,26 +80,49 @@ void SpecificWorker::compute()
         if(edge_op.has_value()) {
             auto edge = edge_op.value();
             edge->print();
+            
             qDebug() << ":::::::::::::::::::::::::::::::::::";
             auto edges = vertex->get_edges();
             for (auto e: edges)
                 e->print();
+            
             qDebug() << ":::::::::::::::::::::::::::::::::::";
             auto t = vertex->get_attrib_by_name<std::string>("imType");
             std::cout << t.value_or("error") << std::endl;
+            
             qDebug() << ":::::::::::::::::::::::::::::::::::";
             auto v = edge->get_attrib_by_name<QVec>("translation");
             if (v.has_value())
                 v->print("QVec");
+            
             qDebug() << ":::::::::::::::::::::::::::::::::::";
             auto r = edge->get_attrib_by_name<QMat>("rotation_euler_xyz");
             if (r.has_value())
                 r->print("QMat");
+
+            qDebug() << ":::::::::::::::::::::::::::::::::::";  
+            Val val;
+            val.float_vec(std::vector<float>{2,2,2});
+            edge->add_attrib("rotation_euler_xyz", 3, val);
+            G->insert_or_assign_node(vertex);
         }
         qDebug() << ":::::::::::::::::::::::::::::::::::";
         auto m = vertex->get_edge_RT(131);
         if (m.has_value())
-            m->print("RT");    
+            m->print("RT"); 
+
+        try
+        {
+            G->get_attrib_by_name<RTMat>(vertex->get_CRDT_node(), "color");
+        }
+        catch(const CRDT::DSRException& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     }
    
     qDebug() << ":::::::::::::::::::::::::::::::::::";
@@ -114,19 +137,13 @@ void SpecificWorker::compute()
     std::map<string, Attrib> attrs;
     Attrib av;
     av.type(3);
-    Val value;
     G->add_attrib(attrs, "rotation_euler_xyz", std::vector<float>{2,2,2});
     edge.attrs(attrs);
     G->insert_or_assign_edge(edge);
 
-    // should be 
-    //      v = node->get_edge(to, "RT")
-    //      v->add_attr("RT", 3, {2,2,2})
-    //      G->insert_or_assign_node(v);
-    // o
-    //      G->insert_or_assign_edge_attr(node, to, "RT", 3, {2,2,2});
-    
+    //G->insert_or_assign_edge_attr(node, to, "RT", 3, {2,2,2});
 
+  
 
 }
 
