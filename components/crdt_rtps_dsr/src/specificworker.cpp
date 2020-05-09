@@ -105,7 +105,7 @@ void SpecificWorker::compute()
 
         qDebug() << "::::::::::: Get edge from node using to as key ::::::::::::::::::::::::";
         auto m = G->get_edge_RT(node, 131);
-        m.print("RT"); 
+        m.value().print("RT"); 
 
         qDebug() << ":::::::::::::  (Non-existent) return type for a given attribute ::::::::::::::::::::";
         try
@@ -134,9 +134,9 @@ void SpecificWorker::compute()
         qDebug() << "::::::::::::Add node RT to node by name :::::::::::::::::";
         try
         { 
-            G->get_edge_RT(no.value(), 131).print("antes");
+            G->get_edge_RT(no.value(), 131).value().print("antes");
             G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{6,6,6}, std::vector<float>{2,2,2}); 
-            G->get_edge_RT(no.value(), 131).print("despues");
+            G->get_edge_RT(no.value(), 131).value().print("despues");
         }
         catch(const std::exception &e)
         {  std::cout << e.what() << '\n';}

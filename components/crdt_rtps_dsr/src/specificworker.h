@@ -5,7 +5,6 @@
 #include <innermodel/innermodel.h>
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
-//#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 
 class SpecificWorker : public GenericWorker
