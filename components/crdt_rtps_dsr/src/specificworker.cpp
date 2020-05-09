@@ -135,7 +135,7 @@ void SpecificWorker::compute()
         try
         { 
             G->get_edge_RT(no.value(), 131).print("antes");
-            G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{1,1,1}, std::vector<float>{1,1,1}); 
+            G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{6,6,6}, std::vector<float>{2,2,2}); 
             G->get_edge_RT(no.value(), 131).print("despues");
         }
         catch(const std::exception &e)
@@ -147,7 +147,6 @@ void SpecificWorker::compute()
     auto r = innermodel->transform("world", "base");
     if(r.has_value())
         r.value().print("r");
-
 }
 
 
