@@ -69,55 +69,49 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    auto vertex_op = G->get_vertex("world");
-    if (vertex_op.has_value()) 
+    auto node_op = G->get_node("world");
+    if (node_op.has_value()) 
     {
-        auto vertex = vertex_op.value();
-        vertex->print();
-        qDebug() << ":::::::::::::::::::::::::::::::::::";
-        auto edge_op = vertex->get_edge(131, "RT");
-        if(edge_op.has_value()) {
-            auto edge = edge_op.value();
-            edge->print();
-            
-            qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto edges = vertex->get_edges();
-            for (auto e: edges)
-                e->print();
-            
-            qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto t = vertex->get_attrib_by_name<std::string>("imType");
+        auto node = node_op.value();
+        G->print_node(node);
+        
+        qDebug() << "::::::::::::Get attrib by name :::::::::::::::::::::::";
+        auto t = G->get_attrib_by_name<std::string>(node, "imType");
             std::cout << t.value_or("error") << std::endl;
             
+        qDebug() << ":::::::::::::::::::::::::::::::::::";
+        auto edge_op = G->get_edge(node.id(), 131, "RT");
+        if(edge_op.has_value()) 
+        {
+            auto edge = edge_op.value();
+            G->print_edge(edge);
+            
             qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto v = edge->get_attrib_by_name<QVec>("translation");
+            auto edges = G->get_edges(node.id());
+            //for (auto e: edges)
+            //    e.print();    
+       
+            qDebug() << ":::::::::::::::::::::::::::::::::::";
+            auto v = G->get_attrib_by_name<QVec>(edge, "translation");
             if (v.has_value())
                 v->print("QVec");
             
             qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto r = edge->get_attrib_by_name<QMat>("rotation_euler_xyz");
-            if (r.has_value())
-                r->print("QMat");
+            auto r = G->get_attrib_by_name<QMat>(edge, "rotation_euler_xyz");
+                if (r.has_value())
+                    r->print("QMat");
 
-            qDebug() << ":::::::::::: Insert edge atribute :::::::::::::::::::::::";  
-            Val val;
-            val.float_vec(std::vector<float>{2,2,2});
-            edge->add_attrib("rotation_euler_xyz", 3, val);
-            val.float_vec(std::vector<float>{5,5,5});
-            edge->add_attrib("translation", 3, val);
-            vertex->insert_or_assign_edge(edge);
-            G->insert_or_assign_node(vertex);
-           
         }
-        qDebug() << "::::::::::: Get edge from vertex using to as key ::::::::::::::::::::::::";
-        auto m = vertex->get_edge_RT(131);
-        if (m.has_value())
-            m->print("RT"); 
+
+        qDebug() << "::::::::::: Get edge from node using to as key ::::::::::::::::::::::::";
+        auto m = G->get_edge_RT(node, 131);
+        m.print("RT"); 
 
         qDebug() << ":::::::::::::  (Non-existent) return type for a given attribute ::::::::::::::::::::";
         try
         {
-            auto c = G->get_attrib_by_name<std::string>(vertex->get_CRDT_node(), "color");
+            auto c = G->get_attrib_by_name<std::string>(node, "color");
+            std::cout  << c.value() << '\n';
         }
         catch(const std::exception &e)
         { 
@@ -126,23 +120,33 @@ void SpecificWorker::compute()
         }
     }
    
+    auto no = G->get_node("world");
+    if(no.has_value())
+    {
+        qDebug() << "::::::::::::Add attribute to node by name :::::::::::::::::";
+        try
+        { 
+            G->insert_or_assign_attrib_by_name(no.value(), "caca1", std::vector<float>{2,2,2}); 
+        }
+        catch(const std::exception &e)
+        {  std::cout << e.what() << '\n';}
+
+        qDebug() << "::::::::::::Add node RT to node by name :::::::::::::::::";
+        try
+        { 
+            G->get_edge_RT(no.value(), 131).print("antes");
+            G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{1,1,1}, std::vector<float>{1,1,1}); 
+            G->get_edge_RT(no.value(), 131).print("despues");
+        }
+        catch(const std::exception &e)
+        {  std::cout << e.what() << '\n';}
+    }
+
     qDebug() << ":::::::::: Inner API transform from base to world :::::::::::::::::::::::::";
     auto innermodel = G->get_inner_api();
     auto r = innermodel->transform("world", "base");
     if(r.has_value())
         r.value().print("r");
-
-    qDebug() << "::::::::::::Add attribute to node by name :::::::::::::::::";
-    // Edge edge;
-    // edge.to(131); edge.from(100); edge.type("RT");
-    auto no = G->get_node("base");
-    if(no.has_value())
-        try
-        { 
-            G->add_attrib_by_name(no.value(), "colorito", std::string("magenta")); 
-        }
-        catch(const std::exception &e)
-        {  std::cout << e.what() << '\n';}
 
 }
 
