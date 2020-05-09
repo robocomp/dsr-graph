@@ -58,6 +58,7 @@ void SpecificWorker::initialize(int period)
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
+    setWindowTitle(QString::fromStdString(agent_name));
     
     // Random initialization
     // mt = std::mt19937(rd());
