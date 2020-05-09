@@ -28,7 +28,7 @@ class SpecificWorker : public GenericWorker
 		void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
 
 	private:
-		std::shared_ptr<InnerModel> innerModel;
+		//std::shared_ptr<InnerModel> innerModel;
 
 		//params
 		

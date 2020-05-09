@@ -29,8 +29,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
 */
 SpecificWorker::~SpecificWorker() {
     std::cout << "Destroying SpecificWorker" << std::endl;
-    G.reset();
-
+    //G.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) 
@@ -100,50 +99,50 @@ void SpecificWorker::compute()
             if (r.has_value())
                 r->print("QMat");
 
-            qDebug() << ":::::::::::::::::::::::::::::::::::";  
+            qDebug() << ":::::::::::: Insert edge atribute :::::::::::::::::::::::";  
             Val val;
             val.float_vec(std::vector<float>{2,2,2});
             edge->add_attrib("rotation_euler_xyz", 3, val);
+            val.float_vec(std::vector<float>{5,5,5});
+            edge->add_attrib("translation", 3, val);
+            vertex->insert_or_assign_edge(edge);
             G->insert_or_assign_node(vertex);
+           
         }
-        qDebug() << ":::::::::::::::::::::::::::::::::::";
+        qDebug() << "::::::::::: Get edge from vertex using to as key ::::::::::::::::::::::::";
         auto m = vertex->get_edge_RT(131);
         if (m.has_value())
             m->print("RT"); 
 
+        qDebug() << ":::::::::::::  (Non-existent) return type for a given attribute ::::::::::::::::::::";
         try
         {
-            G->get_attrib_by_name<RTMat>(vertex->get_CRDT_node(), "color");
+            auto c = G->get_attrib_by_name<std::string>(vertex->get_CRDT_node(), "color");
         }
-        catch(const CRDT::DSRException& e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
+        catch(const std::exception &e)
+        { 
+            std::cout << e.what() << '\n'; 
+            QApplication::quit();
         }
     }
    
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
+    qDebug() << ":::::::::: Inner API transform from base to world :::::::::::::::::::::::::";
     auto innermodel = G->get_inner_api();
     auto r = innermodel->transform("world", "base");
     if(r.has_value())
         r.value().print("r");
 
-    qDebug() << ":::::::::::::::::::::::::::::::::::";
-    Edge edge;
-    edge.to(131); edge.from(100); edge.type("RT");
-    std::map<string, Attrib> attrs;
-    Attrib av;
-    av.type(3);
-    G->add_attrib(attrs, "rotation_euler_xyz", std::vector<float>{2,2,2});
-    edge.attrs(attrs);
-    G->insert_or_assign_edge(edge);
-
-    //G->insert_or_assign_edge_attr(node, to, "RT", 3, {2,2,2});
-
-  
+    qDebug() << "::::::::::::Add attribute to node by name :::::::::::::::::";
+    // Edge edge;
+    // edge.to(131); edge.from(100); edge.type("RT");
+    auto no = G->get_node("base");
+    if(no.has_value())
+        try
+        { 
+            G->add_attrib_by_name(no.value(), "colorito", std::string("magenta")); 
+        }
+        catch(const std::exception &e)
+        {  std::cout << e.what() << '\n';}
 
 }
 
