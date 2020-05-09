@@ -12,6 +12,8 @@ SET ( SOURCES
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
+  ../../../graph-related-classes/inner_api.cpp
+  ../../../graph-related-classes/dsr_utils.cpp
 )
 
 # Headers set
@@ -23,6 +25,7 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graph.h
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
+  
 )
 
 set(CMAKE_CXX_STANDARD 17)
