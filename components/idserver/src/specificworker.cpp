@@ -61,6 +61,7 @@ void SpecificWorker::initialize(int period)
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
+	setWindowTitle(QString::fromStdString(agent_name));
     
 	// Compute max Id in G
     get_max_id_from_G();
