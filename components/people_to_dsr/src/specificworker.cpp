@@ -32,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-    G->write_to_json_file(dsr_output_path+agent_name+".json");
+//    G->write_to_json_file(dsr_output_path+agent_name+".json");
     G.reset();
 }
 
@@ -83,9 +83,9 @@ void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
     {
         std::string person_name = "person [" + std::to_string(person.id) + "]";
         std::optional<Node> person_n = G->get_node(person_name);
-qDebug()<<person_n->id();        
         if(person_n.has_value()) //update edges
         {
+qDebug()<<"update person:"<<person_n->id();
             qDebug()<<"Person" << QString::fromStdString(person_name) << "update";
             std::optional<Edge> edge_p_w = G->get_edge(world_n->id(), person_n->id(), "RT");
             if(edge_p_w.has_value())
@@ -113,16 +113,17 @@ qDebug()<<person_n->id();
         else //create nodes
         {
             qDebug()<<"Person does not exist => Creation";
-            int person_id = create_node("person", person_name);
-            if (person_id == -1 ) 
+            std::optional<Node> person_n = create_node("person", person_name);
+            if (not person_n.has_value()) 
                 return;
-            create_rt_edge(world_n->id(), person_id, std::vector<float>{person.x, person.y, person.z});
+            create_rt_edge(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z});
             //create joints nodes
             for(std::string name : COCO_IDS)
             {
-                std::string node_name = name + " [" + std::to_string(person_id) + "]";
-                int node_id = create_node("joint", node_name);
-                create_rt_edge(person_id, node_id, std::vector<float>{0.0, 0.0, 0.0});
+                std::string node_name = name + " [" + std::to_string(person_n->id()) + "]";
+                std::optional<Node> joint_n = create_node("joint", node_name);
+                if(joint_n.has_value())
+                    qDebug()<<"insert edge: "<<create_rt_edge(person_n.value(), joint_n->id(), std::vector<float>{0.0, 0.0, 0.0});
             }
         }
     }
@@ -141,11 +142,11 @@ int SpecificWorker::get_new_node_id()
     return new_id;
 }
 
-int SpecificWorker::create_node(std::string type, std::string name)
+std::optional<Node> SpecificWorker::create_node(std::string type, std::string name)
 {
     int id = get_new_node_id();
     if (id == -1)
-       return -1;
+       return {};
     Node node;
     node.type(type);
     node.id(id);
@@ -156,17 +157,20 @@ int SpecificWorker::create_node(std::string type, std::string name)
     G->add_attrib(node.attrs(), "name", name);
     G->add_attrib(node.attrs(), "color", std::string("GoldenRod"));
     if( G->insert_or_assign_node(node))
-        return id; 
-    return -1;
+        return node; 
+    return {};
 }
 
-bool SpecificWorker::create_rt_edge(int from, int to, std::vector<float> values)
+bool SpecificWorker::create_rt_edge(Node n, int to, std::vector<float> values)
 {
     Edge edge_rt;
     edge_rt.type("RT");
-    edge_rt.from(from);
+    edge_rt.from(n.id());
     edge_rt.to(to);
-    G->add_attrib(edge_rt.attrs(), "translation", values);
+    //G->add_attrib(edge_rt.attrs(), "translation", values);
+    //return G->insert_or_assign_edge(edge_rt);
+    std::vector<float> rot{0.0, 0.0, 0.0};
+    G->insert_or_assign_edge_RT(n, to, values, rot);
+    return true;
     
-    return G->insert_or_assign_edge(edge_rt);
 }

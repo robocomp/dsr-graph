@@ -51,8 +51,8 @@ public:
 
 private: 
     int get_new_node_id();
-    int create_node(std::string type, std::string name);
-    bool create_rt_edge(int from, int to, std::vector<float> values);
+    std::optional<Node> create_node(std::string type, std::string name);
+    bool create_rt_edge(Node n, int to, std::vector<float> values);
 public slots:
 	void compute();
 	void initialize(int period);
