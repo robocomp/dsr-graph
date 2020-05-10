@@ -6,6 +6,7 @@
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include <random>
+#include "../../../graph-related-classes/dsr_to_osg_viewer.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -37,9 +38,12 @@ class SpecificWorker : public GenericWorker
 		std::string test_output_file;
 		bool read_file = false;
 		
+		// graph viewer
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 		QHBoxLayout mainLayout;
 		QWidget window;
+		std::shared_ptr<DSRtoOSGViewer> dsr_to_osg_viewer;
+		std::thread my_thread;
 		
 		// Random
 		std::random_device rd;
