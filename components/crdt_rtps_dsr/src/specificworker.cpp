@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <thread>
 
 /**
 * \brief Default constructor
@@ -49,21 +50,24 @@ void SpecificWorker::initialize(int period)
 
     // create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
-    G->print();
-    // G->start_subscription_thread(true);     // regular subscription to deltas
-    // G->start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-    
+    //G->print();
+     
     // Graph viewer
 	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
     setWindowTitle(QString::fromStdString(agent_name));
+    graph_viewer->show();
+
+    // OSG Viewer
+    // dsr_to_osg_viewer = std::make_shared<DSRtoOSGViewer>(graph_viewer->widget);
+    //my_thread = std::move(std::thread(&DSRtoOSGViewer::run, dsr_to_osg_viewer));
     
     // Random initialization
     // mt = std::mt19937(rd());
     // unif_float = std::uniform_real_distribution((float)-40.0, (float)40.0);
-    // unif_int = std::uniform_int_distribution((int)100, (int)140.0);
+    unif_int = std::uniform_int_distribution((int)0, (int)200);
     timer.setSingleShot(true);
     timer.start(100);
 }
@@ -148,6 +152,20 @@ void SpecificWorker::compute()
     auto r = innermodel->transform("world", "base");
     if(r.has_value())
         r.value().print("r");
+
+    qDebug() << ":::::::::: Create node :::::::::::::::::::::::::";
+    Node node;
+    node.type("plane"); node.id(1000); node.agent_id(agent_id); node.name("plane [1000]");
+    G->insert_or_assign_attrib_by_name(node, "pos_x", unif_int(mt));
+    G->insert_or_assign_attrib_by_name(node, "pos_y", unif_int(mt));
+    G->insert_or_assign_attrib_by_name(node, "name", std::string("cacuza"));
+    G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
+    G->insert_or_assign_node(node);
+
+    qDebug() << ":::::::::: Create RTLink :::::::::::::::::::::::::";
+    auto mynode = G->get_node(100);
+    auto mnode = mynode.value();
+    G->insert_or_assign_edge_RT(mnode, 1000, std::vector<float>{4,4,4}, std::vector<float>{8,8,8});
 }
 
 
