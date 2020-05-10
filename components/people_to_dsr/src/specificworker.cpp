@@ -152,10 +152,10 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     node.id(id);
     node.agent_id(agent_id);
     node.name(name);
-    G->add_attrib(node.attrs(), "pos_x", 100);
-    G->add_attrib(node.attrs(), "pos_y", 100);
-    G->add_attrib(node.attrs(), "name", name);
-    G->add_attrib(node.attrs(), "color", std::string("GoldenRod"));
+    G->insert_or_assign_attrib_by_name(node, "pos_x", 100);
+    G->insert_or_assign_attrib_by_name(node, "pos_y", 100);
+    G->insert_or_assign_attrib_by_name(node, "name", name);
+    G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
     if( G->insert_or_assign_node(node))
         return node; 
     return {};
@@ -163,14 +163,7 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
 
 bool SpecificWorker::create_rt_edge(Node n, int to, std::vector<float> values)
 {
-    Edge edge_rt;
-    edge_rt.type("RT");
-    edge_rt.from(n.id());
-    edge_rt.to(to);
-    //G->add_attrib(edge_rt.attrs(), "translation", values);
-    //return G->insert_or_assign_edge(edge_rt);
     std::vector<float> rot{0.0, 0.0, 0.0};
     G->insert_or_assign_edge_RT(n, to, values, rot);
     return true;
-    
 }
