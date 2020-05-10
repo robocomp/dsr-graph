@@ -62,7 +62,8 @@ void SpecificWorker::initialize(int period)
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
 	setWindowTitle(QString::fromStdString(agent_name));
-	graph_viewer->show();
+	connect(actionSave, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::saveGraphSLOT);
+	connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
 
 	// Compute max Id in G
     get_max_id_from_G();
