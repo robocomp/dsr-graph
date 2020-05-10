@@ -61,15 +61,15 @@ void SpecificWorker::initialize(int period)
     graph_viewer->show();
 
     // OSG Viewer
-    // dsr_to_osg_viewer = std::make_shared<DSRtoOSGViewer>(graph_viewer->widget);
-    //my_thread = std::move(std::thread(&DSRtoOSGViewer::run, dsr_to_osg_viewer));
+    dsr_to_osg_viewer = std::make_shared<DSR::DSRtoOSGViewer>(G, 1, 1, graph_viewer->widget);
+    // my_thread = std::move(std::thread(&DSRtoOSGViewer::run, dsr_to_osg_viewer));
     
     // Random initialization
     // mt = std::mt19937(rd());
     // unif_float = std::uniform_real_distribution((float)-40.0, (float)40.0);
     unif_int = std::uniform_int_distribution((int)0, (int)200);
     timer.setSingleShot(true);
-    timer.start(100);
+    //timer.start(100);
 }
 
 void SpecificWorker::compute()

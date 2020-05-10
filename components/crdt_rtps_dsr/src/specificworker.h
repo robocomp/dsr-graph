@@ -42,7 +42,7 @@ class SpecificWorker : public GenericWorker
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 		QHBoxLayout mainLayout;
 		QWidget window;
-		std::shared_ptr<DSRtoOSGViewer> dsr_to_osg_viewer;
+		std::shared_ptr<DSR::DSRtoOSGViewer> dsr_to_osg_viewer;
 		std::thread my_thread;
 		
 		// Random
