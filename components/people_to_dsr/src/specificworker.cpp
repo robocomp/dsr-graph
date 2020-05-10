@@ -22,9 +22,7 @@
 * \brief Default constructor
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
-{
-
-}
+{}
 
 /**
 * \brief Default destructor
@@ -32,7 +30,6 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-//    G->write_to_json_file(dsr_output_path+agent_name+".json");
     G.reset();
 }
 
@@ -49,8 +46,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
-    G->start_subscription_thread(true);     // regular subscription to deltas
-    G->start_fullgraph_request_thread();    // for agents that want to request the graph for
+    innermodel = G->get_inner_api();
 
     // GraphViewer creation
     graph_viewer = std::make_unique<DSR::GraphViewer>(G);
@@ -64,17 +60,13 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-//computeCODE
-//QMutexLocker locker(mutex);
-
 }
-
-
-
 
 //SUBSCRIPTION to newPeopleData method from HumanToDSR interface
 void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
 {
+    std::vector<float> zeros{0.0,0.0,0.0};
+
     std::optional<Node> world_n = G->get_node("world");
     if(not world_n.has_value())
         return;
@@ -85,9 +77,9 @@ void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
         std::optional<Node> person_n = G->get_node(person_name);
         if(person_n.has_value()) //update edges
         {
-qDebug()<<"update person:"<<person_n->id();
+            qDebug()<<"update person:"<<person_n->id();
             std::vector<float> values{person.x, person.y, person.z};
-            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), values, std::vector<float>{0.0,0.0,0.0});
+            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), values, zeros);
             std::cout << "Update RT "<<world_n->id()<<" "<<values<<std::endl;
             for(const auto &[name, key] : person.joints) //update joints edge values
             {
@@ -96,7 +88,14 @@ qDebug()<<"update person:"<<person_n->id();
                 if(joint_n.has_value())
                 {
                     std::vector<float> values{key.x, key.y, key.z};
-                    G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), values, std::vector<float>{0.0,0.0,0.0});
+                    
+                    // RTMat world_to_joint( 0.0, 0.0, 0.0, key.x, key.y, key.z);
+                    // auto world_to_person = innermodel->getTransformationMatrixS(person_name, "world");
+                    // QVec joint_to_person = (world_to_joint * world_to_person.value()).getTr();
+                    // std::vector<float> jtp{ joint_to_person.x(), joint_to_person.y(), joint_to_person.z()};
+                    // G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), jtp, zeros);
+                
+                    G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), values, zeros);
                 }
                 else
                     qDebug()<<"node could not be reached"<< QString::fromStdString(node_name);

@@ -65,6 +65,9 @@ private:
 
 	void get_max_id_from_G();
 
+	QGraphicsScene scene;
+	QGraphicsView gv;
+
 };
 
 #endif
