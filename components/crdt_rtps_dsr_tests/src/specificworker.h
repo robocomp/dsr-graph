@@ -10,7 +10,6 @@
 #include <thread>
 #include <chrono>
 
-#include "tests/CRDT_G_api_test.h"
 #include "tests/CRDT_concurrent_test.h"
 #include "tests/DSR_test.h"
 
