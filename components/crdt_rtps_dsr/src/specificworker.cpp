@@ -149,23 +149,25 @@ void SpecificWorker::compute()
 
    
 
-    // qDebug() << ":::::::::: Create node :::::::::::::::::::::::::";
-    // Node node;
-    // node.type("plane"); node.id(1000); node.agent_id(agent_id); node.name("plane [1000]");
-    // G->insert_or_assign_attrib_by_name(node, "pos_x", unif_int(mt));
-    // G->insert_or_assign_attrib_by_name(node, "pos_y", unif_int(mt));
-    // G->insert_or_assign_attrib_by_name(node, "name", std::string("cacuza"));
-    // G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
-    // G->insert_or_assign_node(node);
+    qDebug() << ":::::::::: Create node :::::::::::::::::::::::::";
+    Node node;
+    node.type("plane"); node.id(1000); node.agent_id(agent_id); node.name("box_3");
+    G->insert_or_assign_attrib_by_name(node, "pos_x", unif_int(mt));
+    G->insert_or_assign_attrib_by_name(node, "pos_y", unif_int(mt));
+    G->insert_or_assign_attrib_by_name(node, "name", std::string("plane [1000]"));
+    G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
+    G->insert_or_assign_attrib_by_name(node, "parent", std::int32_t(135));
+    G->insert_or_assign_attrib_by_name(node, "level", std::int32_t(2));
+    
+    G->insert_or_assign_node(node);
 
-    // qDebug() << ":::::::::: Create RTLink :::::::::::::::::::::::::";
-    // auto mynode = G->get_node(100);
-    // auto mnode = mynode.value();
-    // G->insert_or_assign_edge_RT(mnode, 1000, std::vector<float>{4,4,4}, std::vector<float>{8,8,8});
+    qDebug() << ":::::::::: Create RTLink :::::::::::::::::::::::::";
+    auto mynode = G->get_node("box_2");
+    G->insert_or_assign_edge_RT(mynode.value(), 1000, std::vector<float>{4,4,4}, std::vector<float>{8,8,8});
 
      qDebug() << ":::::::::: Inner API transform from base to plane 135 :::::::::::::::::::::::::";
     auto innermodel = G->get_inner_api();
-    auto r = innermodel->transform("box_2", "base");
+    auto r = innermodel->transform("box_3", "hokuyo_base");
     if(r.has_value())
         r.value().print("r");
 }
