@@ -1,7 +1,7 @@
 //
 // Created by juancarlos on 7/5/20.
 //
-
+/*
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_concurrent_test.h"
@@ -153,61 +153,64 @@ void CRDT_concurrent_test::insert_or_assign_attributes(int i, const shared_ptr<C
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
-    /*
-    if (fail==false)
-        result = "CONCURRENT ACCESS: insert_or_assign_attributes"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly";
-    //write_test_output(result);
-    */
+
+
 }
 
 
 void CRDT_concurrent_test::test(const shared_ptr<CRDT::CRDTGraph>& G)
 {
+    try {
 
-    threads.resize(num_threads);
-    for(int i=0; auto &t : threads)
-        t = std::move(std::thread(&CRDT_concurrent_test::create_or_remove_nodes, this, i++, G));
-    qDebug() << __FUNCTION__ << "Threads initiated";
+        threads.resize(num_threads);
+        for(int i=0; auto &t : threads)
+            t = std::move(std::thread(&CRDT_concurrent_test::create_or_remove_nodes, this, i++, G));
+        qDebug() << __FUNCTION__ << "Threads initiated";
 
-    start = std::chrono::steady_clock::now();
-    for(auto &t : threads)
-        t.join();
-    qDebug() << __FUNCTION__ << "Threads finished";
+        start = std::chrono::steady_clock::now();
+        for(auto &t : threads)
+            t.join();
+        qDebug() << __FUNCTION__ << "Threads finished";
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-    std::string result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
-    //write_test_output(result);
-    qDebug()<< QString::fromStdString(result);
+        end = std::chrono::steady_clock::now();
+        std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        std::string result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
+        //write_test_output(result);
+        qDebug()<< QString::fromStdString(result);
 
-    threads.resize(num_threads);
-    for(int i=0; auto &t : threads)
-    t = std::move(std::thread(&CRDT_concurrent_test::create_or_remove_edges, this, i++, G));
-    qDebug() << __FUNCTION__ << "Threads initiated";
+        threads.resize(num_threads);
+        for(int i=0; auto &t : threads)
+        t = std::move(std::thread(&CRDT_concurrent_test::create_or_remove_edges, this, i++, G));
+        qDebug() << __FUNCTION__ << "Threads initiated";
 
-    start = std::chrono::steady_clock::now();
-    for(auto &t : threads)
-        t.join();
-    qDebug() << __FUNCTION__ << "Threads finished";
+        start = std::chrono::steady_clock::now();
+        for(auto &t : threads)
+            t.join();
+        qDebug() << __FUNCTION__ << "Threads finished";
 
-    end = std::chrono::steady_clock::now();
-    time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-    result = "CONCURRENT ACCESS: create_or_remove_edges:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
-    //write_test_output(result);
-    qDebug()<< QString::fromStdString(result);
+        end = std::chrono::steady_clock::now();
+        time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        result = "CONCURRENT ACCESS: create_or_remove_edges:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
+        //write_test_output(result);
+        qDebug()<< QString::fromStdString(result);
 
-    threads.resize(num_threads);
-    for(int i=0; auto &t : threads)
-    t = std::move(std::thread(&CRDT_concurrent_test::insert_or_assign_attributes, this, i++, G));
-    qDebug() << __FUNCTION__ << "Threads initiated";
+        threads.resize(num_threads);
+        for(int i=0; auto &t : threads)
+        t = std::move(std::thread(&CRDT_concurrent_test::insert_or_assign_attributes, this, i++, G));
+        qDebug() << __FUNCTION__ << "Threads initiated";
 
-    start = std::chrono::steady_clock::now();
-    for(auto &t : threads)
-        t.join();
-    qDebug() << __FUNCTION__ << "Threads finished";
+        start = std::chrono::steady_clock::now();
+        for(auto &t : threads)
+            t.join();
+        qDebug() << __FUNCTION__ << "Threads finished";
 
-    end = std::chrono::steady_clock::now();
-    time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-    result = "CONCURRENT ACCESS: insert_or_assign_attributes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
-    qDebug()<< QString::fromStdString(result);
+        end = std::chrono::steady_clock::now();
+        time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        result = "CONCURRENT ACCESS: insert_or_assign_attributes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
+        qDebug()<< QString::fromStdString(result);
+
+    } catch (std::exception e) {
+        std::cerr << "API TEST: TEST FAILED WITH EXCEPTION "<<  e.what() << " " << std::to_string(__LINE__) + " error file:" + __FILE__ << std::endl;
+    }
 }
+ */

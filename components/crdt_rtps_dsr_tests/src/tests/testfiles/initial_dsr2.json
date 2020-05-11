@@ -1,0 +1,313 @@
+﻿{
+  "DSRModel": {
+    "symbol": {
+      "100": {
+        "attribute": {
+          "color": {
+            "type": "0",
+            "value": "SeaGreen"
+          },
+          "imName": {
+            "type": "0",
+            "value": "world"
+          },
+          "imType": {
+            "type": "0",
+            "value": "transform"
+          },
+          "level": {
+            "type": "1",
+            "value": "0"
+          },
+          "name": {
+            "type": "0",
+            "value": "world [100]"
+          },
+          "parent": {
+            "type": "1",
+            "value": "0"
+          },
+          "pos_x": {
+            "type": "2",
+            "value": "-90.295357"
+          },
+          "pos_y": {
+            "type": "2",
+            "value": "-286.075958"
+          }
+        },
+        "id": "100",
+        "links": [
+          {
+            "dst": "131",
+            "label": "RT",
+            "linkAttribute": {
+              "rotation_euler_xyz": {
+                "type": "3",
+                "value": [
+                  0,
+                  2.1238999366760254,
+                  0
+                ]
+              },
+              "translation": {
+                "type": "3",
+                "value": [
+                  -1614.6500244140625,
+                  0,
+                  -1597.6400146484375
+                ]
+              }
+            },
+            "src": "100"
+          },
+          {
+            "dst": "135",
+            "label": "RT",
+            "linkAttribute": {
+              "rotation_euler_xyz": {
+                "type": "3",
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "translation": {
+                "type": "3",
+                "value": [
+                  1300,
+                  0,
+                  1200
+                ]
+              }
+            },
+            "src": "100"
+          }
+        ],
+        "name": "world",
+        "type": "world"
+      },
+      "131": {
+        "attribute": {
+          "advance_speed": {
+            "type": "2",
+            "value": "0.000000"
+          },
+          "collide": {
+            "type": "0",
+            "value": "false"
+          },
+          "color": {
+            "type": "0",
+            "value": "GoldenRod"
+          },
+          "imName": {
+            "type": "0",
+            "value": "base"
+          },
+          "imType": {
+            "type": "0",
+            "value": "differentialrobot"
+          },
+          "level": {
+            "type": "1",
+            "value": "1"
+          },
+          "name": {
+            "type": "0",
+            "value": "differentialrobot [131]"
+          },
+          "noise": {
+            "type": "1",
+            "value": "0"
+          },
+          "parent": {
+            "type": "1",
+            "value": "100"
+          },
+          "port": {
+            "type": "1",
+            "value": "10004"
+          },
+          "pos_x": {
+            "type": "2",
+            "value": "-235.448044"
+          },
+          "pos_y": {
+            "type": "2",
+            "value": "-168.177170"
+          },
+          "rot": {
+            "type": "2",
+            "value": "0.000000"
+          }
+        },
+        "id": "131",
+        "links": [
+          {
+            "dst": "138",
+            "label": "RT",
+            "linkAttribute": {
+              "rotation_euler_xyz": {
+                "type": "3",
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "translation": {
+                "type": "3",
+                "value": [
+                  0,
+                  210,
+                  200
+                ]
+              }
+            },
+            "src": "131"
+          }
+        ],
+        "name": "base",
+        "type": "differentialrobot"
+      },
+      "135": {
+        "attribute": {
+          "String": {
+            "type": "0",
+            "value": ""
+          },
+          "collidable": {
+            "type": "0",
+            "value": "false"
+          },
+          "color": {
+            "type": "0",
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": "1",
+            "value": "400"
+          },
+          "height": {
+            "type": "1",
+            "value": "400"
+          },
+          "imName": {
+            "type": "0",
+            "value": "Strings"
+          },
+          "imType": {
+            "type": "0",
+            "value": "plane"
+          },
+          "level": {
+            "type": "1",
+            "value": "1"
+          },
+          "name": {
+            "type": "0",
+            "value": "plane [135]"
+          },
+          "nx": {
+            "type": "1",
+            "value": "1"
+          },
+          "nz": {
+            "type": "1",
+            "value": "0"
+          },
+          "parent": {
+            "type": "1",
+            "value": "100"
+          },
+          "pos_x": {
+            "type": "2",
+            "value": "245.578766"
+          },
+          "pos_y": {
+            "type": "2",
+            "value": "23.562189"
+          },
+          "px": {
+            "type": "1",
+            "value": "0"
+          },
+          "py": {
+            "type": "1",
+            "value": "0"
+          },
+          "repeat": {
+            "type": "1",
+            "value": "1"
+          },
+          "texture": {
+            "type": "0",
+            "value": "#ff0000"
+          },
+          "width": {
+            "type": "1",
+            "value": "400"
+          }
+        },
+        "id": "135",
+        "links": [],
+        "name": "box_2",
+        "type": "plane"
+      },
+      "138": {
+        "attribute": {
+          "color": {
+            "type": "0",
+            "value": "coral"
+          },
+          "ifconfig": {
+            "type": "0",
+            "value": "40000,50000"
+          },
+          "imName": {
+            "type": "0",
+            "value": "laser"
+          },
+          "imType": {
+            "type": "0",
+            "value": "laser"
+          },
+          "level": {
+            "type": "1",
+            "value": "2"
+          },
+          "name": {
+            "type": "0",
+            "value": "laser [138]"
+          },
+          "noise": {
+            "type": "1",
+            "value": "0"
+          },
+          "parent": {
+            "type": "1",
+            "value": "131"
+          },
+          "port": {
+            "type": "1",
+            "value": "10096"
+          },
+          "pos_x": {
+            "type": "2",
+            "value": "-246.617584"
+          },
+          "pos_y": {
+            "type": "2",
+            "value": "197.922394"
+          }
+        },
+        "id": "138",
+        "links": [],
+        "name": "hokuyo_base",
+        "type": "laser"
+      }
+    }
+  }
+}
