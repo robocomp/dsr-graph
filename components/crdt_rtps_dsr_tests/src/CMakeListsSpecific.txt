@@ -28,7 +28,6 @@ SET ( HEADERS
   ../../../graph-related-classes/dsr_utils.h
 
   tests/CRDT_concurrent_test.h
-  tests/CRDT_G_api_test.h
   tests/DSR_test.h
   tests/catch.hpp
 
