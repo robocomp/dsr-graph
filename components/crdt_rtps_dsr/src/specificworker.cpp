@@ -69,103 +69,105 @@ void SpecificWorker::initialize(int period)
     // unif_float = std::uniform_real_distribution((float)-40.0, (float)40.0);
     unif_int = std::uniform_int_distribution((int)0, (int)200);
     timer.setSingleShot(true);
-    //timer.start(100);
+    timer.start(100);
 }
 
 void SpecificWorker::compute()
 {
-    auto node_op = G->get_node("world");
-    if (node_op.has_value()) 
-    {
-        auto node = node_op.value();
-        G->print_node(node);
+    // auto node_op = G->get_node("world");
+    // if (node_op.has_value()) 
+    // {
+    //     auto node = node_op.value();
+    //     G->print_node(node);
         
-        qDebug() << "::::::::::::Get attrib by name :::::::::::::::::::::::";
-        auto t = G->get_attrib_by_name<std::string>(node, "imType");
-            std::cout << t.value_or("error") << std::endl;
+    //     qDebug() << "::::::::::::Get attrib by name :::::::::::::::::::::::";
+    //     auto t = G->get_attrib_by_name<std::string>(node, "imType");
+    //         std::cout << t.value_or("error") << std::endl;
             
-        qDebug() << ":::::::::::::::::::::::::::::::::::";
-        auto edge_op = G->get_edge(node.id(), 131, "RT");
-        if(edge_op.has_value()) 
-        {
-            auto edge = edge_op.value();
-            G->print_edge(edge);
+    //     qDebug() << ":::::::::::::::::::::::::::::::::::";
+    //     auto edge_op = G->get_edge(node.id(), 131, "RT");
+    //     if(edge_op.has_value()) 
+    //     {
+    //         auto edge = edge_op.value();
+    //         G->print_edge(edge);
             
-            qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto edges = G->get_edges(node.id());
-            //for (auto e: edges)
-            //    e.print();    
+    //         qDebug() << ":::::::::::::::::::::::::::::::::::";
+    //         auto edges = G->get_edges(node.id());
+    //         //for (auto e: edges)
+    //         //    e.print();    
        
-            qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto v = G->get_attrib_by_name<QVec>(edge, "translation");
-            if (v.has_value())
-                v->print("QVec");
+    //         qDebug() << ":::::::::::::::::::::::::::::::::::";
+    //         auto v = G->get_attrib_by_name<QVec>(edge, "translation");
+    //         if (v.has_value())
+    //             v->print("QVec");
             
-            qDebug() << ":::::::::::::::::::::::::::::::::::";
-            auto r = G->get_attrib_by_name<QMat>(edge, "rotation_euler_xyz");
-                if (r.has_value())
-                    r->print("QMat");
+    //         qDebug() << ":::::::::::::::::::::::::::::::::::";
+    //         auto r = G->get_attrib_by_name<QMat>(edge, "rotation_euler_xyz");
+    //             if (r.has_value())
+    //                 r->print("QMat");
 
-        }
+    //     }
 
-        qDebug() << "::::::::::: Get edge from node using to as key ::::::::::::::::::::::::";
-        auto m = G->get_edge_RT(node, 131);
-        m.value().print("RT"); 
+    //     qDebug() << "::::::::::: Get edge from node using to as key ::::::::::::::::::::::::";
+    //     auto m = G->get_edge_RT(node, 131);
+    //     m.value().print("RT"); 
 
-        qDebug() << ":::::::::::::  (Non-existent) return type for a given attribute ::::::::::::::::::::";
-        try
-        {
-            auto c = G->get_attrib_by_name<std::string>(node, "color");
-            std::cout  << c.value() << '\n';
-        }
-        catch(const std::exception &e)
-        { 
-            std::cout << e.what() << '\n'; 
-            QApplication::quit();
-        }
-    }
+    //     qDebug() << ":::::::::::::  (Non-existent) return type for a given attribute ::::::::::::::::::::";
+    //     try
+    //     {
+    //         auto c = G->get_attrib_by_name<std::string>(node, "color");
+    //         std::cout  << c.value() << '\n';
+    //     }
+    //     catch(const std::exception &e)
+    //     { 
+    //         std::cout << e.what() << '\n'; 
+    //         QApplication::quit();
+    //     }
+    // }
    
-    auto no = G->get_node("world");
-    if(no.has_value())
-    {
-        qDebug() << "::::::::::::Add attribute to node by name :::::::::::::::::";
-        try
-        { 
-            G->insert_or_assign_attrib_by_name(no.value(), "caca1", std::vector<float>{2,2,2}); 
-        }
-        catch(const std::exception &e)
-        {  std::cout << e.what() << '\n';}
+    // auto no = G->get_node("world");
+    // if(no.has_value())
+    // {
+    //     qDebug() << "::::::::::::Add attribute to node by name :::::::::::::::::";
+    //     try
+    //     { 
+    //         G->insert_or_assign_attrib_by_name(no.value(), "caca1", std::vector<float>{2,2,2}); 
+    //     }
+    //     catch(const std::exception &e)
+    //     {  std::cout << e.what() << '\n';}
 
-        qDebug() << "::::::::::::Add node RT to node by name :::::::::::::::::";
-        try
-        { 
-            G->get_edge_RT(no.value(), 131).value().print("antes");
-            G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{6,6,6}, std::vector<float>{2,2,2}); 
-            G->get_edge_RT(no.value(), 131).value().print("despues");
-        }
-        catch(const std::exception &e)
-        {  std::cout << e.what() << '\n';}
-    }
+    //     qDebug() << "::::::::::::Add node RT to node by name :::::::::::::::::";
+    //     try
+    //     { 
+    //         G->get_edge_RT(no.value(), 131).value().print("antes");
+    //         G->insert_or_assign_edge_RT(no.value(), 131, std::vector<float>{6,6,6}, std::vector<float>{2,2,2}); 
+    //         G->get_edge_RT(no.value(), 131).value().print("despues");
+    //     }
+    //     catch(const std::exception &e)
+    //     {  std::cout << e.what() << '\n';}
+    // }
 
-    qDebug() << ":::::::::: Inner API transform from base to world :::::::::::::::::::::::::";
+   
+
+    // qDebug() << ":::::::::: Create node :::::::::::::::::::::::::";
+    // Node node;
+    // node.type("plane"); node.id(1000); node.agent_id(agent_id); node.name("plane [1000]");
+    // G->insert_or_assign_attrib_by_name(node, "pos_x", unif_int(mt));
+    // G->insert_or_assign_attrib_by_name(node, "pos_y", unif_int(mt));
+    // G->insert_or_assign_attrib_by_name(node, "name", std::string("cacuza"));
+    // G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
+    // G->insert_or_assign_node(node);
+
+    // qDebug() << ":::::::::: Create RTLink :::::::::::::::::::::::::";
+    // auto mynode = G->get_node(100);
+    // auto mnode = mynode.value();
+    // G->insert_or_assign_edge_RT(mnode, 1000, std::vector<float>{4,4,4}, std::vector<float>{8,8,8});
+
+     qDebug() << ":::::::::: Inner API transform from base to plane 135 :::::::::::::::::::::::::";
     auto innermodel = G->get_inner_api();
-    auto r = innermodel->transform("world", "base");
+    auto r = innermodel->transform("box_2", "base");
     if(r.has_value())
         r.value().print("r");
-
-    qDebug() << ":::::::::: Create node :::::::::::::::::::::::::";
-    Node node;
-    node.type("plane"); node.id(1000); node.agent_id(agent_id); node.name("plane [1000]");
-    G->insert_or_assign_attrib_by_name(node, "pos_x", unif_int(mt));
-    G->insert_or_assign_attrib_by_name(node, "pos_y", unif_int(mt));
-    G->insert_or_assign_attrib_by_name(node, "name", std::string("cacuza"));
-    G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
-    G->insert_or_assign_node(node);
-
-    qDebug() << ":::::::::: Create RTLink :::::::::::::::::::::::::";
-    auto mynode = G->get_node(100);
-    auto mnode = mynode.value();
-    G->insert_or_assign_edge_RT(mnode, 1000, std::vector<float>{4,4,4}, std::vector<float>{8,8,8});
 }
 
 
