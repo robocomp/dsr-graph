@@ -51,7 +51,7 @@ public:
 
 private: 
     int get_new_node_id();
-    std::optional<Node> create_node(std::string type, std::string name);
+    std::optional<Node> create_node(std::string type, std::string name, int parent_id);
     
 public slots:
 	void compute();

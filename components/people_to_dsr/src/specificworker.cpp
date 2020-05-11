@@ -87,15 +87,22 @@ void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
                 std::optional<Node> joint_n = G->get_node(node_name);
                 if(joint_n.has_value())
                 {
-                    std::vector<float> values{key.x, key.y, key.z};
+                    QVec joint_to_personIN = QVec::vec3(key.px, key.py, key.pz);
                     
-                    // RTMat world_to_joint( 0.0, 0.0, 0.0, key.x, key.y, key.z);
-                    // auto world_to_person = innermodel->getTransformationMatrixS(person_name, "world");
-                    // QVec joint_to_person = (world_to_joint * world_to_person.value()).getTr();
-                    // std::vector<float> jtp{ joint_to_person.x(), joint_to_person.y(), joint_to_person.z()};
-                    // G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), jtp, zeros);
-                
-                    G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), values, zeros);
+                    
+                    RTMat world_to_joint( 0.0, 0.0, 0.0, key.wx, key.wy, key.wz);
+                    auto world_to_person = innermodel->getTransformationMatrixS(person_name, "world");
+                    
+                    QVec joint_to_personIA = (world_to_joint * world_to_person.value() ).getTr();
+                    std::vector<float> jtp{ joint_to_personIA.x(), joint_to_personIA.y(), joint_to_personIA.z()};
+                    if(name == "left_hip")
+                    {
+                        world_to_person.value().print("w_to_p");
+                        std::cout<<node_name<<std::endl;
+                        joint_to_personIN.print("innermodel");
+                        joint_to_personIA.print("inner_api");
+                    }
+                    G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), jtp, zeros);
                 }
                 else
                     qDebug()<<"node could not be reached"<< QString::fromStdString(node_name);
@@ -104,7 +111,7 @@ void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
         else //create nodes
         {
             qDebug()<<"Person does not exist => Creation";
-            std::optional<Node> person_n = create_node("person", person_name);
+            std::optional<Node> person_n = create_node("person", person_name, world_n->id());
             if (not person_n.has_value()) 
                 return;
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
@@ -112,7 +119,7 @@ void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
             for(std::string name : COCO_IDS)
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
-                std::optional<Node> joint_n = create_node("joint", node_name);
+                std::optional<Node> joint_n = create_node("joint", node_name, person_n->id());
                 if(joint_n.has_value())
                     G->insert_or_assign_edge_RT(person_n.value(), joint_n->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{0.0, 0.0, 0.0});
             }
@@ -133,7 +140,7 @@ int SpecificWorker::get_new_node_id()
     return new_id;
 }
 
-std::optional<Node> SpecificWorker::create_node(std::string type, std::string name)
+std::optional<Node> SpecificWorker::create_node(std::string type, std::string name, int parent_id)
 {
     int id = get_new_node_id();
     if (id == -1)
@@ -146,6 +153,8 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     G->insert_or_assign_attrib_by_name(node, "pos_x", 100);
     G->insert_or_assign_attrib_by_name(node, "pos_y", 100);
     G->insert_or_assign_attrib_by_name(node, "name", name);
+    G->insert_or_assign_attrib_by_name(node, "level", 1);
+    G->insert_or_assign_attrib_by_name(node, "parent", parent_id);
     G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
     if( G->insert_or_assign_node(node))
         return node; 
