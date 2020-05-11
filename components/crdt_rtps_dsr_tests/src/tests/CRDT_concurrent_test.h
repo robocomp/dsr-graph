@@ -4,8 +4,7 @@
 
 #ifndef CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H
 #define CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H
-
-#include "Test_utils.h"
+/*
 #include "../../../../graph-related-classes/CRDT.h"
 
 
@@ -32,5 +31,5 @@ private:
 
 };
 
-
+*/
 #endif //CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H

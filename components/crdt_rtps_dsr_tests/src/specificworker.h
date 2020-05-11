@@ -10,7 +10,6 @@
 #include <thread>
 #include <chrono>
 
-#include "tests/Test_utils.h"
 #include "tests/CRDT_G_api_test.h"
 #include "tests/CRDT_concurrent_test.h"
 #include "tests/DSR_test.h"
@@ -86,11 +85,11 @@ class SpecificWorker : public GenericWorker
 		QTimer autokill_timer;
 
 
-		std::shared_ptr<Test_utils> test;
-		CRDT_G_api_test G_api_test;
-		CRDT_concurrent_test concurrent_test;
-        DSR_test dst_test;
-		
+		//std::shared_ptr<Test_utils> test;
+		//CRDT_G_api_test G_api_test;
+		//CRDT_concurrent_test concurrent_test;
+        //DSR_test dst_test;
+
 };
 
 #endif

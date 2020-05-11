@@ -7,317 +7,213 @@
 #include "CRDT_G_api_test.h"
 #include "../../../../graph-related-classes/vertex.h"
 
-void CRDT_G_api_test::get_nonexistent_node(const shared_ptr<CRDT::CRDTGraph>& G) {
-    G->reset();
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    std::optional<Node> n_id = G->get_node(666666);
-    std::optional<Node> n_name = G->get_node("no existe");
-    std::optional<shared_ptr<CRDT::Vertex>> v_id = G->get_vertex(666666);
-    std::optional<shared_ptr<CRDT::Vertex>> v_name = G->get_vertex("no existe");
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-    if (!n_id.has_value() and !n_name.has_value() and !v_id.has_value()and  !v_name.has_value())
-        result = "API TEST: get_nonexistent_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: get_nonexistent_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-
-}
-
-void CRDT_G_api_test::get_nonexistent_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    std::optional<Edge> n_id = G->get_edge(666666, 77777, "K");
-    std::optional<Edge> n_name = G->get_edge("no existe", "otro no existe", "K");
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (!n_id.has_value() and !n_name.has_value())
-        result = "API TEST: get_nonexistent_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: get_nonexistent_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::insert_node(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    Node n;
-    n.name("test");
-    n.id(testutils->newID());
-    n.type("testtype");
-    bool r  = G->insert_or_assign_node(n);
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: insert_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: insert_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::get_existent_node(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    std::optional<Node> n_id = G->get_node(testutils->getID());
-    std::optional<Node> n_name = G->get_node("test");
-    std::optional<shared_ptr<CRDT::Vertex>> v_id = G->get_vertex(testutils->getID());
-    std::optional<shared_ptr<CRDT::Vertex>> v_name = G->get_vertex("test");
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (n_id.has_value() and n_name.has_value() and v_id.has_value()and  v_name.has_value())
-        result = "API TEST: get_existent_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: get_existent_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::update_node(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    Node n_id = G->get_node(testutils->getID()).value();
-    G->add_attrib(n_id.attrs(), "level", 1);
-    bool r = G->insert_or_assign_node(n_id);
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: update_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: update_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::insert_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
+#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+#include "catch.hpp"
+#include <filesystem>
 
 
+class Graph {
+public:
+    static Graph& get() {
+        static Graph instance;
+        return instance;
+    }
 
-    Node n;
-    n.name("test2");
-    n.id(testutils->newID());
-    n.type("testtype");
-    G->insert_or_assign_node(n);
+    shared_ptr<CRDT::CRDTGraph> get_G() { return G;}
+private:
+    Graph () {
+        G = make_shared<CRDT::CRDTGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
+    }
 
+    std::shared_ptr<CRDT::CRDTGraph> G;
+};
 
+TEST_CASE("Node operations", "[NODE]") {
 
-    Edge e;
-    e.type("testtype");
-    e.to(testutils->getID());
-    e.from(testutils->getID());
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
 
-    bool r  = G->insert_or_assign_edge(e);
-    testutils->addEdgeIDs(e.from(), e.to());
+    SECTION("Get a node that does not exists") {
+        G->reset();
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: insert_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: insert_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
+        std::optional<Node> n_id = G->get_node(666666);
+        std::optional<Node> n_name = G->get_node("no existe");
 
-    qDebug()<< QString::fromStdString(result);
-}
+        REQUIRE(n_id.has_value() == false);
+        REQUIRE(n_name.has_value() == false);
 
-void CRDT_G_api_test::get_existent_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
+    }
 
-    std::string result;
-    start = std::chrono::steady_clock::now();
+    SECTION("Insert a new node") {
 
-    auto [from, to] = testutils->getEdgeIDs();
-    std::optional<Edge> e_id = G->get_edge(from, to, "testtype");
-    std::optional<Edge> e_name = G->get_edge("test", "test2", "testtype");
+        Node n;
+        n.name("test");
+        n.id(75000);
+        n.type("testtype");
+        bool r  = G->insert_or_assign_node(n);
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (e_id.has_value() and e_name.has_value())
-        result = "API TEST: get_existent_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: get_existent_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
+        REQUIRE(r == true);
 
-    qDebug()<< QString::fromStdString(result);
+    }
+    SECTION("Get an existing node") {
+
+        std::optional<Node> n_id = G->get_node(75000);
+        std::optional<Node> n_name = G->get_node("test");
+
+        REQUIRE(n_id.has_value() == true);
+        REQUIRE(n_name.has_value() == true);
+
+    }
+    SECTION("Update existing node") {
+
+        std::optional<Node> n_id = G->get_node(75000);
+        REQUIRE(n_id.has_value() == true);
+
+        G->add_attrib(n_id->attrs(), "level", 1);
+        bool r = G->insert_or_assign_node(n_id.value());
+
+        REQUIRE(r == true);
+
+    }
+    SECTION("Delete existing node") {
+
+        bool r = G->delete_node(75000);
+        REQUIRE(r == true);
+        REQUIRE(G->get_node(75000) == std::nullopt);
+
+    }
+    SECTION("Delete a node that does not exists") {
+
+        bool r = G->delete_node(75000);
+        REQUIRE(r == false);
+
+    }
 }
 
 
-void CRDT_G_api_test::update_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
+TEST_CASE("Edge operations", "[EDGE]") {
 
-    auto [from, to] = testutils->getEdgeIDs();
-    Edge e_id = G->get_edge(from, to, "testtype").value();
-    G->add_attrib(e_id.attrs(), "att", std::string("a"));
-    bool r = G->insert_or_assign_edge(e_id);
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: update_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: update_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
+    SECTION("Get an edge that does not exists") {
 
-    qDebug()<< QString::fromStdString(result);
+        std::optional<Edge> e_id = G->get_edge(666666, 77777, "K");
+        std::optional<Edge> e_name = G->get_edge("no existe", "otro no existe", "K");
+
+        REQUIRE(e_id.has_value() == false);
+        REQUIRE(e_name.has_value() == false);
+    }
+    SECTION("Insert a new edge") {
+
+
+        Node n;
+        n.name("test");
+        n.id(85000);
+        n.type("testtype");
+        REQUIRE(G->insert_or_assign_node(n) == true);
+
+
+        n = Node();
+        n.name("test2");
+        n.id(87000);
+        n.type("testtype");
+        REQUIRE(G->insert_or_assign_node(n) == true);
+
+        Edge e;
+        e.type("testtype");
+        e.to(87000);
+        e.from(85000);
+
+        bool r  = G->insert_or_assign_edge(e);
+        REQUIRE(r == true);
+
+    }
+    SECTION("Get an existing edge") {
+
+        std::optional<Edge> e = G->get_edge(85000, 87000, "testtype");
+        std::optional<Edge> e_name = G->get_edge("test", "test2", "testtype");
+        REQUIRE(e.has_value() == true);
+        REQUIRE(e_name.has_value() == true);
+
+    }
+
+    SECTION("Update existing edge") {
+        std::optional<Edge> e = G->get_edge(85000, 87000, "testtype");
+        REQUIRE(e.has_value() == true);
+        G->add_attrib(e->attrs(), "att", std::string("a"));
+        bool r = G->insert_or_assign_edge(e.value());
+        REQUIRE(r == true);
+
+    }
+    SECTION("Delete existing edge") {
+
+        bool r = G->delete_edge(85000, 87000, "testtype");
+        REQUIRE(r == true);
+        REQUIRE(G->get_edge(85000, 87000, "testtype") == std::nullopt);
+
+    }
+    SECTION("Delete an edge that does not exists") {
+        bool r = G->delete_edge(85000, 87000, "testtype");
+        REQUIRE(r == false);
+    }
 }
 
-void CRDT_G_api_test::delete_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
+TEST_CASE("File operations", "[FILE]") {
 
-    auto [from, to] = testutils->removeEdgeIDs();
-    bool r = G->delete_edge(from, to, "testtype");
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    CRDT::Utilities u (G.get());
 
+    const std::string empty_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json";
+    const std::string wempty_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/write_empty_file.json";
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: delete_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: delete_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::delete_nonexistent_edge(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    bool r = G->delete_edge(888888, 777777, "testtype");
+    const std::string test_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/initial_dsr2.json";
+    const std::string wtest_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/write_initial_dsr2.json";
 
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (!r)
-        result = "API TEST: delete_nonexistent_edge" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: delete_nonexistent_edge" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
 
-    qDebug()<< QString::fromStdString(result);
-}
+    SECTION("Load an empty file") {
+        G->reset();
+        REQUIRE(G->size() == 0);
 
-void CRDT_G_api_test::delete_node(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
+        u.read_from_json_file(empty_file);
+        REQUIRE(G->size() == 0);
 
-    bool r = G->delete_node(testutils->removeID());
+    }
 
+    SECTION("Write an empty file") {
+        std::filesystem::remove(wempty_file);
+        REQUIRE(std::filesystem::exists(wempty_file) == false);
+        u.write_to_json_file(wempty_file);
+        REQUIRE(std::filesystem::exists(wempty_file) == true);
+    }
 
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (r)
-        result = "API TEST: delete_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: delete_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
+    SECTION("Load a non-empty file") {
+        G->reset();
+        REQUIRE(G->size() == 0);
 
-    qDebug()<< QString::fromStdString(result);
-}
+        u.read_from_json_file(test_file);
+        REQUIRE(G->size() == 4);
+    }
 
-void CRDT_G_api_test::delete_nonexistent_node(const shared_ptr<CRDT::CRDTGraph>& G)
-{
-    std::string result;
-    start = std::chrono::steady_clock::now();
+    SECTION("Write a file") {
+        std::filesystem::remove(wtest_file);
+        REQUIRE(std::filesystem::exists(wtest_file) == false);
+        u.write_to_json_file(wtest_file);
+        REQUIRE(std::filesystem::exists(wtest_file) == true);
+        REQUIRE(std::filesystem::exists(wtest_file) == true);
 
-    bool r = G->delete_node(9999999);
-
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (!r)
-        result = "API TEST: delete_nonexistent_node" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: delete_nonexistent_node" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::load_empty_file(const shared_ptr<CRDT::CRDTGraph>& G, const std::string& File)
-{
-    G->reset();
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    G->read_from_json_file(File);
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (G->size() == 0)
-        result = "API TEST: load_empty_file" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: load_empty_file" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
-}
-
-void CRDT_G_api_test::load_file(const shared_ptr<CRDT::CRDTGraph>& G, const std::string& File)
-{
-    G->reset();
-
-    std::string result;
-    start = std::chrono::steady_clock::now();
-
-    G->read_from_json_file(File);
-
-    end = std::chrono::steady_clock::now();
-    std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
-                                              (end - start).count());
-    if (G->size() == 4)
-        result = "API TEST: load_file" + MARKER + "OK" + MARKER + time + MARKER + "Finished properly";
-    else
-        result = "API TEST: load_file" + MARKER + "FAIL" + MARKER + time + MARKER +" error line:" + std::to_string(__LINE__) + " error file:" + __FILE__;
-
-    qDebug()<< QString::fromStdString(result);
+    }
 }
 
 
+TEST_CASE("Join Operations", "[JOIN]") {
 
-void CRDT_G_api_test::test(const shared_ptr<CRDT::CRDTGraph>& G) {
-    get_nonexistent_node(G);
-    get_nonexistent_edge(G);
-    insert_node(G);
-    get_existent_node(G);
-    update_node(G);
-    insert_edge(G);
-    get_existent_edge(G);
-    update_edge(G);
-    delete_edge(G);
-    delete_nonexistent_edge(G);
-    delete_node(G);
-    delete_nonexistent_node(G);
-    load_empty_file(G, empty_file);
-    load_file(G, test_file);
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+
+
+    SECTION("Join full graph") {}
+    SECTION("Join empty full graph") {}
+    SECTION("Join delta add") {}
+    SECTION("Join delta remove") {}
+    SECTION("Join delta update") {}
 }
+

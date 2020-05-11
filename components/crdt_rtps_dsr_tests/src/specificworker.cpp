@@ -68,9 +68,9 @@ void SpecificWorker::initialize(int period) {
     // qDebug() << __FUNCTION__ << "Graph Viewer started";
     
 
-    test = std::make_shared<Test_utils>(dsrgetid_proxy);
-    G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    concurrent_test = CRDT_concurrent_test(test, 1, 1000);
+    //test = std::make_shared<Test_utils>(dsrgetid_proxy);
+    //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
+    //concurrent_test = CRDT_concurrent_test(test, 1, 1000);
     //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
@@ -82,24 +82,26 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    qDebug()<<"G API TEST:";
-    G_api_test.test(G);
-    qDebug()<<"CONCURRENT ACCESS TEST:";
-    concurrent_test.test(G);
-    //test_concurrent_access(1);
-    //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    //test_create_or_remove_node(100, 10000, 10);
-    // if (write_string)
-    //     test_set_string(0);
-    //   test_nodes_mov();
-    // test_node_random();
-    //int num_ops = 100000;
-    //test_set_string(0, num_ops, 0);
-    //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    //std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    //qDebug() << __FUNCTION__ << "Elapsed time:" << QString::fromStdString(time) << "ms for " << num_ops << " ops";
+    //qDebug()<<"G API TEST:";
+    //G_api_test.test(G);
+    //qDebug()<<"CONCURRENT ACCESS TEST:";
+    //concurrent_test.test(G);
 
-    //sleep(5);
+    /* Mover a pruebas DSR
+    //Prueba básica para comprobar que la GUI actualiza bien.
+    Edge e;
+    e.from(138);
+    e.to(135);
+    e.type("RT");
+
+    G->add_attrib(e.attrs(), "translation", vector<float>{1.,0.,1.});
+    G->add_attrib(e.attrs(), "rotation_euler_xyz", vector<float>{0.,0.,1.});
+
+    G->insert_or_assign_edge(e);
+
+    sleep(1);
+    G->delete_edge(138,135,"RT");
+    */
     //G->write_to_json_file(dsr_output_file);
     //exit(0);
 }

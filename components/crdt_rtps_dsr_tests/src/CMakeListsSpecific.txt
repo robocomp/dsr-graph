@@ -11,11 +11,9 @@ SET ( SOURCES
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
+    ../../../graph-related-classes/dsr_utils.cpp
   tests/CRDT_concurrent_test.cpp
-  tests/CRDT_G_api_test.cpp
   tests/DSR_test.cpp
-  tests/Test_utils.cpp
-
 )
 
 # Headers set
@@ -27,10 +25,36 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graph.h
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
+  ../../../graph-related-classes/dsr_utils.h
+
   tests/CRDT_concurrent_test.h
   tests/CRDT_G_api_test.h
   tests/DSR_test.h
-  tests/Test_utils.h
+  tests/catch.hpp
+
+)
+
+
+SET ( TEST_SOURCES
+  ../../../graph-related-classes/CRDT.cpp
+  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
+  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
+  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  ../../../graph-related-classes/topics/DSRGraph.cxx
+    ../../../graph-related-classes/dsr_utils.cpp
+  tests/CRDT_G_api_test.cpp
+)
+
+
+
+# Headers set
+SET ( TEST_HEADERS
+  ../../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/dsr_utils.h
+  tests/CRDT_G_api_test.h
+  tests/catch.hpp
+
 )
 
 find_package(LibXml2 REQUIRED)
