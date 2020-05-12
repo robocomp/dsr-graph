@@ -70,7 +70,7 @@ void SpecificWorker::initialize(int period) {
 
     //test = std::make_shared<Test_utils>(dsrgetid_proxy);
     //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    //concurrent_test = CRDT_concurrent_test(test, 1, 1000);
+    concurrent_test = CRDT_concurrent_test(dsrgetid_proxy, 1000, 5);
     //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
@@ -82,10 +82,9 @@ void SpecificWorker::initialize(int period) {
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
-    //qDebug()<<"G API TEST:";
-    //G_api_test.test(G);
-    //qDebug()<<"CONCURRENT ACCESS TEST:";
-    //concurrent_test.test(G);
+
+    qDebug()<<"CONCURRENT ACCESS TEST:";
+    concurrent_test.run_test(G);
 
     /* Mover a pruebas DSR
     //Prueba básica para comprobar que la GUI actualiza bien.
