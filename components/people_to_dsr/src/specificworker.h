@@ -63,9 +63,58 @@ private:
     std::string dsr_output_path;
     std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
             "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"};
-    std::map<std::string, int> peopleHash;
+    
+    struct JOINT_CONNECTION
+    {
+        std::string parent_name;
+        std::vector<float> translation;
+    };
+    std::map<std::string, JOINT_CONNECTION> jointMap{ 
+        {"nose", JOINT_CONNECTION{"person",{0.0, 300.0, 0.0}}}, 
+        {"left_eye", JOINT_CONNECTION{"nose",{-30.0, 30.0, 0.0}}}, 
+        {"right_eye", JOINT_CONNECTION{"nose",{30.0, 30.0, 0.0}}}, 
+        {"left_ear", JOINT_CONNECTION{"nose",{-100.0, 0.0, 0.0}}}, 
+        {"right_ear", JOINT_CONNECTION{"nose",{100.0, 0.0, 0.0}}}, 
+
+        {"left_shoulder", JOINT_CONNECTION{"person",{-250.0, 150.0, 0.0}}},
+        {"left_elbow", JOINT_CONNECTION{"left_shoulder",{-230.0, 0.0, 0.0}}},
+        {"left_wrist", JOINT_CONNECTION{"left_elbow",{-230.0, 0.0, 0.0}}},
+        {"right_shoulder", JOINT_CONNECTION{"person",{250.0, 150.0, 0.0}}},
+        {"right_elbow", JOINT_CONNECTION{"right_shoulder",{230.0, 0.0, 0.0}}},
+        {"right_wrist", JOINT_CONNECTION{"right_elbow",{230.0, 0.0, 0.0}}},
+
+        {"left_hip", JOINT_CONNECTION{"person",{-200.0, -400.0, 0.0}}},
+        {"left_knee", JOINT_CONNECTION{"left_hip",{0.0, -400.0, 0.0}}},
+        {"left_ankle", JOINT_CONNECTION{"left_knee",{0.0, -400.0, 0.0}}},
+        {"right_hip", JOINT_CONNECTION{"person",{200.0, -400.0, 0.0}}},
+        {"right_knee", JOINT_CONNECTION{"right_hip",{0.0, -400.0, 0.0}}},
+        {"right_ankle", JOINT_CONNECTION{"right_knee",{0.0, -400.0, 0.0}}}
+    };
 
     std::unique_ptr<CRDT::InnerAPI> innermodel;
 };
 
 #endif
+/*
+
+SKELETON_CONNECTIONS = [("left_ankle", "left_knee"),
+                        ("left_knee", "left_hip"),
+                        ("right_ankle", "right_knee"),
+                        ("right_knee", "right_hip"),
+                        ("left_hip", "right_hip"),
+                        ("left_shoulder", "left_hip"),
+                        ("right_shoulder", "right_hip"),
+                        ("left_shoulder", "right_shoulder"),
+                        ("left_shoulder", "left_elbow"),
+                        ("right_shoulder", "right_elbow"),
+                        ("left_elbow", "left_wrist"),
+                        ("right_elbow", "right_wrist"),
+                        ("left_eye", "right_eye"),
+                        ("nose", "left_eye"),
+                        ("nose", "right_eye"),
+                        ("left_eye", "left_ear"),
+                        ("right_eye", "right_ear"),
+                        ("left_ear", "left_shoulder"),
+                        ("right_ear", "right_shoulder")]
+
+*/
