@@ -12,11 +12,13 @@
 class CRDT_concurrent_test : DSR_test {
 public:
     CRDT_concurrent_test () {};
-    CRDT_concurrent_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, int num_ops_, int num_threads_)
-        : DSR_test(id_prx), num_threads(num_threads_), num_ops(num_ops_) {};
+    CRDT_concurrent_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_,int num_ops_, int num_threads_)
+        : DSR_test(id_prx, G_, output_), num_threads(num_threads_), num_ops(num_ops_) {};
 
     CRDT_concurrent_test& operator=(CRDT_concurrent_test&& t) {
         dsrgetid_proxy = std::move(t.dsrgetid_proxy);
+        G = t.G;
+        output = std::move(t.output);
         num_threads = t.num_threads;
         num_ops = t.num_ops;
         return *this;
@@ -25,7 +27,7 @@ public:
     ~CRDT_concurrent_test () {};
 
     void save_json_result();
-    void run_test(const shared_ptr<CRDT::CRDTGraph>& G);
+    void run_test();
 
 private:
 
