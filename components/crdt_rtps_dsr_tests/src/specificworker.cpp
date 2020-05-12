@@ -46,8 +46,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_input_file = params["dsr_input_file"].value;
     test_output_file = params["test_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
-    dsr_test_file = params["dsr_test_file"].value;
-    dsr_empty_test_file = params["dsr_empty_test_file"].value;
+    //dsr_test_file = params["dsr_test_file"].value;
+    //dsr_empty_test_file = params["dsr_empty_test_file"].value;
     return true;
 }
 
@@ -70,7 +70,7 @@ void SpecificWorker::initialize(int period) {
 
     //test = std::make_shared<Test_utils>(dsrgetid_proxy);
     //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    concurrent_test = CRDT_concurrent_test(dsrgetid_proxy, 1000, 5);
+    concurrent_test = CRDT_concurrent_test(dsrgetid_proxy, G, dsr_output_file,  1000, 5);
     //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
@@ -84,7 +84,10 @@ void SpecificWorker::compute()
     qDebug()<<"COMPUTE";
 
     qDebug()<<"CONCURRENT ACCESS TEST:";
-    concurrent_test.run_test(G);
+    concurrent_test.run_test();
+    sleep(5);
+    concurrent_test.save_json_result();
+    //exit(0);
 
     /* Mover a pruebas DSR
     //Prueba básica para comprobar que la GUI actualiza bien.

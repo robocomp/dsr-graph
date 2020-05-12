@@ -155,7 +155,7 @@ void CRDT_concurrent_test::insert_or_assign_attributes(int i, const shared_ptr<C
 }
 
 
-void CRDT_concurrent_test::run_test(const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_concurrent_test::run_test()
 {
     try {
 
@@ -215,4 +215,6 @@ void CRDT_concurrent_test::run_test(const shared_ptr<CRDT::CRDTGraph>& G)
 
 void CRDT_concurrent_test::save_json_result() {
     //DSR_test::save_json_result();
+    CRDT::Utilities u (G.get());
+    u.write_to_json_file(output);
 }

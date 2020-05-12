@@ -21,7 +21,7 @@ public:
         random_pos = std::uniform_int_distribution((int)-200, (int)200);
         random_selector = std::uniform_int_distribution(0,1);
     };
-    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx) : dsrgetid_proxy(id_prx)   {
+    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_) : dsrgetid_proxy(id_prx), G(G_), output(output_)   {
             mt = std::mt19937(rd());
             dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
             randomNode = std::uniform_int_distribution((int)100, (int)140.0);
@@ -29,11 +29,11 @@ public:
             random_selector = std::uniform_int_distribution(0,1);
     };
 
-    virtual ~DSR_test() {};
+    //virtual ~DSR_test() {};
 
 
     virtual void save_json_result() = 0;
-    virtual void run_test(const shared_ptr<CRDT::CRDTGraph>& G) = 0;
+    virtual void run_test() = 0;
 
 protected:
     void addEdgeIDs(int from, int to);
@@ -49,11 +49,10 @@ protected:
 
     std::chrono::steady_clock::time_point start, end;
     std::shared_ptr<RoboCompDSRGetID::DSRGetIDPrx>  dsrgetid_proxy;
+    std::shared_ptr<CRDT::CRDTGraph> G;
 
-    //To test joins
-    DSRParticipant dsrparticipant;
-    DSRPublisher dsrpub;
 
+    std::string output;
 
 
 
