@@ -187,16 +187,16 @@
             "value": "Khaki"
           },
           "depth": {
-            "type": "1",
-            "value": "400"
+            "type": "2",
+            "value": "0.1"
           },
           "height": {
-            "type": "1",
-            "value": "400"
+            "type": "2",
+            "value": "5"
           },
           "imName": {
             "type": "0",
-            "value": "Strings"
+            "value": "floor"
           },
           "imType": {
             "type": "0",
@@ -208,14 +208,18 @@
           },
           "name": {
             "type": "0",
-            "value": "plane [135]"
+            "value": "floor [135]"
           },
           "nx": {
-            "type": "1",
-            "value": "1"
+            "type": "2",
+            "value": "0"
+          },
+          "ny": {
+            "type": "2",
+            "value": "0"
           },
           "nz": {
-            "type": "1",
+            "type": "2",
             "value": "0"
           },
           "parent": {
@@ -244,16 +248,16 @@
           },
           "texture": {
             "type": "0",
-            "value": "#ff0000"
+            "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
           },
           "width": {
-            "type": "1",
-            "value": "400"
+            "type": "2",
+            "value": "5"
           }
         },
         "id": "135",
         "links": [],
-        "name": "box_2",
+        "name": "floor",
         "type": "plane"
       },
       "138": {
