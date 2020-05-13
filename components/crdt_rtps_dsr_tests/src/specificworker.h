@@ -86,7 +86,7 @@ class SpecificWorker : public GenericWorker
 
 		//std::shared_ptr<Test_utils> test;
 		//CRDT_G_api_test G_api_test;
-		//CRDT_concurrent_test concurrent_test;
+		CRDT_concurrent_test concurrent_test;
         //DSR_test dst_test;
 
 };
