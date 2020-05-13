@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import subprocess
 import threading
 import unittest
@@ -7,8 +8,8 @@ from test.assertions import ApiAssertionsMixin
 
 os.environ['TERM'] = 'xterm'
 
-COMMAND_1= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config"
-COMMAND_2= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config2"
+COMMAND_1= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config_node_test0"
+COMMAND_2= "cd /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests && bin/crdt_rtps_dsr_tests etc/config_node_test1"
 JSON_1 = "/home/robocomp/robocomp/components/dsr-graph/etc/agent0_dsr.json"
 JSON_2 = "/home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json"
 
@@ -40,6 +41,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
                                  args=[COMMAND_2])
         for comp in [comp1, comp2]:
             comp.start()
+            time.sleep(0.2)
         for comp in [comp1, comp2]:
             comp.join()
         # Compare jsons
