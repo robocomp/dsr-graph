@@ -18,7 +18,11 @@
  */
 #include "specificworker.h"
 #include <iostream>
-#include <boost/format.hpp>
+#include "tests/CRDT_insert_remove_node.h"
+#include "tests/CRDT_change_attribute.h"
+#include "tests/CRDT_insert_remove_edge.h"
+
+
 /**
 * \brief Default constructor
 */
@@ -48,6 +52,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_input_file = params["dsr_input_file"].value;
     //dsr_test_file = params["dsr_test_file"].value;
     //dsr_empty_test_file = params["dsr_empty_test_file"].value;
+    test_name = params["test_name"].value;
     return true;
 }
 
@@ -70,7 +75,6 @@ void SpecificWorker::initialize(int period) {
 
     //test = std::make_shared<Test_utils>(dsrgetid_proxy);
     //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    concurrent_test = CRDT_concurrent_test(dsrgetid_proxy, G, dsr_output_file,  1000, 5);
     //DSR_test dst_test;
     //timer.start(300);
     //autokill_timer.start(10000);
@@ -83,11 +87,44 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    qDebug()<<"CONCURRENT ACCESS TEST:";
-    concurrent_test.run_test();
-    sleep(5);
-    concurrent_test.save_json_result();
-    //exit(0);
+    constexpr std::array<std::string_view, 3> tests = { "insert_remove_node", "insert_remove_node", "change_attribute"};
+    auto iter = std::find(tests.begin(), tests.end(), test_name);
+    std::distance(tests.begin(), iter);
+
+    switch(std::distance(tests.begin(), iter)){
+        case 0: {
+            qDebug() << "CONCURRENT INSERT AND REMOVE NODES TEST:";
+            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, 1000);
+            concurrent_test.run_test();
+            std::this_thread::sleep_for(std::chrono::seconds (15));
+            concurrent_test.save_json_result();
+            break;
+        }
+        case 1: {
+            qDebug() << "CONCURRENT INSERT AND REMOVE EDGES TEST:";
+            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, 1000);
+            concurrent_test.run_test();
+            std::this_thread::sleep_for(std::chrono::seconds (15));
+            concurrent_test.save_json_result();
+            break;
+        }
+        case 2: {
+            qDebug() << "CONCURRENT INSERT AND REMOVE EDGES TEST:";
+            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file, 1000);
+            concurrent_test.run_test();
+            std::this_thread::sleep_for(std::chrono::seconds (15));
+            concurrent_test.save_json_result();
+            break;
+            break;
+        }
+        default: {
+            qDebug() << "TEST NOT FOUND";
+
+            break;
+        }
+    }
+
+    exit(0);
 
     /* Mover a pruebas DSR
     //Prueba básica para comprobar que la GUI actualiza bien.
