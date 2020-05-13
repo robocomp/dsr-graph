@@ -104,10 +104,12 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
     params["dsr_output_file"] = aux;
 	configGetString( "","test_output_file", aux.value, "");
     params["test_output_file"] = aux;
-    configGetString( "","dsr_empty_test_file", aux.value, "");
-    params["dsr_empty_test_file"] = aux;
-    configGetString( "","dsr_test_file", aux.value, "");
-    params["dsr_test_file"] = aux;
+//    configGetString( "","dsr_empty_test_file", aux.value, "");
+//    params["dsr_empty_test_file"] = aux;
+//    configGetString( "","dsr_test_file", aux.value, "");
+//    params["dsr_test_file"] = aux;
+    configGetString( "","test_name", aux.value, "");
+    params["test_name"] = aux;
 }
 
 //Check parameters and transform them to worker structure
