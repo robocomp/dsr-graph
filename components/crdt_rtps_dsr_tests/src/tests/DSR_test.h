@@ -17,14 +17,12 @@ public:
     DSR_test() {
         mt = std::mt19937(rd());
         dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
-        randomNode = std::uniform_int_distribution((int)100, (int)140.0);
         random_pos = std::uniform_int_distribution((int)-200, (int)200);
         random_selector = std::uniform_int_distribution(0,1);
     };
     DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_) : dsrgetid_proxy(id_prx), G(G_), output(output_)   {
             mt = std::mt19937(rd());
             dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
-            randomNode = std::uniform_int_distribution((int)100, (int)140.0);
             random_pos = std::uniform_int_distribution((int)-200, (int)200);
             random_selector = std::uniform_int_distribution(0,1);
     };
@@ -61,7 +59,7 @@ private:
     std::random_device rd;
     std::mt19937 mt;
     std::uniform_real_distribution<float> dist;
-    std::uniform_int_distribution<int> randomNode, random_selector, node_selector, random_pos;
+    std::uniform_int_distribution<int> random_selector, random_pos;
 
     std::vector<int> created_nodos;
     std::vector<std::pair<int, int>> created_edges;

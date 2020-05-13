@@ -10,8 +10,8 @@
 #include <thread>
 #include <chrono>
 
-#include "tests/CRDT_concurrent_test.h"
-#include "tests/DSR_test.h"
+
+
 
 #define LAPS 50
 #define NODES 1500
@@ -49,10 +49,6 @@ class SpecificWorker : public GenericWorker
 		// Tests
 		//void tester();
 		//void test_nodes_mov();
-		void test_set_string(int i, int iter, int delay=1);
-		void test_create_or_remove_node(int i, int iter, int delay=1);
-		void test_create_or_remove_edge(int i, int iter, int delay=1);
-		void test_concurrent_access(int num_threads);
 
 
 		void write_test_output(std::string result);
@@ -61,6 +57,7 @@ class SpecificWorker : public GenericWorker
 		std::string dsr_input_file;
         std::string dsr_test_file;
         std::string dsr_empty_test_file;
+        std::string test_name;
 		std::string MARKER = ";";
 
 		//void test_node_random();
@@ -86,7 +83,7 @@ class SpecificWorker : public GenericWorker
 
 		//std::shared_ptr<Test_utils> test;
 		//CRDT_G_api_test G_api_test;
-		CRDT_concurrent_test concurrent_test;
+		//CRDT_insert_remove_node concurrent_test;
         //DSR_test dst_test;
 
 };
