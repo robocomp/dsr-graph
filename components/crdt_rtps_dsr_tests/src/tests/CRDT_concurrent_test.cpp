@@ -1,7 +1,7 @@
 //
 // Created by juancarlos on 7/5/20.
 //
-/*
+
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_concurrent_test.h"
@@ -15,13 +15,13 @@ void CRDT_concurrent_test::create_or_remove_nodes(int i, const shared_ptr<CRDT::
     while (it++ < num_ops)
     {
         // ramdomly select create or remove
-        if( testutils->rnd_selector() == 0)
+        if( rnd_selector() == 0)
         {
             //qDebug() << __FUNCTION__ << "Create node";
             // create node
             Node node;
             node.type("plane");
-            auto id = testutils->newID();
+            auto id = newID();
             node.id( id );
             node.agent_id(0);
             node.name("plane" + std::to_string(id));
@@ -29,8 +29,8 @@ void CRDT_concurrent_test::create_or_remove_nodes(int i, const shared_ptr<CRDT::
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
             auto dis = std::uniform_real_distribution(-200.0, 200.0);
-            G->add_attrib(attrs, "pos_x", testutils->rnd_float());
-            G->add_attrib(attrs, "pos_y", testutils->rnd_float());
+            G->add_attrib(attrs, "pos_x", rnd_float());
+            G->add_attrib(attrs, "pos_y", rnd_float());
 
             node.attrs(attrs);
 
@@ -42,7 +42,7 @@ void CRDT_concurrent_test::create_or_remove_nodes(int i, const shared_ptr<CRDT::
         else
         {
             //qDebug() << __FUNCTION__ << "Remove node";
-            int id = testutils->removeID();
+            int id = removeID();
             if(id>-1)
             {
                 G->delete_node(id);
@@ -61,13 +61,13 @@ void CRDT_concurrent_test::create_or_remove_edges(int i, const shared_ptr<CRDT::
     {
         // ramdomly select create or remove
 
-        if(testutils->rnd_selector() == 0)
+        if(rnd_selector() == 0)
         {
             Edge edge;
             edge.type("Edge");
             //get two ids
-            edge.from(testutils->getID());
-            edge.to(testutils->getID());
+            edge.from(getID());
+            edge.to(getID());
             std::map<string, Attrib> attrs;
             G->add_attrib(attrs, "name", std::string("fucking_plane"));
             G->add_attrib(attrs, "color", std::string("SteelBlue"));
@@ -75,14 +75,14 @@ void CRDT_concurrent_test::create_or_remove_edges(int i, const shared_ptr<CRDT::
 
             auto r = G->insert_or_assign_edge(edge);
             if (r) {
-                testutils->addEdgeIDs(edge.from(), edge.to());
+                addEdgeIDs(edge.from(), edge.to());
                 qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
             }
         }
         else
         {
             //get two ids
-            auto [from, to] = testutils->removeEdgeIDs();
+            auto [from, to] = removeEdgeIDs();
             auto r = G->delete_edge(from, to, "Edge");
             if (r)
                 qDebug() << "Deleted edge :"  << from << " - " << to ;
@@ -103,13 +103,10 @@ void CRDT_concurrent_test::insert_or_assign_attributes(int i, const shared_ptr<C
     auto keys = G->getKeys();
     auto node_randomizer = std::uniform_int_distribution(0, (int)keys.size()-1);
 
-
-
-
     while (it++ < num_ops)
     {
         // request node
-        auto nid = keys.at(testutils->rnd_selector());
+        auto nid = keys.at(rnd_selector());
         //qDebug() << __FUNCTION__ << nid;
         if(nid<0) continue;
         std::optional<Node> node = G->get_node(nid);
@@ -158,7 +155,7 @@ void CRDT_concurrent_test::insert_or_assign_attributes(int i, const shared_ptr<C
 }
 
 
-void CRDT_concurrent_test::test(const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_concurrent_test::run_test()
 {
     try {
 
@@ -178,6 +175,7 @@ void CRDT_concurrent_test::test(const shared_ptr<CRDT::CRDTGraph>& G)
         //write_test_output(result);
         qDebug()<< QString::fromStdString(result);
 
+
         threads.resize(num_threads);
         for(int i=0; auto &t : threads)
         t = std::move(std::thread(&CRDT_concurrent_test::create_or_remove_edges, this, i++, G));
@@ -194,6 +192,7 @@ void CRDT_concurrent_test::test(const shared_ptr<CRDT::CRDTGraph>& G)
         //write_test_output(result);
         qDebug()<< QString::fromStdString(result);
 
+
         threads.resize(num_threads);
         for(int i=0; auto &t : threads)
         t = std::move(std::thread(&CRDT_concurrent_test::insert_or_assign_attributes, this, i++, G));
@@ -209,8 +208,13 @@ void CRDT_concurrent_test::test(const shared_ptr<CRDT::CRDTGraph>& G)
         result = "CONCURRENT ACCESS: insert_or_assign_attributes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly, num_threads " +std::to_string(num_threads);
         qDebug()<< QString::fromStdString(result);
 
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
         std::cerr << "API TEST: TEST FAILED WITH EXCEPTION "<<  e.what() << " " << std::to_string(__LINE__) + " error file:" + __FILE__ << std::endl;
     }
 }
- */
+
+void CRDT_concurrent_test::save_json_result() {
+    //DSR_test::save_json_result();
+    CRDT::Utilities u (G.get());
+    u.write_to_json_file(output);
+}

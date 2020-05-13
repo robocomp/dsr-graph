@@ -26,10 +26,8 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
   ../../../graph-related-classes/dsr_utils.h
-
   tests/CRDT_concurrent_test.h
   tests/DSR_test.h
-  tests/catch.hpp
 
 )
 

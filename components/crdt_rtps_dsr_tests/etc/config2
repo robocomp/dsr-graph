@@ -19,5 +19,8 @@ dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/shelly_dsr.jso
 dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json
 test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_test.txt
 
+dsr_empty_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr2.json
+dsr_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/empty_file.json
+
 
 write_string = false
