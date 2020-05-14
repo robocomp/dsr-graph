@@ -51,13 +51,13 @@ protected:
 
 
     std::string output;
-
+    std::mt19937 mt;
 
 
 private:
 
     std::random_device rd;
-    std::mt19937 mt;
+    //std::mt19937 mt;
     std::uniform_real_distribution<float> dist;
     std::uniform_int_distribution<int> random_selector, random_pos;
 

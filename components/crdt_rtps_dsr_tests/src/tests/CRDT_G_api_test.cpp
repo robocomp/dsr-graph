@@ -425,6 +425,85 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
     }
 }
 
+
+//Scenarios
+SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+
+    GIVEN("A new Node") {
+        Node n;
+        Val v;
+        n.id(2222);
+        n.type("robot");
+        n.agent_id(0);
+        n.name("robot1");
+        G->add_attrib(n.attrs(), "att", "value");
+
+        WHEN("The node is inserted") {
+            size_t size = G->size();
+            bool r = G->insert_or_assign_node(n);
+            REQUIRE(r == true);
+
+            THEN("The graph size is bigger") {
+                REQUIRE(size < G->size());
+            }THEN("You can get the node") {
+                std::optional<Node> node = G->get_node(2222);
+                REQUIRE(node.has_value());
+                THEN("The requested node is equal to the inserted node") {
+                    REQUIRE(node.value() == n);
+                }
+            }
+        }
+
+        AND_WHEN("The node is updated") {
+            size_t size = G->size();
+            G->add_attrib(n.attrs(), "new att", 11);
+            bool r = G->insert_or_assign_node(n);
+            REQUIRE(r == true);
+
+            THEN("The graph size is equal") {
+                REQUIRE(size == G->size());
+            }THEN("You can get the node") {
+                std::optional<Node> node = G->get_node(2222);
+                REQUIRE(node.has_value());
+                THEN("The requested node is equal to the inserted node") {
+                    REQUIRE(node.value() == n);
+                }
+            }
+        }
+
+        AND_WHEN("The node is deleted") {
+            size_t size = G->size();
+            bool r = G->delete_node(2222);
+            THEN("The graph size is smaller") {
+                REQUIRE(size > G->size());
+            }AND_THEN("You can't get the node") {
+                std::optional<Node> node = G->get_node(2222);
+                REQUIRE(!node.has_value());
+            }AND_THEN("You can't insert the node again") {
+                bool r = G->insert_or_assign_node(n);
+                REQUIRE(r == false);
+            }
+        }
+    }GIVEN("A deleted node") {
+        //75000
+        std::optional<Node> node = G->get_node(2222);
+        THEN("Optional value is empty") {
+            REQUIRE(!node.has_value());
+        }AND_THEN("You can't insert the node again") {
+            Node n;
+            n.id(2222);
+            bool r = G->insert_or_assign_node(n);
+            REQUIRE(r == false);
+        }
+    }GIVEN("An invalid node") {
+        Node n; n.id(-1);
+        THEN("Can't insert it") {
+            bool r = G->insert_or_assign_node(n);
+            REQUIRE(r == false);
+        }
+    }
+}
 /*
 TEST_CASE("Join operations", "[JOIN]") {
 

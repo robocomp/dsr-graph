@@ -7,6 +7,7 @@
 #include "CRDT_change_attribute.h"
 #include "../../../../graph-related-classes/topics/DSRGraph.h"
 #include <thread>
+#include <random>
 
 void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
 {
@@ -16,12 +17,14 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
     start = std::chrono::steady_clock::now();
     //bool fail=false;
     //auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect on G
+
     auto keys = G->getKeys();
+    std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
 
     while (it++ < num_ops)
     {
         // request node
-        auto nid = keys.at(rnd_selector());
+        auto nid = keys.at(rnd(mt));
         //qDebug() << __FUNCTION__ << nid;
         if(nid<0) continue;
         std::optional<Node> node = G->get_node(nid);
@@ -46,6 +49,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
             ab.value(v);
             ab.type(STRING);
             node.value().attrs()["testattrib"] = ab;
+            node->agent_id(agent_id);
         }
         else {
             at->second.value().str(str);

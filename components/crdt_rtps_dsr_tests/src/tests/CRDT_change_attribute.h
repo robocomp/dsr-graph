@@ -12,8 +12,8 @@
 class CRDT_change_attribute : DSR_test {
 public:
     CRDT_change_attribute () {};
-    CRDT_change_attribute(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_,int num_ops_)
-        : DSR_test(id_prx, G_, output_), num_ops(num_ops_) {};
+    CRDT_change_attribute(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_,int num_ops_, int agent_id_)
+        : DSR_test(id_prx, G_, output_), num_ops(num_ops_), agent_id(agent_id_) {};
 
     CRDT_change_attribute& operator=(CRDT_change_attribute&& t) {
         dsrgetid_proxy = std::move(t.dsrgetid_proxy);
@@ -36,7 +36,7 @@ private:
     void insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G);
 
     int delay = 5; //ms
-
+    int agent_id;
 };
 
 
