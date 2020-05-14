@@ -3,7 +3,7 @@ import json
 import sys
 import random
 
-# str:0, int:1, float:2
+# str:0, int:1, float:2, [float]:3, bool:4
 def type_to_integer(value):
     try:
         fl = float(value)
@@ -12,6 +12,10 @@ def type_to_integer(value):
         else:
             return 2, float(value)
     except ValueError:
+        if value.lower() == "true":
+            return 4, True
+        elif value.lower() == "false":
+            return 4, False
         return 0, value
 
 
