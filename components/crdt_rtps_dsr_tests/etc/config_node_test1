@@ -1,4 +1,4 @@
-CommonBehavior.Endpoints=tcp -p 10003
+CommonBehavior.Endpoints=tcp -p 10001
 
 
 # Proxies for required interfaces

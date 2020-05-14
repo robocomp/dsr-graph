@@ -1,4 +1,4 @@
-config_node_test1CommonBehavior.Endpoints=tcp -p 10003
+CommonBehavior.Endpoints=tcp -p 10001
 
 
 # Proxies for required interfaces
