@@ -367,16 +367,23 @@ TEST_CASE("Maps operations", "[UTILS]") {
 TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
     std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
 
-    SECTION("Insert attribute by name (node)") {
+    SECTION("Insert attribute by name (node) and insert") {
         std::optional<Node> n = G->get_node(100);
         REQUIRE(n.has_value());
         G->insert_or_assign_attrib_by_name(n.value(), "att", 123);
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+    }
+
+    SECTION("Insert an string attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->add_attrib(n.value().attrs(), "string_att", "string att");
         REQUIRE(n->attrs().find("att") != n->attrs().end());
         bool r = G->insert_or_assign_node(n.value());
         REQUIRE(r == true);
     }
 
-    SECTION("Insert attribute by name (edge)") {
+    SECTION("Insert attribute by name (edge) and insert") {
         std::optional<Edge> e = G->get_edge(100, 135, "RT");
         REQUIRE(e.has_value());
         G->insert_or_assign_attrib_by_name(e.value(), "att", 123);
@@ -426,11 +433,116 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
 }
 
 
+TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
+    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+
+    SECTION("Insert a string attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->insert_or_assign_attrib_by_name(n.value(), "string_att", std::string("string att"));
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n2.has_value());
+        REQUIRE(n.value() == n2.value());
+    }
+    SECTION("Get a string attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        std::optional<std::string> st = G->get_attrib_by_name<std::string>(n.value(), "string_att");
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Insert an int attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->insert_or_assign_attrib_by_name(n.value(), "int_att", 11);
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n2.has_value());
+        REQUIRE(n.value() == n2.value());
+    }
+    SECTION("Get an int attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        std::optional<int> st = G->get_attrib_by_name<int>(n.value(), "int_att");
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Insert a float attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->insert_or_assign_attrib_by_name(n.value(), "float_att", static_cast<float>(11.0));
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n2.has_value());
+        REQUIRE(n.value() == n2.value());
+    }
+    SECTION("Get a float attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        std::optional<float> st = G->get_attrib_by_name<float>(n.value(), "float_att");
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Insert a float_vector attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->insert_or_assign_attrib_by_name(n.value(), "float_vec_att", vector<float>{11.0, 167.23, 55.66});
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n2.has_value());
+        REQUIRE(n.value() == n2.value());
+    }
+    SECTION("Get a float_vector attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        std::optional<vector<float>> st = G->get_attrib_by_name<vector<float>>(n.value(), "float_vec_att");
+        REQUIRE(st.has_value());
+    }
+    SECTION("Insert a bool attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        G->insert_or_assign_attrib_by_name(n.value(), "bool_att", true);
+        REQUIRE(n->attrs().find("att") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n2.has_value());
+        REQUIRE(n.value() == n2.value());
+    }
+    SECTION("Get a bool attribute") {
+        std::optional<Node> n = G->get_node(100);
+        REQUIRE(n.has_value());
+        std::optional<bool> st = G->get_attrib_by_name<bool>(n.value(), "bool_att");
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Get a qvec attribute") {
+        std::optional<Edge> n = G->get_edge(100, 135, "RT");
+        REQUIRE(n.has_value());
+        std::optional<QVec> st = G->get_attrib_by_name<QVec>(n.value(), "translation");
+        REQUIRE(st.has_value());
+    }
+    SECTION("Get a qmat attribute") {
+        std::optional<Edge> n = G->get_edge(100, 135, "RT");
+        REQUIRE(n.has_value());
+        std::optional<QMat> st = G->get_attrib_by_name<QMat>(n.value(), "rotation_euler_xyz");
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Get an attribute with the wrong type") {
+        std::optional<Edge> n = G->get_edge(100, 135, "RT");
+        REQUIRE(n.has_value());
+        std::optional<int> st = G->get_attrib_by_name<int>(n.value(), "rotation_euler_xyz");
+        REQUIRE(!st.has_value());
+    }
+}
+
+
 //Scenarios
 SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
     std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
 
-    GIVEN("A new Node") {
+    GIVEN("A new Node")
+    {
         Node n;
         Val v;
         n.id(2222);
@@ -439,7 +551,8 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         n.name("robot1");
         G->add_attrib(n.attrs(), "att", "value");
 
-        WHEN("The node is inserted") {
+        WHEN("The node is inserted")
+        {
             size_t size = G->size();
             bool r = G->insert_or_assign_node(n);
             REQUIRE(r == true);
@@ -455,15 +568,19 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
             }
         }
 
-        AND_WHEN("The node is updated") {
+        AND_WHEN("The node is updated")
+        {
             size_t size = G->size();
             G->add_attrib(n.attrs(), "new att", 11);
             bool r = G->insert_or_assign_node(n);
             REQUIRE(r == true);
 
-            THEN("The graph size is equal") {
+            THEN("The graph size is equal")
+            {
                 REQUIRE(size == G->size());
-            }THEN("You can get the node") {
+            }
+            THEN("You can get the node")
+            {
                 std::optional<Node> node = G->get_node(2222);
                 REQUIRE(node.has_value());
                 THEN("The requested node is equal to the inserted node") {
@@ -472,33 +589,47 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
             }
         }
 
-        AND_WHEN("The node is deleted") {
+        AND_WHEN("The node is deleted")
+        {
             size_t size = G->size();
-            bool r = G->delete_node(2222);
-            THEN("The graph size is smaller") {
+            G->delete_node(2222);
+            THEN("The graph size is smaller")
+            {
                 REQUIRE(size > G->size());
-            }AND_THEN("You can't get the node") {
+            }
+            AND_THEN("You can't get the node")
+            {
                 std::optional<Node> node = G->get_node(2222);
                 REQUIRE(!node.has_value());
-            }AND_THEN("You can't insert the node again") {
+            }
+            AND_THEN("You can't insert the node again")
+            {
                 bool r = G->insert_or_assign_node(n);
                 REQUIRE(r == false);
             }
         }
-    }GIVEN("A deleted node") {
+    }
+    GIVEN("A deleted node")
+    {
         //75000
         std::optional<Node> node = G->get_node(2222);
-        THEN("Optional value is empty") {
+        THEN("Optional value is empty")
+        {
             REQUIRE(!node.has_value());
-        }AND_THEN("You can't insert the node again") {
+        }
+        AND_THEN("You can't insert the node again")
+        {
             Node n;
             n.id(2222);
             bool r = G->insert_or_assign_node(n);
             REQUIRE(r == false);
         }
-    }GIVEN("An invalid node") {
+    }
+    GIVEN("An invalid node")
+    {
         Node n; n.id(-1);
-        THEN("Can't insert it") {
+        THEN("Can't insert it")
+        {
             bool r = G->insert_or_assign_node(n);
             REQUIRE(r == false);
         }
