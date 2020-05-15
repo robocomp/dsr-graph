@@ -15,12 +15,12 @@ Ice.Trace.Protocol=0
 agent_id = 0
 agent_name = agent0
 read_file = false
-dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/shelly_dsr.json
-dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent0_dsr.json
-test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent0_test.txt
+dsr_input_file = ../../etc/shelly_dsr.json
+dsr_output_file = ../../etc/insert_remove_edge_agent0_dsr.json
+test_output_file = ../../etc/insert_remove_edge_agent0_test.txt
 
-dsr_empty_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr2.json
-dsr_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/empty_file.json
+dsr_empty_test_file = ../../etc/initial_dsr2.json
+dsr_test_file = ../../etc/empty_file.json
 test_name = insert_remove_edge
 
 # test specification

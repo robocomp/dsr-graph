@@ -6,10 +6,8 @@ DSRGetID.Endpoints=tcp -p 11000
 
 agent_id = 8
 agent_name = idserver
-#dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr2.json
-dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/simplesimpleworld.json
-
-dsr_output_path = /home/robocomp/robocomp/components/dsr-graph/etc/
+dsr_input_file = ../../etc/initial_dsr2.json
+dsr_output_path = ../..//etc/
 dsr_write_to_file = false
 period = 100000  # miliseconds period on dsr saving to file
 
