@@ -531,8 +531,7 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Get an attribute with the wrong type") {
         std::optional<Edge> n = G->get_edge(100, 135, "RT");
         REQUIRE(n.has_value());
-        std::optional<int> st = G->get_attrib_by_name<int>(n.value(), "rotation_euler_xyz");
-        REQUIRE(!st.has_value());
+        REQUIRE_THROWS(G->get_attrib_by_name<int>(n.value(), "rotation_euler_xyz"));
     }
 }
 
