@@ -1,0 +1,1494 @@
+﻿{
+  "DSRModel": {
+    "symbol": {
+      "100": {
+        "id": "100",
+        "type": "world",
+        "attribute": {
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 84
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -183
+          },
+          "color": {
+            "type": 0,
+            "value": "SeaGreen"
+          }
+        },
+        "links": [
+          {
+            "src": "100",
+            "dst": "101",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "100",
+            "dst": "107",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  1000
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "100",
+            "dst": "109",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  1300,
+                  0,
+                  1200
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "100",
+            "dst": "111",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "world"
+      },
+      "101": {
+        "id": "101",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 56
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -21
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [
+          {
+            "src": "101",
+            "dst": "102",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "101",
+            "dst": "103",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "101",
+            "dst": "104",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "101",
+            "dst": "105",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "101",
+            "dst": "106",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "floor"
+      },
+      "102": {
+        "id": "102",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 5000,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 0,
+            "type": 1
+          },
+          "ny": {
+            "value": 1,
+            "type": 1
+          },
+          "nz": {
+            "value": 0,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 0,
+            "type": 1
+          },
+          "pz": {
+            "value": 0,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg",
+            "type": 0
+          },
+          "width": {
+            "value": 5000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -113
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -96
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "floor"
+      },
+      "103": {
+        "id": "103",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 500,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 1,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 0,
+            "type": 1
+          },
+          "px": {
+            "value": 2500,
+            "type": 1
+          },
+          "py": {
+            "value": 200,
+            "type": 1
+          },
+          "pz": {
+            "value": 0,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "#eeeeee",
+            "type": 0
+          },
+          "width": {
+            "value": 5000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 121
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 39
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "ddR"
+      },
+      "104": {
+        "id": "104",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 500,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 1,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 0,
+            "type": 1
+          },
+          "px": {
+            "value": -2500,
+            "type": 1
+          },
+          "py": {
+            "value": 200,
+            "type": 1
+          },
+          "pz": {
+            "value": 0,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "#eeeeee",
+            "type": 0
+          },
+          "width": {
+            "value": 5000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 57
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -105
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "ddL"
+      },
+      "105": {
+        "id": "105",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 500,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 0,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 1,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 200,
+            "type": 1
+          },
+          "pz": {
+            "value": 2500,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "#555555",
+            "type": 0
+          },
+          "width": {
+            "value": 5000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -160
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -55
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "ddF"
+      },
+      "106": {
+        "id": "106",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 500,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 0,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 1,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 200,
+            "type": 1
+          },
+          "pz": {
+            "value": -2500,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "#555555",
+            "type": 0
+          },
+          "width": {
+            "value": 5000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -46
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 106
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "ddB"
+      },
+      "107": {
+        "id": "107",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -106
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -124
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [
+          {
+            "src": "107",
+            "dst": "108",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "caja1"
+      },
+      "108": {
+        "id": "108",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 400,
+            "type": 1
+          },
+          "height": {
+            "value": 400,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 1,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 0,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 0,
+            "type": 1
+          },
+          "pz": {
+            "value": 0,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg",
+            "type": 0
+          },
+          "width": {
+            "value": 400,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -48
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 134
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "cajaMesh1"
+      },
+      "109": {
+        "id": "109",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 99
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -96
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [
+          {
+            "src": "109",
+            "dst": "110",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "caja2"
+      },
+      "110": {
+        "id": "110",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 400,
+            "type": 1
+          },
+          "height": {
+            "value": 400,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 1,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 0,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 0,
+            "type": 1
+          },
+          "pz": {
+            "value": 0,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1000,
+            "type": 1
+          },
+          "texture": {
+            "value": "/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg",
+            "type": 0
+          },
+          "width": {
+            "value": 400,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 122
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 55
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "cajaMesh2"
+      },
+      "111": {
+        "id": "111",
+        "type": "differentialRobot",
+        "attribute": {
+          "collide": {
+            "value": "false",
+            "type": 0
+          },
+          "imType": {
+            "value": "differentialRobot",
+            "type": 0
+          },
+          "noise": {
+            "value": 0,
+            "type": 1
+          },
+          "port": {
+            "value": 10004,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -40
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -51
+          },
+          "color": {
+            "type": 0,
+            "value": "Blue"
+          }
+        },
+        "links": [
+          {
+            "src": "111",
+            "dst": "112",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "111",
+            "dst": "113",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  140,
+                  200
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "111",
+            "dst": "116",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  210,
+                  200
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "111",
+            "dst": "119",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  50
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "base"
+      },
+      "112": {
+        "id": "112",
+        "type": "mesh",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "imType": {
+            "value": "mesh",
+            "type": 0
+          },
+          "path": {
+            "value": "/home/robocomp/robocomp/files/osgModels/robex/robex.ive",
+            "type": 0
+          },
+          "render": {
+            "value": "NormalRendering",
+            "type": 0
+          },
+          "scalex": {
+            "value": 1000,
+            "type": 1
+          },
+          "scaley": {
+            "value": 1000,
+            "type": 1
+          },
+          "scalez": {
+            "value": 1000,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -98
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 197
+          },
+          "color": {
+            "type": 0,
+            "value": "LightBlue"
+          }
+        },
+        "links": [],
+        "name": "base_robex"
+      },
+      "113": {
+        "id": "113",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 183
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 128
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [
+          {
+            "src": "113",
+            "dst": "114",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "113",
+            "dst": "115",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "laserPose"
+      },
+      "114": {
+        "id": "114",
+        "type": "laser",
+        "attribute": {
+          "angle": {
+            "value": 3,
+            "type": 1
+          },
+          "ifconfig": {
+            "value": 10000,
+            "type": 1
+          },
+          "imType": {
+            "value": "laser",
+            "type": 0
+          },
+          "max": {
+            "value": 30000,
+            "type": 1
+          },
+          "measures": {
+            "value": 100,
+            "type": 1
+          },
+          "min": {
+            "value": 100,
+            "type": 1
+          },
+          "port": {
+            "value": 10003,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -14
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -5
+          },
+          "color": {
+            "type": 0,
+            "value": "GreenYellow"
+          }
+        },
+        "links": [],
+        "name": "laser"
+      },
+      "115": {
+        "id": "115",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 1,
+            "type": 1
+          },
+          "height": {
+            "value": 100,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 0,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 1,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 0,
+            "type": 1
+          },
+          "pz": {
+            "value": -200,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1,
+            "type": 1
+          },
+          "texture": {
+            "value": "#ff0000",
+            "type": 0
+          },
+          "width": {
+            "value": 100,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 166
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -28
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "sensorL"
+      },
+      "116": {
+        "id": "116",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 116
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -79
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [
+          {
+            "src": "116",
+            "dst": "117",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": "116",
+            "dst": "118",
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
+        "name": "camera"
+      },
+      "117": {
+        "id": "117",
+        "type": "rgbd",
+        "attribute": {
+          "focal": {
+            "value": 490,
+            "type": 1
+          },
+          "height": {
+            "value": 480,
+            "type": 1
+          },
+          "ifconfig": {
+            "value": "40000,50000",
+            "type": 0
+          },
+          "imType": {
+            "value": "rgbd",
+            "type": 0
+          },
+          "noise": {
+            "value": 0,
+            "type": 1
+          },
+          "port": {
+            "value": 10096,
+            "type": 1
+          },
+          "width": {
+            "value": 640,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -168
+          },
+          "pos_y": {
+            "type": 2,
+            "value": 184
+          },
+          "color": {
+            "type": 0,
+            "value": "Blue"
+          }
+        },
+        "links": [],
+        "name": "rgbd"
+      },
+      "118": {
+        "id": "118",
+        "type": "plane",
+        "attribute": {
+          "collidable": {
+            "value": "false",
+            "type": 0
+          },
+          "depth": {
+            "value": 10,
+            "type": 1
+          },
+          "height": {
+            "value": 50,
+            "type": 1
+          },
+          "imType": {
+            "value": "plane",
+            "type": 0
+          },
+          "nx": {
+            "value": 0,
+            "type": 1
+          },
+          "ny": {
+            "value": 0,
+            "type": 1
+          },
+          "nz": {
+            "value": 1,
+            "type": 1
+          },
+          "px": {
+            "value": 0,
+            "type": 1
+          },
+          "py": {
+            "value": 0,
+            "type": 1
+          },
+          "pz": {
+            "value": -200,
+            "type": 1
+          },
+          "repeat": {
+            "value": 1,
+            "type": 1
+          },
+          "texture": {
+            "value": "#550000",
+            "type": 0
+          },
+          "width": {
+            "value": 200,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 73
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -58
+          },
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          }
+        },
+        "links": [],
+        "name": "rgbd_mesh1"
+      },
+      "119": {
+        "id": "119",
+        "type": "transform",
+        "attribute": {
+          "engine": {
+            "value": "static",
+            "type": 0
+          },
+          "imType": {
+            "value": "transform",
+            "type": 0
+          },
+          "mass": {
+            "value": 0,
+            "type": 1
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 172
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -108
+          },
+          "color": {
+            "type": 0,
+            "value": "SteelBlue"
+          }
+        },
+        "links": [],
+        "name": "robotGeometricCenter"
+      }
+    }
+  }
+}
