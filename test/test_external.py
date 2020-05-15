@@ -6,7 +6,7 @@ import time
 import subprocess
 import threading
 import unittest
-from test.assertions import ApiAssertionsMixin
+from assertions import ApiAssertionsMixin
 import multiprocessing
 
 os.environ['TERM'] = 'xterm'
