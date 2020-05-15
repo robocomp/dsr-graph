@@ -88,7 +88,7 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 4> tests = { "insert_remove_node", "insert_remove_node", "change_attribute", "conflict_resolution"};
+    constexpr std::array<std::string_view, 4> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
     std::distance(tests.begin(), iter);
 
@@ -110,7 +110,7 @@ void SpecificWorker::compute()
             break;
         }
         case 2: {
-            qDebug() << "INSERT AND REMOVE EDGES TEST:";
+            qDebug() << "CHANGE ATTRIBUTES TEST:";
             CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file, 10000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
