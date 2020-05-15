@@ -4,12 +4,12 @@
 
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
-#include "CRDT_change_attribute.h"
+#include "CRDT_conflict_resolution.h"
 #include "../../../../graph-related-classes/topics/DSRGraph.h"
 #include <thread>
 #include <random>
 
-void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
 {
     std::string result;
     static int it = 0;
@@ -18,16 +18,13 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
     //bool fail=false;
     //auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect on G
 
-    auto keys = G->getKeys();
-    std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
+    //auto keys = G->getKeys();
+    //std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
 
     while (it++ < num_ops)
     {
         // request node
-        auto nid = keys.at(rnd(mt));
-        //qDebug() << __FUNCTION__ << nid;
-        if(nid<0) continue;
-        std::optional<Node> node = G->get_node(nid);
+        std::optional<Node> node = G->get_node(100);
         if (!node.has_value())
         {
             end = std::chrono::steady_clock::now();
@@ -35,11 +32,10 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
             //result = "test_set_string" + MARKER +"FAIL" + MARKER + time + MARKER +" error getting node->line:" + std::to_string(__LINE__);
             //fail = true;
             qDebug() << "ERROR OBTENIENDO EL NODO";
-
             break;
         }
 
-        std::string str = 0 + "-" + std::to_string(i) + "_" + std::to_string(it);
+        std::string str = agent_id + "-"+ std::to_string(it);
 
         auto at = node.value().attrs().find("testattrib");
         if (at == node.value().attrs().end()) {
@@ -54,8 +50,6 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
         else {
             at->second.value().str(str);
         }
-        G->add_attrib(node->attrs(), "pos_x", rnd_float());
-        G->add_attrib(node->attrs(), "pos_y", rnd_float());
         bool r = G->insert_or_assign_node(node.value());
 
         if (!r) {
@@ -74,7 +68,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
 }
 
 
-void CRDT_change_attribute::run_test()
+void CRDT_conflict_resolution::run_test()
 {
     try {
         start = std::chrono::steady_clock::now();
@@ -89,7 +83,7 @@ void CRDT_change_attribute::run_test()
     }
 }
 
-void CRDT_change_attribute::save_json_result() {
+void CRDT_conflict_resolution::save_json_result() {
     //DSR_test::save_json_result();
     CRDT::Utilities u (G.get());
     u.write_to_json_file(output);
