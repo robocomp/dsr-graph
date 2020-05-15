@@ -15,19 +15,19 @@
 
 
 class Graph {
-public:
-    static Graph& get() {
-        static Graph instance;
-        return instance;
-    }
+    public:
+        static Graph& get() {
+            static Graph instance;
+            return instance;
+        }
 
-    shared_ptr<CRDT::CRDTGraph> get_G() { return G;}
-private:
-    Graph () {
-        G = make_shared<CRDT::CRDTGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
-    }
+        shared_ptr<CRDT::CRDTGraph> get_G() { return G;}
+    private:
+        Graph () {
+            G = make_shared<CRDT::CRDTGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
+        }
 
-    std::shared_ptr<CRDT::CRDTGraph> G;
+        std::shared_ptr<CRDT::CRDTGraph> G;
 };
 
 TEST_CASE("Node operations", "[NODE]") {

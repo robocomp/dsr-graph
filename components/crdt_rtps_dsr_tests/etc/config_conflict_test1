@@ -1,0 +1,27 @@
+CommonBehavior.Endpoints=tcp -p 10001
+
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+
+
+InnerModelPath = innermodel.xml
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
+
+agent_id = 1
+agent_name = agent1
+read_file = false
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/shelly_dsr.json
+dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_dsr.json
+test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent1_test.txt
+
+dsr_empty_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr2.json
+dsr_test_file = /home/robocomp/robocomp/components/dsr-graph/etc/empty_file.json
+test_name = conflict_resolution
+
+
+write_string = false
