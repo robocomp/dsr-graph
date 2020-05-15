@@ -29,11 +29,11 @@
           },
           "pos_x": {
             "type": 2,
-            "value": "-90.295357"
+            "value": -90.295357
           },
           "pos_y": {
             "type": 2,
-            "value": "-286.075958"
+            "value": -286.075958
           }
         },
         "id": 100,
@@ -92,7 +92,7 @@
         "attribute": {
           "advance_speed": {
             "type": 2,
-            "value": "0.000000"
+            "value": 0.000000
           },
           "collide": {
             "type": 0,
