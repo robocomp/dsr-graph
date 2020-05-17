@@ -16,6 +16,7 @@ SET ( SOURCES
   ../../../graph-related-classes/dsr_utils.cpp
   ../../../graph-related-classes/dsr_to_osg_viewer.cpp
   ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
 )
 
 # Headers set
