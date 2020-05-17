@@ -20,6 +20,14 @@
           "color": {
             "type": 0,
             "value": "SeaGreen"
+          },
+          "parent": {
+            "type": 1,
+            "value": 0
+          },
+          "level": {
+            "type": 1,
+            "value": 0
           }
         },
         "links": [
@@ -45,89 +53,20 @@
                 ]
               }
             }
-          },
-          {
-            "src": 100,
-            "dst": 107,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  1000
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": 100,
-            "dst": 109,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  1300,
-                  0,
-                  1200
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": 100,
-            "dst": 111,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
           }
         ],
         "name": "world"
       },
       "101": {
-        "id": "101",
-        "type": "transform",
+        "id": 101,
+        "type": "plane",
         "attribute": {
           "engine": {
             "value": "static",
             "type": 0
           },
           "imType": {
-            "value": "transform",
+            "value": "plane",
             "type": 0
           },
           "mass": {
@@ -142,137 +81,13 @@
             "type": 2,
             "value": -21
           },
-          "color": {
-            "type": 0,
-            "value": "SteelBlue"
-          }
-        },
-        "links": [
-          {
-            "src": "101",
-            "dst": "102",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": "101",
-            "dst": "103",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": "101",
-            "dst": "104",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": "101",
-            "dst": "105",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": "101",
-            "dst": "106",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          }
-        ],
-        "name": "floor"
-      },
-      "102": {
-        "id": 102,
-        "type": "plane",
-        "attribute": {
-          "collidable": {
-            "value": "false",
+          "texture": {
+            "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg",
             "type": 0
+          },
+          "parent": {
+            "type": 1,
+            "value": 100
           },
           "depth": {
             "value": 10,
@@ -282,9 +97,9 @@
             "value": 5000,
             "type": 1
           },
-          "imType": {
-            "value": "plane",
-            "type": 0
+          "width": {
+            "value": 5000,
+            "type": 1
           },
           "nx": {
             "value": 0,
@@ -310,32 +125,128 @@
             "value": 0,
             "type": 1
           },
-          "repeat": {
-            "value": 1000,
-            "type": 1
-          },
-          "texture": {
-            "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg",
-            "type": 0
-          },
-          "width": {
-            "value": 5000,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -113
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -96
-          },
-          "color": {
-            "type": 0,
-            "value": "Khaki"
+          "level": {
+            "type": 1,
+            "value": 1 
           }
         },
-        "links": [],
+        "links": [
+          {
+            "src": 101,
+            "dst": 111,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": 101,
+            "dst": 103,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": 101,
+            "dst": 104,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": 101,
+            "dst": 105,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "src": 101,
+            "dst": 106,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
         "name": "floor"
       },
       "103": {
@@ -405,10 +316,14 @@
           "color": {
             "type": 0,
             "value": "Khaki"
+          },
+          "level": {
+            "type": 1,
+            "value": 2
           }
         },
         "links": [],
-        "name": "ddR"
+        "name": "wall_right"
       },
       "104": {
         "id": 104,
@@ -477,10 +392,18 @@
           "color": {
             "type": 0,
             "value": "Khaki"
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 1,
+            "value": 101
           }
         },
         "links": [],
-        "name": "ddL"
+        "name": "wall_left"
       },
       "105": {
         "id": 105,
@@ -549,10 +472,18 @@
           "color": {
             "type": 0,
             "value": "Khaki"
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 1,
+            "value": 101
           }
         },
         "links": [],
-        "name": "ddF"
+        "name": "wall_front"
       },
       "106": {
         "id": 106,
@@ -621,266 +552,18 @@
           "color": {
             "type": 0,
             "value": "Khaki"
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 1,
+            "value": 101
           }
         },
         "links": [],
-        "name": "ddB"
-      },
-      "107": {
-        "id": 107,
-        "type": "transform",
-        "attribute": {
-          "engine": {
-            "value": "static",
-            "type": 0
-          },
-          "imType": {
-            "value": "transform",
-            "type": 0
-          },
-          "mass": {
-            "value": 0,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -106
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -124
-          },
-          "color": {
-            "type": 0,
-            "value": "SteelBlue"
-          }
-        },
-        "links": [
-          {
-            "src": 107,
-            "dst": 108,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          }
-        ],
-        "name": "caja1"
-      },
-      "108": {
-        "id": 108,
-        "type": "plane",
-        "attribute": {
-          "collidable": {
-            "value": "false",
-            "type": 0
-          },
-          "depth": {
-            "value": 400,
-            "type": 1
-          },
-          "height": {
-            "value": 400,
-            "type": 1
-          },
-          "imType": {
-            "value": "plane",
-            "type": 0
-          },
-          "nx": {
-            "value": 1,
-            "type": 1
-          },
-          "ny": {
-            "value": 0,
-            "type": 1
-          },
-          "nz": {
-            "value": 0,
-            "type": 1
-          },
-          "px": {
-            "value": 1000,
-            "type": 1
-          },
-          "py": {
-            "value": 1000,
-            "type": 1
-          },
-          "pz": {
-            "value": 0,
-            "type": 1
-          },
-          "repeat": {
-            "value": 1000,
-            "type": 1
-          },
-          "texture": {
-            "value": "/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg",
-            "type": 0
-          },
-          "width": {
-            "value": 400,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -48
-          },
-          "pos_y": {
-            "type": 2,
-            "value": 134
-          },
-          "color": {
-            "type": 0,
-            "value": "Khaki"
-          }
-        },
-        "links": [],
-        "name": "cajaMesh1"
-      },
-      "109": {
-        "id": 109,
-        "type": "transform",
-        "attribute": {
-          "engine": {
-            "value": "static",
-            "type": 0
-          },
-          "imType": {
-            "value": "transform",
-            "type": 0
-          },
-          "mass": {
-            "value": 0,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": 99
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -96
-          },
-          "color": {
-            "type": 0,
-            "value": "SteelBlue"
-          }
-        },
-        "links": [
-          {
-            "src": 109,
-            "dst": 110,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          }
-        ],
-        "name": "caja2"
-      },
-      "110": {
-        "id": 110,
-        "type": "plane",
-        "attribute": {
-          "collidable": {
-            "value": "false",
-            "type": 0
-          },
-          "depth": {
-            "value": 400,
-            "type": 1
-          },
-          "height": {
-            "value": 400,
-            "type": 1
-          },
-          "imType": {
-            "value": "plane",
-            "type": 0
-          },
-          "nx": {
-            "value": 1,
-            "type": 1
-          },
-          "ny": {
-            "value": 0,
-            "type": 1
-          },
-          "nz": {
-            "value": 0,
-            "type": 1
-          },
-          "px": {
-            "value": 0,
-            "type": 1
-          },
-          "py": {
-            "value": 0,
-            "type": 1
-          },
-          "pz": {
-            "value": 0,
-            "type": 1
-          },
-          "repeat": {
-            "value": 1000,
-            "type": 1
-          },
-          "texture": {
-            "value": "/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg",
-            "type": 0
-          },
-          "width": {
-            "value": 400,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": 122
-          },
-          "pos_y": {
-            "type": 2,
-            "value": 55
-          },
-          "color": {
-            "type": 0,
-            "value": "Khaki"
-          }
-        },
-        "links": [],
-        "name": "cajaMesh2"
+        "name": "wall_back"
       },
       "111": {
         "id": 111,
@@ -913,6 +596,14 @@
           "color": {
             "type": 0,
             "value": "Blue"
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 1,
+            "value": 101
           }
         },
         "links": [
@@ -927,29 +618,6 @@
                   0,
                   0,
                   0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": 111,
-            "dst": 113,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  140,
-                  200
                 ]
               },
               "rotation_euler_xyz": {
@@ -1007,6 +675,29 @@
                 ]
               }
             }
+          },
+          {
+            "src": 111,
+            "dst": 117,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
           }
         ],
         "name": "base"
@@ -1043,6 +734,22 @@
             "value": 1000,
             "type": 1
           },
+          "scalex": {
+            "value": 1000,
+            "type": 1
+          },
+          "rx": {
+            "value": 0,
+            "type": 1
+          },
+          "ry": {
+            "value": 0,
+            "type": 1
+          },
+          "rz": {
+            "value": 0,
+            "type": 1
+          },
           "pos_x": {
             "type": 2,
             "value": -98
@@ -1054,6 +761,14 @@
           "color": {
             "type": 0,
             "value": "LightBlue"
+          },
+          "level": {
+            "type": 1,
+            "value": 3
+          },
+          "parent": {
+            "type": 1,
+            "value": 111
           }
         },
         "links": [],
@@ -1061,14 +776,14 @@
       },
       "113": {
         "id": 113,
-        "type": "transform",
+        "type": "box",
         "attribute": {
           "engine": {
             "value": "static",
             "type": 0
           },
           "imType": {
-            "value": "transform",
+            "value": "box",
             "type": 0
           },
           "mass": {
@@ -1086,188 +801,29 @@
           "color": {
             "type": 0,
             "value": "SteelBlue"
+          },
+          "level": {
+            "type": 1,
+            "value": 4
+          },
+          "parent": {
+            "type": 1,
+            "value": 116
           }
         },
-        "links": [
-          {
-            "src": 113,
-            "dst": 114,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": 113,
-            "dst": 115,
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          }
-        ],
+        "links": [],
         "name": "laserPose"
       },
-      "114": {
-        "id": "114",
-        "type": "laser",
-        "attribute": {
-          "angle": {
-            "value": 3,
-            "type": 1
-          },
-          "ifconfig": {
-            "value": 10000,
-            "type": 1
-          },
-          "imType": {
-            "value": "laser",
-            "type": 0
-          },
-          "max": {
-            "value": 30000,
-            "type": 1
-          },
-          "measures": {
-            "value": 100,
-            "type": 1
-          },
-          "min": {
-            "value": 100,
-            "type": 1
-          },
-          "port": {
-            "value": 10003,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -14
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -5
-          },
-          "color": {
-            "type": 0,
-            "value": "GreenYellow"
-          }
-        },
-        "links": [],
-        "name": "laser"
-      },
-      "115": {
-        "id": "115",
-        "type": "plane",
-        "attribute": {
-          "collidable": {
-            "value": "false",
-            "type": 0
-          },
-          "depth": {
-            "value": 1,
-            "type": 1
-          },
-          "height": {
-            "value": 100,
-            "type": 1
-          },
-          "imType": {
-            "value": "plane",
-            "type": 0
-          },
-          "nx": {
-            "value": 0,
-            "type": 1
-          },
-          "ny": {
-            "value": 0,
-            "type": 1
-          },
-          "nz": {
-            "value": 1,
-            "type": 1
-          },
-          "px": {
-            "value": 0,
-            "type": 1
-          },
-          "py": {
-            "value": 0,
-            "type": 1
-          },
-          "pz": {
-            "value": -200,
-            "type": 1
-          },
-          "repeat": {
-            "value": 1,
-            "type": 1
-          },
-          "texture": {
-            "value": "#ff0000",
-            "type": 0
-          },
-          "width": {
-            "value": 100,
-            "type": 1
-          },
-          "pos_x": {
-            "type": 2,
-            "value": 166
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -28
-          },
-          "color": {
-            "type": 0,
-            "value": "Khaki"
-          }
-        },
-        "links": [],
-        "name": "sensorL"
-      },
       "116": {
-        "id": "116",
-        "type": "transform",
+        "id": 116,
+        "type": "laser",
         "attribute": {
           "engine": {
             "value": "static",
             "type": 0
           },
           "imType": {
-            "value": "transform",
+            "value": "laser",
             "type": 0
           },
           "mass": {
@@ -1285,35 +841,20 @@
           "color": {
             "type": 0,
             "value": "SteelBlue"
+          },
+          "level": {
+            "type": 1,
+            "value": 3
+          },
+          "parent": {
+            "type": 1,
+            "value": 111
           }
         },
         "links": [
           {
-            "src": "116",
-            "dst": "117",
-            "label": "RT",
-            "linkAttribute": {
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              }
-            }
-          },
-          {
-            "src": "116",
-            "dst": "118",
+            "src": 116,
+            "dst": 113,
             "label": "RT",
             "linkAttribute": {
               "translation": {
@@ -1335,10 +876,10 @@
             }
           }
         ],
-        "name": "camera"
+        "name": "hokyo_base"
       },
       "117": {
-        "id": "117",
+        "id": 117,
         "type": "rgbd",
         "attribute": {
           "focal": {
@@ -1380,9 +921,41 @@
           "color": {
             "type": 0,
             "value": "Blue"
+          },
+          "level": {
+            "type": 1,
+            "value": 3
+          },
+          "parent": {
+            "type": 1,
+            "value": 111
           }
         },
-        "links": [],
+        "links": [
+          {
+            "src": 117,
+            "dst": 118,
+            "label": "RT",
+            "linkAttribute": {
+              "translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        ],
         "name": "rgbd"
       },
       "118": {
@@ -1452,6 +1025,14 @@
           "color": {
             "type": 0,
             "value": "Khaki"
+          },
+          "level": {
+            "type": 1,
+            "value": 4
+          },
+          "parent": {
+            "type": 1,
+            "value": 117
           }
         },
         "links": [],
@@ -1484,6 +1065,14 @@
           "color": {
             "type": 0,
             "value": "SteelBlue"
+          },
+          "level": {
+            "type": 1,
+            "value": 3
+          },
+          "parent": {
+            "type": 1,
+            "value": 111
           }
         },
         "links": [],
