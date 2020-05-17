@@ -15,6 +15,7 @@ SET ( SOURCES
   ../../../graph-related-classes/inner_api.cpp
   ../../../graph-related-classes/dsr_utils.cpp
   ../../../graph-related-classes/dsr_to_osg_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
 )
 
 # Headers set
@@ -32,7 +33,7 @@ find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
 add_definitions(-g  -fmax-errors=1 )
 set(CMAKE_CXX_STANDARD 17)
-SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES} -lDataStorm  fastcdr fastrtps osgDB)
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES}  fastcdr fastrtps osgDB)
 set(CMAKE_BUILD_TYPE Debug)
 
 
