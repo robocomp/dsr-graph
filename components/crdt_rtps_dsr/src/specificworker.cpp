@@ -59,6 +59,8 @@ void SpecificWorker::initialize(int period)
 	setCentralWidget(&window);
     setWindowTitle(QString::fromStdString(agent_name));
     graph_viewer->show();
+    //connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
+	
 
     // OSG Viewer
     // dsr_to_osg_viewer = std::make_shared<DSR::DSRtoOSGViewer>(G, 1, 1, graph_viewer->tab_2);
