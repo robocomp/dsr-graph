@@ -27,6 +27,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionSaveToFile"/>
    </widget>
    <widget class="QMenu" name="menuForces">
     <property name="title">
@@ -51,6 +52,11 @@
    </property>
    <property name="text">
     <string>Simulate</string>
+   </property>
+  </action>
+  <action name="actionSaveToFile">
+   <property name="text">
+    <string>Save</string>
    </property>
   </action>
  </widget>

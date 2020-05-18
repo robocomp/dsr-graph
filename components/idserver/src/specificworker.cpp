@@ -62,8 +62,8 @@ void SpecificWorker::initialize(int period)
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
 	setWindowTitle(QString::fromStdString(agent_name));
-	connect(actionSave, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::saveGraphSLOT);
-	connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
+	connect(actionSaveToFile, &QAction::triggered,  [this](){ G->write_to_json_file("../../etc/simplesimpleworld.json"); qDebug() << __FUNCTION__ << "Written";} );
+	//connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
 
 	// Compute max Id in G
     get_max_id_from_G();
