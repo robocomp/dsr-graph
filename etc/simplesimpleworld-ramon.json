@@ -18,6 +18,10 @@
                     "pos_y": {
                         "type": 2,
                         "value": -234.295456
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 0
                     }
                 },
                 "id": 100,
@@ -74,6 +78,10 @@
                     "width": {
                         "type": 1,
                         "value": 5000
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
                     }
                 },
                 "id": 101,
@@ -215,9 +223,9 @@
                         "type": 1,
                         "value": 500
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "plane"
+                    "parent": {
+                        "type": 1,
+                        "value": 101
                     },
                     "pos_x": {
                         "type": 2,
@@ -264,9 +272,9 @@
                         "type": 1,
                         "value": 500
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "plane"
+                    "parent": {
+                        "type": 1,
+                        "value": 101
                     },
                     "pos_x": {
                         "type": 2,
@@ -313,9 +321,9 @@
                         "type": 1,
                         "value": 500
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "plane"
+                    "parent": {
+                        "type": 1,
+                        "value": 101
                     },
                     "pos_x": {
                         "type": 2,
@@ -362,9 +370,9 @@
                         "type": 1,
                         "value": 500
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "plane"
+                    "parent": {
+                        "type": 1,
+                        "value": 101
                     },
                     "pos_x": {
                         "type": 2,
@@ -403,9 +411,9 @@
                         "type": 0,
                         "value": "Blue"
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "differentialRobot"
+                    "parent": {
+                        "type": 1,
+                        "value": 101
                     },
                     "noise": {
                         "type": 1,
@@ -450,7 +458,7 @@
                         "src": 111
                     },
                     {
-                        "dst": 113,
+                        "dst": 117,
                         "label": "RT",
                         "linkAttribute": {
                             "rotation_euler_xyz": {
@@ -532,9 +540,9 @@
                         "type": 0,
                         "value": "LightBlue"
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "mesh"
+                    "parent": {
+                        "type": 1,
+                        "value": 111
                     },
                     "path": {
                         "type": 0,
@@ -571,38 +579,6 @@
                 "name": "base_robex",
                 "type": "mesh"
             },
-            "113": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "SteelBlue"
-                    },
-                    "engine": {
-                        "type": 0,
-                        "value": "static"
-                    },
-                    "imType": {
-                        "type": 0,
-                        "value": "transform"
-                    },
-                    "mass": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 61.048813
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -19.799616
-                    }
-                },
-                "id": 113,
-                "links": [ ],
-                "name": "laserPose",
-                "type": "transform"
-            },
             "116": {
                 "attribute": {
                     "color": {
@@ -613,9 +589,9 @@
                         "type": 0,
                         "value": "static"
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "transform"
+                    "parent": {
+                        "type": 1,
+                        "value": 111
                     },
                     "mass": {
                         "type": 1,
@@ -631,56 +607,9 @@
                     }
                 },
                 "id": 116,
-                "links": [
-                    {
-                        "dst": 117,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 116
-                    },
-                    {
-                        "dst": 118,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    3.1415927410125732
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    -200
-                                ]
-                            }
-                        },
-                        "src": 116
-                    }
-                ],
-                "name": "camera",
-                "type": "transform"
+                "links": [],
+                "name": "hokuyo_base",
+                "type": "laser"
             },
             "117": {
                 "attribute": {
@@ -700,9 +629,9 @@
                         "type": 0,
                         "value": "40000,50000"
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "rgbd"
+                    "parent": {
+                        "type": 1,
+                        "value": 111
                     },
                     "noise": {
                         "type": 1,
@@ -727,6 +656,29 @@
                 },
                 "id": 117,
                 "links": [
+                    {
+                        "dst": 118,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -200
+                                ]
+                            }
+                        },
+                        "src": 117
+                    }
                 ],
                 "name": "rgbd",
                 "type": "rgbd"
@@ -749,9 +701,9 @@
                         "type": 1,
                         "value": 50
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "plane"
+                    "parent": {
+                        "type": 1,
+                        "value": 117
                     },
                     "pos_x": {
                         "type": 2,
@@ -790,9 +742,9 @@
                         "type": 0,
                         "value": "static"
                     },
-                    "imType": {
-                        "type": 0,
-                        "value": "transform"
+                    "parent": {
+                        "type": 1,
+                        "value": 111
                     },
                     "mass": {
                         "type": 1,
