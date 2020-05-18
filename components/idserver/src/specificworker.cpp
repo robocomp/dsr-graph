@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <QFileDialog>
 
 /**
 * \brief Default constructor
@@ -62,7 +63,13 @@ void SpecificWorker::initialize(int period)
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
 	setWindowTitle(QString::fromStdString(agent_name));
-	connect(actionSaveToFile, &QAction::triggered,  [this](){ G->write_to_json_file("../../etc/simplesimpleworld.json"); qDebug() << __FUNCTION__ << "Written";} );
+	connect(actionSaveToFile, &QAction::triggered,  [this]()
+		{ 
+			auto file_name = QFileDialog::getOpenFileName(this, tr("Open Image"), "/home/robocomp/components/dsr-graph/etc", 
+															   tr("JSON Files (*.json)"));
+			G->write_to_json_file(file_name.toStdString()); 
+			qDebug() << __FUNCTION__ << "Written";
+		});
 	//connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
 
 	// Compute max Id in G
