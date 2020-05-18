@@ -30,7 +30,7 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    0,
+                                    3.1415927410125732,
                                     0
                                 ]
                             },
@@ -78,29 +78,6 @@
                 },
                 "id": 101,
                 "links": [
-                    {
-                        "dst": 102,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    3.1415927410125732,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 101
-                    },
                     {
                         "dst": 103,
                         "label": "RT",
@@ -214,7 +191,7 @@
                                 ]
                             }
                         },
-                        "src": 100
+                        "src": 101
                     }
                 ],
                 "name": "floor",
@@ -622,54 +599,7 @@
                     }
                 },
                 "id": 113,
-                "links": [
-                    {
-                        "dst": 114,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 113
-                    },
-                    {
-                        "dst": 115,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    3.1415927410125732
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    -200
-                                ]
-                            }
-                        },
-                        "src": 113
-                    }
-                ],
+                "links": [ ],
                 "name": "laserPose",
                 "type": "transform"
             },
