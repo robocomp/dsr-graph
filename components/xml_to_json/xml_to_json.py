@@ -83,7 +83,7 @@ def main(input_file, output_file):
         # Symbols
         if elem.tag == "symbol":
             new_symbol = {}
-            new_symbol["id"] = elem.attrib["id"]
+            new_symbol["id"] = int(elem.attrib["id"])
             new_symbol["type"] = elem.attrib["type"]
             new_symbol["attribute"] = {}
             new_symbol["links"] = []
@@ -103,12 +103,12 @@ def main(input_file, output_file):
             new_symbol["attribute"]["pos_x"] = {"type": 2, "value": random.randint(-200, 200)}
             new_symbol["attribute"]["pos_y"] = {"type": 2, "value": random.randint(-200, 200)}
             new_symbol["attribute"]["color"] = {"type": 0, "value": get_color_type(new_symbol["type"])}
-            new_json["DSRModel"]["symbols"][new_symbol["id"]] = new_symbol
+            new_json["DSRModel"]["symbols"][elem.attrib["id"]] = new_symbol
         # Links
         if elem.tag == "link":
             new_edge = {}
-            new_edge["src"] = elem.attrib["src"]
-            new_edge["dst"] = elem.attrib["dst"]
+            new_edge["src"] = int(elem.attrib["src"])
+            new_edge["dst"] = int(elem.attrib["dst"])
             new_edge["label"] = elem.attrib["label"]
             new_edge["linkAttribute"] = {}
             if elem.attrib["label"] == "RT":
