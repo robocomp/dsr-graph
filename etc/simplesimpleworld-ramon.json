@@ -101,17 +101,17 @@
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    3.1415927410125732,
                                     0,
+                                    1.57,
                                     0
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    2500,
+                                    0,
                                     200,
-                                    0
+                                    2500
                                 ]
                             }
                         },
@@ -124,17 +124,17 @@
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    3.1415927410125732,
                                     0,
+                                    1.57,
                                     0
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    -2500,
+                                    0,
                                     200,
-                                    0
+                                    -2500
                                 ]
                             }
                         },
@@ -149,7 +149,7 @@
                                 "value": [
                                     0,
                                     0,
-                                    3.1415927410125732
+                                    0
                                 ]
                             },
                             "translation": {
@@ -172,7 +172,7 @@
                                 "value": [
                                     0,
                                     0,
-                                    3.1415927410125732
+                                    0
                                 ]
                             },
                             "translation": {
@@ -211,7 +211,7 @@
                     }
                 ],
                 "name": "floor",
-                "type": "transform"
+                "type": "floor"
             },
             "103": {
                 "attribute": {
