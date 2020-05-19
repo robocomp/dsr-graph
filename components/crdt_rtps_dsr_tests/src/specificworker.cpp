@@ -22,6 +22,7 @@
 #include "tests/CRDT_change_attribute.h"
 #include "tests/CRDT_insert_remove_edge.h"
 #include "tests/CRDT_conflict_resolution.h"
+#include "tests/CRDT_concurrent_operations.h"
 
 
 /**
@@ -88,32 +89,32 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 4> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution"};
+    constexpr std::array<std::string_view, 5> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
     std::distance(tests.begin(), iter);
 
     switch(std::distance(tests.begin(), iter)){
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
-            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, 10000);
+            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, 5000);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (15));
+            std::this_thread::sleep_for(std::chrono::seconds (5));
             concurrent_test.save_json_result();
             break;
         }
         case 1: {
             qDebug() << "INSERT AND REMOVE EDGES TEST:";
-            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, 5000);
+            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, 2500);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (15));
+            std::this_thread::sleep_for(std::chrono::seconds (5));
             concurrent_test.save_json_result();
             break;
         }
         case 2: {
             qDebug() << "CHANGE ATTRIBUTES TEST:";
-            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file, 10000, agent_id);
+            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file, 5000, agent_id);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (15));
+            std::this_thread::sleep_for(std::chrono::seconds (5));
             concurrent_test.save_json_result();
             break;
         }
@@ -121,7 +122,15 @@ void SpecificWorker::compute()
             qDebug() << "CONFLICT RESOLUTION TEST:";
             CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, 10000, agent_id);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (15));
+            std::this_thread::sleep_for(std::chrono::seconds (5));
+            concurrent_test.save_json_result();
+            break;
+        }
+        case 4: {
+            qDebug() << "CONCURRENT OPERATIONS TEST:";
+            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file, 5000, 4);
+            concurrent_test.run_test();
+            std::this_thread::sleep_for(std::chrono::seconds (5));
             concurrent_test.save_json_result();
             break;
         }
