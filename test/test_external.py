@@ -67,6 +67,15 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
 
+    def test_node(self):
+        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test0"
+        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test1"
+        JSON_1 = "../etc/insert_remove_node_agent0_dsr.json"
+        JSON_2 = "../etc/insert_remove_node_agent1_dsr.json"
+        idserver = self.launch_commands([COMMAND_1, COMMAND_2])
+        self.open_and_compare_jsons(JSON_1, JSON_2)
+        self.finish_all(idserver)
+        
     def test_edge(self):
         COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_edge_test0"
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_edge_test1"
@@ -76,11 +85,11 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
 
-    def test_node(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test1"
-        JSON_1 = "../etc/insert_remove_node_agent0_dsr.json"
-        JSON_2 = "../etc/insert_remove_node_agent1_dsr.json"
+    def test_concurrent(self):
+        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_concurrent_test0"
+        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_concurrent_test1"
+        JSON_1 = "../etc/concurrent_operations_agent0_dsr.json"
+        JSON_2 = "../etc/concurrent_operations_agent1_dsr.json"
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
@@ -123,14 +132,14 @@ def check_kill_process(pstring):
 
 def json_to_struct(json_data):
     new_struct = copy.deepcopy(json_data)
-    for symbol_id, symbol in new_struct['DSRModel']['symbol'].items():
+    for symbol_id, symbol in new_struct['DSRModel']['symbols'].items():
         if 'links' in symbol:
             new_links = {}
             for link in symbol['links']:
                 new_id = '_'.join([str(link['src']), str(link['dst']), link['label']])
                 new_links[new_id] = link
-            del new_struct['DSRModel']['symbol'][symbol_id]['links']
-            new_struct['DSRModel']['symbol'][symbol_id]['links'] = new_links
+            del new_struct['DSRModel']['symbols'][symbol_id]['links']
+            new_struct['DSRModel']['symbols'][symbol_id]['links'] = new_links
 
     return new_struct
 
