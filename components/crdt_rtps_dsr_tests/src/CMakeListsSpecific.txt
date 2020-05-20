@@ -6,16 +6,21 @@ SET ( SOURCES
   ../../../graph-related-classes/CRDT_graphviewer.cpp
   ../../../graph-related-classes/CRDT_graphnode.cpp
   ../../../graph-related-classes/CRDT_graphedge.cpp
+  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
   ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
   ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
   ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
   ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
-   ../../../graph-related-classes/dsr_utils.cpp
+  ../../../graph-related-classes/dsr_utils.cpp
+  ../../../graph-related-classes/inner_api.cpp
   tests/CRDT_insert_remove_edge.cpp
   tests/CRDT_insert_remove_node.cpp
   tests/CRDT_change_attribute.cpp
   tests/CRDT_conflict_resolution.cpp
+  tests/CRDT_concurrent_operations.cpp
   tests/DSR_test.cpp
   ../../../graph-related-classes/dsr_to_osg_viewer.cpp
   ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
@@ -39,6 +44,7 @@ SET ( HEADERS
   tests/CRDT_insert_remove_node.h
   tests/CRDT_change_attribute.h
   tests/CRDT_conflict_resolution.h
+  tests/CRDT_concurrent_operations.h
   tests/DSR_test.h
 
 )
