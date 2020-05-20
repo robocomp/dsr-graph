@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import json
 import sys
 import random
+import math
 
 # str:0, int:1, float:2, [float]:3, bool:4
 def type_to_integer(value):
@@ -61,11 +62,16 @@ def check_position_attrib(subelem, vector):
     if v == -1 or pos == -1:
         return False
     else:
-        value = float(subelem.attrib["value"])
-        if value == 1:
-            value = 3.141592653
-        vector[v][pos] = value
+        vector[v][pos] = float(subelem.attrib["value"])
         return True
+
+
+def convert_nplanes_to_rotation(vector):
+    new_vector = [0.0, 0.0, 0.0]
+    new_vector[0] = math.atan2(vector[1], vector[2])
+    new_vector[1] = math.atan2(vector[0], math.sqrt(vector[1]*vector[1]+vector[2]*vector[2]))
+    return new_vector
+
 
 def main(input_file, output_file):
     new_json = {}
@@ -75,7 +81,7 @@ def main(input_file, output_file):
     tree = ET.parse(input_file)
     root = tree.getroot()
 
-    # auxilliar, to store translation and rotation from nodes  before setting on links
+    # auxiliary, to store translation and rotation from nodes  before setting on links
     node_transforms = {}
 
 
@@ -91,6 +97,8 @@ def main(input_file, output_file):
             for subelem in elem:
                 if subelem.attrib["key"] == "imName":
                     new_symbol["name"] = subelem.attrib["value"]
+                elif subelem.attrib["key"] == "imType":  # skip imType
+                    continue
                 else:
                     if not check_position_attrib(subelem, new_tr):
                         new_attribute = {}
@@ -98,11 +106,17 @@ def main(input_file, output_file):
                         new_attribute["value"] = value_
                         new_attribute["type"] = type_
                         new_symbol["attribute"][subelem.attrib["key"]] = new_attribute
-            if new_symbol["type"] == "plane": #store data to insert on link
+            if new_symbol["type"] == "plane":  # store data to insert on link
+                new_tr[1] = convert_nplanes_to_rotation(new_tr[1])
                 node_transforms[new_symbol["id"]] = new_tr
             new_symbol["attribute"]["pos_x"] = {"type": 2, "value": random.randint(-200, 200)}
             new_symbol["attribute"]["pos_y"] = {"type": 2, "value": random.randint(-200, 200)}
             new_symbol["attribute"]["color"] = {"type": 0, "value": get_color_type(new_symbol["type"])}
+            # check level on initial symbol (world)
+            if new_symbol["type"] == "world":
+                if not "level" in new_symbol["attribute"]:
+                    new_symbol["attribute"]["level"] = {"type": 1, "value": 0}
+
             new_json["DSRModel"]["symbols"][elem.attrib["id"]] = new_symbol
         # Links
         if elem.tag == "link":
@@ -127,6 +141,20 @@ def main(input_file, output_file):
 #                    print(new_tr)
                 new_edge["linkAttribute"]["translation"] = {"type": 3, "value": new_tr[0]}
                 new_edge["linkAttribute"]["rotation_euler_xyz"] = {"type": 3, "value": new_tr[1]}
+
+                # check parent an level attributes
+                if not "parent" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
+                    new_attribute = {}
+                    new_attribute["value"] = new_edge["src"]
+                    new_attribute["type"] = 1
+                    new_json["DSRModel"]["symbols"][elem.attrib["dst"]]["attribute"]["parent"] = new_attribute
+                if not "level" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
+                    new_attribute = {}
+                    new_attribute["value"] = new_json["DSRModel"]["symbols"][elem.attrib["src"]]["attribute"]["level"]["value"] + 1
+                    new_attribute["type"] = 1
+                    new_json["DSRModel"]["symbols"][elem.attrib["dst"]]["attribute"]["level"] = new_attribute
+
+
 
             new_json["DSRModel"]["symbols"][elem.attrib["src"]]["links"].append(new_edge)
 
