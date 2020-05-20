@@ -193,9 +193,9 @@
                             "translation": {
                                 "type": 3,
                                 "value": [
+                                    1000,
                                     0,
-                                    0,
-                                    0
+                                    1000
                                 ]
                             }
                         },
@@ -203,7 +203,7 @@
                     }
                 ],
                 "name": "floor",
-                "type": "transform"
+                "type": "plane"
             },
             "103": {
                 "attribute": {

@@ -17,6 +17,12 @@ SET ( SOURCES
   tests/CRDT_change_attribute.cpp
   tests/CRDT_conflict_resolution.cpp
   tests/DSR_test.cpp
+  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
+  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
+  ../../../graph-related-classes/inner_api.cpp
+ 
 )
 
 # Headers set
@@ -64,7 +70,7 @@ find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-g  -fmax-errors=1 -std=c++2a)
-SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES}  fastcdr fastrtps)
+SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES}  fastcdr fastrtps osgDB)
 set(CMAKE_BUILD_TYPE Debug)
 
 
