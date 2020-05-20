@@ -1,317 +1,771 @@
-﻿{
-  "DSRModel": {
-    "symbol": {
-      "100": {
-        "attribute": {
-          "color": {
-            "type": 0,
-            "value": "SeaGreen"
-          },
-          "imName": {
-            "type": 0,
-            "value": "world"
-          },
-          "imType": {
-            "type": 0,
-            "value": "transform"
-          },
-          "level": {
-            "type": 1,
-            "value": 0
-          },
-          "name": {
-            "type": 0,
-            "value": "world [100]"
-          },
-          "parent": {
-            "type": 1,
-            "value": 0
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -90.295357
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -286.075958
-          }
-        },
-        "id": 100,
-        "links": [
-          {
-            "dst": 131,
-            "label": "RT",
-            "linkAttribute": {
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  2.1238999366760254,
-                  0
-                ]
-              },
-              "translation": {
-                "type": 3,
-                "value": [
-                  -1614.6500244140625,
-                  0,
-                  -1597.6400146484375
-                ]
-              }
+{
+    "DSRModel": {
+        "symbols": {
+            "100": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SeaGreen"
+                    },
+                    "imType": {
+                        "type": 0,
+                        "value": "transform"
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -47.849072
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -234.295456
+                    }
+                },
+                "id": 100,
+                "links": [
+                    {
+                        "dst": 101,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    3.1415927410125732,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 100
+                    }
+                ],
+                "name": "world",
+                "type": "world"
             },
-            "src": 100
-          },
-          {
-            "dst": 135,
-            "label": "RT",
-            "linkAttribute": {
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "translation": {
-                "type": 3,
-                "value": [
-                  1300,
-                  0,
-                  1200
-                ]
-              }
+            "101": {
+                "attribute": {
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 5000
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -232.645477
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -149.322098
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 5000
+                    }
+                },
+                "id": 101,
+                "links": [
+                    {
+                        "dst": 103,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    2500,
+                                    200,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 101
+                    },
+                    {
+                        "dst": 104,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -2500,
+                                    200,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 101
+                    },
+                    {
+                        "dst": 105,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    200,
+                                    2500
+                                ]
+                            }
+                        },
+                        "src": 101
+                    },
+                    {
+                        "dst": 106,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    200,
+                                    -2500
+                                ]
+                            }
+                        },
+                        "src": 101
+                    },
+                    {
+                        "dst": 111,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 101
+                    }
+                ],
+                "name": "floor",
+                "type": "transform"
             },
-            "src": 100
-          }
-        ],
-        "name": "world",
-        "type": "world"
-      },
-      "131": {
-        "attribute": {
-          "advance_speed": {
-            "type": 2,
-            "value": 0.000000
-          },
-          "collide": {
-            "type": 0,
-            "value": "false"
-          },
-          "color": {
-            "type": 0,
-            "value": "GoldenRod"
-          },
-          "imName": {
-            "type": 0,
-            "value": "base"
-          },
-          "imType": {
-            "type": 0,
-            "value": "differentialrobot"
-          },
-          "level": {
-            "type": 1,
-            "value": 1
-          },
-          "name": {
-            "type": 0,
-            "value": "differentialrobot [131]"
-          },
-          "noise": {
-            "type": 1,
-            "value": 0
-          },
-          "parent": {
-            "type": 1,
-            "value": 100
-          },
-          "port": {
-            "type": 1,
-            "value": 10004
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -235.448044
-          },
-          "pos_y": {
-            "type": 2,
-            "value": -168.177170
-          },
-          "rot": {
-            "type": 2,
-            "value": 0.000000
-          }
-        },
-        "id": 131,
-        "links": [
-          {
-            "dst": 138,
-            "label": "RT",
-            "linkAttribute": {
-              "rotation_euler_xyz": {
-                "type": 3,
-                "value": [
-                  0,
-                  0,
-                  0
-                ]
-              },
-              "translation": {
-                "type": 3,
-                "value": [
-                  0,
-                  210,
-                  200
-                ]
-              }
+            "103": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 500
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -269.769775
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -230.995514
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#eeeeee"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 5000
+                    }
+                },
+                "id": 103,
+                "links": [
+                ],
+                "name": "wall_right",
+                "type": "plane"
             },
-            "src": 131
-          }
-        ],
-        "name": "base",
-        "type": "differentialrobot"
-      },
-      "135": {
-        "attribute": {
-          "String": {
-            "type": 0,
-            "value": ""
-          },
-          "collidable": {
-            "type": 4,
-            "value": false
-          },
-          "color": {
-            "type": 0,
-            "value": "Khaki"
-          },
-          "depth": {
-            "type": 2,
-            "value": 0.1
-          },
-          "height": {
-            "type": 2,
-            "value": 5
-          },
-          "imName": {
-            "type": 0,
-            "value": "floor"
-          },
-          "imType": {
-            "type": 0,
-            "value": "plane"
-          },
-          "level": {
-            "type": 1,
-            "value": 1
-          },
-          "name": {
-            "type": 0,
-            "value": "floor [135]"
-          },
-          "nx": {
-            "type": 2,
-            "value": 0
-          },
-          "ny": {
-            "type": 2,
-            "value": 0
-          },
-          "nz": {
-            "type": 2,
-            "value": 0
-          },
-          "parent": {
-            "type": 1,
-            "value": 100
-          },
-          "pos_x": {
-            "type": 2,
-            "value": 245.578766
-          },
-          "pos_y": {
-            "type": 2,
-            "value": 23.562189
-          },
-          "px": {
-            "type": 1,
-            "value": 0
-          },
-          "py": {
-            "type": 1,
-            "value": 0
-          },
-          "repeat": {
-            "type": 1,
-            "value": 1
-          },
-          "texture": {
-            "type": 0,
-            "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
-          },
-          "width": {
-            "type": 2,
-            "value": 5
-          }
-        },
-        "id": 135,
-        "links": [],
-        "name": "floor",
-        "type": "plane"
-      },
-      "138": {
-        "attribute": {
-          "color": {
-            "type": 0,
-            "value": "coral"
-          },
-          "ifconfig": {
-            "type": 0,
-            "value": "40000,50000"
-          },
-          "imName": {
-            "type": 0,
-            "value": "laser"
-          },
-          "imType": {
-            "type": 0,
-            "value": "laser"
-          },
-          "level": {
-            "type": 1,
-            "value": 2
-          },
-          "name": {
-            "type": 0,
-            "value": "laser [138]"
-          },
-          "noise": {
-            "type": 1,
-            "value": 0
-          },
-          "parent": {
-            "type": 1,
-            "value": 131
-          },
-          "port": {
-            "type": 1,
-            "value": 10096
-          },
-          "pos_x": {
-            "type": 2,
-            "value": -246.617584
-          },
-          "pos_y": {
-            "type": 2,
-            "value": 197.922394
-          }
-        },
-        "id": 138,
-        "links": [],
-        "name": "hokuyo_base",
-        "type": "laser"
-      }
+            "104": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 500
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -176.54657
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -42.899166
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#eeeeee"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 5000
+                    }
+                },
+                "id": 104,
+                "links": [
+                ],
+                "name": "wall_left",
+                "type": "plane"
+            },
+            "105": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 500
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -130.347473
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -106.422935
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#555555"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 5000
+                    }
+                },
+                "id": 105,
+                "links": [
+                ],
+                "name": "wall_front",
+                "type": "plane"
+            },
+            "106": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 500
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -286.26944
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -62.698784
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#555555"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 5000
+                    }
+                },
+                "id": 106,
+                "links": [
+                ],
+                "name": "wall_back",
+                "type": "plane"
+            },
+            "111": {
+                "attribute": {
+                    "collide": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "noise": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 10004
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -2.474952
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -126.222549
+                    }
+                },
+                "id": 111,
+                "links": [
+                    {
+                        "dst": 112,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 111
+                    },
+                    {
+                        "dst": 116,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    210,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 111
+                    },
+                    {
+                        "dst": 117,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    140,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 111
+                    },
+                    {
+                        "dst": 119,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    50
+                                ]
+                            }
+                        },
+                        "src": 111
+                    }
+                ],
+                "name": "base",
+                "type": "differentialRobot"
+            },
+            "112": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 111
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/robex/robex.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 88.273285
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -72.598587
+                    },
+                    "render": {
+                        "type": 0,
+                        "value": "NormalRendering"
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    }
+                },
+                "id": 112,
+                "links": [
+                ],
+                "name": "base_robex",
+                "type": "mesh"
+            },
+            "116": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 111
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 12.37476
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 94.873161
+                    }
+                },
+                "id": 116,
+                "links": [
+                ],
+                "name": "hokuyo_base",
+                "type": "laser"
+            },
+            "117": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "focal": {
+                        "type": 1,
+                        "value": 490
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "ifconfig": {
+                        "type": 0,
+                        "value": "40000,50000"
+                    },
+                    "noise": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 111
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 10096
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -81.673416
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 147.672134
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": 117,
+                "links": [
+                    {
+                        "dst": 118,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -200
+                                ]
+                            }
+                        },
+                        "src": 117
+                    }
+                ],
+                "name": "rgbd",
+                "type": "rgbd"
+            },
+            "118": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 117
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 25
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 163
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#550000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 200
+                    }
+                },
+                "id": 118,
+                "links": [
+                ],
+                "name": "rgbd_mesh1",
+                "type": "plane"
+            },
+            "119": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 111
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -79.198463
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 23.099552
+                    }
+                },
+                "id": 119,
+                "links": [
+                ],
+                "name": "robotGeometricCenter",
+                "type": "transform"
+            }
+        }
     }
-  }
 }

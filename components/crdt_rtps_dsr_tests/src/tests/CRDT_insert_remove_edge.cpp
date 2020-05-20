@@ -52,7 +52,7 @@ void CRDT_insert_remove_edge::run_test()
 {
     try {
         int i = 0;
-        while (i++ < 150) {
+        while (i++ < 20) {
             Node node;
             node.type("plane");
             auto id = newID();
