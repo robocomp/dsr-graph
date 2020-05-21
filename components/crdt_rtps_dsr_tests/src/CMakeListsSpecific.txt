@@ -22,6 +22,12 @@ SET ( SOURCES
   tests/CRDT_conflict_resolution.cpp
   tests/CRDT_concurrent_operations.cpp
   tests/DSR_test.cpp
+  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
+  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
+  ../../../graph-related-classes/inner_api.cpp
+ 
 )
 
 # Headers set

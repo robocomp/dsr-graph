@@ -128,7 +128,7 @@ void SpecificWorker::compute()
         }
         case 4: {
             qDebug() << "CONCURRENT OPERATIONS TEST:";
-            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file, 5000, 4);
+            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file, 5000, 4, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (5));
             concurrent_test.save_json_result();
