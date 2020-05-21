@@ -157,7 +157,7 @@ void CRDT_concurrent_operations::run_test()
 
         end = std::chrono::steady_clock::now();
         std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-        std::string result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly ";
+        std::string result = "CONCURRENT ACCESS: concurrent_operations:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 
     } catch (std::exception& e) {

@@ -101,6 +101,16 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
 
+
+    def test_delayed_start(self):
+        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_delayed_test0"
+        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_delayed_test1"
+        JSON_1 = "../etc/delayed_start_agent0_dsr.json"
+        JSON_2 = "../etc/delayed_start_agent1_dsr.json"
+        idserver = self.launch_commands([COMMAND_1, COMMAND_2], delay=8)
+        self.open_and_compare_jsons(JSON_1, JSON_2)
+        self.finish_all(idserver)
+
     def finish_all(self, idserver):
         idserver.terminate()
         check_kill_process("idserver")
