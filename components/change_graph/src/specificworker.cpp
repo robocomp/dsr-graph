@@ -54,11 +54,65 @@ void SpecificWorker::initialize(int period)
      
     // Graph viewer
 //	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+
+    //initialize node combobox
+    auto map = G->getCopy();
+	for(const auto &[k, node] : map)
+    {
+        QVariant data;
+        data.setValue(node);
+	    this->node_cb->addItem(QString::fromStdString(node.name()), data);
+    }
+
+    node_attrib_tw->setColumnCount(2);
+    QStringList horzHeaders;
+    horzHeaders <<"Attribute"<< "Value";
+    node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
+
+    connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
+    //node_cb->currentData().toInt()
 }
+
+
+  
 
 void SpecificWorker::compute()
 {
 
 }
 
+void SpecificWorker::change_node_slot(int id)
+{
+    qDebug()<<id;
+    node_attrib_tw->setRowCount(0);
 
+    Node node = node_cb->itemData(id).value<Node>();
+    
+    for(auto [key, value] : node.attrs())
+    {
+        node_attrib_tw->insertRow( node_attrib_tw->rowCount() );
+        node_attrib_tw->setItem(node_attrib_tw->rowCount()-1, 0, new QTableWidgetItem(QString::fromStdString(key)));
+        QVariant variant;
+        switch (value.value()._d())
+        {
+            case 0: 
+                variant = QString::fromStdString(value.value().str());       
+                break;
+            case 1:
+                variant = value.value().dec();
+                break;
+            case 2:
+                variant = std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000 ;
+                break;    
+            case 4:
+                variant = value.value().bl();
+                break;
+        }
+        node_attrib_tw->setItem(node_attrib_tw->rowCount()-1, 1, new QTableWidgetItem(variant.toString()));
+
+    }
+
+    std::cout<<node.name()<<std::endl;
+    //m_pTableWidget->setItem(0, 1, new QTableWidgetItem("Hello"));
+    //itleComboBox->itemData(0)
+}

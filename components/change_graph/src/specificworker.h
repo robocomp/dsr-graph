@@ -28,24 +28,38 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include <innermodel/innermodel.h>
+#include "../../../graph-related-classes/CRDT.h"
+#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "../../../graph-related-classes/dsr_to_osg_viewer.h"
+
 
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
-public:
-	SpecificWorker(TuplePrx tprx);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
+
+	public:
+		SpecificWorker(TuplePrx tprx);
+		~SpecificWorker();
+		bool setParams(RoboCompCommonBehavior::ParameterList params);
+
+		std::shared_ptr<CRDT::CRDTGraph> G;
+		std::string agent_name;
 
 
+	public slots:
+		void compute();
+		void initialize(int period);
+		void change_node_slot(int id);
 
-public slots:
-	void compute();
-	void initialize(int period);
-private:
-	std::shared_ptr<InnerModel> innerModel;
+	private:
+		int agent_id;
+		std::string dsr_input_file;
+		std::string dsr_output_file;
+		std::string test_output_file;
+		
+		// graph viewer
+		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 };
-
+Q_DECLARE_METATYPE(Node);
 #endif
