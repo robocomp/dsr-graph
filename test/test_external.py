@@ -1,13 +1,13 @@
 import copy
 import json
+import multiprocessing
 import os
 import signal
-import time
 import subprocess
-import threading
+import time
 import unittest
+
 from assertions import ApiAssertionsMixin
-import multiprocessing
 
 os.environ['TERM'] = 'xterm'
 
@@ -53,10 +53,17 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_attribute_test1"
         JSON_1 = "../etc/change_attribute_agent0_dsr.json"
         JSON_2 = "../etc/change_attribute_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
 
+    def rename_previous_files(self, files):
+        assert isinstance(files, list), 'files parameter must be a list of paths to files'
+        timestamp = int(time.time())
+        for file in files:
+            if os.path.exists(file):
+                os.rename(file, file+".back.%d" % timestamp)
 
     def test_conflict(self):
         COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_conflict_test0"
@@ -109,7 +116,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             data2 = json_to_struct(data2)
             self.assertJsonEqual(data1, data2)
 
-    def launch_commands(self, commands):
+    def launch_commands(self, commands, delay=0):
         idserver_command = KillableCommand("cd ../components/idserver; ./bin/idserver etc/config")
         idserver = multiprocessing.Process(target=idserver_command.run_in_thread)
         jobs = []
@@ -117,8 +124,11 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             comp_command = KillableCommand(command)
             comp1 = multiprocessing.Process(target=comp_command.run_in_thread)
             jobs.append(comp1)
-        for comp in jobs+[idserver]:
+        idserver.start()
+        for comp in jobs:
             comp.start()
+            if comp != jobs[-1]:
+                time.sleep(delay)
             time.sleep(0.2)
         for comp in jobs:
             comp.join()
