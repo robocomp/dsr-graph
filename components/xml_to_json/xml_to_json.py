@@ -3,6 +3,8 @@ import json
 import sys
 import random
 import math
+import numpy as NP
+from numpy import linalg as LA
 
 # str:0, int:1, float:2, [float]:3, bool:4
 def type_to_integer(value):
@@ -67,10 +69,46 @@ def check_position_attrib(subelem, vector):
 
 
 def convert_nplanes_to_rotation(vector):
-    new_vector = [0.0, 0.0, 0.0]
-    new_vector[0] = math.atan2(vector[1], vector[2])
-    new_vector[1] = math.atan2(vector[0], math.sqrt(vector[1]*vector[1]+vector[2]*vector[2]))
-    return new_vector
+    RU = rotationMatrixFromPlane(NP.array(vector))
+    return rotationMatrixToEulerAngles(RU)
+
+
+# Calculates rotation matrix to euler angles
+# The result is the same as MATLAB except the order
+# of the euler angles ( x and z are swapped ).
+def rotationMatrixToEulerAngles(R):
+    sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+    singular = sy < 1e-6
+
+    if not singular:
+        x = math.atan2(R[2, 1], R[2, 2])
+        y = math.atan2(-R[2, 0], sy)
+        z = math.atan2(R[1, 0], R[0, 0])
+    else:
+        x = math.atan2(-R[1, 2], R[1, 1])
+        y = math.atan2(-R[2, 0], sy)
+        z = 0
+
+    return NP.array([x, y, z])
+
+# Build rotation matrix from Normal plane vector
+def rotationMatrixFromPlane(vector):
+    A = NP.array([0, 0, 1])
+    B = NP.array(vector)
+
+    v = NP.cross(A, B)
+
+    if LA.norm(v) == 0:
+        return NP.dot(A, B)*NP.identity(3)
+
+    ssc = [[0, -v[2], v[1]],
+           [v[2], 0, -v[0]],
+           [-v[1], v[0], 0]]
+
+    lp = (1 - NP.dot(A, B)) / (NP.square(LA.norm(v)))
+
+    RU = NP.identity(3) + ssc + NP.dot(ssc, ssc)*lp
+    return RU
 
 
 def main(input_file, output_file):
