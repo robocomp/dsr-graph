@@ -1,0 +1,10 @@
+
+Component change_graph
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+};
+
