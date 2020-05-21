@@ -27,7 +27,7 @@
 #include "fast_rtps/dsrpublisher.h"
 #include "fast_rtps/dsrsubscriber.h"
 #include "topics/DSRGraphPubSubTypes.h"
-#include "vertex.h"
+//#include "vertex.h"
 #include "inner_api.h"
 #include "dsr_utils.h"
 
@@ -45,7 +45,7 @@ namespace CRDT
     using MTypes = std::variant<std::string, std::int32_t, float , std::vector<float>, bool, RMat::RTMat>;
     using IDType = std::int32_t;
     using AttribsMap = std::unordered_map<std::string, MTypes>;
-    using VertexPtr = std::shared_ptr<Vertex>;
+    //using VertexPtr = std::shared_ptr<Vertex>;
     struct pair_hash
     {
         template <class T1, class T2>
@@ -87,10 +87,6 @@ namespace CRDT
         CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string());
         ~CRDTGraph();
 
-        // threads
-        bool start_fullgraph_request_thread();
-        void start_fullgraph_server_thread();
-        void start_subscription_thread(bool showReceived);
 
         //////////////////////////////////////////////////////
         ///  Graph API
@@ -122,22 +118,22 @@ namespace CRDT
         std::optional<Node> get_node_root()  { return get_node(100); };  //CHANGE THIS
         std::optional<Node> get_node(const std::string& name);
         std::optional<Node> get_node(int id);
-        std::optional<VertexPtr> get_vertex(const std::string& name);
-        std::optional<VertexPtr> get_vertex(int id);
+        //std::optional<VertexPtr> get_vertex(const std::string& name);
+        //std::optional<VertexPtr> get_vertex(int id);
         bool insert_or_assign_node(const N &node);
-        bool insert_or_assign_node(const VertexPtr &vertex);
-        bool insert_or_assign_node(Vertex &vertex);
+        //bool insert_or_assign_node(const VertexPtr &vertex);
+        //bool insert_or_assign_node(Vertex &vertex);
         bool delete_node(const std::string &name);
         bool delete_node(int id);
         std::vector<Node> get_nodes_by_type(const std::string& type);
         std::optional<std::string> get_name_from_id(std::int32_t id);  // caché
         std::optional<int> get_id_from_name(const std::string &name);  // caché
         std::optional<std::int32_t> get_node_level(Node& n);
-        std::optional<std::int32_t> get_node_parent(Node& n);
+        std::optional<std::int32_t> get_node_parent(const Node& n);
         std::string get_node_type(Node& n);
-        void add_attrib(std::map<string, Attrib> &v, std::string att_name, CRDT::MTypes att_value); //to be deprecated
+        static void add_attrib(std::map<string, Attrib> &v, std::string att_name, CRDT::MTypes att_value); //to be deprecated
         void add_attrib(std::int32_t from, std::int32_t to, std::string key, const Attrib &attr);  // not implemented
-        void add_attrib(Node &n, std::int32_t to, std::string key, const Attrib &attr);  // not implemented 
+        void add_attrib(Node &n, std::int32_t to, std::string key, const Attrib &attr);  // not implemented
         
         // Edges
         std::optional<Edge> get_edge(const std::string& from, const std::string& to, const std::string& key);
@@ -150,17 +146,17 @@ namespace CRDT
         bool delete_edge(const std::string& from, const std::string& t, const std::string& key);
         bool delete_edge(int from, int t, const std::string& key);
         std::vector<Edge> get_edges_by_type(const std::string& type);
-        std::vector<Edge> get_edges_by_type(const Node& node, const std::string& type);
+        static std::vector<Edge> get_edges_by_type(const Node& node, const std::string& type);
         std::vector<Edge> get_edges_to_id(int id);
         std::optional<std::map<EdgeKey, Edge>> get_edges(int id);
         Edge get_edge_RT(const Node &n, int to);
-        RTMat get_edge_RT_as_RTMat(Edge &edge);
+        RTMat get_edge_RT_as_RTMat(const Edge &edge);
         RTMat get_edge_RT_as_RTMat(Edge &&edge);
         
         
         // Both
         template <typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<node_or_edge<Type>>>
-        std::optional<Ta> get_attrib_by_name(Type& n, const std::string &key) 
+        std::optional<Ta> get_attrib_by_name(const Type& n, const std::string &key) 
         {
             std::optional<Attrib> av = get_attrib_by_name_(n, key);
             if (!av.has_value()) return {};
@@ -358,8 +354,8 @@ namespace CRDT
         class NewMessageFunctor
         {
             public:
-                CRDTGraph *graph;
-                bool *work;
+                CRDTGraph *graph{};
+                bool *work{};
                 std::function<void(eprosima::fastrtps::Subscriber *sub, bool *work, CRDT::CRDTGraph *graph)> f;
 
                 NewMessageFunctor(CRDTGraph *graph_, bool *work_,
@@ -374,6 +370,11 @@ namespace CRDT
 
 
         //Threads
+        // threads
+        bool start_fullgraph_request_thread();
+        void start_fullgraph_server_thread();
+        void start_subscription_thread(bool showReceived);
+
         std::thread delta_thread, fullgraph_thread;
 
         // Threads handlers
@@ -401,7 +402,7 @@ namespace CRDT
         NewMessageFunctor dsrpub_request_answer_call;
 
     signals:                                                                  // for graphics update
-        void update_node_signal(const std::int32_t, const std::string &type); // Signal to update CRDT
+        void update_node_signal(const std::int32_t, const std::string &type); // REMOVE type
 
         void update_attrs_signal(const std::int32_t &id, const std::map<string, Attrib> &attribs); //Signal to show node attribs.
         void update_edge_signal(const std::int32_t from, const std::int32_t to, const std::string& type);                   // Signal to show edge attribs.
