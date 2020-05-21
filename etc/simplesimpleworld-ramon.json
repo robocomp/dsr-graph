@@ -454,6 +454,10 @@
                     "pos_y": {
                         "type": 2,
                         "value": -126.222549
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
                     }
                 },
                 "id": 111,
@@ -580,9 +584,9 @@
                         "type": 2,
                         "value": -72.598587
                     },
-                    "render": {
-                        "type": 0,
-                        "value": "NormalRendering"
+                    "level": {
+                        "type": 1,
+                        "value": 3
                     },
                     "scalex": {
                         "type": 1,
@@ -676,6 +680,10 @@
                     "width": {
                         "type": 1,
                         "value": 640
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
                     }
                 },
                 "id": 117,
@@ -748,6 +756,10 @@
                     "width": {
                         "type": 1,
                         "value": 200
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 4
                     }
                 },
                 "id": 118,
