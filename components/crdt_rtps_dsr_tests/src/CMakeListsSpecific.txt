@@ -21,6 +21,7 @@ SET ( SOURCES
   tests/CRDT_change_attribute.cpp
   tests/CRDT_conflict_resolution.cpp
   tests/CRDT_concurrent_operations.cpp
+  tests/CRDT_delayed_start.cpp
   tests/DSR_test.cpp
   ../../../graph-related-classes/dsr_to_osg_viewer.cpp
   ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
@@ -44,6 +45,7 @@ SET ( HEADERS
   tests/CRDT_insert_remove_node.h
   tests/CRDT_change_attribute.h
   tests/CRDT_conflict_resolution.h
+   tests/CRDT_delayed_start.h
   tests/CRDT_concurrent_operations.h
   tests/DSR_test.h
 

@@ -31,6 +31,13 @@ components/crdt_comp/src/CrdtComp_autogen/
 
 *.bak
 
+
+test/*.txt
+etc/concurrent_operations_*
+etc/change_attribute_*
+etc/conflict_resolution_*
+etc/insert_remove_*
+
 components/crdt_observeragent/cmake-build-debug/
 
 components/crdt_observeragent/CMakeFiles/
@@ -52,11 +59,11 @@ components/crdt_rtps_dsr/out.folded
 components/crdt_rtps_dsr/out.perf
 components/crdt_rtps_dsr/perf.svg
 components/crdt_rtps_dsr/profile/
-components/crdt_rtps_dsr_strings/bin/
-components/crdt_rtps_dsr_strings/build/
-components/crdt_rtps_dsr_strings/cmake-build-debug/
-components/crdt_rtps_dsr_strings/cmake-build-release/
-components/crdt_rtps_dsr_strings/test_result.txt
+components/crdt_rtps_dsr_tests/bin/
+components/crdt_rtps_dsr_tests/build/
+components/crdt_rtps_dsr_tests/cmake-build-debug/
+components/crdt_rtps_dsr_tests/cmake-build-release/
+components/crdt_rtps_dsr_tests/test_result.txt
 components/idserver/bin/
 components/idserver/build/
 etc/agent0_dsr.json
@@ -72,3 +79,11 @@ test/__pycache__/
 test_crdt/bin/
 test_crdt/build/
 test_crdt/cmake-build-debug/
+
+components/crdt_rtps_dsr/src/cmake-build-debug/
+components/crdt_rtps_dsr/src/cmake-build-release/
+components/idserver/cmake-build-debug/
+components/idserver/cmake-build-release/
+
+components/crdt_rtps_dsr_tests/src/tests/testfiles/write_empty_file.json
+components/crdt_rtps_dsr_tests/src/tests/testfiles/write_initial_dsr2.json

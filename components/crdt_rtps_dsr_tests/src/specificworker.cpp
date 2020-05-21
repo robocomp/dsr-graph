@@ -23,6 +23,7 @@
 #include "tests/CRDT_insert_remove_edge.h"
 #include "tests/CRDT_conflict_resolution.h"
 #include "tests/CRDT_concurrent_operations.h"
+#include "tests/CRDT_delayed_start.h"
 
 
 /**
@@ -89,7 +90,7 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 5> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations"};
+    constexpr std::array<std::string_view, 6> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
     std::distance(tests.begin(), iter);
 
@@ -134,6 +135,14 @@ void SpecificWorker::compute()
             concurrent_test.save_json_result();
             break;
         }
+        case 5: {
+            qDebug() << "DELAYED START TEST:";
+            CRDT_delayed_start concurrent_test = CRDT_delayed_start(dsrgetid_proxy, G, dsr_output_file, 200, agent_id);
+            concurrent_test.run_test();
+            std::this_thread::sleep_for(std::chrono::seconds (15));
+            concurrent_test.save_json_result();
+            break;
+        }
         default: {
             qDebug() << "TEST NOT FOUND";
 
@@ -143,29 +152,12 @@ void SpecificWorker::compute()
 
     exit(0);
 
-    /* Mover a pruebas DSR
-    //Prueba básica para comprobar que la GUI actualiza bien.
-    Edge e;
-    e.from(138);
-    e.to(135);
-    e.type("RT");
-
-    G->add_attrib(e.attrs(), "translation", vector<float>{1.,0.,1.});
-    G->add_attrib(e.attrs(), "rotation_euler_xyz", vector<float>{0.,0.,1.});
-
-    G->insert_or_assign_edge(e);
-
-    sleep(1);
-    G->delete_edge(138,135,"RT");
-    */
-    //G->write_to_json_file(dsr_output_file);
-    //exit(0);
 }
 
 
 void SpecificWorker::autokill()
 {
-    G->write_to_json_file(dsr_output_file);
+//    G->write_to_json_file(dsr_output_file);
     exit(0);
 }
 

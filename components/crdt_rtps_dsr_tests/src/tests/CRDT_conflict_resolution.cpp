@@ -77,7 +77,7 @@ void CRDT_conflict_resolution::run_test()
         insert_or_assign_attributes(0, G);
         end = std::chrono::steady_clock::now();
         std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-        std::string result = "CONCURRENT ACCESS: insert_or_assign_attributes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly ";
+        std::string result = "CONCURRENT ACCESS: conflict_resolution:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 
     } catch (std::exception& e) {
