@@ -11,7 +11,7 @@
  *    RoboComp is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
+     *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
@@ -68,9 +68,13 @@ void SpecificWorker::initialize(int period)
     QStringList horzHeaders;
     horzHeaders <<"Attribute"<< "Value";
     node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
+    node_attrib_tw->horizontalHeader()->setStretchLastSection(true);
+
+    edge_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
+    edge_attrib_tw->horizontalHeader()->setStretchLastSection(true);
 
     connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
-    //node_cb->currentData().toInt()
+    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
 }
 
 
@@ -103,7 +107,8 @@ void SpecificWorker::change_node_slot(int id)
                 break;
             case 2:
                 variant = std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000 ;
-                break;    
+                break;
+                    
             case 4:
                 variant = value.value().bl();
                 break;
@@ -113,6 +118,56 @@ void SpecificWorker::change_node_slot(int id)
     }
 
     std::cout<<node.name()<<std::endl;
-    //m_pTableWidget->setItem(0, 1, new QTableWidgetItem("Hello"));
-    //itleComboBox->itemData(0)
+
 }
+
+
+void SpecificWorker::save_node_slot()
+{
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    for (int row=0; row < node_attrib_tw->rowCount(); row++)
+    {
+        std::string key = node_attrib_tw->item(row, 0)->text().toStdString();
+        QString value = node_attrib_tw->item(row, 1)->text();
+        switch(node.attrs()[key].value()._d())
+        {
+            case 0: 
+                node.attrs()[key].value().str(value.toStdString());       
+                break;
+            case 1:
+                node.attrs()[key].value().dec(value.toInt());       
+                break;
+            case 2:
+                node.attrs()[key].value().fl(value.toFloat());       
+                break;
+                    
+            case 4:
+                node.attrs()[key].value().bl(value.contains("true"));       
+                break;
+        }       
+    }
+    
+    if(G->insert_or_assign_node(node))
+        qDebug()<<"Node saved";
+    else
+    {
+        qDebug()<<"Error saving node";
+    }
+    
+
+}
+
+/*        case 0: 
+                G->insert_or_assign_attrib_by_name(node, key, value.toStdString());       
+                break;
+            case 1:
+                G->insert_or_assign_attrib_by_name(node, key, value.toInt());       
+                break;
+            case 2:
+                G->insert_or_assign_attrib_by_name(node, key, value.toFloat()); 
+                break;
+                    
+            case 4:
+                G->insert_or_assign_attrib_by_name(node, key, value.contains("true")); 
+                break;
+                */
