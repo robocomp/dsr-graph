@@ -37,7 +37,7 @@ private:
     int num_threads;
     int agent_id;
     std::vector<std::thread> threads;
-    void concurrent_ops(int i, const shared_ptr<CRDT::CRDTGraph>& G);
+    void concurrent_ops(int i, int no, const shared_ptr<CRDT::CRDTGraph>& G);
     int delay = 5; //ms
 
 };
