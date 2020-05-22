@@ -112,7 +112,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         JSON_1 = "../etc/delayed_start_agent0_dsr.json"
         JSON_2 = "../etc/delayed_start_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
-        idserver = self.launch_commands([COMMAND_1, COMMAND_2], delay=8)
+        idserver = self.launch_commands([COMMAND_1, COMMAND_2], delay=6)
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
 

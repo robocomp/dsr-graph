@@ -60,7 +60,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
             qDebug() << "ERROR INSERTANDO EL NODO";
             break;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        std::this_thread::sleep_for(std::chrono::microseconds (delay));
     }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());

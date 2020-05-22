@@ -47,7 +47,7 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
                 qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
 
