@@ -23,11 +23,9 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             {
                 //qDebug() << __FUNCTION__ << "Create node";
                 // create node
-                Node node;
-                node.type("plane");
                 auto id = newID();
-                node.id(id);
-                node.agent_id(0);
+                Node node; node.type("plane"); node.id(id);
+                node.agent_id(agent_id);
                 node.name("plane" + std::to_string(id));
                 G->add_attrib(node.attrs(), "name", std::string("fucking_plane"));
                 G->add_attrib(node.attrs(), "color", std::string("SteelBlue"));
@@ -98,10 +96,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             {
                 end = std::chrono::steady_clock::now();
                 std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-                //result = "test_set_string" + MARKER +"FAIL" + MARKER + time + MARKER +" error getting node->line:" + std::to_string(__LINE__);
-                //fail = true;
                 qDebug() << "ERROR OBTENIENDO EL NODO";
-
                 break;
             }
 
@@ -109,11 +104,8 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
 
             auto at = node.value().attrs().find("testattrib");
             if (at == node.value().attrs().end()) {
-                Val v;
-                v.str(str);
-                Attrib ab;
-                ab.value(v);
-                ab.type(STRING);
+                Val v; v.str(str);
+                Attrib ab; ab.value(v); ab.type(STRING);
                 node.value().attrs()["testattrib"] = ab;
             }
             else {
@@ -131,7 +123,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 break;
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
 
