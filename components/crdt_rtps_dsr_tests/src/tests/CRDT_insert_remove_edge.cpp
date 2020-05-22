@@ -43,7 +43,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
                 qDebug() << "Deleted edge :"  << from << " - " << to ;
 
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
 
