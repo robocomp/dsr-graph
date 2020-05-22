@@ -38,18 +38,8 @@ class SpecificWorker : public GenericWorker
 Q_OBJECT
 
 	public:
-		SpecificWorker(TuplePrx tprx);
-		~SpecificWorker();
-		bool setParams(RoboCompCommonBehavior::ParameterList params);
-
 		std::shared_ptr<CRDT::CRDTGraph> G;
 		std::string agent_name;
-
-
-	public slots:
-		void compute();
-		void initialize(int period);
-		void change_node_slot(int id);
 
 	private:
 		int agent_id;
@@ -60,6 +50,25 @@ Q_OBJECT
 		// graph viewer
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
+	public:
+		SpecificWorker(TuplePrx tprx);
+		~SpecificWorker();
+		bool setParams(RoboCompCommonBehavior::ParameterList params);
+
+	public slots:
+		void compute();
+		void initialize(int period);
+		void change_node_slot(int id);
+		void save_node_slot();
+		void change_edge_slot(int id);
+		void save_edge_slot();
+
+	private:
+		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);
+		std::map<std::string, Attrib> get_table_content(QTableWidget *table_widget, std::map<std::string, Attrib> attrs);
+
+
 };
 Q_DECLARE_METATYPE(Node);
+Q_DECLARE_METATYPE(Edge);
 #endif
