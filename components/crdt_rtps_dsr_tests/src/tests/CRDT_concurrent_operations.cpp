@@ -107,7 +107,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, const shared_ptr<CRDT::CR
                 break;
             }
 
-            std::string str = 0 + "-" + std::to_string(i) + "_" + std::to_string(it);
+            std::string str = std::to_string(agent_id) + "_" + std::to_string(i) + "_" + std::to_string(it);
 
             auto at = node.value().attrs().find("testattrib");
             if (at == node.value().attrs().end()) {
@@ -133,7 +133,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, const shared_ptr<CRDT::CR
                 break;
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay*4));
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     }
 }
 
@@ -144,7 +144,7 @@ void CRDT_concurrent_operations::run_test()
         threads.resize(num_threads);
 
         for (int i; thread &t: threads) {
-            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, i, G);
+            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, ++i, G);
         }
         //create_or_remove_nodes(0, G);
         start = std::chrono::steady_clock::now();

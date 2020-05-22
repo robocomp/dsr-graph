@@ -70,6 +70,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_conflict_test1"
         JSON_1 = "../etc/conflict_resolution_agent0_dsr.json"
         JSON_2 = "../etc/conflict_resolution_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
@@ -79,6 +80,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test1"
         JSON_1 = "../etc/insert_remove_node_agent0_dsr.json"
         JSON_2 = "../etc/insert_remove_node_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
@@ -88,6 +90,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_edge_test1"
         JSON_1 = "../etc/insert_remove_edge_agent0_dsr.json"
         JSON_2 = "../etc/insert_remove_edge_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
@@ -97,6 +100,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_concurrent_test1"
         JSON_1 = "../etc/concurrent_operations_agent0_dsr.json"
         JSON_2 = "../etc/concurrent_operations_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
@@ -107,6 +111,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_delayed_test1"
         JSON_1 = "../etc/delayed_start_agent0_dsr.json"
         JSON_2 = "../etc/delayed_start_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2], delay=8)
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)

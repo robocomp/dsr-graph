@@ -87,6 +87,25 @@ TEST_CASE("Node operations", "[NODE]") {
         REQUIRE(r == true);
 
     }
+
+    SECTION("Insert an existent node with different name") {
+
+        Node n;
+        n.name("test2");
+        n.id(75000);
+        n.type("testtype");
+        REQUIRE_THROWS(G->insert_or_assign_node(n));
+    }
+
+    SECTION("Insert an existent node with different id") {
+
+        Node n;
+        n.name("test");
+        n.id(7500166);
+        n.type("testtype");
+        REQUIRE_THROWS(G->insert_or_assign_node(n));
+    }
+
     SECTION("Delete existing node by id") {
 
         bool r = G->delete_node(75000);
