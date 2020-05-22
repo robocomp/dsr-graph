@@ -8,13 +8,13 @@
 #include "../../../../graph-related-classes/topics/DSRGraph.h"
 #include <thread>
 
-void CRDT_concurrent_operations::concurrent_ops(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<CRDT::CRDTGraph>& G)
 {
-    static int it=0;
+    int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, 2);
 
-    while (it++ < num_ops)
+    while (it++ < no )
     {
         // ramdomly select create or remove
         int x = rnd(mt);
@@ -34,9 +34,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, const shared_ptr<CRDT::CR
                 G->add_attrib(node.attrs(), "pos_x", rnd_float());
                 G->add_attrib(node.attrs(), "pos_y", rnd_float());
 
-                //node.attrs(attrs);
-                qDebug() << "Ready to insert";
-                // insert node
+
                 auto r = G->insert_or_assign_node(node);
                 if (r)
                     qDebug() << "Created node:" << id;// << " Total size:" << G->size();
@@ -144,7 +142,7 @@ void CRDT_concurrent_operations::run_test()
         threads.resize(num_threads);
 
         for (int i; thread &t: threads) {
-            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, ++i, G);
+            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, ++i, num_ops, G);
         }
         //create_or_remove_nodes(0, G);
         start = std::chrono::steady_clock::now();
