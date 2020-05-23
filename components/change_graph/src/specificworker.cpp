@@ -81,10 +81,14 @@ void SpecificWorker::initialize(int period)
     QStringList horzHeaders;
     horzHeaders <<"Attribute"<< "Value";
     node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
-    node_attrib_tw->horizontalHeader()->setStretchLastSection(true);
+    node_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    node_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
+
 
     edge_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
-    edge_attrib_tw->horizontalHeader()->setStretchLastSection(true);
+    edge_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
+
 
     connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
     connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
@@ -122,37 +126,67 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
     {
         table_widget->insertRow( table_widget->rowCount() );
         table_widget->setItem(table_widget->rowCount()-1, 0, new QTableWidgetItem(QString::fromStdString(key)));
-        QVariant variant;
         switch (value.value()._d())
         {
-            case 0: 
-                variant = QString::fromStdString(value.value().str());       
+            case 0:
+                {
+                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(value.value().str()));
+                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, ledit);
+                }
                 break;
             case 1:
-                variant = value.value().dec();
+                {
+                    QSpinBox *spin = new QSpinBox();
+                    spin->setMinimum(-10000);
+                    spin->setMaximum(10000);
+                    spin->setValue(value.value().dec());
+                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
+                }
                 break;
             case 2:
-                variant = std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000 ;
+                {
+                    QDoubleSpinBox *spin = new QDoubleSpinBox();
+                    spin->setMinimum(-10000);
+                    spin->setMaximum(10000);
+                    spin->setValue(std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000);
+                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
+                }
                 break;
             case 3:
-                if (!value.value().float_vec().empty())
                 {
-                    QString aux;
-                    for(std::size_t i = 0; i < value.value().float_vec().size(); ++i)
+                    QWidget  *widget = new QWidget();
+                    QHBoxLayout *layout = new QHBoxLayout;
+                    widget->setLayout(layout);
+                    if (!value.value().float_vec().empty())
                     {
-                        aux += QString::number(value.value().float_vec()[i]);
-                        if (i != value.value().float_vec().size()-1)
-                            aux += ",";
+                        for(std::size_t i = 0; i < value.value().float_vec().size(); ++i)
+                        {
+                            QDoubleSpinBox *spin = new QDoubleSpinBox();
+                            spin->setMinimum(-10000);
+                            spin->setMaximum(10000);
+                            spin->setValue(value.value().float_vec()[i]);
+                            layout->addWidget(spin);
+                        }
+                        table_widget->setCellWidget(table_widget->rowCount()-1, 1, widget);
                     }
-                    variant = aux;
                 }
                 break;
             case 4:
-                variant = value.value().bl();
+                {
+                    QComboBox *combo = new QComboBox();
+                    combo->addItem("true");
+                    combo->addItem("false");
+                    if (value.value().bl())
+                        combo->setCurrentText("true");
+                    else
+                        combo->setCurrentText("false");
+                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, combo);
+                }
                 break;
         }
-        table_widget->setItem(table_widget->rowCount()-1, 1, new QTableWidgetItem(variant.toString()));
     }
+    table_widget->resizeColumnsToContents();
+    table_widget->horizontalHeader()->setStretchLastSection(true);
 }
 
 
@@ -161,27 +195,43 @@ std::map<std::string, Attrib> SpecificWorker::get_table_content(QTableWidget *ta
     for (int row=0; row < table_widget->rowCount(); row++)
     {
         std::string key = table_widget->item(row, 0)->text().toStdString();
-        QString value = table_widget->item(row, 1)->text();
         switch(attrs[key].value()._d())
         {
-            case 0: 
-                attrs[key].value().str(value.toStdString());       
+            case 0:
+                {
+                    QLineEdit *ledit = (QLineEdit*)table_widget->cellWidget(row, 1);
+                    attrs[key].value().str(ledit->text().toStdString());       
+                }
                 break;
             case 1:
-                attrs[key].value().dec(value.toInt());       
+                {
+                    QSpinBox *spin = (QSpinBox*)table_widget->cellWidget(row, 1);
+                    attrs[key].value().dec(spin->value());       
+                }
                 break;
             case 2:
-                attrs[key].value().fl(value.toFloat());       
+                {
+                    QDoubleSpinBox *spin = (QDoubleSpinBox*)table_widget->cellWidget(row, 1);
+                    attrs[key].value().fl(spin->value());       
+                }
                 break;
             case 4:
-                attrs[key].value().bl(value.contains("true"));       
+                {
+                    QComboBox *combo = (QComboBox*)table_widget->cellWidget(row, 1);
+                    attrs[key].value().bl(combo->currentText().contains("true"));       
+                }
                 break;
             case 3:
-                std::vector<float> r;
-                for (auto element: value.split(','))
-                    r.push_back(element.toFloat());
-                
-                attrs[key].value().float_vec(r);       
+                {
+                    qDebug()<<__LINE__;
+                    std::vector<float> r;
+                    for (QDoubleSpinBox *spin: table_widget->cellWidget(row, 1)->findChildren<QDoubleSpinBox *>())
+                    {
+                        r.push_back(spin->value());
+                    }
+                    attrs[key].value().float_vec(r);
+                    std::cout<<r;
+                }
                 break;                
         }       
     }
@@ -212,7 +262,7 @@ void SpecificWorker::save_edge_slot()
     std::map<std::string, Attrib> new_attrs = get_table_content(edge_attrib_tw, edge.attrs());
     edge.attrs(new_attrs);
     
-    if(G->insert_or_assign_edge(edge))
+    if(true)//G->insert_or_assign_edge(edge))
         qDebug()<<"Edge saved";
     else
     {

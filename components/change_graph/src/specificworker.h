@@ -27,6 +27,10 @@
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
+#include <QComboBox>
 #include <genericworker.h>
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
