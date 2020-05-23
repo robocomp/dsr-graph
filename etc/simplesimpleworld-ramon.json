@@ -38,7 +38,7 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    3.1415927410125732,
+                                    0,
                                     0
                                 ]
                             },
@@ -69,19 +69,19 @@
                     },
                     "depth": {
                         "type": 1,
-                        "value": 10
-                    },
-                    "height": {
-                        "type": 1,
                         "value": 5000
-                    },
-                    "texture": {
-                        "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
                     },
                     "width": {
                         "type": 1,
                         "value": 5000
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
                     },
                     "parent": {
                         "type": 1,
@@ -109,9 +109,9 @@
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    0,
+                                    2500,
                                     200,
-                                    2500
+                                    0
                                 ]
                             }
                         },
@@ -132,9 +132,9 @@
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    0,
+                                    -2500,
                                     200,
-                                    -2500
+                                    0
                                 ]
                             }
                         },
@@ -221,11 +221,11 @@
                     },
                     "color": {
                         "type": 0,
-                        "value": "Khaki"
+                        "value": "#FF00FF"
                     },
                     "depth": {
                         "type": 1,
-                        "value": 10
+                        "value": 100
                     },
                     "height": {
                         "type": 1,
@@ -253,7 +253,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#eeeeee"
+                        "value": "#ff00a0"
                     },
                     "width": {
                         "type": 1,
@@ -278,7 +278,7 @@
                     },
                     "depth": {
                         "type": 1,
-                        "value": 10
+                        "value": 100
                     },
                     "height": {
                         "type": 1,
@@ -306,7 +306,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#eeeeee"
+                        "value": "#ff00a0"
                     },
                     "width": {
                         "type": 1,
@@ -359,7 +359,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#555555"
+                        "value": "#ff00a0"
                     },
                     "width": {
                         "type": 1,
@@ -412,7 +412,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#555555"
+                        "value": "#ff00a0"
                     },
                     "width": {
                         "type": 1,
