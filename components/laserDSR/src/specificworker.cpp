@@ -94,7 +94,7 @@ void SpecificWorker::updateLaser()
 	if (node.has_value())
 	{
 		G->insert_or_assign_attrib_by_name(node.value(), "laser_data_dists", dists);
-		G->insert_or_assign_attrib_by_name(node.value(), "laser_data_angles", dists);
+		G->insert_or_assign_attrib_by_name(node.value(), "laser_data_angles", angles);
 	}
 }
 
