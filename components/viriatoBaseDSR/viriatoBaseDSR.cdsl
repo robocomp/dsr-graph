@@ -1,0 +1,13 @@
+import "OmniRobot.idsl";
+import "DSRGetID.idsl";
+
+Component viriatoBaseDSR
+{
+    Communications
+    {
+        requires OmniRobot, DSRGetID;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+};
+
