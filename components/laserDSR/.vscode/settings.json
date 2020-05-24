@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "clearnode": "cpp",
+        "copyop": "cpp",
+        "drawable": "cpp",
+        "graphicscostestimator": "cpp",
+        "group": "cpp",
+        "node": "cpp",
+        "nodecallback": "cpp",
+        "nodevisitor": "cpp",
+        "object": "cpp",
+        "shape": "cpp",
+        "stateset": "cpp",
+        "transform": "cpp",
+        "uniform": "cpp"
+    }
+}
