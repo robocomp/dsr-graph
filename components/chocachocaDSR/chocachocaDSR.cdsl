@@ -1,0 +1,10 @@
+
+Component chocachocaDSR
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+};
+

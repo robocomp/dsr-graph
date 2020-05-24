@@ -67,7 +67,7 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 	updateBState();
-	//checkNewCommand();
+	checkNewCommand();
 }
 
 void SpecificWorker::updateBState()
