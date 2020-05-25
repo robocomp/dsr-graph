@@ -88,6 +88,15 @@ TEST_CASE("Node operations", "[NODE]") {
 
     }
 
+    SECTION("Remove an attribute") {
+
+        std::optional<Node> n_id = G->get_node(75000);
+        REQUIRE(n_id.has_value() == true);
+
+        G->remove_attrib_by_name(n_id.value(), "level");
+        REQUIRE(n_id->attrs().find("level") == n_id->attrs().end());
+    }
+
     SECTION("Insert an existent node with different name") {
 
         Node n;
