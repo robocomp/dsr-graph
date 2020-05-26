@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
-	setWindowTitle(QString::fromStdString(agent_name));
+	setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 	connect(actionSaveToFile, &QAction::triggered,  [this]()
 		{ 
 			auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/components/dsr-graph/etc", 
