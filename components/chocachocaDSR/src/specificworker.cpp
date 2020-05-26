@@ -52,7 +52,6 @@ void SpecificWorker::initialize(int period)
 
 	// create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
-	
 	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
    // Graph viewer

@@ -55,10 +55,12 @@ void SpecificWorker::initialize(int period)
 
 	// create graph
     G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
-	//G->print();
+	G->print();
+	G->print_RT(100);
 
 	// Graph viewer
-	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+	using g_opts = std::list<DSR::GraphViewer::View>;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(G, g_opts{DSR::GraphViewer::View::Scene, DSR::GraphViewer::View::OSG});
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
@@ -74,7 +76,7 @@ void SpecificWorker::initialize(int period)
 
 	// Compute max Id in G
     get_max_id_from_G();
-	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+	std::cout<< __FUNCTION__ << ": Graph loaded" << std::endl;  
 	if(dsr_write_to_file)
 		timer.start(Period);
 	
