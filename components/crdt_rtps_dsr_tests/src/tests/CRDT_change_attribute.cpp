@@ -54,7 +54,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
         else {
             at->second.value().str(str);
         }
-        bool r = G->insert_or_assign_node(node.value());
+        bool r = G->update_node(node.value());
 
         if (!r) {
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
