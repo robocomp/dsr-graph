@@ -34,7 +34,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             //node.attrs(attrs);
 
             // insert node
-            auto r = G->insert_or_assign_node(node);
+            auto r = G->insert_node(node);
             if (r)
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }

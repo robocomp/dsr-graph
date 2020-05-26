@@ -33,7 +33,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 G->add_attrib(node.attrs(), "pos_y", rnd_float());
                 G->add_attrib(node.attrs(), "parent", 100);
 
-                auto r = G->insert_or_assign_node(node);
+                auto r = G->insert_node(node);
                 if (r)
                     qDebug() << "Created node:" << id;// << " Total size:" << G->size();
                 else
@@ -114,7 +114,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             G->add_attrib(node->attrs(), "pos_x", rnd_float());
             G->add_attrib(node->attrs(), "pos_y", rnd_float());
             node->agent_id(agent_id);
-            bool r = G->insert_or_assign_node(node.value());
+            bool r = G->update_node(node.value());
 
             if (!r) {
                 std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();

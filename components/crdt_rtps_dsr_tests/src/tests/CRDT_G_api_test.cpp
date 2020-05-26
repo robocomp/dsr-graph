@@ -138,10 +138,10 @@ TEST_CASE("Node operations", "[NODE]") {
         n.name("test1");
         n.id(75001);
         n.type("testtype");
-        bool r  = G->insert_or_assign_node(n);
-        REQUIRE(r == true);
-        r = G->delete_node("test1");
-        REQUIRE(r == true);
+        auto r  = G->insert_node(n);
+        REQUIRE(r.has_value());
+        bool r2 = G->delete_node("test1");
+        REQUIRE(r2 == true);
         REQUIRE(G->get_node("test1") == std::nullopt);
 
     }
@@ -182,14 +182,14 @@ TEST_CASE("Edge operations", "[EDGE]") {
         n.name("test");
         n.id(85000);
         n.type("testtype");
-        REQUIRE(G->insert_or_assign_node(n) == true);
+        REQUIRE(G->insert_node(n).has_value());
 
 
         n = Node();
         n.name("test2");
         n.id(87000);
         n.type("testtype");
-        REQUIRE(G->insert_or_assign_node(n) == true);
+        REQUIRE(G->insert_node(n).has_value());
 
         Edge e;
         e.type("testtype");
@@ -331,8 +331,8 @@ TEST_CASE("Maps operations", "[UTILS]") {
     SECTION("Get id from a name") {
         Node n;
         n.name("name_node"); n.id(12345); n.type("t");
-        bool r = G->insert_or_assign_node(n);
-        REQUIRE(r == true);
+        std::optional<int> r = G->insert_node(n);
+        REQUIRE(r.has_value());
 
         std::optional<int> id = G->get_id_from_name("name_node");
         REQUIRE(id.has_value() == true);
@@ -349,8 +349,8 @@ TEST_CASE("Maps operations", "[UTILS]") {
     SECTION("Get name from an id") {
         Node n;
         n.name("name_node"); n.id(12345); n.type("t");
-        bool r = G->insert_or_assign_node(n);
-        REQUIRE(r == true);
+        bool r = G->update_node(n);
+        REQUIRE(r);
 
         std::optional<std::string> name = G->get_name_from_id(12345);
         REQUIRE(name.has_value() == true);
@@ -365,8 +365,8 @@ TEST_CASE("Maps operations", "[UTILS]") {
     SECTION("Get nodes by type") {
         Node n;
         n.name("name_node2"); n.id(12346); n.type("t");
-        bool r = G->insert_or_assign_node(n);
-        REQUIRE(r == true);
+        auto r = G->insert_node(n);
+        REQUIRE(r.has_value());
 
         vector<Node> ve = G->get_nodes_by_type("t");
         REQUIRE(ve.size() == 2);
@@ -423,7 +423,7 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
         REQUIRE(n.has_value());
         G->add_attrib(n.value().attrs(), "string_att", "string att");
         REQUIRE(n->attrs().find("att") != n->attrs().end());
-        bool r = G->insert_or_assign_node(n.value());
+        bool r = G->update_node(n.value());
         REQUIRE(r == true);
     }
 
@@ -440,7 +440,7 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
         REQUIRE(n.has_value());
         G->insert_or_assign_attrib_by_name(n.value(), "att", 125);
         REQUIRE(n->attrs()["att"].value().dec() == 125);
-        bool r = G->insert_or_assign_node(n.value());
+        bool r = G->update_node(n.value());
         REQUIRE(r == true);
     }
 
@@ -599,8 +599,8 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         WHEN("The node is inserted")
         {
             size_t size = G->size();
-            bool r = G->insert_or_assign_node(n);
-            REQUIRE(r == true);
+            auto r = G->update_node(n);
+            REQUIRE(r);
 
             THEN("The graph size is bigger") {
                 REQUIRE(size < G->size());
@@ -617,7 +617,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         {
             size_t size = G->size();
             G->add_attrib(n.attrs(), "new att", 11);
-            bool r = G->insert_or_assign_node(n);
+            bool r = G->update_node(n);
             REQUIRE(r == true);
 
             THEN("The graph size is equal")
@@ -649,8 +649,8 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
             }
             AND_THEN("You can't insert the node again")
             {
-                bool r = G->insert_or_assign_node(n);
-                REQUIRE(r == false);
+                auto r = G->insert_node(n);
+                REQUIRE_FALSE(r.has_value());
             }
         }
     }
@@ -660,14 +660,14 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         std::optional<Node> node = G->get_node(2222);
         THEN("Optional value is empty")
         {
-            REQUIRE(!node.has_value());
+            REQUIRE_FALSE(node.has_value());
         }
         AND_THEN("You can't insert the node again")
         {
             Node n;
             n.id(2222);
-            bool r = G->insert_or_assign_node(n);
-            REQUIRE(r == false);
+            auto r = G->insert_node(n);
+            REQUIRE_FALSE(r.has_value());
         }
     }
     GIVEN("An invalid node")
@@ -675,8 +675,8 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         Node n; n.id(-1);
         THEN("Can't insert it")
         {
-            bool r = G->insert_or_assign_node(n);
-            REQUIRE(r == false);
+            auto r = G->insert_node(n);
+            REQUIRE_FALSE(r.has_value());
         }
     }
 }
