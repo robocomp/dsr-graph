@@ -29,11 +29,12 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             G->add_attrib(node.attrs(), "color", std::string("SteelBlue"));
             G->add_attrib(node.attrs(), "pos_x", rnd_float());
             G->add_attrib(node.attrs(), "pos_y", rnd_float());
+            G->add_attrib(node.attrs(), "parent", 100);
 
             //node.attrs(attrs);
 
             // insert node
-            auto r = G->insert_or_assign_node(node);
+            auto r = G->insert_node(node);
             if (r)
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }

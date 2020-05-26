@@ -68,7 +68,7 @@ void CRDT_insert_remove_edge::run_test()
             node.attrs(attrs);
 
             // insert node
-            auto r = G->insert_or_assign_node(node);
+            auto r = G->insert_node(node);
             if (r)
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }

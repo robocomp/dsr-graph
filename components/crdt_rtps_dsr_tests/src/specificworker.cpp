@@ -139,7 +139,7 @@ void SpecificWorker::compute()
             qDebug() << "DELAYED START TEST:";
             CRDT_delayed_start concurrent_test = CRDT_delayed_start(dsrgetid_proxy, G, dsr_output_file, 1200, agent_id);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (15));
+            std::this_thread::sleep_for(std::chrono::seconds (20));
             concurrent_test.save_json_result();
             break;
         }
