@@ -52,7 +52,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
         }
         G->add_attrib(node->attrs(), "pos_x", rnd_float());
         G->add_attrib(node->attrs(), "pos_y", rnd_float());
-        bool r = G->insert_or_assign_node(node.value());
+        bool r = G->update_node(node.value());
 
         if (!r) {
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
