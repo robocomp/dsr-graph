@@ -67,7 +67,7 @@ void SpecificWorker::initialize(int period)
 	setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 	connect(actionSaveToFile, &QAction::triggered,  [this]()
 		{ 
-			auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/components/dsr-graph/etc", 
+			auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc", 
 															   tr("JSON Files (*.json)"));
 			G->write_to_json_file(file_name.toStdString()); 
 			qDebug() << __FUNCTION__ << "Written";
