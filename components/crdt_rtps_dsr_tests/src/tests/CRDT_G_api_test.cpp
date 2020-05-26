@@ -12,7 +12,7 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 #include <iostream>
-
+#include <string>
 
 class Graph {
     public:
@@ -421,7 +421,7 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
     SECTION("Insert an string attribute") {
         std::optional<Node> n = G->get_node(100);
         REQUIRE(n.has_value());
-        G->add_attrib(n.value().attrs(), "string_att", "string att");
+        G->insert_or_assign_attrib_by_name(n.value(), "string_att", std::string("string att"));
         REQUIRE(n->attrs().find("att") != n->attrs().end());
         bool r = G->update_node(n.value());
         REQUIRE(r == true);
@@ -594,7 +594,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         n.type("robot");
         n.agent_id(0);
         n.name("robot1");
-        G->add_attrib(n.attrs(), "att", "value");
+        G->add_attrib(n.attrs(), "att", std::string("value"));
 
         WHEN("The node is inserted")
         {
