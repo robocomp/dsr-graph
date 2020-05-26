@@ -57,10 +57,9 @@ TEST_CASE("Node operations", "[NODE]") {
         n.name("test");
         n.id(75000);
         n.type("testtype");
-        bool r  = G->insert_or_assign_node(n);
-
-        REQUIRE(r == true);
-
+        std::optional<int> r  = G->insert_node(n);
+        REQUIRE(r.has_value());
+        REQUIRE(r == 75000);
     }
 
     SECTION("Get an existing node by id") {
@@ -82,7 +81,8 @@ TEST_CASE("Node operations", "[NODE]") {
         REQUIRE(n_id.has_value() == true);
 
         G->add_attrib(n_id->attrs(), "level", 1);
-        bool r = G->insert_or_assign_node(n_id.value());
+        //bool r = G->insert_or_assign_node(n_id.value());
+        bool r = G->update_node(n_id.value());
 
         REQUIRE(r == true);
 
@@ -97,22 +97,30 @@ TEST_CASE("Node operations", "[NODE]") {
         REQUIRE(n_id->attrs().find("level") == n_id->attrs().end());
     }
 
-    SECTION("Insert an existent node with different name") {
+
+
+    SECTION("Insert an existent node") {
+        Node n;
+        n.id(75000);
+        REQUIRE_THROWS(G->insert_node(n));
+    }
+
+    SECTION("Update an existent node with different name") {
 
         Node n;
         n.name("test2");
         n.id(75000);
         n.type("testtype");
-        REQUIRE_THROWS(G->insert_or_assign_node(n));
+        REQUIRE_THROWS(G->update_node(n));
     }
 
-    SECTION("Insert an existent node with different id") {
+    SECTION("Update an existent node with different id") {
 
         Node n;
         n.name("test");
         n.id(7500166);
         n.type("testtype");
-        REQUIRE_THROWS(G->insert_or_assign_node(n));
+        REQUIRE_THROWS(G->update_node(n));
     }
 
     SECTION("Delete existing node by id") {
