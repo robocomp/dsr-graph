@@ -80,7 +80,7 @@ TEST_CASE("Node operations", "[NODE]") {
         std::optional<Node> n_id = G->get_node(75000);
         REQUIRE(n_id.has_value() == true);
 
-        G->add_attrib(n_id->attrs(), "level", 1);
+        G->add_attrib(n_id.value(), "level", 1);
         //bool r = G->insert_or_assign_node(n_id.value());
         bool r = G->update_node(n_id.value());
 
@@ -217,7 +217,7 @@ TEST_CASE("Edge operations", "[EDGE]") {
     SECTION("Update existing edge") {
         std::optional<Edge> e = G->get_edge(85000, 87000, "testtype");
         REQUIRE(e.has_value() == true);
-        G->add_attrib(e->attrs(), "att", std::string("a"));
+        G->add_attrib(e.value(), "att", std::string("a"));
         bool r = G->insert_or_assign_edge(e.value());
         REQUIRE(r == true);
 
@@ -594,7 +594,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         n.type("robot");
         n.agent_id(0);
         n.name("robot1");
-        G->add_attrib(n.attrs(), "att", std::string("value"));
+        G->add_attrib(n, "att", std::string("value"));
 
         WHEN("The node is inserted")
         {
@@ -616,7 +616,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         AND_WHEN("The node is updated")
         {
             size_t size = G->size();
-            G->add_attrib(n.attrs(), "new att", 11);
+            G->add_attrib(n, "new att", 11);
             bool r = G->update_node(n);
             REQUIRE(r == true);
 

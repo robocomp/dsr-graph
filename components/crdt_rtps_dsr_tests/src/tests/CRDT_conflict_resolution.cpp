@@ -50,8 +50,8 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
         else {
             at->second.value().str(str);
         }
-        G->add_attrib(node->attrs(), "pos_x", rnd_float());
-        G->add_attrib(node->attrs(), "pos_y", rnd_float());
+        G->add_attrib(node.value(), "pos_x", rnd_float());
+        G->add_attrib(node.value(), "pos_y", rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {
