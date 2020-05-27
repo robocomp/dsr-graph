@@ -1,0 +1,17 @@
+<innerModel>
+    
+    
+    <!-- REALSENSE CAMERAS CALIBRATED WITH REAL APRILTAG -->
+    <transform id="world_camera_1" tx="-635.148" ty="2031.21" tz="-3666.57" rx="0.490823" ry="0.133404" rz="-0.0619093" >
+        <rgbd id="rgbd_1" focal="617" width="640" height="480" port="11096" noise="0.00" ifconfig="40000,50000" />
+    </transform>		 
+    <transform id="world_camera_2" tx="-2204.65" ty="2575.88" tz="36.2064" rx="1.69468" ry="0.94791" rz="-1.64303" >
+        <rgbd id="rgbd_2" focal="617" width="640" height="480" port="11097" noise="0.00" ifconfig="40000,50000" />
+    </transform>		 
+    <transform id="world_camera_3"  tx="-382.144" ty="1961.01" tz="2940.3" rx="-0.361686" ry="3.21799" rz="-0.0239584">
+        <rgbd id="rgbd_3" focal="617" width="640" height="480" port="11098" noise="0.00" ifconfig="40000,50000" />
+    </transform>	
+    
+    
+    
+</innerModel>

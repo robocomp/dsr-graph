@@ -1,0 +1,25 @@
+<innerModel>
+    <!-- TABLE D -->
+    <transform id="tableD" tx="4000" tz="-1767" ty="0" >
+            <mesh id="tableD_tabletop" ty="730" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="600,600,20" collide="1"/>
+            <mesh id="tableD_mesh2" ty="365" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="600,600,360" collide="1"/>
+    </transform>
+    
+    <!-- TABLE F -->
+    <transform id="tableF" tx="450" tz="-2920" ty="0" ry="-0.092" >
+        <mesh id="tableF_countertop" ty="890" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="650,20,2500" collide="1" />
+        <plane id="tableF_side_panel" px="-10" py="445" pz="1230" nx="1" nz="-668" size="650,890,9"  texture="#008888" />
+        <plane id="tableF_front_panel" px="300" py="445" pz="-20" nx="-1830" nz="-1" size="2490,890,9"  texture="#008888" />
+    </transform>
+    
+    <!-- TABLE G -->
+    <transform id="tableG" tx="1880" tz="-3750" ry="-0.055" >
+        <mesh id="tableG_countertop" ty="890" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="2110,20,650" collide="1" />
+        <plane id="tableG_front" px="0" py="445" pz="313" nx="1" nz="-2637" size="2110,890,9"  texture="#888800" />
+    </transform>
+    
+    <!-- FRIDGE -->
+    <mesh id="fridge_mesh" tx="3210" tz="-3720" ty="925" ry="-0.075" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="600,1850,600" collide="1" />
+    
+    
+</innerModel>
