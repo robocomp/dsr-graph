@@ -26,7 +26,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
             G->add_attrib(edge, "name", std::string("fucking_plane"));
             G->add_attrib(edge, "color", std::string("SteelBlue"));
 
-            auto r = G->insert_or_assign_edge(edge);
+            bool r = G->insert_or_assign_edge(edge);
             if (r) {
                 addEdgeIDs(edge.from(), edge.to());
                 qDebug() << "Created edge:" << edge.from() << " - " << edge.to();

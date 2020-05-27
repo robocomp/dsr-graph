@@ -33,8 +33,8 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 G->add_attrib(node, "pos_y", rnd_float());
                 G->add_attrib(node, "parent", 100);
 
-                auto r = G->insert_node(node);
-                if (r)
+                auto res = G->insert_node(node);
+                if (res.has_value())
                     qDebug() << "Created node:" << id;// << " Total size:" << G->size();
                 else
                     qDebug() << "Error inserting node";
@@ -61,10 +61,10 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 //get two ids
                 edge.from(getID());
                 edge.to(getID());
-                G->add_attrib(edge, "name", std::string("fucking_plane"));
-                G->add_attrib(edge, "color", std::string("SteelBlue"));
+                bool r =  G->add_attrib(edge, "name", std::string("fucking_plane"));
+                r =  G->add_attrib(edge, "color", std::string("SteelBlue"));
 
-                auto r = G->insert_or_assign_edge(edge);
+                r = G->insert_or_assign_edge(edge);
                 if (r) {
                     addEdgeIDs(edge.from(), edge.to());
                     qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
@@ -105,12 +105,15 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 Val v; v.str(str);
                 Attrib ab; ab.value(v); ab.type(STRING);
                 node.value().attrs()["testattrib"] = ab;
+                G->add_attrib(node.value(), "pos_x", rnd_float());
+                G->add_attrib(node.value(), "pos_y", rnd_float());
             }
             else {
                 at->second.value().str(str);
+                G->modify_attrib(node.value(), "pos_x", rnd_float());
+                G->modify_attrib(node.value(), "pos_y", rnd_float());
             }
-            G->add_attrib(node.value(), "pos_x", rnd_float());
-            G->add_attrib(node.value(), "pos_y", rnd_float());
+
             node->agent_id(agent_id);
             bool r = G->update_node(node.value());
 

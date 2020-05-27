@@ -34,8 +34,8 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
             //node.attrs(attrs);
 
             // insert node
-            auto r = G->insert_node(node);
-            if (r)
+            auto res = G->insert_node(node);
+            if (res.has_value())
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
         }
         else
@@ -44,8 +44,9 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
             int id = removeID();
             if(id>-1)
             {
-                G->delete_node(id);
-                qDebug() << "Deleted node:" << id << " Total size:" << G->size();
+                auto r = G->delete_node(id);
+                if (r)
+                    qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
         std::this_thread::sleep_for(std::chrono::microseconds(delay));

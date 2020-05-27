@@ -35,7 +35,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
             break;
         }
 
-        std::string str = agent_id + "-"+ std::to_string(it);
+        std::string str = std::to_string(agent_id) + "-"+ std::to_string(it);
 
         auto at = node.value().attrs().find("testattrib");
         if (at == node.value().attrs().end()) {
@@ -46,12 +46,15 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
             ab.type(STRING);
             node.value().attrs()["testattrib"] = ab;
             node->agent_id(agent_id);
+            G->add_attrib(node.value(), "pos_x", rnd_float());
+            G->add_attrib(node.value(), "pos_y", rnd_float());
         }
         else {
             at->second.value().str(str);
+            G->modify_attrib(node.value(), "pos_x", rnd_float());
+            G->modify_attrib(node.value(), "pos_y", rnd_float());
         }
-        G->add_attrib(node.value(), "pos_x", rnd_float());
-        G->add_attrib(node.value(), "pos_y", rnd_float());
+
         bool r = G->update_node(node.value());
 
         if (!r) {

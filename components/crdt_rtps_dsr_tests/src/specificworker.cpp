@@ -25,7 +25,7 @@
 #include "tests/CRDT_concurrent_operations.h"
 #include "tests/CRDT_delayed_start.h"
 
-
+   
 /**
 * \brief Default constructor
 */
