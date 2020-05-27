@@ -44,8 +44,9 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             int id = removeID();
             if(id>-1)
             {
-                G->delete_node(id);
-                qDebug() << "Deleted node:" << id << " Total size:" << G->size();
+                auto r = G->delete_node(id);
+                if (r)
+                    qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
         std::this_thread::sleep_for(50ms);
