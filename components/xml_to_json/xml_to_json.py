@@ -6,12 +6,17 @@ import math
 import numpy as NP
 from numpy import linalg as LA
 
+
+
+def check_truncate_value(name):
+    return name in ["width", "height", "depth", "scalex", "scaley", "scalez"]
+
 # str:0, int:1, float:2, [float]:3, bool:4
-def type_to_integer(value):
+def type_to_integer(value, round):
     try:
         fl = float(value)
-        if fl.is_integer():
-            return 1, int(value)
+        if round or fl.is_integer():
+            return 1, int(float(value))
         else:
             return 2, float(value)
     except ValueError:
@@ -140,7 +145,8 @@ def main(input_file, output_file):
                 else:
                     if not check_position_attrib(subelem, new_tr):
                         new_attribute = {}
-                        type_, value_ = type_to_integer(subelem.attrib["value"])
+                        round = check_truncate_value(subelem.attrib["key"])
+                        type_, value_ = type_to_integer(subelem.attrib["value"], round)
                         new_attribute["value"] = value_
                         new_attribute["type"] = type_
                         new_symbol["attribute"][subelem.attrib["key"]] = new_attribute
