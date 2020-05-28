@@ -1,10 +1,8 @@
 ```
-```
-#
+#  
 ``` idserver
-```
-Intro to component here
 
+### IDServer
 
 ## List of node types, edge type and attribute names
 
