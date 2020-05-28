@@ -1,12 +1,10 @@
 ```
-#  
-``` idserver
-
-### IDServer
+```
+#
+``` IDServer
+```
 
 ## List of node types, edge type and attribute names
-
-
 
 ## Configuration parameters
 As any other component,
