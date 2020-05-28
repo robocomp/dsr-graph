@@ -51,7 +51,7 @@ class SpecificWorker : public GenericWorker
 		//void test_nodes_mov();
 
 
-		void write_test_output(std::string result);
+		//void write_test_output(std::string result);
 		std::string test_output_file;
 		std::string dsr_output_file;
 		std::string dsr_input_file;
