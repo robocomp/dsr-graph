@@ -22,6 +22,6 @@ test_output_file = ../../etc/delayed_start_agent1_test.txt
 dsr_empty_test_file = ../../etc/initial_dsr2.json
 dsr_test_file = ../../etc/empty_file.json
 test_name = delayed_start
-
+gui = false
 
 write_string = false
