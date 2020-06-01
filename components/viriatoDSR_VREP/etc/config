@@ -1,0 +1,34 @@
+CommonBehavior.Endpoints=tcp -p 11010
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+# Endpoints for implemented interfaces
+CameraRGBDSimple.Endpoints=tcp -p 10096
+Laser.Endpoints=tcp -p 10004
+OmniRobot.Endpoints=tcp -p 10003
+JoystickAdapterTopic.Endpoints=tcp -p 13099
+# This property is used by the clients to connect to IceStorm.
+TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
+
+agent_id = 10
+agent_name = ViriatoDSR_VREP
+read_file = false
+dsr_input_file = ""
+dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agentViriatoVREP_dsr.json
+test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agentViriatoVREP_test.txt
+
+ShowImage=true
+Publish=false
+Depth=false
+Laser=true
+Image=false
+CameraName=real_sense_sensor
+LaserName=hokuyo_base
+
+
+InnerModelPath = innermodel.xml
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0

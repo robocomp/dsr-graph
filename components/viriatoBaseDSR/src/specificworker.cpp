@@ -55,8 +55,7 @@ void SpecificWorker::initialize(int period)
 	std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 	// Graph viewer
-	using g_opts = std::list<DSR::GraphViewer::View>;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(G, g_opts{DSR::GraphViewer::View::Scene, DSR::GraphViewer::View::OSG});
+	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);

@@ -22,8 +22,6 @@
        @author authorname
 */
 
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
@@ -35,34 +33,34 @@
 
 class SpecificWorker : public GenericWorker
 {
-	Q_OBJECT
-		public:
-			SpecificWorker(TuplePrx tprx);
-			~SpecificWorker();
-			bool setParams(RoboCompCommonBehavior::ParameterList params);
-			void updateLaser();
-			
-			// DSR
-			std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
+Q_OBJECT
+public:
+	SpecificWorker(TuplePrx tprx);
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
+	void updateLaser();
+	
+	// DSR
+	std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
 
-		public slots:
-			void compute();
-			void initialize(int period);
-			
-		private:
-			// DSR
-			std::shared_ptr<CRDT::CRDTGraph> G;
-			
-			//params
-			std::string agent_name;
-			int agent_id;
-			bool read_dsr;
-			std::string dsr_input_file;
+public slots:
+	void compute();
+	void initialize(int period);
+	
+private:
+	// DSR
+	std::shared_ptr<CRDT::CRDTGraph> G;
+	
+	//params
+	std::string agent_name;
+	int agent_id;
+	bool read_dsr;
+	std::string dsr_input_file;
 
-			// graph viewer
-			std::unique_ptr<DSR::GraphViewer> graph_viewer;
-			QHBoxLayout mainLayout;
-			QWidget window;
+	// graph viewer
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	QHBoxLayout mainLayout;
+	QWidget window;
 
 };
 
