@@ -51,7 +51,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
         }
         end = std::chrono::steady_clock::now();
         times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(100ms);
     }
 }
 
