@@ -1,0 +1,44 @@
+<innerModel>
+	<transform id="world">
+
+		<!-- FLOOR -->
+		<plane id="floor_plane" px="2500" py="-10" ny="1" size="10000,9500,10" texture="#eebb77" />
+
+
+		<!-- WALL BETWEEN ROOMS -->
+		<plane id="muro6" px="4418" py="950" pz="245" nx="222" nz="40.510742" size="240,1900,9"  texture="#000088" />
+		<plane id="muro22" px="2160" py="950" pz="29" nx="-340" nz="-40" size="209,1900,9"  texture="#000088" />
+
+
+        <!-- ROOM A -->
+		<transform id="room_3">
+			<plane id="muro0" px="-92" py="950" pz="2067" nx="-3993" nz="-112" size="3994,1900,9"  texture="#880000" />
+			<plane id="muro1" px="3235" py="950" pz="4201" nx="-275" nz="6766" size="6772,1900,9"  texture="#880000" />
+			<plane id="muro2" px="6695" py="950" pz="2831" nx="3014" nz="153" size="3018,1900,9"  texture="#880000" />
+			<plane id="muro3" px="6387" py="950" pz="1288" nx="73" nz="-769" size="773,1900,9"  texture="#880000" />
+			<plane id="muro4" px="6029" py="950" pz="854" nx="795" nz="53" size="796,1900,9"  texture="#880000" />
+			<plane id="muro5" px="5226" py="950" pz="412" nx="91" nz="-1658" size="1660,1900,9"  texture="#880000" />
+			<plane id="muro23" px="1061" py="950" pz="101" nx="61" nz="-2159" size="2190,1900,9"  texture="#880000" />
+        </transform><!--ROOM A-->
+
+
+        <!-- ROOM B -->
+		<transform id="room_5">
+			<plane id="muro7" px="4593" py="950" pz="106" nx="43" nz="310" size="313,1900,9"  texture="#008800" />
+			<plane id="muro8" px="4744" py="950" pz="-70" nx="309" nz="-9" size="309,1900,9"  texture="#008800" />
+			<plane id="muro9" px="5409" py="950" pz="-223" nx="-3" nz="1337" size="1338,1900,9"  texture="#008800" />
+			<plane id="muro10" px="6088" py="950" pz="-598" nx="754" nz="21" size="754,1900,9"  texture="#008800" />
+			<plane id="muro11" px="6502" py="950" pz="-981" nx="12" nz="806" size="806,1900,9"  texture="#008800" />
+			<plane id="muro12" px="6895" py="950" pz="-2179" nx="2384" nz="-19" size="2384,1900,9"  texture="#008800" />
+			<plane id="muro13" px="5405" py="950" pz="-3447" nx="152" nz="-2963" size="2967,1900,9"  texture="#008800" />
+			<plane id="muro14" px="3929" py="950" pz="-3720" nx="394" nz="11" size="394,1900,9"  texture="#008800" />
+			<plane id="muro15" px="3729" py="950" pz="-3931" nx="29" nz="-411" size="412,1900,9"  texture="#008800" />
+			<plane id="1muro1" px="1870" py="950" pz="-4100" nx="-165" nz="3442" size="3350,1900"  texture="#008800" />
+			<plane id="1muro0" px="97" py="950" pz="-2930" nx="2484" nz="187" size="2530,1900,9"  texture="#008800" />
+			<plane id="1muro4" px="-1010" py="950" pz="-1740" nx="126" nz="-2040" size="2010,1900"  texture="#008800" />
+			<plane id="muro20" px="-2030" py="950" pz="-1000" nx="-1542" nz="-43" size="1610,1900,9"  texture="#008800" />
+			<plane id="muro21" px="64" py="950" pz="-141" nx="-136" nz="4232" size="4234,1900,9"  texture="#008800" />
+        </transform><!--ROOM B-->
+
+	</transform>
+</innerModel>

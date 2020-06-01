@@ -1,0 +1,36 @@
+<innerModel>
+    <!-- TABLE A -->
+    <transform id="tableA" tx="1274" tz="3200" ty="0" ry="-0.05" >
+        <mesh id="tableA_tabletop" ty="760" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1820" collide="1" />
+        <plane id="tableA_side_panel" px="6" py="377" pz="-900" nx="-15.019531" nz="1148.601075" size="800,754,9"  texture="#118899" />
+        <plane id="tableA_front_panel" px="150" py="377" pz="10" nx="-1833" nz="-68" size="1810,754,9"  texture="#118899" />
+    </transform>
+
+    <!-- TABLE B -->
+    <transform id="tableB" tx="3250" tz="3770" ty="0"  ry="-0.05" >
+        <mesh id="tableB_tabletop" ty="740" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="1200,20,800" collide="1" />
+        <mesh id="tableB_fl_leg" tx="-520" ty="370" tz="-310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+        <mesh id="tableB_rl_leg" tx="-520" ty="370" tz="310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+        <mesh id="tableB_fr_leg" tx="520" ty="370" tz="-310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+        <mesh id="tableB_rr_leg" tx="520" ty="370" tz="310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+    </transform>
+
+    <!-- TABLE C -->
+    <transform id="tableC" tx="4880" tz="3320" ty="0" ry="-0.05" >
+        <mesh id="tableC_tabletop" ty="760" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1820" collide="1" />
+        <plane id="tableC_front_panel" px="-240" py="380" pz="-6" nx="1832" nz="120" size="1820,760,9"  texture="#998811" />
+        <plane id="tableC_side_panel" px="0" py="380" pz="-910" nx="-1" nz="800" size="789,760,9"  texture="#998811" />
+    </transform>
+    
+    <!-- TABLE E -->
+    <transform id="tableE" tx="5300" tz="825"  ry="1.51" >
+        <mesh id="tableE_countertop" ty="740" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1320" collide="1" />
+        <mesh id="tableE_fl_leg" tx="-375" ty="370" tz="585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+        <mesh id="tableE_rl_leg" tx="-375" ty="370" tz="-585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+        <mesh id="tableE_fr_leg" tx="375" ty="370" tz="585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+        <mesh id="tableE_rr_leg" tx="375" ty="370" tz="-585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+        
+    </transform>
+    
+    
+</innerModel>

@@ -5,19 +5,18 @@
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_insert_remove_node.h"
-#include "../../../../graph-related-classes/topics/DSRGraph.h"
 #include <thread>
+#include <fstream>
 
 void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
 {
     static int it=0;
-    qDebug() << __FUNCTION__ << "Enter thread" << i;
     while (it++ < num_ops)
     {
+        start = std::chrono::steady_clock::now();
         // ramdomly select create or remove
         if( rnd_selector() == 0)
         {
-            //qDebug() << __FUNCTION__ << "Create node";
             // create node
             Node node;
             node.type("n");
@@ -49,6 +48,8 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
                     qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
+        end = std::chrono::steady_clock::now();
+        times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
         std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
@@ -57,24 +58,28 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
 void CRDT_insert_remove_node::run_test()
 {
     try {
-
+        start_global = std::chrono::steady_clock::now();
         create_or_remove_nodes(0, G);
-        start = std::chrono::steady_clock::now();
-
-        qDebug() << __FUNCTION__ << "Test finished";
-
-        end = std::chrono::steady_clock::now();
-        std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-        std::string result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + time + MARKER + "Finished properly ";
+        end_global = std::chrono::steady_clock::now();
+        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 
+        mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;
+        ops_second = num_ops*1000/static_cast<double>(std::accumulate(times.begin(), times.end(), 0));
     } catch (std::exception& e) {
         std::cerr << "API TEST: TEST FAILED WITH EXCEPTION "<<  e.what() << " " << std::to_string(__LINE__) + " error file:" + __FILE__ << std::endl;
     }
 }
 
 void CRDT_insert_remove_node::save_json_result() {
-    //DSR_test::save_json_result();
-    CRDT::Utilities u (G.get());
-    u.write_to_json_file(output);
+    G->write_to_json_file(output);
+
+    qDebug()<<"write results"<<QString::fromStdString(output_result);
+    std::ofstream out;
+    out.open(output_result, std::ofstream::out | std::ofstream::trunc);
+    out << result << "\n";
+    out << "ops/second"<<MARKER<<ops_second<< "\n";
+    out << "mean(ms)"<<MARKER<<mean<< "\n";
+    out.close();
 }
