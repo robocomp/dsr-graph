@@ -1,0 +1,7 @@
+<innermodel>
+	<include path="/home/robocomp/robocomp/components/dsr-graph/etc/autonomyLabFINAL.xml"/>
+    <include path="/home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab_room3_furniture.xml"/>
+    <include path="/home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab_room5_furniture.xml"/>
+    <include path="/home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab_room3_sensors.xml"/>
+</innermodel>
+

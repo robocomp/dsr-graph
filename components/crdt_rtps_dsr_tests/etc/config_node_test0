@@ -22,7 +22,7 @@ test_output_file = ../../etc/insert_remove_node_agent0_test.txt
 dsr_empty_test_file = ../../etc/initial_dsr2.json
 dsr_test_file = ../../etc/empty_file.json
 test_name = insert_remove_node
-
+gui = false
 # test specification
 write_string = false
 

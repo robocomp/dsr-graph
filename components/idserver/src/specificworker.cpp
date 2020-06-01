@@ -23,7 +23,9 @@
 * \brief Default constructor
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
-{}
+{
+
+}
 
 /**
 * \brief Default destructor
@@ -43,7 +45,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
    	 	dsr_output_path = params["dsr_output_path"].value;
 		dsr_write_to_file = params["dsr_write_to_file"].value == "true";
     	this->Period = stoi(params["period"].value);
-		return true;
+        return true;
 	}
 	catch(const std::exception &e) { qFatal("Error reading config params"); }
 	return true;

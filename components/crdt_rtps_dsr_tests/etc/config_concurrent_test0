@@ -22,7 +22,7 @@ test_output_file = ../../etc/concurrent_operations_agent0_test.txt
 dsr_empty_test_file = ../../etc/initial_dsr2.json
 dsr_test_file = ../../etc/empty_file.json
 test_name = concurrent_operations
-
+gui = false
 # test specification
 write_string = false
 

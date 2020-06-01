@@ -20,7 +20,9 @@ public:
         random_pos = std::uniform_int_distribution((int)-200, (int)200);
         random_selector = std::uniform_int_distribution(0,1);
     };
-    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_) : dsrgetid_proxy(id_prx), G(G_), output(output_)   {
+    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_,const std::string& output_result_) :
+    dsrgetid_proxy(id_prx), G(G_), output(output_), output_result(output_result_)
+    {
             mt = std::mt19937(rd());
             dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
             random_pos = std::uniform_int_distribution((int)-200, (int)200);
@@ -45,13 +47,16 @@ protected:
     int rnd_selector() { return random_selector(mt); };
     float rnd_float() { return random_pos(mt); };
 
-    std::chrono::steady_clock::time_point start, end;
+    std::vector<int> times;
+    std::chrono::steady_clock::time_point start, end, start_global, end_global;
     std::shared_ptr<RoboCompDSRGetID::DSRGetIDPrx>  dsrgetid_proxy;
     std::shared_ptr<CRDT::CRDTGraph> G;
 
-
     std::string output;
+    std::string output_result;
     std::mt19937 mt;
+
+
 
 
 private:

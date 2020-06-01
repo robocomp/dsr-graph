@@ -12,16 +12,18 @@
 class CRDT_concurrent_operations : DSR_test {
 public:
     CRDT_concurrent_operations () {};
-    CRDT_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_, int num_ops_, int num_threads_, int agent_id_)
-        : DSR_test(id_prx, G_, output_), num_ops(num_ops_), num_threads(num_threads_), agent_id(agent_id_) {};
+    CRDT_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_, int num_threads_, int agent_id_)
+        : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_), num_threads(num_threads_), agent_id(agent_id_) {times.resize(num_ops*num_threads); };
 
     CRDT_concurrent_operations& operator=(CRDT_concurrent_operations&& t) {
         dsrgetid_proxy = std::move(t.dsrgetid_proxy);
+        output_result = std::move(t.output_result);
         G = t.G;
         num_threads = t.num_threads;
         agent_id = t.agent_id;
         output = std::move(t.output);
         num_ops = t.num_ops;
+        times.resize(num_ops*num_threads, 0);
         return *this;
     }
 
@@ -40,6 +42,10 @@ private:
     void concurrent_ops(int i, int no, const shared_ptr<CRDT::CRDTGraph>& G);
     int delay = 5; //ms
 
+    double mean, ops_second;
+    std::string result;
+
+    std::mutex mtx;
 };
 
 
