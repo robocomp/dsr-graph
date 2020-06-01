@@ -6,7 +6,6 @@ import signal
 import subprocess
 import time
 import unittest
-
 from assertions import ApiAssertionsMixin
 
 os.environ['TERM'] = 'xterm'
@@ -26,6 +25,7 @@ class KillableCommand:
                                           stderr=subprocess.STDOUT, env=environ,
                                           shell=True,
                                           universal_newlines=True)
+
         for stdout_line in iter(command_output.stdout.readline, ""):
             print("%s running: %s"%(self._command.split(';')[-1], stdout_line))
             if self._exit:
@@ -33,7 +33,9 @@ class KillableCommand:
                 command_output.kill()
                 break
         print("Command finished. Waiting.")
+        
         command_output.stdout.close()
+
         return_code = command_output.wait()
         if return_code:
             print("%s returned ERROR %s" % (self._command, return_code))
@@ -132,7 +134,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             self.assertJsonEqual(data1, data2)
 
     def launch_commands(self, commands, delay=0):
-        idserver_command = KillableCommand("cd ../components/idserver; ./bin/idserver etc/config")
+        idserver_command = KillableCommand("cd ../components/idserver_nogui; ./bin/idserver etc/config")
         idserver = multiprocessing.Process(target=idserver_command.run_in_thread)
         jobs = []
         for command in commands:
@@ -147,6 +149,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             time.sleep(0.2)
         for comp in jobs:
             comp.join()
+
         return idserver
 
 def check_kill_process(pstring):
@@ -154,6 +157,9 @@ def check_kill_process(pstring):
         fields = line.split()
         pid = fields[0]
         os.kill(int(pid), signal.SIGKILL)
+
+    while len([line for line in os.popen("ps ax | grep " + pstring + " | grep -v grep")]) > 0:
+        time.sleep(2)
 
 def json_to_struct(json_data):
     new_struct = copy.deepcopy(json_data)

@@ -63,7 +63,7 @@ void CRDT_insert_remove_edge::run_test()
             G->add_attrib(node, "color", std::string("SteelBlue"));
             G->add_attrib(node, "pos_x", rnd_float());
             G->add_attrib(node, "pos_y", rnd_float());
-
+            G->add_attrib(node, "parent", 100);
 
             // insert node
             auto r = G->insert_node(node);
