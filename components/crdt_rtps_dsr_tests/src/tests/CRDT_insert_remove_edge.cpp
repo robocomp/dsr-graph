@@ -14,6 +14,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
     static int it=0;
     while (it++ < num_ops)
     {
+        bool r = false;
         start = std::chrono::steady_clock::now();
         // ramdomly select create or remove
         if(rnd_selector() == 0)
@@ -26,7 +27,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
             G->add_attrib(edge, "name", std::string("fucking_plane"));
             G->add_attrib(edge, "color", std::string("SteelBlue"));
 
-            bool r = G->insert_or_assign_edge(edge);
+            r = G->insert_or_assign_edge(edge);
             if (r) {
                 addEdgeIDs(edge.from(), edge.to());
                 qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
@@ -36,13 +37,14 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
         {
             //get two ids
             auto [from, to] = removeEdgeIDs();
-            auto r = G->delete_edge(from, to, "Edge");
+            r = G->delete_edge(from, to, "Edge");
             if (r)
                 qDebug() << "Deleted edge :"  << from << " - " << to ;
 
         }
         end = std::chrono::steady_clock::now();
-        times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        if (r)
+            times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
         std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
@@ -75,7 +77,7 @@ void CRDT_insert_remove_edge::run_test()
         create_or_remove_edges(0, G);
         end_global = std::chrono::steady_clock::now();
         double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
-        result = "CONCURRENT ACCESS: create_or_remove_edges:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly, num_threads ";
+        result = "CONCURRENT ACCESS: create_or_remove_edges"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly";
         //write_test_output(result);
         qDebug()<< QString::fromStdString(result);
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;

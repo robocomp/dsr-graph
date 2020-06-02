@@ -13,6 +13,7 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
     static int it=0;
     while (it++ < num_ops)
     {
+        bool r = false;
         start = std::chrono::steady_clock::now();
         // ramdomly select create or remove
         if( rnd_selector() == 0)
@@ -34,8 +35,10 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
 
             // insert node
             auto res = G->insert_node(node);
-            if (res.has_value())
+            if (res.has_value()) {
+                r = true;
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
+            }
         }
         else
         {
@@ -43,13 +46,14 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
             int id = removeID();
             if(id>-1)
             {
-                auto r = G->delete_node(id);
+                r = G->delete_node(id);
                 if (r)
                     qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
         end = std::chrono::steady_clock::now();
-        times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        if (r)
+            times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
         std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
 }
@@ -62,7 +66,7 @@ void CRDT_insert_remove_node::run_test()
         create_or_remove_nodes(0, G);
         end_global = std::chrono::steady_clock::now();
         double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
-        result = "CONCURRENT ACCESS: create_or_remove_nodes:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
+        result = "CONCURRENT ACCESS: create_or_remove_nodes"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;

@@ -15,9 +15,9 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, 2);
     std::vector<int> times_th (num_ops);
-
     while (it++ < no )
     {
+        bool r = false;
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
         // ramdomly select create or remove
@@ -37,8 +37,10 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 G->add_attrib(node, "parent", 100);
 
                 auto res = G->insert_node(node);
-                if (res.has_value())
+                if (res.has_value()) {
                     qDebug() << "Created node:" << id;
+                    r = true;
+                }
                 else
                     qDebug() << "Error inserting node";
 
@@ -46,7 +48,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             else {
                 int id = removeID();
                 if (id > -1) {
-                    bool r = G->delete_node(id);
+                    r = G->delete_node(id);
                     if (r)
                         qDebug() << "Deleted node:" << id;
                     else
@@ -66,7 +68,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 G->add_attrib(edge, "name", std::string("fucking_plane"));
                 G->add_attrib(edge, "color", std::string("SteelBlue"));
 
-                auto r = G->insert_or_assign_edge(edge);
+                r = G->insert_or_assign_edge(edge);
                 if (r) {
                     addEdgeIDs(edge.from(), edge.to());
                     qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
@@ -76,7 +78,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             {
                 //get two ids
                 auto [from, to] = removeEdgeIDs();
-                auto r = G->delete_edge(from, to, "Edge");
+                r = G->delete_edge(from, to, "Edge");
                 if (r)
                     qDebug() << "Deleted edge :"  << from << " - " << to ;
 
@@ -95,8 +97,8 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             if (!node.has_value())
             {
                 qDebug() << "ERROR OBTENIENDO EL NODO";
-                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+                //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+                //times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
                 std::this_thread::sleep_for(std::chrono::microseconds(delay));
                 continue;
             }
@@ -118,19 +120,20 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             }
 
             node->agent_id(agent_id);
-            bool r = G->update_node(node.value());
+            r = G->update_node(node.value());
 
             if (!r) {
                 qDebug() << "ERROR INSERTANDO EL NODO";
-                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+                //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+                //times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
                 std::this_thread::sleep_for(std::chrono::microseconds(delay));
                 continue;
 
             }
         }
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        times_th.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        if (r)
+            times_th.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
         std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
     {
