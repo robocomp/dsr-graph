@@ -13,6 +13,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
     static int it=0;
     while (it++ < num_ops)
     {
+        bool r = false;
         start = std::chrono::steady_clock::now();
         // ramdomly select create or remove
         if( rnd_selector() == 0)
@@ -34,9 +35,11 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             //node.attrs(attrs);
 
             // insert node
-            auto r = G->insert_node(node);
-            if (r)
+            auto res = G->insert_node(node);
+            if (res.has_value()) {
                 qDebug() << "Created node:" << id << " Total size:" << G->size();
+                r = true;
+            }
         }
         else
         {
@@ -44,13 +47,14 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             int id = removeID();
             if(id>-1)
             {
-                auto r = G->delete_node(id);
+                r = G->delete_node(id);
                 if (r)
                     qDebug() << "Deleted node:" << id << " Total size:" << G->size();
             }
         }
         end = std::chrono::steady_clock::now();
-        times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        if (r)
+            times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
         std::this_thread::sleep_for(100ms);
     }
 }
@@ -63,7 +67,7 @@ void CRDT_delayed_start::run_test()
         create_or_remove_nodes(0, G);
         end_global = std::chrono::steady_clock::now();
         double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
-        result = "CONCURRENT ACCESS: delayed_start:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
+        result = "CONCURRENT ACCESS: delayed_start"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;
         ops_second = num_ops*1000/static_cast<double>(std::accumulate(times.begin(), times.end(), 0));
