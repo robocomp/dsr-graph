@@ -7,6 +7,7 @@
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include <random>
 #include "../../../graph-related-classes/dsr_to_osg_viewer.h"
+#include <QHBoxLayout>
 
 class SpecificWorker : public GenericWorker
 {
