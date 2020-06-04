@@ -34,7 +34,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
         }
 
-        std::string str = 0 + "-" + std::to_string(i) + "_" + std::to_string(it);
+        std::string str = std::to_string(agent_id) + "-" + std::to_string(i) + "_" + std::to_string(it);
 
         auto at = node.value().attrs().find("testattrib");
         if (at == node.value().attrs().end()) {
