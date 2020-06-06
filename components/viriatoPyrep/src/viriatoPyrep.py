@@ -91,10 +91,11 @@ class CommonBehaviorI(RoboCompCommonBehavior.CommonBehavior):
 
 #SIGNALS handler
 def sigint_handler(*args):
-    QtCore.QCoreApplication.quit()
+    #QtCore.QCoreApplication.quit()
+    pass
     
 if __name__ == '__main__':
-    app = QtCore.QCoreApplication(sys.argv)
+    #app = QtCore.QCoreApplication(sys.argv)
     params = copy.deepcopy(sys.argv)
     if len(params) > 1:
         if not params[1].startswith('--Ice.Config='):
@@ -134,6 +135,44 @@ if __name__ == '__main__':
     pub = topic.getPublisher().ice_oneway()
     camerargbdsimplepubTopic = CameraRGBDSimplePubPrx.uncheckedCast(pub)
     mprx["CameraRGBDSimplePubPub"] = camerargbdsimplepubTopic
+
+    # Create a proxy to publish a LaserPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("LaserPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("LaserPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("LaserPub")
+            except:
+                print('Another client created the LaserPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    laserpubTopic = LaserPubPrx.uncheckedCast(pub)
+    mprx["LaserPubPub"] = laserpubTopic
+
+
+    # Create a proxy to publish a OmniRobotPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("OmniRobotPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("OmniRobotPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("OmniRobotPub")
+            except:
+                print('Another client created the OmniRobotPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    omnirobotpubTopic = OmniRobotPubPrx.uncheckedCast(pub)
+    mprx["OmniRobotPubPub"] = omnirobotpubTopic
+
 
     if status == 0:
         worker = SpecificWorker(mprx)
@@ -178,7 +217,8 @@ if __name__ == '__main__':
     JoystickAdapter_adapter.activate()
 
     signal.signal(signal.SIGINT, sigint_handler)
-    app.exec_()
+    #app.exec_()
+    worker.compute()
 
     if ic:
         try:
