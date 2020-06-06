@@ -62,7 +62,7 @@ void CRDT_conflict_resolution::run_test()
         insert_or_assign_attributes(0, G);
         end_global = std::chrono::steady_clock::now();
         double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
-        result = "CONCURRENT ACCESS: conflict_resolution:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
+        result = "CONCURRENT ACCESS: conflict_resolution"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;
         ops_second = num_ops*1000/static_cast<double>(std::accumulate(times.begin(), times.end(), 0));
@@ -70,7 +70,7 @@ void CRDT_conflict_resolution::run_test()
         end_global = std::chrono::steady_clock::now();
         std::string time = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count());
         qDebug()<< QString::fromStdString(result);
-        result = "CONCURRENT ACCESS: conflict_resolution:"+ MARKER + "ERROR"+ MARKER + time + MARKER + e.what();
+        result = "CONCURRENT ACCESS: conflict_resolution"+ MARKER + "ERROR"+ MARKER + time + MARKER + e.what();
         std::cerr << "API TEST: TEST FAILED WITH EXCEPTION "<<  e.what() << " " << std::to_string(__LINE__) + " error file:" + __FILE__ << std::endl;
     }
 }
