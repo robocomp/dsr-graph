@@ -9,7 +9,7 @@ Component viriatoPyrep
     {
         implements CameraRGBDSimple, Laser, OmniRobot;
         subscribesTo JoystickAdapter;
-	publishes CameraRGBDSimplePub;
+	    publishes CameraRGBDSimplePub;
     };
     language Python;
 };
