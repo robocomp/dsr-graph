@@ -47,13 +47,14 @@ class SpecificWorker(GenericWorker):
         
         self.agent = Viriato()
         self.camera = VisionSensor("real_sense_sensor")
-        self.cfocal = self.camera.get_resolution()[0]/2/np.arctan(self.camera.get_perspective_angle())
+        camera_semi_angle = np.radians(self.camera.get_perspective_angle())/2 
+        self.cfocal = self.camera.get_resolution()[0]/2/np.tan(camera_semi_angle)
         self.laser = VisionSensor("laser")
-        self.angle = np.radians(self.laser.get_perspective_angle())
-        self.semi_angle = self.angle/2 
-        self.lfocal = self.laser.get_resolution()[0]/2/np.arctan(self.angle)
+        laser_angle = np.radians(self.laser.get_perspective_angle())
+        self.lfocal = self.laser.get_resolution()[0]/2/np.tan(laser_angle/2)
 
         self.joy_queue = queue.Queue(1)
+        self.omnirobot_queue = queue.Queue(1)
 
     #@QtCore.Slot()
     def compute(self):
@@ -67,17 +68,23 @@ class SpecificWorker(GenericWorker):
                 laser_reading = self.laser.capture_depth(in_meters=True)
                 # compute RGBDSimple
                 h, w, d = self.image.shape
-                self.timg = TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=self.image.data)
+                self.timg = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=np.copy(self.image))
                 h, w = self.depth.shape
-                self.tdepth = TDepth(cameraID=0, width=w, height=h, focalx=self.lfocal, focaly=self.lfocal, alivetime=time.time(), depth=self.depth.data)
-                # try:
-                #     self.camerargbdsimplepub_proxy.pushRGBD(self.timg, TDepth())
-                # except Ice.Exception as e:
-                #     print(e)
+                self.tdepth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.lfocal, focaly=self.lfocal, alivetime=time.time(), depth=np.copy(self.depth))
+                try:
+                    self.camerargbdsimplepub_proxy.pushRGBD(self.timg, self.tdepth)
+                    
+                except Ice.Exception as e:
+                    print(e)
 
                 # compute TLaserData and publish
                 laser_width = laser_reading.shape[1]
-                ldata = [[min(d)*1000, i*self.angle/laser_width-self.semi_angle] for i,d in enumerate(laser_reading.T)] 
+                ldata = []
+                for i,d in enumerate(laser_reading.T):
+                    angle = np.arctan2(i-(laser_width/2), self.lfocal)
+                    dist = (d[0]/np.cos(angle))*1000
+                    ldata.append(RoboCompLaser.TData(angle,dist))
+                    
                 try:
                     self.laserpub_proxy.pushLaserData(ldata)
                 except Ice.Exception as e:
@@ -98,12 +105,18 @@ class SpecificWorker(GenericWorker):
                             side = x.value
                     self.agent.set_base_angular_velocites([adv, side, rot])
 
-                # Get ad publish robot pose
+                # Get and publish robot pose
                 pose = self.agent.get_2d_pose()
                 try:
-                    self.omnirobotpub_proxy.pushBaseState(TBaseState(x=pose[0]*1000,z=pose[1]*1000,alpha=pose[2]))
+                    self.bState = RoboCompGenericBase.TBaseState(x=pose[0]*1000, z=pose[1]*1000, alpha=pose[2])
+                    self.omnirobotpub_proxy.pushBaseState(self.bState)
                 except Ice.Exception as e:
                     print(e)
+
+                # Move robot from data setSpeedBase
+                if not self.omnirobot_queue.empty():
+                    vels = self.omnirobot_queue.get()
+                    self.agent.set_base_angular_velocites(vels)
 
                 time.sleep(0.001)
                 #print(time.time()-start)
@@ -152,7 +165,7 @@ class SpecificWorker(GenericWorker):
     # getLaserConfData
     #
     def Laser_getLaserConfData(self):
-        ret = LaserConfData()
+        ret = RoboCompLaser.LaserConfData()
         return ret
 
     #
@@ -160,6 +173,10 @@ class SpecificWorker(GenericWorker):
     #
     def Laser_getLaserData(self):
         return self.ldata
+
+    ##############################################
+    ## Omnibase
+    #############################################
 
     #
     # correctOdometer
@@ -174,17 +191,16 @@ class SpecificWorker(GenericWorker):
         #
         # implementCODE
         #
-        x = int()
-        z = int()
-        alpha = float()
+        x = self.bState.x
+        z = self.bState.z
+        alpha = self.bState.alpha
         return [x, z, alpha]
 
     #
     # getBaseState
     #
     def OmniRobot_getBaseState(self):
-        state = RoboCompGenericBase.TBaseState()
-        return state
+        return self.bState
 
     #
     # resetOdometer
@@ -208,15 +224,12 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        pass
+        self.omnirobot_queue.put([advz, advx, rot])
 
     #
     # stopBase
     #
     def OmniRobot_stopBase(self):
-        #
-        # implementCODE
-        #
         pass
 
     # ===================================================================

@@ -133,7 +133,7 @@ if __name__ == '__main__':
             except:
                 print('Another client created the CameraRGBDSimplePub topic? ...')
     pub = topic.getPublisher().ice_oneway()
-    camerargbdsimplepubTopic = CameraRGBDSimplePubPrx.uncheckedCast(pub)
+    camerargbdsimplepubTopic = RoboCompCameraRGBDSimplePub.CameraRGBDSimplePubPrx.uncheckedCast(pub)
     mprx["CameraRGBDSimplePubPub"] = camerargbdsimplepubTopic
 
     # Create a proxy to publish a LaserPub topic
@@ -151,7 +151,7 @@ if __name__ == '__main__':
             except:
                 print('Another client created the LaserPub topic? ...')
     pub = topic.getPublisher().ice_oneway()
-    laserpubTopic = LaserPubPrx.uncheckedCast(pub)
+    laserpubTopic = RoboCompLaserPub.LaserPubPrx.uncheckedCast(pub)
     mprx["LaserPubPub"] = laserpubTopic
 
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             except:
                 print('Another client created the OmniRobotPub topic? ...')
     pub = topic.getPublisher().ice_oneway()
-    omnirobotpubTopic = OmniRobotPubPrx.uncheckedCast(pub)
+    omnirobotpubTopic = RoboCompOmniRobotPub.OmniRobotPubPrx.uncheckedCast(pub)
     mprx["OmniRobotPubPub"] = omnirobotpubTopic
 
 
@@ -182,20 +182,20 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     adapter = ic.createObjectAdapter('CameraRGBDSimple')
-    adapter.add(CameraRGBDSimpleI(worker), ic.stringToIdentity('camerargbdsimple'))
+    adapter.add(camerargbdsimpleI.CameraRGBDSimpleI(worker), ic.stringToIdentity('camerargbdsimple'))
     adapter.activate()
 
     adapter = ic.createObjectAdapter('Laser')
-    adapter.add(LaserI(worker), ic.stringToIdentity('laser'))
+    adapter.add(laserI.LaserI(worker), ic.stringToIdentity('laser'))
     adapter.activate()
 
     adapter = ic.createObjectAdapter('OmniRobot')
-    adapter.add(OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
+    adapter.add(omnirobotI.OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
     adapter.activate()
 
 
     JoystickAdapter_adapter = ic.createObjectAdapter("JoystickAdapterTopic")
-    joystickadapterI_ = JoystickAdapterI(worker)
+    joystickadapterI_ = joystickadapterI.JoystickAdapterI(worker)
     joystickadapter_proxy = JoystickAdapter_adapter.addWithUUID(joystickadapterI_).ice_oneway()
 
     subscribeDone = False
