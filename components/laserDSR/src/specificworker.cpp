@@ -93,8 +93,8 @@ void SpecificWorker::updateLaser()
 	auto node = G->get_node("hokuyo_base");
 	if (node.has_value())
 	{
-		G->insert_or_assign_attrib_by_name(node.value(), "laser_data_dists", dists);
-		G->insert_or_assign_attrib_by_name(node.value(), "laser_data_angles", angles);
+		G->insert_or_assign_attrib_by_name(node.value(), "dists", dists);
+		G->insert_or_assign_attrib_by_name(node.value(), "angles", angles);
 	}
 }
 

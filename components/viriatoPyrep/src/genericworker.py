@@ -31,26 +31,26 @@ Ice.loadSlice("-I ./src/ --all ./src/CommonBehavior.ice")
 import RoboCompCommonBehavior
 
 Ice.loadSlice("-I ./src/ --all ./src/CameraRGBDSimple.ice")
-from RoboCompCameraRGBDSimple import *
+import RoboCompCameraRGBDSimple 
 Ice.loadSlice("-I ./src/ --all ./src/CameraRGBDSimplePub.ice")
-from RoboCompCameraRGBDSimplePub import *
+import RoboCompCameraRGBDSimplePub 
 Ice.loadSlice("-I ./src/ --all ./src/GenericBase.ice")
-from RoboCompGenericBase import *
+import RoboCompGenericBase 
 Ice.loadSlice("-I ./src/ --all ./src/JoystickAdapter.ice")
-from RoboCompJoystickAdapter import *
+import RoboCompJoystickAdapter 
 Ice.loadSlice("-I ./src/ --all ./src/Laser.ice")
-from RoboCompLaser import *
+import RoboCompLaser 
 Ice.loadSlice("-I ./src/ --all ./src/LaserPub.ice")
-from RoboCompLaserPub import *
+import RoboCompLaserPub 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobot.ice")
-from RoboCompOmniRobot import *
+import RoboCompOmniRobot 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobotPub.ice")
-from RoboCompOmniRobotPub import *
+import RoboCompOmniRobotPub 
 
-from camerargbdsimpleI import *
-from laserI import *
-from omnirobotI import *
-from joystickadapterI import *
+import camerargbdsimpleI 
+import laserI 
+import omnirobotI 
+import joystickadapterI 
 
 class GenericWorker():
 
