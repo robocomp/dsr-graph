@@ -82,7 +82,7 @@ class SpecificWorker(GenericWorker):
                 ldata = []
                 for i,d in enumerate(laser_reading.T):
                     angle = np.arctan2(i-(laser_width/2), self.lfocal)
-                    dist = (d[0]/np.cos(angle))*1000
+                    dist = (d[0]/np.abs(np.cos(angle)))*1000
                     ldata.append(RoboCompLaser.TData(angle,dist))
                     
                 try:
@@ -97,11 +97,11 @@ class SpecificWorker(GenericWorker):
                     rot = 0.
                     side = 0.
                     for x in datos.axes:
-                        if x.name == "advance":
+                        if x.name == "advance" and np.abs(x.value)>0.25:
                             adv = x.value
-                        if x.name=="rotate":
+                        if x.name=="rotate" and np.abs(x.value)>0.25:
                             rot = x.value
-                        if x.name=="side":
+                        if x.name=="side" and np.abs(x.value)>0.25:
                             side = x.value
                     self.agent.set_base_angular_velocites([adv, side, rot])
 
