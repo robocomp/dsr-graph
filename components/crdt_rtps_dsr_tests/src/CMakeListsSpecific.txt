@@ -36,6 +36,7 @@ SET ( HEADERS
   specificworker.h
   specificmonitor.h
   ../../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/topics/CRDT_types.h
   ../../../graph-related-classes/CRDT_graphviewer.h
   ../../../graph-related-classes/CRDT_graph.h
   ../../../graph-related-classes/CRDT_graphnode.h
