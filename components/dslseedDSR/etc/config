@@ -1,0 +1,13 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+agent_id = 10
+agent_name = viriato
+dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
+
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0

@@ -49,10 +49,16 @@ class SpecificWorker(GenericWorker):
         self.camera = VisionSensor("real_sense_sensor")
         camera_semi_angle = np.radians(self.camera.get_perspective_angle())/2 
         self.cfocal = self.camera.get_resolution()[0]/2/np.tan(camera_semi_angle)
-        self.laser = VisionSensor("laser")
-        laser_angle = np.radians(self.laser.get_perspective_angle())
-        self.lfocal = self.laser.get_resolution()[0]/2/np.tan(laser_angle/2)
 
+        self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
+        self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
+        self.hokuyo_base_front_left_semiwidth = self.hokuyo_base_front_left.get_resolution()[0]/2
+        self.hokuyo_base_front_left_focal = self.hokuyo_base_front_left_semiwidth/np.tan(self.hokuyo_base_front_left_semiangle)
+        self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
+        self.hokuyo_base_front_right_semiwidth = self.hokuyo_base_front_right.get_resolution()[0]/2
+        self.hokuyo_base_front_right_semiangle = np.radians(self.hokuyo_base_front_right.get_perspective_angle()/2)
+        self.hokuyo_base_front_right_focal = self.hokuyo_base_front_right_semiwidth/np.tan(self.hokuyo_base_front_right_semiangle)
+        
         self.joy_queue = queue.Queue(1)
         self.omnirobot_queue = queue.Queue(1)
 
@@ -65,12 +71,11 @@ class SpecificWorker(GenericWorker):
                 self.pr.step()
                 self.image = self.camera.capture_rgb()
                 self.depth = self.camera.capture_depth(in_meters=True)
-                laser_reading = self.laser.capture_depth(in_meters=True)
                 # compute RGBDSimple
                 h, w, d = self.image.shape
                 self.timg = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=np.copy(self.image))
                 h, w = self.depth.shape
-                self.tdepth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.lfocal, focaly=self.lfocal, alivetime=time.time(), depth=np.copy(self.depth))
+                self.tdepth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), depth=np.copy(self.depth))
                 try:
                     self.camerargbdsimplepub_proxy.pushRGBD(self.timg, self.tdepth)
                     
@@ -78,12 +83,17 @@ class SpecificWorker(GenericWorker):
                     print(e)
 
                 # compute TLaserData and publish
-                laser_width = laser_reading.shape[1]
+                hokuyo_base_front_left_reading = self.hokuyo_base_front_left.capture_depth(in_meters=True)
+                hokuyo_base_front_right_reading = self.hokuyo_base_front_right.capture_depth(in_meters=True)
                 ldata = []
-                for i,d in enumerate(laser_reading.T):
-                    angle = np.arctan2(i-(laser_width/2), self.lfocal)
+                for i,d in enumerate(hokuyo_base_front_left_reading.T):
+                    angle = np.arctan2(i-(self.hokuyo_base_front_left_semiwidth), self.hokuyo_base_front_left_focal)
                     dist = (d[0]/np.abs(np.cos(angle)))*1000
-                    ldata.append(RoboCompLaser.TData(angle,dist))
+                    ldata.append(RoboCompLaser.TData(angle-self.hokuyo_base_front_right_semiangle,dist))
+                for i,d in enumerate(hokuyo_base_front_right_reading.T):
+                    angle = np.arctan2(i-(self.hokuyo_base_front_right_semiwidth), self.hokuyo_base_front_right_focal)
+                    dist = (d[0]/np.abs(np.cos(angle)))*1000
+                    ldata.append(RoboCompLaser.TData(angle+self.hokuyo_base_front_right_semiangle,dist))
                     
                 try:
                     self.laserpub_proxy.pushLaserData(ldata)
