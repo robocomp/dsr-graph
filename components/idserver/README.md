@@ -75,6 +75,19 @@
 * standing
 * close-to
 
+### Attribute types
+* level
+* pos_x
+* pos_y
+* parent
+* parent
+* rotation_euler_xyz
+* translation
+* depth
+* height
+* width
+* texture
+* mass
 
 ## Configuration parameters
 As any other component,
