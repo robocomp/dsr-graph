@@ -42,16 +42,28 @@ namespace CRDT
 {
     using N = CRDT::Node;
     using Nodes = ormap<int, mvreg<CRDT::Node,  int >, int>;
-    //using MTypes = std::variant<std::string, std::int32_t, float , std::vector<float>, bool, RMat::RTMat>;
     using IDType = std::int32_t;
-    //using AttribsMap = std::unordered_map<std::string, MTypes>;
-    //using VertexPtr = std::shared_ptr<Vertex>;
-    struct pair_hash
-    {
-        template <class T1, class T2>
-        std::size_t operator() (const std::pair<T1, T2> &pair) const
-        {
-        return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+
+
+
+    class hash_tuple {
+
+        template<class T>
+        struct component {
+            const T& value;
+            component(const T& value) : value(value) {}
+            uintmax_t operator,(uintmax_t n) const {
+                n ^= std::hash<T>()(value);
+                n ^= n << (sizeof(uintmax_t) * 4 - 1);
+                return n ^ std::hash<uintmax_t>()(n);
+            }
+        };
+
+    public:
+        template<class Tuple>
+        size_t operator()(const Tuple& tuple) const {
+            return std::hash<uintmax_t>()(
+                    std::apply([](const auto& ... xs) { return (component(xs), ..., 0); }, tuple));
         }
     };
 
@@ -97,9 +109,7 @@ namespace CRDT
         //////////////////////////////////////////////////////
 
         // Utils
-        //void read_from_file(const std::string &xml_file_path);
         bool empty(const int &id);
-        //[[deprecated]] std::tuple<std::string, std::string, int> nativetype_to_string(const MTypes &t); //Used by viewer
         template <typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         std::tuple<std::string, std::string, int> nativetype_to_string(const Ta& t) {
             if constexpr (std::is_same<Ta, std::string>::value)
@@ -113,7 +123,14 @@ namespace CRDT
                     str += std::to_string(f) + " ";
                 return make_tuple("vector<float>",  str += "\n",t.size());
             }
-            else return  make_tuple(typeid(Ta).name(), std::to_string(t),1);
+            if constexpr (std::is_same<Ta, std::vector<byte>>::value)
+            {
+                std::string str;
+                for(auto &f : t)
+                    str += std::to_string(f) + " ";
+                return make_tuple("vector<byte>",  str += "\n",t.size());
+            }
+            return  make_tuple(typeid(Ta).name(), std::to_string(t),1);
 
         }; //Used by viewer
 
@@ -140,22 +157,16 @@ namespace CRDT
         std::optional<Node> get_node_root()  { return get_node(100); };  //CHANGE THIS
         std::optional<Node> get_node(const std::string& name);
         std::optional<Node> get_node(int id);
-        //std::optional<VertexPtr> get_vertex(const std::string& name);
-        //std::optional<VertexPtr> get_vertex(int id);
-        [[deprecated ("You should be using \"insert_node\" to insert new nodes and \"update_node\" to update them")]]
-        bool insert_or_assign_node(Node &node);
+        //[[deprecated ("You should be using \"insert_node\" to insert new nodes and \"update_node\" to update them")]]
+        //bool insert_or_assign_node(Node &node);
         std::optional<uint32_t> insert_node(Node& node);
         bool update_node(Node& node);
-        //bool insert_or_assign_node(const VertexPtr &vertex);
-        //bool insert_or_assign_node(Vertex &vertex);
         bool delete_node(const std::string &name);
         bool delete_node(int id);
         std::vector<Node> get_nodes_by_type(const std::string& type);
         std::optional<std::string> get_name_from_id(std::int32_t id);  // caché
         std::optional<int> get_id_from_name(const std::string &name);  // caché
         std::optional<std::int32_t> get_node_level(Node& n);
-        [[deprecated ("You should be using \"get_parent_id\" or  \"get_parent_node\"")]]
-        std::optional<std::int32_t> get_node_parent(const Node& n);
         std::optional<std::int32_t> get_parent_id(const Node& n);
         std::optional<Node> get_parent_node(const Node& n);
         std::string get_node_type(Node& n);
@@ -243,17 +254,14 @@ namespace CRDT
             return (n.fano().getMapRef().find(make_pair{to, key}) != n.fano().end()) ?  std::make_optional(n.fano().find(ek)->second) : std::nullopt;
         };
         bool insert_or_assign_edge(const Edge& attrs);
-        //bool insert_or_assign_edge(Node& n, const Edge& e);
         void insert_or_assign_edge_RT(Node& n, int to, const std::vector<float>& trans, const std::vector<float>& rot_euler);
         void insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& trans, std::vector<float>&& rot_euler);
-        //void insert_or_assign_edge_RT(int from, int to, std::vector<float>&& trans, std::vector<float>&& rot_euler);
-        //void insert_or_assign_edge_RT(std::string from, std::string to, std::vector<float>&& trans, std::vector<float>&& rot_euler);
         bool delete_edge(const std::string& from, const std::string& t, const std::string& key);
         bool delete_edge(int from, int t, const std::string& key);
         std::vector<Edge> get_edges_by_type(const std::string& type);
         std::vector<Edge> get_edges_by_type(const Node& node, const std::string& type);
         std::vector<Edge> get_edges_to_id(int id);
-        std::optional<std::map<EdgeKey, Edge>> get_edges(int id);
+        std::optional<std::unordered_map<std::pair<int, std::string>, mvreg<Edge, int>,pair_hash>>  get_edges(int id); //TODO: Cambiar con la nueva representación.
         Edge get_edge_RT(const Node &n, int to);
         RTMat get_edge_RT_as_RTMat(const Edge &edge);
         RTMat get_edge_RT_as_RTMat(Edge &&edge);
@@ -446,11 +454,6 @@ namespace CRDT
             nodeType.clear();
         }
 
-        //For debug
-        //int count = 0;
-
-    //private:
-    //Nodes nodes;
     
     private:
         Nodes nodes;
@@ -467,13 +470,14 @@ namespace CRDT
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
         ///////////////////////////////////////////////////////////////////////////
+        std::unordered_map<int, Attribute> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<std::tuple<int, int, std::string>, Attribute, hash_tuple> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+
         std::unordered_set<int> deleted;     // deleted nodes, used to avoid insertion after remove.
-        //public:
         std::unordered_map<string, int> name_map;     // mapping between name and id of nodes.
         std::unordered_map<int, string> id_map;       // mapping between id and name of nodes.
-        //private:
-        std::unordered_map<pair<int, int>, std::unordered_set<std::string>, pair_hash> edges;      // collection with all graph edges. ((from, to), key)
-        std::unordered_map<std::string, std::unordered_set<pair<int, int>, pair_hash>> edgeType;  // collection with all edge types.
+        std::unordered_map<pair<int, int>, std::unordered_set<std::string>, hash_tuple> edges;      // collection with all graph edges. ((from, to), key)
+        std::unordered_map<std::string, std::unordered_set<pair<int, int>, hash_tuple>> edgeType;  // collection with all edge types.
         std::unordered_map<std::string, std::unordered_set<int>> nodeType;  // collection with all node types.
         void update_maps_node_delete(int id, const Node& n);
         void update_maps_node_insert(int id, const Node& n);
@@ -485,21 +489,21 @@ namespace CRDT
         //////////////////////////////////////////////////////////////////////////
         // Non-blocking graph operations
         //////////////////////////////////////////////////////////////////////////
-        std::optional<N> get(int id);
+        std::optional<Node> get(int id);
         bool in(const int &id) const;
-        std::optional<N> get_(int id);
-        std::pair<bool, std::optional<Mvreg>> insert_or_assign_node_(const N &node);
-        std::tuple<bool, vector<tuple<int, int, std::string>>, std::vector<Mvreg>> delete_node_(int id);
-        std::pair<bool, std::optional<Mvreg>> delete_edge_(int from, int t, const std::string& key);
+        std::optional<Node> get_(int id);
         std::optional<Edge> get_edge_(int from, int to, const std::string& key);
-
+        std::tuple<bool, std::optional<IDL::Mvreg>, std::optional<std::vector<IDL::MvregNodeAttr>>> insert_or_assign_node_(const N &node);
+        std::tuple<bool, vector<tuple<int, int, std::string>>, IDL::Mvreg, vector<IDL::MvregEdge>> delete_node_(int id);
+        std::pair<bool, std::optional<IDL::MvregEdge>> delete_edge_(int from, int t, const std::string& key);
+        std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> insert_or_assign_edge_(const Edge &attrs);
 
         //////////////////////////////////////////////////////////////////////////
         // Other methods
         //////////////////////////////////////////////////////////////////////////
         int id();
-        DotContext context();
-        std::map<int, Mvreg> Map();
+        IDL::DotContext context();
+        std::map<int, IDL::Mvreg> Map();
 
 
         template <typename T, typename = std::enable_if_t<node_or_edge<T>>>
@@ -521,8 +525,11 @@ namespace CRDT
             return {};
         }
 
-        void join_delta_node(Mvreg mvreg);
-        void join_full_graph(OrMap full_graph);
+        void join_delta_node(Mvreg &mvreg);
+        void join_delta_edge(MvregEdge &mvreg);
+        void join_delta_node_attr(MvregNodeAttr &mvreg);
+        void join_delta_edge_attr(MvregEdgeAttr &mvreg);
+        void join_full_graph(OrMap &full_graph);
 
         class NewMessageFunctor
         {
@@ -561,8 +568,17 @@ namespace CRDT
 
 
         // Translators
-        IDL::Mvreg translateMvCRDTtoIDL(int id, mvreg<N, int> &data);
-        mvreg<N, int> translateMvIDLtoCRDT(IDL::Mvreg &data);
+        IDL::Mvreg translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data);
+        mvreg<N, int> translateNodeMvIDLtoCRDT(IDL::Mvreg &data);
+
+        IDL::MvregEdge translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &data);
+        mvreg<Edge, int> translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data);
+
+        IDL::MvregNodeAttr translateNodeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data);
+        mvreg<Attribute, int> translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr &data);
+
+        IDL::MvregEdgeAttr translateEdgeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data);
+        mvreg<Attribute, int> translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr &data);
 
         // RTSP participant
         DSRParticipant dsrparticipant;
@@ -599,6 +615,7 @@ namespace CRDT
 
         void del_edge_signal(const std::int32_t from, const std::int32_t to, const std::string &edge_tag); // Signal to del edge.
         void del_node_signal(const std::int32_t from);                                                     // Signal to del node.
+
     };
 } // namespace CRDT
 

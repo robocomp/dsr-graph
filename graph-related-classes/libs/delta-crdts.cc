@@ -1353,8 +1353,14 @@ public:
         return r;
     }
 
-    set<V> read ()
-    {
+    set<V> read ()  {
+        set<V> s;
+        for (const auto & dse : dk.ds)
+            s.insert(dse.second);
+        return s;
+    }
+
+    set<V> read () const {
         set<V> s;
         for (const auto & dse : dk.ds)
             s.insert(dse.second);
