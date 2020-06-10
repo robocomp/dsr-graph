@@ -14,6 +14,16 @@
 
 namespace CRDT {
 
+
+    struct pair_hash
+    {
+        template <class T1, class T2>
+        std::size_t operator() (const std::pair<T1, T2> &pair) const
+        {
+            return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+        }
+    };
+
     static constexpr std::array<std::string_view, 7> TYPENAMES_UNION = { "UNINITIALIZED", "STRING", "INT", "FLOAT", "FLOAT_VEC", "BOOL", "BYTE_VEC" };
     using ValType = std::variant<std::string, int32_t, float, std::vector<float>, bool, std::vector<byte>>;
     enum Types : uint32_t
@@ -56,7 +66,7 @@ namespace CRDT {
                         val = x.bl();
                         break;
                     case 5:
-                        val = std::move(x.byte_vec().data());
+                        val = x.byte_vec().data();
                         break;
                     default:
                         break;
@@ -276,6 +286,37 @@ namespace CRDT {
                 }
                 throw std::runtime_error(("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
             }
+
+            [[nodiscard]] IDL::Val toIDLVal()
+            {
+                IDL::Val value;
+
+                switch(val.index()) {
+                    case 1:
+                        value.str(std::get<std::string>(val));
+                        break;
+                    case 2:
+                        value.dec(std::get<int32_t >(val));
+                        break;
+                    case 3:
+                        value.fl(std::get<float>(val));
+                        break;
+                    case 4:
+                        value.float_vec(std::get<std::vector<float>>(val));
+                        break;
+                    case 5:
+                        value.bl(std::get<bool>(val));
+                        break;
+                    case 6:
+                        value.byte_vec(std::vector<uint8_t >(std::get<std::vector<byte>>(val).data(), std::get<std::vector<byte>>(val).data() +std::get<std::vector<byte>>(val).size()));
+                        break;
+                    default:
+                        throw std::runtime_error(("Error converting CRDT::Attribute to IDL::Attrib. The Attribute is uninitialized. "  + std::to_string(__LINE__) + " " + __FILE__ ).data());
+                }
+
+                return value;
+            }
+
         private:
             ValType val;
     };
@@ -288,6 +329,7 @@ namespace CRDT {
         {
             m_type = 0;
             m_timestamp = 0;
+            m_agent_id = 0;
         }
 
         ~Attribute()= default;
@@ -298,6 +340,7 @@ namespace CRDT {
             m_type = x.type();
             m_timestamp = x.timestamp();
             m_Value = Value(std::move(x.value()));
+            m_agent_id = x.agent_id();
         }
 
         /*Attribute& operator=(const Attrib &x)
@@ -316,7 +359,7 @@ namespace CRDT {
             m_type = x.type();
             m_timestamp = x.timestamp();
             m_Value = Value(std::move(x.value()));
-
+            //m_agent_id = x.agent_id();
             return *this;
         }
 
@@ -407,10 +450,30 @@ namespace CRDT {
                 return m_Value;
             }
 
+            void agent_id(int32_t _agent_id)
+            {
+                m_agent_id = _agent_id;
+            }
+
+            [[nodiscard]] int32_t agent_id() const
+            {
+                return m_agent_id;
+            }
+
+            [[nodiscard]] IDL::Attrib toIDLAttrib()
+            {
+                IDL::Attrib att;
+                att.timestamp(m_timestamp);
+                att.type(m_type);
+                att.value(m_Value.toIDLVal());
+                att.agent_id(m_agent_id);
+                return att;
+            }
         private:
             int32_t m_type;
             Value m_Value;
             uint64_t m_timestamp;
+            uint32_t m_agent_id;
     };
 
 
@@ -425,32 +488,42 @@ namespace CRDT {
                 m_to = 0;
                 m_type ="";
                 m_from = 0;
+                m_agent_id = 0;
             }
 
             ~Edge()  = default;
 
-            explicit Edge(IDL::Edge &&x)
+            explicit Edge(IDL::MvregEdge &&x)
             {
                 m_to = x.to();
-                m_type = std::move(x.type());
+                m_type = std::to_string(x.type());
                 m_from = x.from();
 
-                for (auto& [k,v] : x.attrs()) {
-                    mvreg<Attribute, int> mv(0);
-                    mv.write(Attribute(std::move(v)));
-                    m_attrs[k] = mv;
+                if (!x.dk().ds().empty()) {
+                    for (auto&[k, v] : x.dk().ds().begin()->second.attrs()) {
+                        mvreg<Attribute, int> mv(0);
+                        mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
+                        m_attrs[k] = mv;
+                    }
                 }
             }
 
             Edge& operator=(const Edge &x) = default;
 
-            Edge& operator=(Edge &&x) noexcept
+            Edge& operator=(IDL::Edge &&x) noexcept
             {
 
-                m_to = x.m_to;
-                m_type = std::move(x.m_type);
-                m_from = x.m_from;
-                m_attrs = x.m_attrs;
+                m_to = x.to();
+                m_type = std::move(x.type());
+                m_from = x.from();
+                if (!x.attrs().empty()) {
+                    for (auto&[k, v] : x.attrs()) {
+                        mvreg<Attribute, int> mv(0);
+                        mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
+                        m_attrs[k] = mv;
+                    }
+                }
+                m_agent_id = x.agent_id();
 
                 return *this;
             }
@@ -503,76 +576,119 @@ namespace CRDT {
 
 
 
-        void to(int32_t _to)
-        {
-            m_to = _to;
-        }
+            void to(int32_t _to)
+            {
+                m_to = _to;
+            }
 
-        [[nodiscard]] int32_t to() const
-        {
-            return m_to;
-        }
-
-
-        void type(const std::string &_type)
-        {
-            m_type = _type;
-        }
-
-        void type(std::string &&_type)
-        {
-            m_type = std::move(_type);
-        }
-
-        [[nodiscard]] const std::string& type() const
-        {
-            return m_type;
-        }
-
-        std::string& type()
-        {
-            return m_type;
-        }
-
-        void from(int32_t _from)
-        {
-            m_from = _from;
-        }
-
-        [[nodiscard]] int32_t from() const
-        {
-            return m_from;
-        }
-
-        void attrs(const  std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs)
-        {
-            m_attrs = _attrs;
-        }
-
-        void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs)
-        {
-            m_attrs = std::move(_attrs);
-        }
-
-        const  std::unordered_map<std::string, mvreg<Attribute, int>>& attrs() const
-        {
-            return m_attrs;
-        }
+            [[nodiscard]] int32_t to() const
+            {
+                return m_to;
+            }
 
 
-        std::unordered_map<std::string, mvreg<Attribute, int>>& attrs()
-        {
-            return m_attrs;
-        }
+            void type(const std::string &_type)
+            {
+                m_type = _type;
+            }
 
+            void type(std::string &&_type)
+            {
+                m_type = std::move(_type);
+            }
+
+            [[nodiscard]] const std::string& type() const
+            {
+                return m_type;
+            }
+
+            std::string& type()
+            {
+                return m_type;
+            }
+
+            void from(int32_t _from)
+            {
+                m_from = _from;
+            }
+
+            [[nodiscard]] int32_t from() const
+            {
+                return m_from;
+            }
+
+            void attrs(const  std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs)
+            {
+                m_attrs = _attrs;
+            }
+
+            void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs)
+            {
+                m_attrs = std::move(_attrs);
+            }
+
+            const  std::unordered_map<std::string, mvreg<Attribute, int>>& attrs() const
+            {
+                return m_attrs;
+            }
+
+
+            std::unordered_map<std::string, mvreg<Attribute, int>>& attrs()
+            {
+                return m_attrs;
+            }
+
+            void agent_id(int32_t _agent_id)
+            {
+                m_agent_id = _agent_id;
+            }
+
+            [[nodiscard]] int32_t agent_id() const
+            {
+                return m_agent_id;
+            }
+
+            [[nodiscard]] IDL::Edge toIDLEdge(int id)
+            {
+                IDL::Edge edge;
+                edge.from(m_from);
+                edge.to(m_to);
+                edge.type(m_type);
+                edge.agent_id(m_agent_id);
+                for (auto &[k,v] : m_attrs) {
+                    IDL::MvregEdgeAttr edgeAttr;
+                    for (auto &kv_dots : v.dk.ds) {
+                        IDL::PairInt pi;
+                        pi.first(kv_dots.first.first);
+                        pi.second(kv_dots.first.second);
+
+                        edgeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+                    }
+                    for (auto &kv_cc : v.context().getCcDc().first){
+                        edgeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+                    }
+                    for (auto &kv_dc : v.context().getCcDc().second){
+                        IDL::PairInt pi;
+                        pi.first(kv_dc.first);
+                        pi.second(kv_dc.second);
+
+                        edgeAttr.dk().cbase().dc().push_back(pi);
+                    }
+                    edgeAttr.id(id);
+                    edgeAttr.agent_id(v.read().begin()->agent_id());
+                    edge.attrs()[k] = edgeAttr;
+                }
+                return edge;
+            }
         private:
             int32_t m_to;
             std::string m_type;
             int32_t m_from;
             std::unordered_map<std::string, mvreg<Attribute, int>> m_attrs;
+            int32_t m_agent_id;
     };
 
-    class Node {
+    class Node  {
 
         public:
 
@@ -586,6 +702,22 @@ namespace CRDT {
 
             ~Node()= default;
 
+            explicit Node(const Node &x)
+            {
+                *this = x;
+            }
+
+            explicit Node(Node &&x)
+            {
+                m_type = std::move(x.type());
+                m_name = std::move(x.name());
+                m_id = x.id();
+                m_agent_id = x.agent_id();
+                m_attrs = std::move(x.m_attrs);
+                m_fano = std::move(x.m_fano);
+
+            }
+
             explicit Node(IDL::Node &&x)
             {
                 m_type = std::move(x.type());
@@ -594,7 +726,7 @@ namespace CRDT {
                 m_agent_id = x.agent_id();
                 for (auto& [k,v] : x.attrs()) {
                     mvreg<Attribute, int> mv(0);
-                    mv.write(Attribute(std::move(v)));
+                    mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
                     m_attrs[k] = mv;
                 }
                 for (auto& [k,v] : x.fano()) {
@@ -605,6 +737,8 @@ namespace CRDT {
             }
 
             Node& operator=(const Node &x) = default;
+
+            Node& operator=(Node &x) = default;
 
             Node& operator=(Node &&x) noexcept
             {
@@ -742,12 +876,13 @@ namespace CRDT {
                 m_attrs = std::move(_attrs);
             }
 
-            const std::unordered_map<std::string, mvreg<Attribute, int>> & attrs() const
+
+            std::unordered_map<std::string, mvreg<Attribute, int>>& attrs()
             {
                 return m_attrs;
             }
 
-            std::unordered_map<std::string, mvreg<Attribute, int>>& attrs()
+            const std::unordered_map<std::string, mvreg<Attribute, int>> & attrs() const
             {
                 return m_attrs;
             }
@@ -772,6 +907,63 @@ namespace CRDT {
                 return m_fano;
             }
 
+            [[nodiscard]] IDL::Node toIDLNode(int id)
+            {
+                IDL::Node node;
+                node.id(m_id);
+                node.name(m_name);
+                node.type(m_type);
+                node.agent_id(m_agent_id);
+                for (auto &[k,v] : m_attrs) {
+                    IDL::MvregNodeAttr nodeAttr;
+                    for (auto &kv_dots : v.dk.ds) {
+                        IDL::PairInt pi;
+                        pi.first(kv_dots.first.first);
+                        pi.second(kv_dots.first.second);
+
+                        nodeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+                    }
+                    for (auto &kv_cc : v.context().getCcDc().first){
+                        nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+                    }
+                    for (auto &kv_dc : v.context().getCcDc().second){
+                        IDL::PairInt pi;
+                        pi.first(kv_dc.first);
+                        pi.second(kv_dc.second);
+
+                        nodeAttr.dk().cbase().dc().push_back(pi);
+                    }
+                    nodeAttr.id(id);
+                    nodeAttr.agent_id(v.read().begin()->agent_id());
+                    node.attrs()[k] = nodeAttr;
+                }
+
+                for (auto &[k,v] : m_fano) {
+                    IDL::MvregEdge mvregEdge;
+                    for (auto &kv_dots : v.dk.ds) {
+                        IDL::PairInt pi;
+                        pi.first(kv_dots.first.first);
+                        pi.second(kv_dots.first.second);
+
+                        mvregEdge.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLEdge(id)));
+                    }
+                    for (auto &kv_cc : v.context().getCcDc().first){
+                        mvregEdge.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+                    }
+                    for (auto &kv_dc : v.context().getCcDc().second){
+                        IDL::PairInt pi;
+                        pi.first(kv_dc.first);
+                        pi.second(kv_dc.second);
+
+                        mvregEdge.dk().cbase().dc().push_back(pi);
+                    }
+                    mvregEdge.id(id);
+                    mvregEdge.agent_id(v.read().begin()->agent_id());
+                    IDL::EdgeKey ek; ek.to(k.first); ek.type(k.second);
+                    node.fano()[ek] = mvregEdge;
+                }
+                return node;
+            }
             private:
                 std::string m_type;
                 std::string m_name;
