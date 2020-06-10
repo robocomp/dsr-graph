@@ -30,6 +30,7 @@
         long type;
         Val value;
         unsigned long long timestamp;
+        long agent_id;
     };
 
     struct PairInt {
@@ -37,19 +38,25 @@
         long second;
     };
 
-    struct PairAttribInt {
-        long first;
-        Attrib second;
+    struct DotContext {
+        map<long, long> cc;
+        sequence<PairInt> dc;
     };
 
-    struct DotContextAttrs {
-        map<Attrib, long> cc;
-        sequence<PairAttribInt> dc;
-    };
+    //struct PairAttribInt {
+    //    long first;
+    //    Attrib second;
+    //};
+
+    //struct DotContextAttrs {
+    //    map<long, long> cc;
+    //    //sequence<PairAttribInt> dc;
+    //    sequence <PairInt> dc;
+    //};
 
     struct DotKernelAttr {
         map<PairInt, Attrib> ds;
-        DotContextAttrs cbase;
+        DotContext cbase;
     };
 
     struct MvregEdgeAttr {
@@ -66,6 +73,8 @@
 		string type; //key2
 		long from; // Se mantiene para trabajar más fácilmente con los Edges.
 		map<string, MvregEdgeAttr>    attrs;
+		long agent_id;
+
 	};
 
     struct EdgeKey {
@@ -80,19 +89,20 @@
         long agent_id; // to skip messages from the same agent in multithread.
     };
 
-    struct PairEdgeInt {
-        long first;
-        Edge second;
-    };
+    //struct PairEdgeInt {
+    //    long first;
+    //    Edge second;
+    //};
 
-    struct DotContextEdge {
-        map<Edge, long> cc;
-        sequence<PairEdgeInt> dc;
-    };
+    //struct DotContextEdge {
+    //    map<long, long> cc;
+    //    //sequence<PairEdgeInt> dc;
+    //    sequence<PairInt> dc;
+    //};
 
     struct DotKernelEdge {
         map<PairInt, Edge> ds;
-        DotContextEdge cbase;
+        DotContext cbase;
     };
 
     struct MvregEdge {
@@ -116,13 +126,6 @@
     struct GraphRequest
     {
         string from;
-    };
-
-
-
-    struct DotContext {
-        map<long, long> cc;
-        sequence<PairInt> dc;
     };
 
     struct DotKernel {
