@@ -21,7 +21,7 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {}
 
 /**
@@ -49,7 +49,8 @@ void SpecificWorker::initialize(int period)
     innermodel = G->get_inner_api();
 
     // GraphViewer creation
-    graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+    using opts = DSR::GraphViewer::View;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(G, std::list<opts>{opts::Scene, opts::OSG});
 	mainLayout.addWidget(graph_viewer.get());
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
@@ -63,7 +64,7 @@ void SpecificWorker::compute()
 }
 
 //SUBSCRIPTION to newPeopleData method from HumanToDSR interface
-void SpecificWorker::HumanToDSR_newPeopleData(PeopleData people)
+void SpecificWorker::HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people)
 {
     std::vector<float> zeros{0.0,0.0,0.0};
 
