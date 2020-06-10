@@ -31,8 +31,8 @@ namespace { char dummy; }
 using namespace eprosima::fastcdr::exception;
 
 #include <utility>
-namespace IDL {
 
+namespace IDL {
     Val::Val() {
         m__d = 0;
         // m_str com.eprosima.idl.parser.typecode.StringTypeCode@4cf4d528
@@ -665,6 +665,8 @@ namespace IDL {
 
         // m_timestamp com.eprosima.idl.parser.typecode.PrimitiveTypeCode@525b461a
         m_timestamp = 0;
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@58c1c010
+        m_agent_id = 0;
 
     }
 
@@ -677,12 +679,14 @@ namespace IDL {
         m_type = x.m_type;
         m_value = x.m_value;
         m_timestamp = x.m_timestamp;
+        m_agent_id = x.m_agent_id;
     }
 
     Attrib::Attrib(Attrib &&x) {
         m_type = x.m_type;
         m_value = std::move(x.m_value);
         m_timestamp = x.m_timestamp;
+        m_agent_id = x.m_agent_id;
     }
 
     Attrib &Attrib::operator=(const Attrib &x) {
@@ -690,6 +694,7 @@ namespace IDL {
         m_type = x.m_type;
         m_value = x.m_value;
         m_timestamp = x.m_timestamp;
+        m_agent_id = x.m_agent_id;
 
         return *this;
     }
@@ -699,6 +704,7 @@ namespace IDL {
         m_type = x.m_type;
         m_value = std::move(x.m_value);
         m_timestamp = x.m_timestamp;
+        m_agent_id = x.m_agent_id;
 
         return *this;
     }
@@ -712,6 +718,9 @@ namespace IDL {
 
         current_alignment += Val::getMaxCdrSerializedSize(current_alignment);
         current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
 
         return current_alignment - initial_alignment;
@@ -729,6 +738,9 @@ namespace IDL {
         current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
         return current_alignment - initial_alignment;
     }
 
@@ -737,6 +749,7 @@ namespace IDL {
         scdr << m_type;
         scdr << m_value;
         scdr << m_timestamp;
+        scdr << m_agent_id;
     }
 
     void Attrib::deserialize(eprosima::fastcdr::Cdr &dcdr) {
@@ -744,6 +757,7 @@ namespace IDL {
         dcdr >> m_type;
         dcdr >> m_value;
         dcdr >> m_timestamp;
+        dcdr >> m_agent_id;
     }
 
 /*!
@@ -826,6 +840,30 @@ namespace IDL {
         return m_timestamp;
     }
 
+/*!
+ * @brief This function sets a value in member agent_id
+ * @param _agent_id New value for member agent_id
+ */
+    void Attrib::agent_id(int32_t _agent_id) {
+        m_agent_id = _agent_id;
+    }
+
+/*!
+ * @brief This function returns the value of member agent_id
+ * @return Value of member agent_id
+ */
+    int32_t Attrib::agent_id() const {
+        return m_agent_id;
+    }
+
+/*!
+ * @brief This function returns a reference to member agent_id
+ * @return Reference to member agent_id
+ */
+    int32_t &Attrib::agent_id() {
+        return m_agent_id;
+    }
+
 
     size_t Attrib::getKeyMaxCdrSerializedSize(size_t current_alignment) {
         size_t current_align = current_alignment;
@@ -845,9 +883,9 @@ namespace IDL {
     }
 
     PairInt::PairInt() {
-        // m_first com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6591f517
+        // m_first com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4d49af10
         m_first = 0;
-        // m_second com.eprosima.idl.parser.typecode.PrimitiveTypeCode@345965f2
+        // m_second com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4450d156
         m_second = 0;
 
     }
@@ -988,179 +1026,30 @@ namespace IDL {
 
     }
 
-    PairAttribInt::PairAttribInt() {
-        // m_first com.eprosima.idl.parser.typecode.PrimitiveTypeCode@351d0846
-        m_first = 0;
-        // m_second com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@77e4c80f
+    DotContext::DotContext() {
+        // m_cc com.eprosima.idl.parser.typecode.MapTypeCode@7fe8ea47
+
+        // m_dc com.eprosima.idl.parser.typecode.SequenceTypeCode@226a82c4
 
 
     }
 
-    PairAttribInt::~PairAttribInt() {
+    DotContext::~DotContext() {
 
 
     }
 
-    PairAttribInt::PairAttribInt(const PairAttribInt &x) {
-        m_first = x.m_first;
-        m_second = x.m_second;
-    }
-
-    PairAttribInt::PairAttribInt(PairAttribInt &&x) {
-        m_first = x.m_first;
-        m_second = std::move(x.m_second);
-    }
-
-    PairAttribInt &PairAttribInt::operator=(const PairAttribInt &x) {
-
-        m_first = x.m_first;
-        m_second = x.m_second;
-
-        return *this;
-    }
-
-    PairAttribInt &PairAttribInt::operator=(PairAttribInt &&x) {
-
-        m_first = x.m_first;
-        m_second = std::move(x.m_second);
-
-        return *this;
-    }
-
-    size_t PairAttribInt::getMaxCdrSerializedSize(size_t current_alignment) {
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        current_alignment += Attrib::getMaxCdrSerializedSize(current_alignment);
-
-        return current_alignment - initial_alignment;
-    }
-
-    size_t PairAttribInt::getCdrSerializedSize(const PairAttribInt &data, size_t current_alignment) {
-        (void) data;
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        current_alignment += Attrib::getCdrSerializedSize(data.second(), current_alignment);
-
-        return current_alignment - initial_alignment;
-    }
-
-    void PairAttribInt::serialize(eprosima::fastcdr::Cdr &scdr) const {
-
-        scdr << m_first;
-        scdr << m_second;
-    }
-
-    void PairAttribInt::deserialize(eprosima::fastcdr::Cdr &dcdr) {
-
-        dcdr >> m_first;
-        dcdr >> m_second;
-    }
-
-/*!
- * @brief This function sets a value in member first
- * @param _first New value for member first
- */
-    void PairAttribInt::first(int32_t _first) {
-        m_first = _first;
-    }
-
-/*!
- * @brief This function returns the value of member first
- * @return Value of member first
- */
-    int32_t PairAttribInt::first() const {
-        return m_first;
-    }
-
-/*!
- * @brief This function returns a reference to member first
- * @return Reference to member first
- */
-    int32_t &PairAttribInt::first() {
-        return m_first;
-    }
-
-/*!
- * @brief This function copies the value in member second
- * @param _second New value to be copied in member second
- */
-    void PairAttribInt::second(const Attrib &_second) {
-        m_second = _second;
-    }
-
-/*!
- * @brief This function moves the value in member second
- * @param _second New value to be moved in member second
- */
-    void PairAttribInt::second(Attrib &&_second) {
-        m_second = std::move(_second);
-    }
-
-/*!
- * @brief This function returns a constant reference to member second
- * @return Constant reference to member second
- */
-    const Attrib &PairAttribInt::second() const {
-        return m_second;
-    }
-
-/*!
- * @brief This function returns a reference to member second
- * @return Reference to member second
- */
-    Attrib &PairAttribInt::second() {
-        return m_second;
-    }
-
-    size_t PairAttribInt::getKeyMaxCdrSerializedSize(size_t current_alignment) {
-        size_t current_align = current_alignment;
-
-
-        return current_align;
-    }
-
-    bool PairAttribInt::isKeyDefined() {
-        return false;
-    }
-
-    void PairAttribInt::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
-        (void) scdr;
-
-
-    }
-
-    DotContextAttrs::DotContextAttrs() {
-        // m_cc com.eprosima.idl.parser.typecode.MapTypeCode@226a82c4
-
-        // m_dc com.eprosima.idl.parser.typecode.SequenceTypeCode@731f8236
-
-
-    }
-
-    DotContextAttrs::~DotContextAttrs() {
-
-
-    }
-
-    DotContextAttrs::DotContextAttrs(const DotContextAttrs &x) {
+    DotContext::DotContext(const DotContext &x) {
         m_cc = x.m_cc;
         m_dc = x.m_dc;
     }
 
-    DotContextAttrs::DotContextAttrs(DotContextAttrs &&x) {
+    DotContext::DotContext(DotContext &&x) {
         m_cc = std::move(x.m_cc);
         m_dc = std::move(x.m_dc);
     }
 
-    DotContextAttrs &DotContextAttrs::operator=(const DotContextAttrs &x) {
+    DotContext &DotContext::operator=(const DotContext &x) {
 
         m_cc = x.m_cc;
         m_dc = x.m_dc;
@@ -1168,7 +1057,7 @@ namespace IDL {
         return *this;
     }
 
-    DotContextAttrs &DotContextAttrs::operator=(DotContextAttrs &&x) {
+    DotContext &DotContext::operator=(DotContext &&x) {
 
         m_cc = std::move(x.m_cc);
         m_dc = std::move(x.m_dc);
@@ -1176,14 +1065,15 @@ namespace IDL {
         return *this;
     }
 
-    size_t DotContextAttrs::getMaxCdrSerializedSize(size_t current_alignment) {
+    size_t DotContext::getMaxCdrSerializedSize(size_t current_alignment) {
         size_t initial_alignment = current_alignment;
 
 
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
         for (size_t a = 0; a < 100; ++a) {
-            current_alignment += Attrib::getMaxCdrSerializedSize(current_alignment);
+            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
             current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
@@ -1194,14 +1084,14 @@ namespace IDL {
 
 
         for (size_t a = 0; a < 100; ++a) {
-            current_alignment += PairAttribInt::getMaxCdrSerializedSize(current_alignment);
+            current_alignment += PairInt::getMaxCdrSerializedSize(current_alignment);
         }
 
 
         return current_alignment - initial_alignment;
     }
 
-    size_t DotContextAttrs::getCdrSerializedSize(const DotContextAttrs &data, size_t current_alignment) {
+    size_t DotContext::getCdrSerializedSize(const DotContext &data, size_t current_alignment) {
         (void) data;
         size_t initial_alignment = current_alignment;
 
@@ -1210,7 +1100,9 @@ namespace IDL {
 
         for (auto a : data.cc()) {
             (void) a;
-            current_alignment += Attrib::getCdrSerializedSize((a.first), current_alignment);
+            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
             current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
 
@@ -1221,20 +1113,20 @@ namespace IDL {
 
 
         for (size_t a = 0; a < data.dc().size(); ++a) {
-            current_alignment += PairAttribInt::getCdrSerializedSize(data.dc().at(a), current_alignment);
+            current_alignment += PairInt::getCdrSerializedSize(data.dc().at(a), current_alignment);
         }
 
 
         return current_alignment - initial_alignment;
     }
 
-    void DotContextAttrs::serialize(eprosima::fastcdr::Cdr &scdr) const {
+    void DotContext::serialize(eprosima::fastcdr::Cdr &scdr) const {
 
         scdr << m_cc;
         scdr << m_dc;
     }
 
-    void DotContextAttrs::deserialize(eprosima::fastcdr::Cdr &dcdr) {
+    void DotContext::deserialize(eprosima::fastcdr::Cdr &dcdr) {
 
         dcdr >> m_cc;
         dcdr >> m_dc;
@@ -1244,7 +1136,7 @@ namespace IDL {
  * @brief This function copies the value in member cc
  * @param _cc New value to be copied in member cc
  */
-    void DotContextAttrs::cc(const std::map<Attrib, int32_t> &_cc) {
+    void DotContext::cc(const std::map<int32_t, int32_t> &_cc) {
         m_cc = _cc;
     }
 
@@ -1252,7 +1144,7 @@ namespace IDL {
  * @brief This function moves the value in member cc
  * @param _cc New value to be moved in member cc
  */
-    void DotContextAttrs::cc(std::map<Attrib, int32_t> &&_cc) {
+    void DotContext::cc(std::map<int32_t, int32_t> &&_cc) {
         m_cc = std::move(_cc);
     }
 
@@ -1260,7 +1152,7 @@ namespace IDL {
  * @brief This function returns a constant reference to member cc
  * @return Constant reference to member cc
  */
-    const std::map<Attrib, int32_t> &DotContextAttrs::cc() const {
+    const std::map<int32_t, int32_t> &DotContext::cc() const {
         return m_cc;
     }
 
@@ -1268,7 +1160,7 @@ namespace IDL {
  * @brief This function returns a reference to member cc
  * @return Reference to member cc
  */
-    std::map<Attrib, int32_t> &DotContextAttrs::cc() {
+    std::map<int32_t, int32_t> &DotContext::cc() {
         return m_cc;
     }
 
@@ -1276,7 +1168,7 @@ namespace IDL {
  * @brief This function copies the value in member dc
  * @param _dc New value to be copied in member dc
  */
-    void DotContextAttrs::dc(const std::vector<PairAttribInt> &_dc) {
+    void DotContext::dc(const std::vector<PairInt> &_dc) {
         m_dc = _dc;
     }
 
@@ -1284,7 +1176,7 @@ namespace IDL {
  * @brief This function moves the value in member dc
  * @param _dc New value to be moved in member dc
  */
-    void DotContextAttrs::dc(std::vector<PairAttribInt> &&_dc) {
+    void DotContext::dc(std::vector<PairInt> &&_dc) {
         m_dc = std::move(_dc);
     }
 
@@ -1292,7 +1184,7 @@ namespace IDL {
  * @brief This function returns a constant reference to member dc
  * @return Constant reference to member dc
  */
-    const std::vector<PairAttribInt> &DotContextAttrs::dc() const {
+    const std::vector<PairInt> &DotContext::dc() const {
         return m_dc;
     }
 
@@ -1300,31 +1192,31 @@ namespace IDL {
  * @brief This function returns a reference to member dc
  * @return Reference to member dc
  */
-    std::vector<PairAttribInt> &DotContextAttrs::dc() {
+    std::vector<PairInt> &DotContext::dc() {
         return m_dc;
     }
 
-    size_t DotContextAttrs::getKeyMaxCdrSerializedSize(size_t current_alignment) {
+    size_t DotContext::getKeyMaxCdrSerializedSize(size_t current_alignment) {
         size_t current_align = current_alignment;
 
 
         return current_align;
     }
 
-    bool DotContextAttrs::isKeyDefined() {
+    bool DotContext::isKeyDefined() {
         return false;
     }
 
-    void DotContextAttrs::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
+    void DotContext::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
         (void) scdr;
 
 
     }
 
     DotKernelAttr::DotKernelAttr() {
-        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@3b2c72c2
+        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@1dd92fe2
 
-        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@491666ad
+        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@6b53e23f
 
 
     }
@@ -1372,7 +1264,7 @@ namespace IDL {
             current_alignment += Attrib::getMaxCdrSerializedSize(current_alignment);
         }
 
-        current_alignment += DotContextAttrs::getMaxCdrSerializedSize(current_alignment);
+        current_alignment += DotContext::getMaxCdrSerializedSize(current_alignment);
 
         return current_alignment - initial_alignment;
     }
@@ -1392,7 +1284,7 @@ namespace IDL {
         }
 
 
-        current_alignment += DotContextAttrs::getCdrSerializedSize(data.cbase(), current_alignment);
+        current_alignment += DotContext::getCdrSerializedSize(data.cbase(), current_alignment);
 
         return current_alignment - initial_alignment;
     }
@@ -1445,7 +1337,7 @@ namespace IDL {
  * @brief This function copies the value in member cbase
  * @param _cbase New value to be copied in member cbase
  */
-    void DotKernelAttr::cbase(const DotContextAttrs &_cbase) {
+    void DotKernelAttr::cbase(const DotContext &_cbase) {
         m_cbase = _cbase;
     }
 
@@ -1453,7 +1345,7 @@ namespace IDL {
  * @brief This function moves the value in member cbase
  * @param _cbase New value to be moved in member cbase
  */
-    void DotKernelAttr::cbase(DotContextAttrs &&_cbase) {
+    void DotKernelAttr::cbase(DotContext &&_cbase) {
         m_cbase = std::move(_cbase);
     }
 
@@ -1461,7 +1353,7 @@ namespace IDL {
  * @brief This function returns a constant reference to member cbase
  * @return Constant reference to member cbase
  */
-    const DotContextAttrs &DotKernelAttr::cbase() const {
+    const DotContext &DotKernelAttr::cbase() const {
         return m_cbase;
     }
 
@@ -1469,7 +1361,7 @@ namespace IDL {
  * @brief This function returns a reference to member cbase
  * @return Reference to member cbase
  */
-    DotContextAttrs &DotKernelAttr::cbase() {
+    DotContext &DotKernelAttr::cbase() {
         return m_cbase;
     }
 
@@ -1491,17 +1383,17 @@ namespace IDL {
     }
 
     MvregEdgeAttr::MvregEdgeAttr() {
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@c540f5a
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6279cee3
         m_id = 0;
-        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@770c2e6b
+        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4206a205
         m_from = 0;
-        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@1a052a00
+        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@29ba4338
         m_to = 0;
-        // m_type com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4d826d77
+        // m_type com.eprosima.idl.parser.typecode.PrimitiveTypeCode@57175e74
         m_type = 0;
-        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@61009542
+        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@7bb58ca3
 
-        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@77e9807f
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@c540f5a
         m_agent_id = 0;
 
     }
@@ -1791,14 +1683,16 @@ namespace IDL {
     }
 
     Edge::Edge() {
-        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@7f77e91b
+        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@77e9807f
         m_to = 0;
-        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@44a664f2
+        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@448ff1a8
         m_type = "";
-        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6328d34a
+        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@44a664f2
         m_from = 0;
-        // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@145eaa29
+        // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@7f9fcf7f
 
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@2357d90a
+        m_agent_id = 0;
 
     }
 
@@ -1812,6 +1706,7 @@ namespace IDL {
         m_type = x.m_type;
         m_from = x.m_from;
         m_attrs = x.m_attrs;
+        m_agent_id = x.m_agent_id;
     }
 
     Edge::Edge(Edge &&x) {
@@ -1819,6 +1714,7 @@ namespace IDL {
         m_type = std::move(x.m_type);
         m_from = x.m_from;
         m_attrs = std::move(x.m_attrs);
+        m_agent_id = x.m_agent_id;
     }
 
     Edge &Edge::operator=(const Edge &x) {
@@ -1827,6 +1723,7 @@ namespace IDL {
         m_type = x.m_type;
         m_from = x.m_from;
         m_attrs = x.m_attrs;
+        m_agent_id = x.m_agent_id;
 
         return *this;
     }
@@ -1837,6 +1734,7 @@ namespace IDL {
         m_type = std::move(x.m_type);
         m_from = x.m_from;
         m_attrs = std::move(x.m_attrs);
+        m_agent_id = x.m_agent_id;
 
         return *this;
     }
@@ -1861,6 +1759,8 @@ namespace IDL {
 
             current_alignment += MvregEdgeAttr::getMaxCdrSerializedSize(current_alignment);
         }
+
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
 
         return current_alignment - initial_alignment;
@@ -1889,6 +1789,9 @@ namespace IDL {
         }
 
 
+        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
         return current_alignment - initial_alignment;
     }
 
@@ -1898,6 +1801,7 @@ namespace IDL {
         scdr << m_type;
         scdr << m_from;
         scdr << m_attrs;
+        scdr << m_agent_id;
     }
 
     void Edge::deserialize(eprosima::fastcdr::Cdr &dcdr) {
@@ -1906,6 +1810,7 @@ namespace IDL {
         dcdr >> m_type;
         dcdr >> m_from;
         dcdr >> m_attrs;
+        dcdr >> m_agent_id;
     }
 
 /*!
@@ -2020,6 +1925,31 @@ namespace IDL {
         return m_attrs;
     }
 
+/*!
+ * @brief This function sets a value in member agent_id
+ * @param _agent_id New value for member agent_id
+ */
+    void Edge::agent_id(int32_t _agent_id) {
+        m_agent_id = _agent_id;
+    }
+
+/*!
+ * @brief This function returns the value of member agent_id
+ * @return Value of member agent_id
+ */
+    int32_t Edge::agent_id() const {
+        return m_agent_id;
+    }
+
+/*!
+ * @brief This function returns a reference to member agent_id
+ * @return Reference to member agent_id
+ */
+    int32_t &Edge::agent_id() {
+        return m_agent_id;
+    }
+
+
     size_t Edge::getKeyMaxCdrSerializedSize(size_t current_alignment) {
         size_t current_align = current_alignment;
 
@@ -2038,9 +1968,9 @@ namespace IDL {
     }
 
     EdgeKey::EdgeKey() {
-        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@667a738
+        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@2ea6137
         m_to = 0;
-        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@6ee12bac
+        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@41ee392b
         m_type = "";
 
     }
@@ -2189,11 +2119,11 @@ namespace IDL {
     }
 
     MvregNodeAttr::MvregNodeAttr() {
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@55040f2f
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@157632c9
         m_id = 0;
-        // m_node com.eprosima.idl.parser.typecode.PrimitiveTypeCode@64c87930
+        // m_node com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6ee12bac
         m_node = 0;
-        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@61009542
+        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@7bb58ca3
 
         // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@400cff1a
         m_agent_id = 0;
@@ -2412,343 +2342,10 @@ namespace IDL {
 
     }
 
-    PairEdgeInt::PairEdgeInt() {
-        // m_first com.eprosima.idl.parser.typecode.PrimitiveTypeCode@275710fc
-        m_first = 0;
-        // m_second com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@525f1e4e
-
-
-    }
-
-    PairEdgeInt::~PairEdgeInt() {
-
-
-    }
-
-    PairEdgeInt::PairEdgeInt(const PairEdgeInt &x) {
-        m_first = x.m_first;
-        m_second = x.m_second;
-    }
-
-    PairEdgeInt::PairEdgeInt(PairEdgeInt &&x) {
-        m_first = x.m_first;
-        m_second = std::move(x.m_second);
-    }
-
-    PairEdgeInt &PairEdgeInt::operator=(const PairEdgeInt &x) {
-
-        m_first = x.m_first;
-        m_second = x.m_second;
-
-        return *this;
-    }
-
-    PairEdgeInt &PairEdgeInt::operator=(PairEdgeInt &&x) {
-
-        m_first = x.m_first;
-        m_second = std::move(x.m_second);
-
-        return *this;
-    }
-
-    size_t PairEdgeInt::getMaxCdrSerializedSize(size_t current_alignment) {
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        current_alignment += Edge::getMaxCdrSerializedSize(current_alignment);
-
-        return current_alignment - initial_alignment;
-    }
-
-    size_t PairEdgeInt::getCdrSerializedSize(const PairEdgeInt &data, size_t current_alignment) {
-        (void) data;
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        current_alignment += Edge::getCdrSerializedSize(data.second(), current_alignment);
-
-        return current_alignment - initial_alignment;
-    }
-
-    void PairEdgeInt::serialize(eprosima::fastcdr::Cdr &scdr) const {
-
-        scdr << m_first;
-        scdr << m_second;
-    }
-
-    void PairEdgeInt::deserialize(eprosima::fastcdr::Cdr &dcdr) {
-
-        dcdr >> m_first;
-        dcdr >> m_second;
-    }
-
-/*!
- * @brief This function sets a value in member first
- * @param _first New value for member first
- */
-    void PairEdgeInt::first(int32_t _first) {
-        m_first = _first;
-    }
-
-/*!
- * @brief This function returns the value of member first
- * @return Value of member first
- */
-    int32_t PairEdgeInt::first() const {
-        return m_first;
-    }
-
-/*!
- * @brief This function returns a reference to member first
- * @return Reference to member first
- */
-    int32_t &PairEdgeInt::first() {
-        return m_first;
-    }
-
-/*!
- * @brief This function copies the value in member second
- * @param _second New value to be copied in member second
- */
-    void PairEdgeInt::second(const Edge &_second) {
-        m_second = _second;
-    }
-
-/*!
- * @brief This function moves the value in member second
- * @param _second New value to be moved in member second
- */
-    void PairEdgeInt::second(Edge &&_second) {
-        m_second = std::move(_second);
-    }
-
-/*!
- * @brief This function returns a constant reference to member second
- * @return Constant reference to member second
- */
-    const Edge &PairEdgeInt::second() const {
-        return m_second;
-    }
-
-/*!
- * @brief This function returns a reference to member second
- * @return Reference to member second
- */
-    Edge &PairEdgeInt::second() {
-        return m_second;
-    }
-
-    size_t PairEdgeInt::getKeyMaxCdrSerializedSize(size_t current_alignment) {
-        size_t current_align = current_alignment;
-
-
-        return current_align;
-    }
-
-    bool PairEdgeInt::isKeyDefined() {
-        return false;
-    }
-
-    void PairEdgeInt::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
-        (void) scdr;
-
-
-    }
-
-    DotContextEdge::DotContextEdge() {
-        // m_cc com.eprosima.idl.parser.typecode.MapTypeCode@75f9eccc
-
-        // m_dc com.eprosima.idl.parser.typecode.SequenceTypeCode@52aa2946
-
-
-    }
-
-    DotContextEdge::~DotContextEdge() {
-
-
-    }
-
-    DotContextEdge::DotContextEdge(const DotContextEdge &x) {
-        m_cc = x.m_cc;
-        m_dc = x.m_dc;
-    }
-
-    DotContextEdge::DotContextEdge(DotContextEdge &&x) {
-        m_cc = std::move(x.m_cc);
-        m_dc = std::move(x.m_dc);
-    }
-
-    DotContextEdge &DotContextEdge::operator=(const DotContextEdge &x) {
-
-        m_cc = x.m_cc;
-        m_dc = x.m_dc;
-
-        return *this;
-    }
-
-    DotContextEdge &DotContextEdge::operator=(DotContextEdge &&x) {
-
-        m_cc = std::move(x.m_cc);
-        m_dc = std::move(x.m_dc);
-
-        return *this;
-    }
-
-    size_t DotContextEdge::getMaxCdrSerializedSize(size_t current_alignment) {
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-        for (size_t a = 0; a < 100; ++a) {
-            current_alignment += Edge::getMaxCdrSerializedSize(current_alignment);
-
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        }
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        for (size_t a = 0; a < 100; ++a) {
-            current_alignment += PairEdgeInt::getMaxCdrSerializedSize(current_alignment);
-        }
-
-
-        return current_alignment - initial_alignment;
-    }
-
-    size_t DotContextEdge::getCdrSerializedSize(const DotContextEdge &data, size_t current_alignment) {
-        (void) data;
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-        for (auto a : data.cc()) {
-            (void) a;
-            current_alignment += Edge::getCdrSerializedSize((a.first), current_alignment);
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        }
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        for (size_t a = 0; a < data.dc().size(); ++a) {
-            current_alignment += PairEdgeInt::getCdrSerializedSize(data.dc().at(a), current_alignment);
-        }
-
-
-        return current_alignment - initial_alignment;
-    }
-
-    void DotContextEdge::serialize(eprosima::fastcdr::Cdr &scdr) const {
-
-        scdr << m_cc;
-        scdr << m_dc;
-    }
-
-    void DotContextEdge::deserialize(eprosima::fastcdr::Cdr &dcdr) {
-
-        dcdr >> m_cc;
-        dcdr >> m_dc;
-    }
-
-/*!
- * @brief This function copies the value in member cc
- * @param _cc New value to be copied in member cc
- */
-    void DotContextEdge::cc(const std::map<Edge, int32_t> &_cc) {
-        m_cc = _cc;
-    }
-
-/*!
- * @brief This function moves the value in member cc
- * @param _cc New value to be moved in member cc
- */
-    void DotContextEdge::cc(std::map<Edge, int32_t> &&_cc) {
-        m_cc = std::move(_cc);
-    }
-
-/*!
- * @brief This function returns a constant reference to member cc
- * @return Constant reference to member cc
- */
-    const std::map<Edge, int32_t> &DotContextEdge::cc() const {
-        return m_cc;
-    }
-
-/*!
- * @brief This function returns a reference to member cc
- * @return Reference to member cc
- */
-    std::map<Edge, int32_t> &DotContextEdge::cc() {
-        return m_cc;
-    }
-
-/*!
- * @brief This function copies the value in member dc
- * @param _dc New value to be copied in member dc
- */
-    void DotContextEdge::dc(const std::vector<PairEdgeInt> &_dc) {
-        m_dc = _dc;
-    }
-
-/*!
- * @brief This function moves the value in member dc
- * @param _dc New value to be moved in member dc
- */
-    void DotContextEdge::dc(std::vector<PairEdgeInt> &&_dc) {
-        m_dc = std::move(_dc);
-    }
-
-/*!
- * @brief This function returns a constant reference to member dc
- * @return Constant reference to member dc
- */
-    const std::vector<PairEdgeInt> &DotContextEdge::dc() const {
-        return m_dc;
-    }
-
-/*!
- * @brief This function returns a reference to member dc
- * @return Reference to member dc
- */
-    std::vector<PairEdgeInt> &DotContextEdge::dc() {
-        return m_dc;
-    }
-
-    size_t DotContextEdge::getKeyMaxCdrSerializedSize(size_t current_alignment) {
-        size_t current_align = current_alignment;
-
-
-        return current_align;
-    }
-
-    bool DotContextEdge::isKeyDefined() {
-        return false;
-    }
-
-    void DotContextEdge::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
-        (void) scdr;
-
-
-    }
-
     DotKernelEdge::DotKernelEdge() {
-        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@5d47c63f
+        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@275710fc
 
-        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@5ea434c8
+        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@6b53e23f
 
 
     }
@@ -2796,7 +2393,7 @@ namespace IDL {
             current_alignment += Edge::getMaxCdrSerializedSize(current_alignment);
         }
 
-        current_alignment += DotContextEdge::getMaxCdrSerializedSize(current_alignment);
+        current_alignment += DotContext::getMaxCdrSerializedSize(current_alignment);
 
         return current_alignment - initial_alignment;
     }
@@ -2816,7 +2413,7 @@ namespace IDL {
         }
 
 
-        current_alignment += DotContextEdge::getCdrSerializedSize(data.cbase(), current_alignment);
+        current_alignment += DotContext::getCdrSerializedSize(data.cbase(), current_alignment);
 
         return current_alignment - initial_alignment;
     }
@@ -2869,7 +2466,7 @@ namespace IDL {
  * @brief This function copies the value in member cbase
  * @param _cbase New value to be copied in member cbase
  */
-    void DotKernelEdge::cbase(const DotContextEdge &_cbase) {
+    void DotKernelEdge::cbase(const DotContext &_cbase) {
         m_cbase = _cbase;
     }
 
@@ -2877,7 +2474,7 @@ namespace IDL {
  * @brief This function moves the value in member cbase
  * @param _cbase New value to be moved in member cbase
  */
-    void DotKernelEdge::cbase(DotContextEdge &&_cbase) {
+    void DotKernelEdge::cbase(DotContext &&_cbase) {
         m_cbase = std::move(_cbase);
     }
 
@@ -2885,7 +2482,7 @@ namespace IDL {
  * @brief This function returns a constant reference to member cbase
  * @return Constant reference to member cbase
  */
-    const DotContextEdge &DotKernelEdge::cbase() const {
+    const DotContext &DotKernelEdge::cbase() const {
         return m_cbase;
     }
 
@@ -2893,7 +2490,7 @@ namespace IDL {
  * @brief This function returns a reference to member cbase
  * @return Reference to member cbase
  */
-    DotContextEdge &DotKernelEdge::cbase() {
+    DotContext &DotKernelEdge::cbase() {
         return m_cbase;
     }
 
@@ -2915,17 +2512,17 @@ namespace IDL {
     }
 
     MvregEdge::MvregEdge() {
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@3bbc39f8
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@525f1e4e
         m_id = 0;
-        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4ae3c1cd
+        // m_from com.eprosima.idl.parser.typecode.PrimitiveTypeCode@75f9eccc
         m_from = 0;
-        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@29f69090
+        // m_to com.eprosima.idl.parser.typecode.PrimitiveTypeCode@52aa2946
         m_to = 0;
-        // m_type com.eprosima.idl.parser.typecode.PrimitiveTypeCode@568bf312
+        // m_type com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4de5031f
         m_type = 0;
-        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@ca263c2
+        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@67e2d983
 
-        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@589b3632
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@5d47c63f
         m_agent_id = 0;
 
     }
@@ -3215,17 +2812,17 @@ namespace IDL {
     }
 
     Node::Node() {
-        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@45f45fa1
+        // m_type com.eprosima.idl.parser.typecode.StringTypeCode@5ea434c8
         m_type = "";
-        // m_name com.eprosima.idl.parser.typecode.StringTypeCode@4c6e276e
+        // m_name com.eprosima.idl.parser.typecode.StringTypeCode@3bbc39f8
         m_name = "";
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@534df152
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4ae3c1cd
         m_id = 0;
-        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@52e677af
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@29f69090
         m_agent_id = 0;
-        // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@35083305
+        // m_attrs com.eprosima.idl.parser.typecode.MapTypeCode@568bf312
 
-        // m_fano com.eprosima.idl.parser.typecode.MapTypeCode@8e0379d
+        // m_fano com.eprosima.idl.parser.typecode.MapTypeCode@ca263c2
 
 
     }
@@ -3564,7 +3161,7 @@ namespace IDL {
     }
 
     GraphRequest::GraphRequest() {
-        // m_from com.eprosima.idl.parser.typecode.StringTypeCode@341b80b2
+        // m_from com.eprosima.idl.parser.typecode.StringTypeCode@589b3632
         m_from = "";
 
     }
@@ -3671,197 +3268,10 @@ namespace IDL {
 
     }
 
-    DotContext::DotContext() {
-        // m_cc com.eprosima.idl.parser.typecode.MapTypeCode@2890c451
-
-        // m_dc com.eprosima.idl.parser.typecode.SequenceTypeCode@40e6dfe1
-
-
-    }
-
-    DotContext::~DotContext() {
-
-
-    }
-
-    DotContext::DotContext(const DotContext &x) {
-        m_cc = x.m_cc;
-        m_dc = x.m_dc;
-    }
-
-    DotContext::DotContext(DotContext &&x) {
-        m_cc = std::move(x.m_cc);
-        m_dc = std::move(x.m_dc);
-    }
-
-    DotContext &DotContext::operator=(const DotContext &x) {
-
-        m_cc = x.m_cc;
-        m_dc = x.m_dc;
-
-        return *this;
-    }
-
-    DotContext &DotContext::operator=(DotContext &&x) {
-
-        m_cc = std::move(x.m_cc);
-        m_dc = std::move(x.m_dc);
-
-        return *this;
-    }
-
-    size_t DotContext::getMaxCdrSerializedSize(size_t current_alignment) {
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-        for (size_t a = 0; a < 100; ++a) {
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        }
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        for (size_t a = 0; a < 100; ++a) {
-            current_alignment += PairInt::getMaxCdrSerializedSize(current_alignment);
-        }
-
-
-        return current_alignment - initial_alignment;
-    }
-
-    size_t DotContext::getCdrSerializedSize(const DotContext &data, size_t current_alignment) {
-        (void) data;
-        size_t initial_alignment = current_alignment;
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-        for (auto a : data.cc()) {
-            (void) a;
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-            current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        }
-
-
-        current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
-
-
-        for (size_t a = 0; a < data.dc().size(); ++a) {
-            current_alignment += PairInt::getCdrSerializedSize(data.dc().at(a), current_alignment);
-        }
-
-
-        return current_alignment - initial_alignment;
-    }
-
-    void DotContext::serialize(eprosima::fastcdr::Cdr &scdr) const {
-
-        scdr << m_cc;
-        scdr << m_dc;
-    }
-
-    void DotContext::deserialize(eprosima::fastcdr::Cdr &dcdr) {
-
-        dcdr >> m_cc;
-        dcdr >> m_dc;
-    }
-
-/*!
- * @brief This function copies the value in member cc
- * @param _cc New value to be copied in member cc
- */
-    void DotContext::cc(const std::map<int32_t, int32_t> &_cc) {
-        m_cc = _cc;
-    }
-
-/*!
- * @brief This function moves the value in member cc
- * @param _cc New value to be moved in member cc
- */
-    void DotContext::cc(std::map<int32_t, int32_t> &&_cc) {
-        m_cc = std::move(_cc);
-    }
-
-/*!
- * @brief This function returns a constant reference to member cc
- * @return Constant reference to member cc
- */
-    const std::map<int32_t, int32_t> &DotContext::cc() const {
-        return m_cc;
-    }
-
-/*!
- * @brief This function returns a reference to member cc
- * @return Reference to member cc
- */
-    std::map<int32_t, int32_t> &DotContext::cc() {
-        return m_cc;
-    }
-
-/*!
- * @brief This function copies the value in member dc
- * @param _dc New value to be copied in member dc
- */
-    void DotContext::dc(const std::vector<PairInt> &_dc) {
-        m_dc = _dc;
-    }
-
-/*!
- * @brief This function moves the value in member dc
- * @param _dc New value to be moved in member dc
- */
-    void DotContext::dc(std::vector<PairInt> &&_dc) {
-        m_dc = std::move(_dc);
-    }
-
-/*!
- * @brief This function returns a constant reference to member dc
- * @return Constant reference to member dc
- */
-    const std::vector<PairInt> &DotContext::dc() const {
-        return m_dc;
-    }
-
-/*!
- * @brief This function returns a reference to member dc
- * @return Reference to member dc
- */
-    std::vector<PairInt> &DotContext::dc() {
-        return m_dc;
-    }
-
-    size_t DotContext::getKeyMaxCdrSerializedSize(size_t current_alignment) {
-        size_t current_align = current_alignment;
-
-
-        return current_align;
-    }
-
-    bool DotContext::isKeyDefined() {
-        return false;
-    }
-
-    void DotContext::serializeKey(eprosima::fastcdr::Cdr &scdr) const {
-        (void) scdr;
-
-
-    }
-
     DotKernel::DotKernel() {
-        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@1f1c7bf6
+        // m_ds com.eprosima.idl.parser.typecode.MapTypeCode@534df152
 
-        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@25b485ba
+        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@6b53e23f
 
 
     }
@@ -4028,11 +3438,11 @@ namespace IDL {
     }
 
     Mvreg::Mvreg() {
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@2b546384
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@52e677af
         m_id = 0;
-        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@5d740a0f
+        // m_dk com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@35083305
 
-        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@214b199c
+        // m_agent_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@8e0379d
         m_agent_id = 0;
 
     }
@@ -4214,11 +3624,11 @@ namespace IDL {
     }
 
     OrMap::OrMap() {
-        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@20d3d15a
+        // m_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@341b80b2
         m_id = 0;
-        // m_m com.eprosima.idl.parser.typecode.MapTypeCode@2893de87
+        // m_m com.eprosima.idl.parser.typecode.MapTypeCode@55a1c291
 
-        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@25b485ba
+        // m_cbase com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode@6b53e23f
 
 
     }
@@ -4422,4 +3832,5 @@ namespace IDL {
 
 
     }
+
 }
