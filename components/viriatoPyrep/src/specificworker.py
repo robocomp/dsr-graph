@@ -21,12 +21,17 @@
 
 from genericworker import *
 import os, time, queue
+from bisect import bisect_left
 from os.path import dirname, join, abspath
 from pyrep import PyRep
 #from pyrep.robots.mobiles.viriato import Viriato
 from pyrep.robots.mobiles.viriato import Viriato
 from pyrep.objects.vision_sensor import VisionSensor
+from pyrep.objects.dummy import Dummy
+from pyrep.objects.shape import Shape
 import numpy as np
+import numpy_indexed as npi
+from itertools import zip_longest
 import cv2
 
 class SpecificWorker(GenericWorker):
@@ -45,20 +50,16 @@ class SpecificWorker(GenericWorker):
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
         
-        self.agent = Viriato()
+        self.robot = Viriato()
+        self.robot_centre = Dummy("Viriato_intermediate_target_base")
         self.camera = VisionSensor("real_sense_sensor")
         camera_semi_angle = np.radians(self.camera.get_perspective_angle())/2 
         self.cfocal = self.camera.get_resolution()[0]/2/np.tan(camera_semi_angle)
-
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
-        self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
-        self.hokuyo_base_front_left_semiwidth = self.hokuyo_base_front_left.get_resolution()[0]/2
-        self.hokuyo_base_front_left_focal = self.hokuyo_base_front_left_semiwidth/np.tan(self.hokuyo_base_front_left_semiangle)
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
-        self.hokuyo_base_front_right_semiwidth = self.hokuyo_base_front_right.get_resolution()[0]/2
-        self.hokuyo_base_front_right_semiangle = np.radians(self.hokuyo_base_front_right.get_perspective_angle()/2)
-        self.hokuyo_base_front_right_focal = self.hokuyo_base_front_right_semiwidth/np.tan(self.hokuyo_base_front_right_semiangle)
-        
+        self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
+        self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
+       
         self.joy_queue = queue.Queue(1)
         self.omnirobot_queue = queue.Queue(1)
 
@@ -78,23 +79,16 @@ class SpecificWorker(GenericWorker):
                 self.tdepth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), depth=np.copy(self.depth))
                 try:
                     self.camerargbdsimplepub_proxy.pushRGBD(self.timg, self.tdepth)
-                    
                 except Ice.Exception as e:
                     print(e)
 
                 # compute TLaserData and publish
-                hokuyo_base_front_left_reading = self.hokuyo_base_front_left.capture_depth(in_meters=True)
-                hokuyo_base_front_right_reading = self.hokuyo_base_front_right.capture_depth(in_meters=True)
-                ldata = []
-                for i,d in enumerate(hokuyo_base_front_left_reading.T):
-                    angle = np.arctan2(i-(self.hokuyo_base_front_left_semiwidth), self.hokuyo_base_front_left_focal)
-                    dist = (d[0]/np.abs(np.cos(angle)))*1000
-                    ldata.append(RoboCompLaser.TData(angle-self.hokuyo_base_front_right_semiangle,dist))
-                for i,d in enumerate(hokuyo_base_front_right_reading.T):
-                    angle = np.arctan2(i-(self.hokuyo_base_front_right_semiwidth), self.hokuyo_base_front_right_focal)
-                    dist = (d[0]/np.abs(np.cos(angle)))*1000
-                    ldata.append(RoboCompLaser.TData(angle+self.hokuyo_base_front_right_semiangle,dist))
-                    
+                ldata = self.compute_omni_laser([#self.hokuyo_base_front_right,
+                                                 self.hokuyo_base_front_left, 
+                                                 #self.hokuyo_base_back_left,
+                                                 #self.hokuyo_base_back_right]
+                                                 ],
+                                                 self.robot)                   
                 try:
                     self.laserpub_proxy.pushLaserData(ldata)
                 except Ice.Exception as e:
@@ -113,10 +107,10 @@ class SpecificWorker(GenericWorker):
                             rot = x.value
                         if x.name=="side" and np.abs(x.value)>0.25:
                             side = x.value
-                    self.agent.set_base_angular_velocites([adv, side, rot])
+                    self.robot.set_base_angular_velocites([adv, side, rot])
 
                 # Get and publish robot pose
-                pose = self.agent.get_2d_pose()
+                pose = self.robot.get_2d_pose()
                 try:
                     self.bState = RoboCompGenericBase.TBaseState(x=pose[0]*1000, z=pose[1]*1000, alpha=pose[2])
                     self.omnirobotpub_proxy.pushBaseState(self.bState)
@@ -126,14 +120,58 @@ class SpecificWorker(GenericWorker):
                 # Move robot from data setSpeedBase
                 if not self.omnirobot_queue.empty():
                     vels = self.omnirobot_queue.get()
-                    self.agent.set_base_angular_velocites(vels)
+                    self.robot.set_base_angular_velocites(vels)
 
                 time.sleep(0.001)
                 #print(time.time()-start)
             except KeyboardInterrupt:
                 break
 
-        
+    # General laser computation
+    def compute_omni_laser(self, lasers, robot):
+        c_data = []
+        coor = []
+        for laser in lasers:
+            semiwidth = laser.get_resolution()[0]/2
+            semiangle = np.radians(laser.get_perspective_angle()/2)
+            focal = semiwidth/np.tan(semiangle)
+            data = laser.capture_depth(in_meters=True)
+            m = laser.get_matrix(robot)     # these data should be read first
+            imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
+            
+            for i,d in enumerate(data.T):
+                z = d[0]
+                #vec = np.array([(i-semiwidth)*z/focal, 0, z, 1])
+                vec = np.array([(i-semiwidth)*z/focal, 0, z, 1])
+                
+                res = imat.dot(vec)[:3]       # translate to robot's origin, homogeneous
+                res[2] = 0
+                c_data.append([np.arctan2(res[0], res[1]), np.linalg.norm(res)])  # add to list in polar coordinates
+                angle = np.arctan2(i-semiwidth, focal)
+                coor.append([angle , d[0]/np.abs(np.cos(angle))*1000, res])
+        # create 360 polar rep
+        c_data_sorted = np.asarray(c_data)
+        #c_data_sorted = np.sort(np.array(c_data), axis=0)                     # sort local data by angle
+        angles = np.linspace(-np.pi, np.pi, 360)                              # create regular angular values
+        positions = np.searchsorted(angles, c_data_sorted[:,0])               # list of closest position for each laser meas
+        ldata = [RoboCompLaser.TData(a, 0) for a in angles]                   # create empty 360 angle array
+        pos , medians  = npi.group_by(positions).median(c_data_sorted[:,1])   # group by repeated positions
+        for p, m in zip_longest(pos, medians):                                # fill the angles with measures                    
+            ldata[p].dist = int(m*1000)
+       
+        # for i,p in enumerate(positions):
+        #     print(p, angles[p], c_data_sorted[i], coor[i]) 
+        # print("------------")
+
+        # for i,p in enumerate(positions):
+        #     ldata[p].dist = int(c_data_sorted[i,1]*1000)
+        # new_data = []
+        # for i,d in enumerate(ldata):
+        #     new_data.append(RoboCompLaser.TData(ldata[-i].angle, d.dist))
+        # return new_data
+        return ldata
+    
+    ##################################################################################
     #
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
     #
@@ -245,4 +283,19 @@ class SpecificWorker(GenericWorker):
     # ===================================================================
     # ===================================================================
 
-
+   #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
+        #self.hokuyo_base_front_left_semiwidth = self.hokuyo_base_front_left.get_resolution()[0]/2
+        #self.hokuyo_base_front_left_focal = self.hokuyo_base_front_left_semiwidth/np.tan(self.hokuyo_base_front_left_semiangle)
+     
+    # hokuyo_base_front_left_reading = self.hokuyo_base_front_left.capture_depth(in_meters=True)
+                # hokuyo_base_front_right_reading = self.hokuyo_base_front_right.capture_depth(in_meters=True)
+                # ldata = []
+                # for i,d in enumerate(hokuyo_base_front_left_reading.T):
+                #     angle = np.arctan2(i-(self.hokuyo_base_front_left_semiwidth), self.hokuyo_base_front_left_focal)
+                #     dist = (d[0]/np.abs(np.cos(angle)))*1000
+                #     ldata.append(RoboCompLaser.TData(angle-self.hokuyo_base_front_right_semiangle,dist))
+                # for i,d in enumerate(hokuyo_base_front_right_reading.T):
+                #     angle = np.arctan2(i-(self.hokuyo_base_front_right_semiwidth), self.hokuyo_base_front_right_focal)
+                #     dist = (d[0]/np.abs(np.cos(angle)))*1000
+                #     ldata.append(RoboCompLaser.TData(angle+self.hokuyo_base_front_right_semiangle,dist))
+             
