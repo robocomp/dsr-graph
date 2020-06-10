@@ -83,10 +83,10 @@ class SpecificWorker(GenericWorker):
                     print(e)
 
                 # compute TLaserData and publish
-                ldata = self.compute_omni_laser([#self.hokuyo_base_front_right,
+                ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
                                                  self.hokuyo_base_front_left, 
-                                                 #self.hokuyo_base_back_left,
-                                                 #self.hokuyo_base_back_right]
+                                                 self.hokuyo_base_back_left,
+                                                 self.hokuyo_base_back_right
                                                  ],
                                                  self.robot)                   
                 try:
@@ -141,9 +141,7 @@ class SpecificWorker(GenericWorker):
             
             for i,d in enumerate(data.T):
                 z = d[0]
-                #vec = np.array([(i-semiwidth)*z/focal, 0, z, 1])
-                vec = np.array([(i-semiwidth)*z/focal, 0, z, 1])
-                
+                vec = np.array([-(i-semiwidth)*z/focal, 0, z, 1])
                 res = imat.dot(vec)[:3]       # translate to robot's origin, homogeneous
                 res[2] = 0
                 c_data.append([np.arctan2(res[0], res[1]), np.linalg.norm(res)])  # add to list in polar coordinates
