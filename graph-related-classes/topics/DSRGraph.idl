@@ -22,7 +22,6 @@
         _FLOAT_VEC,
         _BOOL,
         _BYTE_VEC
-       // _RT_MAT
     };
 
     struct _Attrib
@@ -43,17 +42,6 @@
         sequence<PairInt> dc;
     };
 
-    //struct PairAttribInt {
-    //    long first;
-    //    Attrib second;
-    //};
-
-    //struct DotContextAttrs {
-    //    map<long, long> cc;
-    //    //sequence<PairAttribInt> dc;
-    //    sequence <PairInt> dc;
-    //};
-
     struct DotKernelAttr {
         map<PairInt, Attrib> ds;
         DotContext cbase;
@@ -63,7 +51,8 @@
         long id;
         long from;
         long to;
-        long type;
+        string type;
+        string attr_name; // We need it for remove deltas.
         DotKernelAttr dk;
         long agent_id; // to skip messages from the same agent in multithread.
     };
@@ -85,20 +74,11 @@
     struct MvregNodeAttr {
         long id;
         long node;
+        string attr_name; // We need it for remove deltas.
         DotKernelAttr dk;
         long agent_id; // to skip messages from the same agent in multithread.
     };
 
-    //struct PairEdgeInt {
-    //    long first;
-    //    Edge second;
-    //};
-
-    //struct DotContextEdge {
-    //    map<long, long> cc;
-    //    //sequence<PairEdgeInt> dc;
-    //    sequence<PairInt> dc;
-    //};
 
     struct DotKernelEdge {
         map<PairInt, Edge> ds;
@@ -109,7 +89,7 @@
         long id;
         long from;
         long to;
-        long type;
+        string type;
         DotKernelEdge dk;
         long agent_id; // to skip messages from the same agent in multithread.
     };

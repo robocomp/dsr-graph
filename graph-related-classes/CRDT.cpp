@@ -95,62 +95,22 @@ std::optional<Node> CRDTGraph::get_node(int id)
     return get_(id);
 }
 
-/*
-bool CRDTGraph::insert_or_assign_node(Node &node)
-{
-    if (node.id() == -1) return false;
-    bool r;
-    std::optional<IDL::Mvreg> aw;
-    {
-        std::unique_lock<std::shared_mutex> lock(_mutex);
-        if ((id_map.find(node.id()) != id_map.end() and id_map[node.id()] != node.name())
-            or ( name_map.find(node.name())  != name_map.end() and name_map[node.name()] != node.id() ))
-            throw std::runtime_error((std::string("Cannot insert node in G, id mut be unique ") + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
-        node.agent_id(agent_id);
-        std::tie(r, aw) = insert_or_assign_node_(node);
-    }
-    if (r) {
-        if (aw.has_value())
-                dsrpub_.write(&aw.value());
 
-        emit update_node_signal(node.id(), node.type());
-        for (const auto &[k,v]: node.fano())
-            emit update_edge_signal(node.id(), k.to(), v.type());
-    }
-    return r;
-}
-*/
 
-std::tuple<bool, std::optional<IDL::Mvreg>, std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::insert_or_assign_node_(const N &node)
+std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const N &node)
 {
     if (deleted.find(node.id()) == deleted.end()) {
-        if (!nodes[node.id()].read().empty()){
-            if (*nodes[node.id()].read().begin() == node) {
-                return {true, {} , {}};
-            }
-
-            vector<IDL::MvregNodeAttr> atts_deltas;
-            auto iter = nodes[node.id()].read().begin()->attrs();
-            for (auto [k,att]: node.attrs()) {
-                //comparar timestamp o inexistencia
-                if (iter.find(k) != iter.end() and att.read().begin()->timestamp() > iter.at(k).read().begin()->timestamp()) {
-                    auto delta = iter.at(k).write(*iter.at(k).read().begin());
-                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), delta ));
-                }
-            }
-
-            if (atts_deltas.empty()) return {false, {}, {} };
-            return { true, {}, atts_deltas};
+        if (!nodes[node.id()].read().empty() and *nodes[node.id()].read().begin() == node){
+                return {true, {} };
         }
-
-
         mvreg<Node, int> delta = nodes[node.id()].write(node);
         update_maps_node_insert(node.id(), node);
 
-        return { true, translateNodeMvCRDTtoIDL(node.id(), delta), {} };
+        return { true, translateNodeMvCRDTtoIDL(node.id(), delta) };
     }
-    return {false, {} , {}};
+    return {false, {} };
 }
+
 
 std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
     if (node.id() == -1) return {};
@@ -161,8 +121,8 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name())  == name_map.end()) {
             //TODO: Poner id con el proxy y generar el nombre
-            node.agent_id(agent_id);
-            std::tie(r, aw, std::ignore) = insert_or_assign_node_(node);
+
+            std::tie(r, aw) = insert_node_(node);
         } else throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
                                          + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
     }
@@ -179,6 +139,33 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
     return {};
 }
 
+
+
+std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::update_node_(const N &node)
+{
+    if (deleted.find(node.id()) == deleted.end()) {
+        if (!nodes[node.id()].read().empty()){
+            if (*nodes[node.id()].read().begin() == node) {
+                return {true, {}};
+            }
+
+            vector<IDL::MvregNodeAttr> atts_deltas;
+            auto iter = nodes[node.id()].read().begin()->attrs();
+            for (auto [k,att]: node.attrs()) {
+                //comparar timestamp o inexistencia
+                if (iter.find(k) != iter.end() and att.read().begin()->timestamp() > iter.at(k).read().begin()->timestamp()) {
+                    auto delta = iter.at(k).write(*iter.at(k).read().begin());
+                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), node.id(), k, delta ));
+                }
+            }
+
+            if (!atts_deltas.empty()) return { true, atts_deltas};
+        }
+    }
+    return {false, {}};
+}
+
+
 bool CRDTGraph::update_node(N &node)
 {
     if (node.id() == -1) return false;
@@ -189,8 +176,8 @@ bool CRDTGraph::update_node(N &node)
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if ((id_map.find(node.id()) != id_map.end() and id_map[node.id()] != node.name())  or (name_map.find(node.name()) != name_map.end() and name_map[node.name()] != node.id()))
             throw std::runtime_error((std::string("Cannot update node in G, id and name must be unique")  + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
-        node.agent_id(agent_id);
-        std::tie(r, std::ignore, vec_node_attr) = insert_or_assign_node_(node);
+        //node.agent_id(agent_id);
+        std::tie(r, vec_node_attr) = update_node_(node);
     }
     if (r) {
          if (vec_node_attr.has_value()){
@@ -204,81 +191,24 @@ bool CRDTGraph::update_node(N &node)
 }
 
 
-bool CRDTGraph::delete_node(const std::string& name)
+
+
+std::tuple<bool, vector<tuple<int, int, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>> CRDTGraph::delete_node_(int id)
 {
-    /*
-    bool result = false;
+
     vector<tuple<int,int, std::string>> edges_;
-    vector<IDL::Mvreg> aw_;
-
-    std::optional<int> id = {};
-    {
-        std::unique_lock<std::shared_mutex>  lock(_mutex);
-        id = get_id_from_name(name);
-        if(id.has_value()) {
-            std::tie(result, edges_, aw_) = delete_node_(id.value());
-        } else {
-            return false;
-        }
-    }
-
-    if (result) {
-        emit del_node_signal(id.value());
-
-        for (auto &a  : aw_)
-            dsrpub.write(&a);
-
-        for (auto &[id0, id1, label] : edges_)
-                emit del_edge_signal(id0, id1, label);
-        return true;
-    }
-    return false;
-     */
-}
-
-bool CRDTGraph::delete_node(int id)
-{
-    /*
-    bool result;
-    vector<tuple<int,int, std::string>> edges_;
-    vector<Mvreg> aw_;
-    {
-        std::unique_lock<std::shared_mutex> lock(_mutex);
-        if (in(id)) {
-            std::tie(result, edges_, aw_) = delete_node_(id);
-        } else { return false; }
-    }
-
-    if (result) {
-        emit del_node_signal(id);
-
-        for (auto &a  : aw_)
-            dsrpub.write(&a);
-        for (auto &[id0, id1, label] : edges_)
-            emit del_edge_signal(id0, id1, label);
-
-        return true;
-    }
-     */
-    return false;
-}
-
-std::tuple<bool, vector<tuple<int, int, std::string>>, IDL::Mvreg, vector<IDL::MvregEdge>> CRDTGraph::delete_node_(int id)
-{
-    /*
-    vector<tuple<int,int, std::string>> edges_;
-    vector<Mvreg> aw;
+    vector<IDL::MvregEdge> aw;
 
     //1. Get and remove node.
     auto node = get_(id);
-    if (!node.has_value()) return make_tuple(false, edges_, aw);
+    if (!node.has_value()) return make_tuple(false, edges_, std::nullopt, aw);
     for (const auto &v : node.value().fano()) { // Delete all edges from this node.
-        std::cout << id << " -> " << v.first.to() << " " << v.first.type() << std::endl;
-         edges_.emplace_back(make_tuple(id, v.first.to(), v.first.type()));
+        std::cout << id << " -> " << v.first.first << " " << v.first.second<< std::endl;
+         edges_.emplace_back(make_tuple(id, v.first.first, v.first.second));
     }
     // Get remove delta.
     auto delta = nodes[id].reset();
-    aw.emplace_back(translateMvCRDTtoIDL(id, delta));
+    IDL::Mvreg delta_remove = translateNodeMvCRDTtoIDL(id, delta);
     update_maps_node_delete(id, node.value());
 
     //2. search and remove edges.
@@ -288,22 +218,88 @@ std::tuple<bool, vector<tuple<int, int, std::string>>, IDL::Mvreg, vector<IDL::M
         // Remove all edges between them
         auto visited_node =  Node(*v.read().begin());
         for (const auto &key : edges[{k, id}]) {
-            EdgeKey ek; ek.to(k); ek.type(key);
-            visited_node.fano().erase(ek);
+
+            auto delta_fano =  visited_node.fano()[{k, key}].reset();
+            aw.emplace_back( translateEdgeMvCRDTtoIDL(visited_node.id(), delta_fano));
+            visited_node.fano().erase({k, key});
             edges_.emplace_back(make_tuple(visited_node.id(), id, key));
 
             edgeType[key].erase({visited_node.id(), id});
         }
 
-        auto delta = nodes[visited_node.id()].write(visited_node);
-        aw.emplace_back( translateMvCRDTtoIDL(visited_node.id(), delta));
 
         //Remove all from cache
         edges.erase({visited_node.id(), id});
     }
-    return make_tuple(true,  edges_, aw);
-     */
+    return make_tuple(true,  edges_, delta_remove, aw);
+
 }
+
+bool CRDTGraph::delete_node(const std::string& name)
+{
+
+    bool result = false;
+    vector<tuple<int,int, std::string>> edges_;
+    std::optional<IDL::Mvreg> deleted_node;
+    vector<IDL::MvregEdge> aw_;
+
+    std::optional<int> id = {};
+    {
+        std::unique_lock<std::shared_mutex>  lock(_mutex);
+        id = get_id_from_name(name);
+        if(id.has_value()) {
+            std::tie(result, edges_, deleted_node, aw_) = delete_node_(id.value());
+        } else {
+            return false;
+        }
+    }
+
+    if (result) {
+        emit del_node_signal(id.value());
+
+        dsrpub_node.write(&deleted_node.value());
+
+        for (auto &a  : aw_)
+            dsrpub_edge.write(&a);
+
+        for (auto &[id0, id1, label] : edges_)
+                emit del_edge_signal(id0, id1, label);
+        return true;
+    }
+    return false;
+
+}
+
+bool CRDTGraph::delete_node(int id)
+{
+
+    bool result;
+    vector<tuple<int,int, std::string>> edges_;
+    std::optional<IDL::Mvreg> deleted_node;
+    vector<IDL::MvregEdge> aw_;
+    {
+        std::unique_lock<std::shared_mutex> lock(_mutex);
+        if (in(id)) {
+            std::tie(result, edges_, deleted_node, aw_) = delete_node_(id);
+        } else { return false; }
+    }
+
+    if (result) {
+        emit del_node_signal(id);
+
+        dsrpub_node.write(&deleted_node.value());
+
+        for (auto &a  : aw_)
+            dsrpub_edge.write(&a);
+
+        for (auto &[id0, id1, label] : edges_)
+                emit del_edge_signal(id0, id1, label);
+        return true;
+    }
+
+    return false;
+}
+
 
 std::vector<Node> CRDTGraph::get_nodes_by_type(const std::string& type)
 {
@@ -322,6 +318,23 @@ std::vector<Node> CRDTGraph::get_nodes_by_type(const std::string& type)
 //////////////////////////////////////////////////////////////////////////////////
 // EDGE METHODS
 //////////////////////////////////////////////////////////////////////////////////
+std::optional<Edge> CRDTGraph::get_edge_(int from, int  to, const std::string& key)
+{
+    std::shared_lock<std::shared_mutex>  lock(_mutex);
+    if (in(from) && in(to)) {
+        auto n = get_(from);
+        if (n.has_value()) {
+            IDL::EdgeKey ek; ek.to(to); ek.type(key);
+            auto edge = n.value().fano().find({to, key});
+            if (edge != n.value().fano().end()) {
+                return *edge->second.read().begin();
+            }
+        }
+        std::cout << __FUNCTION__ <<":" << __LINE__ << " Error obteniedo edge from: "<< from  << " to: " << to <<" key " << key << endl;
+    }
+    return {};
+}
+
 std::optional<Edge> CRDTGraph::get_edge(const std::string& from, const std::string& to, const std::string& key)
 {
     std::shared_lock<std::shared_mutex>  lock(_mutex);
@@ -337,27 +350,49 @@ std::optional<Edge> CRDTGraph::get_edge(int from, int to, const std::string &key
     return get_edge_(from, to, key);
 }
 
-std::optional<Edge> CRDTGraph::get_edge_(int from, int  to, const std::string& key)
+
+std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> CRDTGraph::insert_or_assign_edge_(const Edge& attrs, int from, int to)
 {
-    std::shared_lock<std::shared_mutex>  lock(_mutex);
-    if (in(from) && in(to)) {
-        auto n = get_(from);
-        if (n.has_value()) {
-            IDL::EdgeKey ek; ek.to(to); ek.type(key);
-            auto edge = n.value().fano().find({to, key});
-            if (edge != n.value().fano().end()) {
-                return *edge->second.read().begin();
+
+    bool r = false;
+    std::optional<IDL::MvregEdge> delta_edge;
+    std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
+
+    auto node = get_(from);
+    if (node.has_value()) {
+        //check if we are creating an edge or we are updating it.
+        if (node->fano().find({to, attrs.type()}) != node->fano().end()) {//Update
+
+            vector<IDL::MvregEdgeAttr> atts_deltas;
+            auto iter = nodes[from].read().begin()->fano().find({attrs.to(), attrs.type()});
+            if (iter != nodes[from].read().begin()->fano().end()) {
+                auto iter_edge = iter->second.read().begin()->attrs();
+                for (auto[k, att]: attrs.attrs()) {
+                    //comparar timestamp o inexistencia
+                    if (iter_edge.find(k) != iter_edge.end() and
+                        att.read().begin()->timestamp() >
+                        iter_edge.at(k).read().begin()->timestamp()) {
+                        auto delta = iter_edge.at(k).write(*iter_edge.at(k).read().begin());
+                        atts_deltas.emplace_back(translateEdgeAttrMvCRDTtoIDL(from, from, to, attrs.type(), k, delta));
+                    }
+                }
+                return {true, {}, atts_deltas};
             }
+        } else { // Insert
+            auto delta = node->fano()[{to, attrs.type()}].write(attrs);
+            return {true, translateEdgeMvCRDTtoIDL(from, delta), {}};
         }
-         std::cout << __FUNCTION__ <<":" << __LINE__ << " Error obteniedo edge from: "<< from  << " to: " << to <<" key " << key << endl;
-     }
-     return {};
+    }
+    return {false, {}, {}};
 }
+
 
 bool CRDTGraph::insert_or_assign_edge(const Edge& attrs)
 {
     bool r = false;
-    /*std::optional<Mvreg> aw;
+    std::optional<IDL::MvregEdge> delta_edge;
+    std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
+
 
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -365,188 +400,207 @@ bool CRDTGraph::insert_or_assign_edge(const Edge& attrs)
         int to = attrs.to();
         if (in(from) && in(to))
         {
-            auto node = get_(from);
-            if (node.has_value()) {
-                EdgeKey ek; ek.to(to); ek.type(attrs.type());
-                std::cout << ek << " --------- " << attrs << std::endl;
-
-                node->fano().insert_or_assign(ek, attrs);
-                node->agent_id(agent_id);
-                std::tie(r, aw) = insert_or_assign_node_(node.value());
-            }
+            std::tie(r, delta_edge, delta_attrs) = insert_or_assign_edge_(attrs, from, to);
         } else
         {
             std::cout << __FUNCTION__ <<":" << __LINE__ <<" Error. ID:"<<from<<" or "<<to<<" not found. Cant update. "<< std::endl;
             return false;
         }
     }
-    if (r)
-        emit update_edge_signal( attrs.from(),  attrs.to(), attrs.type());
-    if (aw.has_value())
-        dsrpub.write(&aw.value());
-    */
-    return true;
-}
-
-
-
-
-std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> CRDTGraph::insert_or_assign_edge_(const Edge& attrs)
-{
-    /*
-    bool r = false;
-    std::optional<Mvreg> aw;
-
-    {
-        std::unique_lock<std::shared_mutex> lock(_mutex);
-        int from = attrs.from();
-        int to = attrs.to();
-        if (in(from) && in(to))
-        {
-            auto node = get_(from);
-            if (node.has_value()) {
-                EdgeKey ek; ek.to(to); ek.type(attrs.type());
-                std::cout << ek << " --------- " << attrs << std::endl;
-
-                node->fano().insert_or_assign(ek, attrs);
-                node->agent_id(agent_id);
-                std::tie(r, aw) = insert_or_assign_node_(node.value());
-            }
-        } else
-        {
-            std::cout << __FUNCTION__ <<":" << __LINE__ <<" Error. ID:"<<from<<" or "<<to<<" not found. Cant update. "<< std::endl;
-            return false;
+    if (r) {
+        if (delta_edge.has_value()) { //Insert
+            dsrpub_edge.write(&delta_edge.value());
         }
-    }
-    if (r)
-            emit update_edge_signal( attrs.from(),  attrs.to(), attrs.type());
-    if (aw.has_value())
-        dsrpub.write(&aw.value());
+        if (delta_attrs.has_value()) { //Update
+            for (auto &d : delta_attrs.value())
+                dsrpub_edge_attrs.write(&d);
+        }
+        emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
 
+    }
     return true;
-     */
 }
+
+
+
+
 
 void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& trans, std::vector<float>&& rot_euler)
 {
-    /*
-    bool r = false;
 
-    std::optional<Mvreg> awor1;
-    std::optional<Mvreg> awor2;
-
+    bool r1 = false;
+    bool r2 = false;
+    std::optional<IDL::MvregEdge> node1_insert;
+    std::optional<vector<IDL::MvregEdgeAttr>> node1_update;
+    std::optional<vector<IDL::MvregNodeAttr>> node2;
+    std::optional<Node> to_n;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to))
         {
-            EdgeKey ek; ek.to(to); ek.type("RT");   
-            Edge e; e.to(to); e.from(n.id()); e.type("RT");
-            Attrib tr; tr.type(3); tr.value().float_vec(trans);
-            Attrib rot; rot.type(3); rot.value().float_vec(rot_euler);
+            Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
+            Attribute tr; tr.type(3); tr.val(Value(std::move(trans))); tr.timestamp(get_unix_timestamp());
+            Attribute rot; tr.type(3); rot.val(Value(std::move(rot_euler))); tr.timestamp(get_unix_timestamp());
             e.attrs().insert_or_assign("rotation_euler_xyz", rot);
             e.attrs().insert_or_assign("translation", tr);
-            n.fano().insert_or_assign(ek, e);
-            n.agent_id(agent_id);
-            Node to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n, "parent", n.id());
-            if (!res1) (void) add_attrib(to_n, "parent", n.id());
-            bool res2 = modify_attrib(to_n, "level",  get_node_level(n).value() + 1 );
-            if (!res2) (void) add_attrib(to_n, "level",  get_node_level(n).value() + 1 );
 
-            auto [r1, aw1] = insert_or_assign_node_(n);
-            auto [r2, aw2] = insert_or_assign_node_(to_n);
 
-            if(r1 and r2) {
-                r = true;
-                awor1 = std::move(aw1);
-                awor2 = std::move(aw2);
+            to_n = get_(to).value();
+            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (!res2) (void) add_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+
+            //Check if RT edge exist.
+            if (n.fano().find({to, "RT"}) == n.fano().end()) {
+                //Create -> from: IDL::MvregEdge, to: vector<IDL::MvregNodeAttr>
+                std::tie(r1, node1_insert, std::ignore) = insert_or_assign_edge_(e, n.id(), to);
+                std::tie(r2,  node2) = update_node_(to_n.value());
+
+                if(!r1 || !r2) {
+                    throw std::runtime_error("Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+                }
+            } else {
+                //Update -> from: IDL::MvregEdgeAttr, to: vector<IDL::MvregNodeAttr>
+
+                std::tie(r1,  std::ignore, node1_update) = insert_or_assign_edge_(e, n.id(), to);
+                std::tie(r2,  node2) = update_node_(to_n.value());
+
+                if(!r1 || !r2) {
+                    throw std::runtime_error("Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+                }
             }
-            else
-                throw std::runtime_error("Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-        } else
-            throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-    }
-    if (r)
-        emit update_edge_signal( n.id(),  to, "RT");
 
-    if (awor1.has_value()) {  dsrpub.write(&awor1.value()); }
-    if (awor2.has_value()) {  dsrpub.write(&awor2.value()); }
-    */
+          } else
+                throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+    }
+    if (node1_insert.has_value() and node2.has_value()) {
+        dsrpub_edge.write(&node1_insert.value());
+        for (auto &d : node2.value())
+             dsrpub_node_attrs.write(&d);
+    }
+
+    if (node1_update.has_value() and node2.has_value()) {
+        for (auto &d : node1_update.value())
+            dsrpub_edge_attrs.write(&d);
+
+        for (auto &d : node2.value())
+            dsrpub_node_attrs.write(&d);
+    }
+
+    emit update_edge_signal(n.id(), to, "RT");
+    emit update_node_signal(to_n->id(), to_n->type());
+
 }
 
 void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<float>& trans, const std::vector<float>& rot_euler)
 {
-    /*
-    bool r = false;
 
-    std::optional<Mvreg> awor1;
-    std::optional<Mvreg> awor2;
-
+    bool r1 = false;
+    bool r2 = false;
+    std::optional<IDL::MvregEdge> node1_insert;
+    std::optional<vector<IDL::MvregEdgeAttr>> node1_update;
+    std::optional<vector<IDL::MvregNodeAttr>> node2;
+    std::optional<Node> to_n;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to))
         {
-            EdgeKey ek; ek.to(to); ek.type("RT");   // PONER EN UNA TABLA
-            Edge e; e.to(to); e.from(n.id()); n.type("RT");
-            Attrib tr; tr.type(3); tr.value().float_vec(trans);
-            Attrib rot; rot.type(3); rot.value().float_vec(rot_euler);
+            Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
+            Attribute tr; tr.type(3); tr.val(Value(trans)); tr.timestamp(get_unix_timestamp());
+            Attribute rot; tr.type(3); rot.val(Value(rot_euler)); tr.timestamp(get_unix_timestamp());
             e.attrs().insert_or_assign("rotation_euler_xyz", rot);
             e.attrs().insert_or_assign("translation", tr);
-            n.fano().insert_or_assign(ek, e);
-            n.agent_id(agent_id);
-            Node to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n, "parent", n.id());
-            if (!res1) (void) add_attrib(to_n, "parent", n.id());
-            bool res2 = modify_attrib(to_n, "level",  get_node_level(n).value() + 1 );
-            if (!res2) (void) add_attrib(to_n, "level",  get_node_level(n).value() + 1 );
 
-            auto [r1, aw1] = insert_or_assign_node_(n);
-            auto [r2, aw2] = insert_or_assign_node_(to_n);
 
-            if(r1 and r2) {
-                r = true;
-                awor1 = std::move(aw1);
-                awor2 = std::move(aw2);
+            to_n = get_(to).value();
+            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (!res2) (void) add_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+
+            //Check if RT edge exist.
+            if (n.fano().find({to, "RT"}) == n.fano().end()) {
+                //Create -> from: IDL::MvregEdge, to: vector<IDL::MvregNodeAttr>
+                std::tie(r1, node1_insert, std::ignore) = insert_or_assign_edge_(e, n.id(), to);
+                std::tie(r2,  node2) = update_node_(to_n.value());
+
+                if(!r1 || !r2) {
+                    throw std::runtime_error("Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+                }
+            } else {
+                //Update -> from: IDL::MvregEdgeAttr, to: vector<IDL::MvregNodeAttr>
+
+                std::tie(r1,  std::ignore, node1_update) = insert_or_assign_edge_(e, n.id(), to);
+                std::tie(r2,  node2) = update_node_(to_n.value());
+
+                if(!r1 || !r2) {
+                    throw std::runtime_error("Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+                }
             }
-            else
-                throw std::runtime_error("Could not insert node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-        } else
-            throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-    }
-    if (r)
-        emit update_edge_signal( n.id(),  to, "RT");
 
-    if (awor1.has_value()) {  dsrpub.write(&awor1.value()); }
-    if (awor2.has_value()) {  dsrpub.write(&awor2.value()); }
-    */
+        } else
+            throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+    }
+    if (node1_insert.has_value() and node2.has_value()) {
+        dsrpub_edge.write(&node1_insert.value());
+        for (auto &d : node2.value())
+            dsrpub_node_attrs.write(&d);
+    }
+
+    if (node1_update.has_value() and node2.has_value()) {
+        for (auto &d : node1_update.value())
+            dsrpub_edge_attrs.write(&d);
+
+        for (auto &d : node2.value())
+            dsrpub_node_attrs.write(&d);
+    }
+
+    emit update_edge_signal(n.id(), to, "RT");
+    emit update_node_signal(to_n->id(), to_n->type());
+
+}
+
+
+std::optional<IDL::MvregEdge> CRDTGraph::delete_edge_(int from, int to, const std::string& key)
+{
+    auto node = get_(from);
+    if (node.has_value()) {
+        if (node.value().fano().find({to, key}) != node.value().fano().end()) {
+            auto delta = node.value().fano().at({to, key}).reset();
+            node.value().fano().erase({to, key});
+            update_maps_edge_delete(from, to, key);
+            //node.value().agent_id(agent_id);
+            return translateEdgeMvCRDTtoIDL(from, delta);
+        }
+    }
+    return {};
 }
 
 bool CRDTGraph::delete_edge(int from, int to, const std::string& key)
 {
-    /*
-    bool result;
-    std::optional<Mvreg> aw;
+
+    std::optional<IDL::MvregEdge> delta;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (!in(from) || !in(to)) return false;
-        std::tie(result, aw) = delete_edge_(from, to, key);
+        delta = delete_edge_(from, to, key);
     }
-    if (result)
-            emit del_edge_signal(from, to, key);
-    if (aw.has_value())
-        dsrpub.write(&aw.value());
+    if (delta.has_value()) {
+        emit del_edge_signal(from, to, key);
+        dsrpub_edge.write(&delta.value());
+        return true;
+    }
+    return false;
 
-
-    return result;
-     */
 }
 
 bool CRDTGraph::delete_edge(const std::string& from, const std::string& to, const std::string& key)
 {
-    /*
+
     std::optional<int> id_from = {};
     std::optional<int> id_to = {};
-    std::optional<Mvreg> aw;
+    std::optional<IDL::MvregEdge> delta;
     bool result = false;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -554,38 +608,19 @@ bool CRDTGraph::delete_edge(const std::string& from, const std::string& to, cons
         id_to = get_id_from_name(to);
 
         if (id_from.has_value() && id_to.has_value()) {
-            std::tie(result, aw) = delete_edge_(id_from.value(), id_to.value(), key);
+            delta = delete_edge_(id_from.value(), id_to.value(), key);
         }
     }
 
-    if (result)
+    if (delta.has_value()) {
         emit del_edge_signal(id_from.value(), id_to.value(), key);
-    if (aw.has_value())
-        dsrpub.write(&aw.value());
-
-
-    return result;
-     */
-}
-
-std::pair<bool, std::optional<IDL::MvregEdge>> CRDTGraph::delete_edge_(int from, int to, const std::string& key)
-{
-    /*
-    auto node = get_(from);
-    if (node.has_value()) {
-        EdgeKey ek;
-        ek.to(to);
-        ek.type(key);
-        if (node.value().fano().find(ek) != node.value().fano().end()) {
-            node.value().fano().erase(ek);
-            update_maps_edge_delete(from, to, key);
-            node.value().agent_id(agent_id);
-            return insert_or_assign_node_(node.value());
-        }
+        dsrpub_edge.write(&delta.value());
+        return true;
     }
-    return { false, {} };
-     */
+    return false;
 }
+
+
 
 std::vector<Edge> CRDTGraph::get_edges_by_type(const Node& node, const std::string& type)
 {
@@ -720,12 +755,7 @@ std::optional<std::int32_t> CRDTGraph::get_node_level(Node& n)
 {
     return get_attrib_by_name<std::int32_t>(n, "level");
 }
-/*
-std::optional<std::int32_t> CRDTGraph::get_node_parent(const Node& n)
-{
-    return get_attrib_by_name<std::int32_t>(n, "parent");
-}
-*/
+
 std::optional<std::int32_t> CRDTGraph::get_parent_id(const Node& n)
 {
     return get_attrib_by_name<std::int32_t>(n, "parent");
@@ -784,8 +814,14 @@ inline void CRDTGraph::update_maps_edge_delete(int from, int to, const std::stri
     edgeType[key].erase({from, to});
 }
 
+inline void CRDTGraph::update_maps_edge_insert(int from, int to, const std::string& key)
+{
+    edges[{from, to}].insert(key);
+    edgeType[key].insert({from, to});
+}
 
-std::optional<int> CRDTGraph::get_id_from_name(const std::string &name)
+
+inline std::optional<int> CRDTGraph::get_id_from_name(const std::string &name)
 {
         auto v = name_map.find(name);
         if (v != name_map.end()) return v->second;
@@ -821,18 +857,15 @@ bool CRDTGraph::empty(const int &id)
 
 void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg)
 {
-    /*
     try{
-        //vector<tuple<int, int, std::string>> remove;
-        bool signal = false;
+
+        bool signal = false, ok = false;
         auto d = translateNodeMvIDLtoCRDT(mvreg);
-        Node nd;
-        Node newnd;
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             if (deleted.find(mvreg.id()) == deleted.end()) {
-
-                nd = (nodes[mvreg.id()].read().empty()) ?
+                ok = true;
+                Node nd = (nodes[mvreg.id()].read().empty()) ?
                       Node() :  *nodes[mvreg.id()].read().begin() ;
 
                 nodes[mvreg.id()].join(d);
@@ -840,55 +873,76 @@ void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg)
                     std::cout << "JOIN REMOVE" << std::endl;
                     update_maps_node_delete(mvreg.id(), nd);
                 } else {
-                    std::cout << "JOIN INSERT/UPDATE" << std::endl;
+                    std::cout << "JOIN INSERT" << std::endl;
                     signal = true;
-                    newnd = *nodes[mvreg.id()].read().begin();
-                    update_maps_node_insert(mvreg.id(), newnd);
+                    update_maps_node_insert(mvreg.id(), *nodes[mvreg.id()].read().begin());
                 }
             }
         }
 
-        if (signal) {
-
-            //check what change is joined
-            if (nd.attrs() != nodes[mvreg.id()].read().begin()->attrs()) {
+        if (ok) {
+            if (signal) {
                 emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
-            } else if (nd != *nodes[mvreg.id()].read().begin()){
-                std::map<IDL::EdgeKey, Edge> diff_remove;
-                std::map<IDL::EdgeKey, Edge> diff_insert;
-
-                if (!newnd.fano().empty()) {
-                    std::set_difference(nd.fano().begin(), nd.fano().end(),
-                                        newnd.fano().begin(), newnd.fano().end(),
-                                        std::inserter(diff_remove, diff_remove.begin()));
-                }
-                if (!nd.fano().empty()) {
-                    std::set_difference(newnd.fano().begin(), newnd.fano().end(),
-                                        nd.fano().begin(), nd.fano().end(),
-                                        std::inserter(diff_insert, diff_insert.begin()));
-                    }
-
-                for (const auto &[k,v] : diff_remove)
-                        emit del_edge_signal(mvreg.id(), k.to(), k.type());
-
-                for (const auto &[k,v] : diff_insert) {
-                    emit update_edge_signal(mvreg.id(), k.to(), k.type());
-                }
+            } else {
+                emit del_node_signal(mvreg.id());
             }
-
-        }
-        else {
-            emit del_node_signal(mvreg.id());
         }
 
     } catch(const std::exception &e){
          std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
-         */
+
 }
 
 
 void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg)
-{}
+{
+    try{
+        bool signal = false, ok = false;
+        auto d = translateEdgeMvIDLtoCRDT(mvreg);
+        {
+            std::unique_lock<std::shared_mutex> lock(_mutex);
+
+            //Check if the node where we are joining the edge exist.
+            if (!nodes[mvreg.id()].read().empty()) {
+                ok = true;
+                auto n = *nodes[mvreg.id()].read().begin();
+                n.fano()[{mvreg.to(), mvreg.type()}].join(translateEdgeMvIDLtoCRDT(mvreg));
+
+                //Check if we are inserting or deleting.
+                if (mvreg.dk().ds().empty() or n.fano().find({mvreg.to(), mvreg.type()}) == n.fano().end()) { //Remove
+                    //Update maps
+                    update_maps_edge_delete(mvreg.from(), mvreg.to(), mvreg.type());
+                } else { //Insert
+                    signal = true;
+                    //Update maps
+                    for (auto &[k,v] : temp_edge_attr) {
+                        //TODO:
+                    }
+                    update_maps_edge_insert(mvreg.from(), mvreg.to(), mvreg.type());
+                }
+            }
+            else if (deleted.find(mvreg.id()) == deleted.end()) {
+                //If the node is not found but it is not deleted, we save de delta for later.
+                //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
+                temp_edge[{mvreg.from(), mvreg.to(), mvreg.type()}].join( translateEdgeMvIDLtoCRDT(mvreg));
+                //TODO: Change
+                if (temp_edge.find({mvreg.from(), mvreg.to(), mvreg.type()}) == temp_edge.end()) temp_edge.erase({mvreg.from(), mvreg.to(), mvreg.type()}); //Delete the mvreg if the edge is deleted.
+            }
+        }
+
+        if (ok) {
+            if (signal) {
+                emit update_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
+            } else {
+                emit del_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
+            }
+        }
+
+    } catch(const std::exception &e){
+        std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
+
+
+}
 
 
 void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg)
@@ -1176,7 +1230,7 @@ mvreg<Node, int> CRDTGraph::translateNodeMvIDLtoCRDT(IDL::Mvreg &data)
     // Dots
     std::map <pair<int, int>, N> ds_aux;
     for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = Node(std::move(v));
+        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
     // Join
     mvreg<N, int> aw = mvreg<N, int>(data.id());
     aw.dk.c = dotcontext_aux;
@@ -1185,7 +1239,7 @@ mvreg<Node, int> CRDTGraph::translateNodeMvIDLtoCRDT(IDL::Mvreg &data)
 }
 
 
-IDL::MvregEdgeAttr CRDTGraph::translateEdgeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data) {
+IDL::MvregEdgeAttr CRDTGraph::translateEdgeAttrMvCRDTtoIDL(int id, int from, int to,  const std::string& type, const std::string& attr, mvreg<Attribute, int> &data) {
     IDL::MvregEdgeAttr delta_crdt;
 
     for (auto &kv_dots : data.dk.ds) {
@@ -1207,6 +1261,9 @@ IDL::MvregEdgeAttr CRDTGraph::translateEdgeAttrMvCRDTtoIDL(int id, mvreg<Attribu
         delta_crdt.dk().cbase().dc().push_back(pi);
     }
     delta_crdt.id(id);
+    delta_crdt.attr_name(attr);
+    delta_crdt.from(from);
+    delta_crdt.to(to);
     delta_crdt.agent_id(agent_id);
     return delta_crdt;
 
@@ -1225,7 +1282,7 @@ mvreg<Attribute, int> CRDTGraph::translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr
     // Dots
     std::map <pair<int, int>, Attribute> ds_aux;
     for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = Attribute(std::move(v));
+        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
     // Join
     mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
     aw.dk.c = dotcontext_aux;
@@ -1233,7 +1290,7 @@ mvreg<Attribute, int> CRDTGraph::translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr
     return aw;
 }
 
-IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data) {
+IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data) {
     IDL::MvregNodeAttr delta_crdt;
 
     for (auto &kv_dots : data.dk.ds) {
@@ -1255,6 +1312,8 @@ IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, mvreg<Attribu
         delta_crdt.dk().cbase().dc().push_back(pi);
     }
     delta_crdt.id(id);
+    delta_crdt.attr_name(attr);
+    delta_crdt.node(node);
     delta_crdt.agent_id(agent_id);
     return delta_crdt;
 }
@@ -1272,7 +1331,7 @@ mvreg<Attribute, int> CRDTGraph::translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr
     // Dots
     std::map <pair<int, int>, Attribute> ds_aux;
     for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = Attribute(std::move(v));
+        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
     // Join
     mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
     aw.dk.c = dotcontext_aux;
@@ -1309,7 +1368,11 @@ IDL::MvregEdge CRDTGraph::translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &dat
         pi.first(kv_dots.first.first);
         pi.second(kv_dots.first.second);
 
-        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLEdge(id)));
+        auto edge = kv_dots.second.toIDLEdge(id);
+        delta_crdt.dk().ds().emplace(make_pair(pi, edge));
+        delta_crdt.from(edge.from());
+        delta_crdt.to(edge.to());
+        delta_crdt.type(edge.type());
     }
     pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
     for (auto &kv_cc : data.context().getCcDc().first){

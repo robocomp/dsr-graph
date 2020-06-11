@@ -470,8 +470,9 @@ namespace CRDT
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
         ///////////////////////////////////////////////////////////////////////////
-        std::unordered_map<int, Attribute> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
-        std::unordered_map<std::tuple<int, int, std::string>, Attribute, hash_tuple> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<std::pair<int, std::string>, mvreg<Attribute, int>, hash_tuple> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<std::tuple<int, int, std::string>, std::unordered_set<mvreg<Attribute, int>>, hash_tuple> temp_edge_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<std::tuple<int, int, std::string>, mvreg<Edge, int>, hash_tuple> temp_edge; //temporal storage for attributes to solve problems with unsorted messages.
 
         std::unordered_set<int> deleted;     // deleted nodes, used to avoid insertion after remove.
         std::unordered_map<string, int> name_map;     // mapping between name and id of nodes.
@@ -482,6 +483,7 @@ namespace CRDT
         void update_maps_node_delete(int id, const Node& n);
         void update_maps_node_insert(int id, const Node& n);
         void update_maps_edge_delete(int from, int to, const std::string& key);
+        void update_maps_edge_insert(int from, int to, const std::string& key);
 
 
 
@@ -493,10 +495,11 @@ namespace CRDT
         bool in(const int &id) const;
         std::optional<Node> get_(int id);
         std::optional<Edge> get_edge_(int from, int to, const std::string& key);
-        std::tuple<bool, std::optional<IDL::Mvreg>, std::optional<std::vector<IDL::MvregNodeAttr>>> insert_or_assign_node_(const N &node);
-        std::tuple<bool, vector<tuple<int, int, std::string>>, IDL::Mvreg, vector<IDL::MvregEdge>> delete_node_(int id);
-        std::pair<bool, std::optional<IDL::MvregEdge>> delete_edge_(int from, int t, const std::string& key);
-        std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> insert_or_assign_edge_(const Edge &attrs);
+        std::tuple<bool, std::optional<IDL::Mvreg>> insert_node_(const N &node);
+        std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> update_node_(const N &node);
+        std::tuple<bool, vector<tuple<int, int, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>> delete_node_(int id);
+        std::optional<IDL::MvregEdge> delete_edge_(int from, int t, const std::string& key);
+        std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> insert_or_assign_edge_(const Edge &attrs, int from, int to);
 
         //////////////////////////////////////////////////////////////////////////
         // Other methods
@@ -505,6 +508,14 @@ namespace CRDT
         IDL::DotContext context();
         std::map<int, IDL::Mvreg> Map();
 
+
+        static uint64_t get_unix_timestamp(const std::time_t* t = nullptr)
+        {
+            //if specific time is not passed then get current time
+            std::time_t st = t == nullptr ? std::time(nullptr) : *t;
+            auto secs = static_cast<std::chrono::seconds>(st).count();
+            return static_cast<uint64_t>(secs);
+        }
 
         template <typename T, typename = std::enable_if_t<node_or_edge<T>>>
         std::optional<Attrib> get_attrib_by_name_(const T& n, const std::string &key)
@@ -574,10 +585,10 @@ namespace CRDT
         IDL::MvregEdge translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &data);
         mvreg<Edge, int> translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data);
 
-        IDL::MvregNodeAttr translateNodeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data);
+        IDL::MvregNodeAttr translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data);
         mvreg<Attribute, int> translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr &data);
 
-        IDL::MvregEdgeAttr translateEdgeAttrMvCRDTtoIDL(int id, mvreg<Attribute, int> &data);
+        IDL::MvregEdgeAttr translateEdgeAttrMvCRDTtoIDL(int id, int from, int to, const std::string& type, const std::string& attr, mvreg<Attribute, int> &data);
         mvreg<Attribute, int> translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr &data);
 
         // RTSP participant
