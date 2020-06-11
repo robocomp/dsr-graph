@@ -55,19 +55,22 @@ void SpecificWorker::initialize(int period)
 	window.setLayout(&mainLayout);
 	setCentralWidget(&window);
     
-    this->Period = 100000;
+    this->Period = 100;
     timer.start(Period);
+    
 }
 
 void SpecificWorker::compute()
 {
+    if(auto pdata = people_data_buffer.get(); pdata.has_value())
+        process_people_data(pdata.value());
+
 }
 
-//SUBSCRIPTION to newPeopleData method from HumanToDSR interface
-void SpecificWorker::HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people)
+
+void SpecificWorker::process_people_data(RoboCompHumanToDSR::PeopleData people)
 {
     std::vector<float> zeros{0.0,0.0,0.0};
-
     std::optional<Node> world_n = G->get_node("world");
     if(not world_n.has_value())
         return;
@@ -79,10 +82,11 @@ void SpecificWorker::HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData peo
         if(person_n.has_value()) //update edges
         {
             qDebug()<<"update person:"<<person_n->id();
-            std::vector<float> values{person.x, person.y, person.z};
-            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), values, zeros);
-            std::cout << "Update RT "<<world_n->id()<<" "<<values<<std::endl;
-            for(const auto &[name, key] : person.joints) //update joints edge values
+            std::vector<float> trans{person.x, person.y, person.z};
+            std::vector<float> rot{0, person.ry, 0};
+            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
+            std::cout << "Update RT "<<world_n->id()<<" "<<trans<<rot<<std::endl;
+/*            for(const auto &[name, key] : person.joints) //update joints edge values
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
                 std::optional<Node> joint_n = G->get_node(node_name);
@@ -107,7 +111,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
                 }
                 else
                     qDebug()<<"node could not be reached"<< QString::fromStdString(node_name);
-            }
+            }*/
         }
         else //create nodes
         {
@@ -124,7 +128,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
             }
             //create edge with cannonical position
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), zeros, zeros);
-            for(std::string name : COCO_IDS)
+/*            for(std::string name : COCO_IDS)
             {
                 JOINT_CONNECTION joint = jointMap[name];
                 std::string parent_name = joint.parent_name + " [" + std::to_string(person.id) + "]";
@@ -135,9 +139,17 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
                     G->insert_or_assign_edge_RT(parent_n.value(), joint_n->id(), joint.translation, zeros);
                 else
                     qDebug()<<"Error adding edge_RT from"<<QString::fromStdString(parent_name)<<"to"<<QString::fromStdString(node_name);
-            }
+            }*/
         }
     }
+}
+
+
+
+//SUBSCRIPTION to newPeopleData method from HumanToDSR interface
+void SpecificWorker::HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people)
+{
+    people_data_buffer.put(std::move(people));
 }
 
 int SpecificWorker::get_new_node_id()

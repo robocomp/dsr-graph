@@ -29,6 +29,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include "doublebuffer/DoubleBuffer.h"
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include <QHBoxLayout>
@@ -36,30 +37,9 @@
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
-public:
-    std::string agent_name;
-    std::shared_ptr<CRDT::CRDTGraph> G;
-    std::unique_ptr<DSR::GraphViewer> graph_viewer;    
-    QHBoxLayout mainLayout;
-    QWidget window;
-    
-    
-	SpecificWorker(TuplePrx tprx, bool startup_check);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
-    void HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people);    
-
 private: 
-    int get_new_node_id();
-    std::optional<Node> create_node(std::string type, std::string name, int parent_id);
-    
-public slots:
-	void compute();
-	void initialize(int period);
-private:
-	std::shared_ptr<InnerModel> innerModel;
-    
+    std::unique_ptr<CRDT::InnerAPI> innermodel;
+
     int agent_id;
     std::string dsr_output_path;
     std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
@@ -91,31 +71,30 @@ private:
         {"right_knee", JOINT_CONNECTION{"right_hip",{0.0, -400.0, 0.0}}},
         {"right_ankle", JOINT_CONNECTION{"right_knee",{0.0, -400.0, 0.0}}}
     };
+    DoubleBuffer<RoboCompHumanToDSR::PeopleData, RoboCompHumanToDSR::PeopleData> people_data_buffer;
+public:
+    std::string agent_name;
+    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::unique_ptr<DSR::GraphViewer> graph_viewer;    
+    QHBoxLayout mainLayout;
+    QWidget window;
+    
+	SpecificWorker(TuplePrx tprx, bool startup_check);
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-    std::unique_ptr<CRDT::InnerAPI> innermodel;
+    void HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people);    
+
+private: 
+    int get_new_node_id();
+    std::optional<Node> create_node(std::string type, std::string name, int parent_idz);
+    void process_people_data(RoboCompHumanToDSR::PeopleData people);    
+    
+
+public slots:
+	void compute();
+	void initialize(int period);
+	    
 };
 
 #endif
-/*
-
-SKELETON_CONNECTIONS = [("left_ankle", "left_knee"),
-                        ("left_knee", "left_hip"),
-                        ("right_ankle", "right_knee"),
-                        ("right_knee", "right_hip"),
-                        ("left_hip", "right_hip"),
-                        ("left_shoulder", "left_hip"),
-                        ("right_shoulder", "right_hip"),
-                        ("left_shoulder", "right_shoulder"),
-                        ("left_shoulder", "left_elbow"),
-                        ("right_shoulder", "right_elbow"),
-                        ("left_elbow", "left_wrist"),
-                        ("right_elbow", "right_wrist"),
-                        ("left_eye", "right_eye"),
-                        ("nose", "left_eye"),
-                        ("nose", "right_eye"),
-                        ("left_eye", "left_ear"),
-                        ("right_eye", "right_ear"),
-                        ("left_ear", "left_shoulder"),
-                        ("right_ear", "right_shoulder")]
-
-*/
