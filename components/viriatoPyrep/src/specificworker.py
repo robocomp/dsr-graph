@@ -26,6 +26,7 @@ from os.path import dirname, join, abspath
 from pyrep import PyRep
 #from pyrep.robots.mobiles.viriato import Viriato
 from pyrep.robots.mobiles.viriato import Viriato
+from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
@@ -45,16 +46,17 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '/home/robocomp/software/vrep-simulator/viriato/alab-completo-nolaser-pyrep.ttt'
+        SCENE_FILE = '/home/robocomp/software/vrep-simulator/viriato/autonomy-lab.ttt'
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
         
         self.robot = Viriato()
+        
         self.robot_centre = Dummy("Viriato_intermediate_target_base")
-        self.camera = VisionSensor("real_sense_sensor")
-        camera_semi_angle = np.radians(self.camera.get_perspective_angle())/2 
-        self.cfocal = self.camera.get_resolution()[0]/2/np.tan(camera_semi_angle)
+        self.camera_head = VisionSensor("real_sense_sensor")
+        camera_semi_angle = np.radians(self.camera_head.get_perspective_angle())/2 
+        self.cfocal = self.camera_head.get_resolution()[0]/2/np.tan(camera_semi_angle)
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
@@ -65,13 +67,12 @@ class SpecificWorker(GenericWorker):
 
     #@QtCore.Slot()
     def compute(self):
-        
         while True:
             try:
                 #start = time.time()
                 self.pr.step()
-                self.image = self.camera.capture_rgb()
-                self.depth = self.camera.capture_depth(in_meters=True)
+                self.image = self.camera_head.capture_rgb()
+                self.depth = self.camera_head.capture_depth(in_meters=True)
                 # compute RGBDSimple
                 h, w, d = self.image.shape
                 self.timg = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=np.copy(self.image))
@@ -97,17 +98,7 @@ class SpecificWorker(GenericWorker):
                 # Move robot from data in joystick buffer
                 if not self.joy_queue.empty():
                     datos = self.joy_queue.get()
-                    adv = 0.
-                    rot = 0.
-                    side = 0.
-                    for x in datos.axes:
-                        if x.name == "advance" and np.abs(x.value)>0.25:
-                            adv = x.value
-                        if x.name=="rotate" and np.abs(x.value)>0.25:
-                            rot = x.value
-                        if x.name=="side" and np.abs(x.value)>0.25:
-                            side = x.value
-                    self.robot.set_base_angular_velocites([adv, side, rot])
+                    self.update_joystick(datos)
 
                 # Get and publish robot pose
                 pose = self.robot.get_2d_pose()
@@ -140,35 +131,33 @@ class SpecificWorker(GenericWorker):
             imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
             
             for i,d in enumerate(data.T):
-                z = d[0]
+                z = d[0]        # min if more than one row in depth image
                 vec = np.array([-(i-semiwidth)*z/focal, 0, z, 1])
                 res = imat.dot(vec)[:3]       # translate to robot's origin, homogeneous
-                res[2] = 0
                 c_data.append([np.arctan2(res[0], res[1]), np.linalg.norm(res)])  # add to list in polar coordinates
-                angle = np.arctan2(i-semiwidth, focal)
-                coor.append([angle , d[0]/np.abs(np.cos(angle))*1000, res])
         # create 360 polar rep
-        c_data_sorted = np.asarray(c_data)
-        #c_data_sorted = np.sort(np.array(c_data), axis=0)                     # sort local data by angle
+        c_data_np = np.asarray(c_data)
         angles = np.linspace(-np.pi, np.pi, 360)                              # create regular angular values
-        positions = np.searchsorted(angles, c_data_sorted[:,0])               # list of closest position for each laser meas
+        positions = np.searchsorted(angles, c_data_np[:,0])               # list of closest position for each laser meas
         ldata = [RoboCompLaser.TData(a, 0) for a in angles]                   # create empty 360 angle array
-        pos , medians  = npi.group_by(positions).median(c_data_sorted[:,1])   # group by repeated positions
+        pos , medians  = npi.group_by(positions).median(c_data_np[:,1])   # group by repeated positions
         for p, m in zip_longest(pos, medians):                                # fill the angles with measures                    
-            ldata[p].dist = int(m*1000)
-       
-        # for i,p in enumerate(positions):
-        #     print(p, angles[p], c_data_sorted[i], coor[i]) 
-        # print("------------")
-
-        # for i,p in enumerate(positions):
-        #     ldata[p].dist = int(c_data_sorted[i,1]*1000)
-        # new_data = []
-        # for i,d in enumerate(ldata):
-        #     new_data.append(RoboCompLaser.TData(ldata[-i].angle, d.dist))
-        # return new_data
+            ldata[p].dist = int(m*1000)                                       # to millimeters
         return ldata
     
+    def update_joystick(self, datos):
+        adv = 0.0
+        rot = 0.0
+        side = 0.0
+        for x in datos.axes:
+            if x.name == "advance" and np.abs(x.value)>100:
+                adv = x.value/10
+            if x.name=="rotate" and np.abs(x.value)>100:
+                rot = x.value/10
+            if x.name=="side" and np.abs(x.value)>100:
+                side = x.value/10
+        self.robot.set_base_angular_velocites([adv, side, rot])
+
     ##################################################################################
     #
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
