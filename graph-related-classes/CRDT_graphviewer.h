@@ -22,6 +22,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QListView>
+#include <QMenuBar>
 #include "CRDT.h"
 #include <typeinfo>
 #include <QDockWidget>
