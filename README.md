@@ -13,5 +13,5 @@ To install this component,
 
 * Install dependencies:
 ```
-sudo apt install libasio-dev/bionic libtinyxml2-dev/bionic
+sudo apt install libasio-dev libtinyxml2-dev libqglviewer-dev-qt5
 ```
