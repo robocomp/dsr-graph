@@ -40,11 +40,12 @@ namespace DSR
         public:
             QGraphicsScene scene;
         private:
+            std::vector<std::vector<float>> cube_positions = {{0.5,0.5,0.5}, {0.5, 0.5,-0.5}, {0.5, -0.5,0.5}, {0.5, -0.5, -0.5}, {-0.5, 0.5, 0.5}, {-0.5, 0.5, -0.5}, {-0.5, -0.5, 0.5}, {-0.5, -0.5, -0.5} };        
             std::shared_ptr<CRDT::CRDTGraph> G;
             std::unique_ptr<CRDT::InnerAPI> innermodel;      
             
             qreal m_scaleX, m_scaleY;
-            bool _pan;
+            bool _pan = false;
             int _panStartX, _panStartY;
 
             std::map<int, QGraphicsItem*> sceneMap;
@@ -68,11 +69,15 @@ namespace DSR
         private:
             void createGraph();
             void create_parent_list(std::int32_t node_id);
-            void add_or_assign_box(Node &node);
+            void get_2d_projection(std::string node_name, std::vector<int> size, QPolygon &polygon, int &zvalue);
+
+            void add_or_assign_plane(Node &node);
+            void add_or_assign_person(Node &node);
             void add_or_assign_mesh(Node &node);     
-            void add_or_assign_object(std::int32_t node_id, std::int32_t width, std::int32_t height, std::string node_name, std::string color, std::string filename);       
-            void add_scene_rect(std::int32_t node_id, std::int32_t width, std::int32_t height, QVec pose, std::string color, std::string texture);
-            void update_scene_rect_pose(std::int32_t node_id);
+            
+
+            
+            void update_scene_object_pose(std::int32_t node_id);
     };
 };
 #endif

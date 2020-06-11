@@ -4,6 +4,7 @@ using namespace DSR ;
 
 DSRtoGraphicsceneViewer::DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX, float scaleY, QGraphicsView *parent) : QGraphicsView(parent)
 {
+qDebug()<<"***************INIT DSRtoGraphicsceneViewer********************";
     G = G_;
     m_scaleX = scaleX;
     m_scaleY = scaleY;
@@ -22,12 +23,12 @@ DSRtoGraphicsceneViewer::DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph
 	
  	setMouseTracking(true);
     this->viewport()->setMouseTracking(true);
-
+//REMOVE WHEN NOT NEEDED
     //center position
     scene.addRect(-100, -100, 200, 200, QPen(QColor("black")),QBrush(QColor("black")));
     //edge => x red, z (y) blue
-    scene.addRect(-3000, -3000, 1000, 30, QPen(QColor("red")),QBrush(QColor("red")));
-    scene.addRect(-3000, -3000, 30, 1000, QPen(QColor("blue")),QBrush(QColor("blue")));
+    scene.addRect(-5000, -5000, 1000, 30, QPen(QColor("red")),QBrush(QColor("red")));
+    scene.addRect(-5000, -5000, 30, 1000, QPen(QColor("blue")),QBrush(QColor("blue")));
 
     //initial graph
     createGraph();
@@ -70,94 +71,75 @@ qDebug()<<"*************************";
 std::cout << node.value().name() << " " << node.value().id() << std::endl;
     if(node.has_value())
     { 
+//maybe we could check wich nodes must be drawn
+
         if( type == "plane" )
-            add_or_assign_box(node.value());
+            add_or_assign_plane(node.value());
         if( type == "mesh")
             add_or_assign_mesh(node.value());
+        if( type == "person")
+            add_or_assign_person(node.value());
     }
 }
 void DSRtoGraphicsceneViewer::add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type)
 {
-qDebug() << __FUNCTION__ ;
-std::cout << "******UPDATE EDGE "<<from << " " << to << std::endl;
     std::string edge_key = std::to_string(from) + "_" + std::to_string(to);
     for (int node_id : edgeMap[edge_key])
     {
-std::cout<<"update node " << node_id<<std::endl;
-        update_scene_rect_pose(node_id);
+std::cout << "******UPDATE EDGE "<<from << " " << to <<" update node " << node_id<<std::endl;
+        update_scene_object_pose(node_id);
     }
 }
 
-void DSRtoGraphicsceneViewer::add_or_assign_box(Node &node)
+//Compute 2d projection and zvalue
+void DSRtoGraphicsceneViewer::get_2d_projection(std::string node_name, std::vector<int> size, QPolygon &polygon, int &zvalue)
+{
+    QVector<QPoint> polygon_vec;
+    zvalue = -99999;
+    //transform cube points
+    std::optional<RTMat> rt = innermodel->getTransformationMatrixS("world", node_name);
+    if (rt.has_value())
+    {
+        for (unsigned int i=0;i< cube_positions.size();i++)
+        {
+            QVec vec = rt.value() * QVec::vec4(size[0]*cube_positions[i][0], size[1]*cube_positions[i][1], size[2]*cube_positions[i][2], 1.0 );
+            polygon_vec.append(QPoint(vec[0], vec[2]));
+            if (zvalue < vec[1])
+                zvalue = vec[1];
+        }
+    }
+    else
+    {
+        qDebug()<<"Error gettting transformation matrix for node:"<<QString::fromStdString(node_name);   
+    }
+    polygon = QPolygon(polygon_vec);
+} 
+
+
+void DSRtoGraphicsceneViewer::add_or_assign_plane(Node &node)
 {
 qDebug() << "********************************";
 qDebug() << __FUNCTION__ ;
     std::string color = G->get_attrib_by_name<std::string>(node, "color").value_or("orange");
-    std::string filename = G->get_attrib_by_name<std::string>(node, "texture").value_or("");
-    auto width = G->get_attrib_by_name<std::int32_t>(node, "width");
-    auto height = G->get_attrib_by_name<std::int32_t>(node, "height");
+    std::string texture = G->get_attrib_by_name<std::string>(node, "texture").value_or("");
+    int width = G->get_attrib_by_name<std::int32_t>(node, "width").value_or(0);
+    int height = G->get_attrib_by_name<std::int32_t>(node, "height").value_or(0);
+    int depth = G->get_attrib_by_name<std::int32_t>(node, "depth").value_or(0);
 
-
-    if(width.has_value()) std::cout << "width:" << width.value() << std::endl;    
-    if(height.has_value()) std::cout << "height: " << height.value() << std::endl;
-
-
-    //check if has required values
-    if(width.has_value() and height.has_value())
-    {
-        add_or_assign_object(node.id(), width.value(), height.value(), node.name(), color, filename); 
-    }
-    else
-    {
-        std::cout<<"Error drawing "<< node << " width or height required attribs has no value"<<std::endl;
-    }
-}
-
-void  DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node)
-{   
-qDebug() << "********************************";
-qDebug() << __FUNCTION__ ;
-    std::string color = G->get_attrib_by_name<std::string>(node, "color").value_or("orange");
-    std::string filename = G->get_attrib_by_name<std::string>(node, "path").value_or("");
-    auto scalex = G->get_attrib_by_name<std::int32_t>(node, "scalex");
-    auto scaley = G->get_attrib_by_name<std::int32_t>(node, "scaley");
-    auto scalez = G->get_attrib_by_name<std::int32_t>(node, "scalez");
-
-    if(scalex.has_value()) std::cout << scalex.value() << std::endl;
-    if(scaley.has_value()) std::cout << scaley.value() << std::endl;
-    if(scalez.has_value()) std::cout << scalez.value() << std::endl;
-
-     //check if has required values
-    if(scalex.has_value() and scaley.has_value() and scalez.has_value())
-    {
-        add_or_assign_object(node.id(), scalex.value(), scalez.value(), node.name(), color, filename);
-    }
-    else
-    {
-        std::cout<<"Error drawing "<< node << " scalex, scaley or scalez required attribs has no value"<<std::endl;
-    }
-}
-
-void  DSRtoGraphicsceneViewer::add_or_assign_object(std::int32_t node_id, std::int32_t width, std::int32_t height, std::string node_name, std::string color, std::string filename)
-{
-    // get transfrom to world => to get correct position
-    std::optional<QVec> pose = innermodel->transformS6D("world", node_name);
-    if (pose.has_value())
-    {
-pose.value().print(QString::fromStdString(node_name));
-
-        add_scene_rect(node_id, width, height, pose.value(), color, filename);
-//qDebug()<<"Node"<<QString::fromStdString(node_name)<<"zvalue"<<pose.value().y();
-    }
-    else
-    {
-        qDebug()<<"Error gettion tranformation from node"<<QString::fromStdString(node_name)<<"to world";
-    }
+    qDebug()<<"Draw plane"<<QString::fromStdString(node.name())<<"("<<width<<","<<height<<","<<depth<<")";
     
-}
+    QPolygon polygon;
+    int zvalue;
+    get_2d_projection(node.name(), {width, height, depth}, polygon, zvalue);
+    QRect rect = QPolygon(polygon).boundingRect();
 
-void DSRtoGraphicsceneViewer::add_scene_rect(std::int32_t node_id, std::int32_t width, std::int32_t height, QVec pose, std::string color, std::string texture)
-{
+    //minimum size
+    if(rect.width() < 100)
+        rect.setWidth(100);
+    if(rect.height() < 100)
+        rect.setHeight(100);
+
+    //texture
     QBrush brush = QBrush(QColor(QString::fromStdString(color)));
     if (texture != "")
     {
@@ -166,31 +148,86 @@ void DSRtoGraphicsceneViewer::add_scene_rect(std::int32_t node_id, std::int32_t 
         else
             brush = QBrush(QColor(QString::fromStdString(texture)));
     }
+    
     QGraphicsRectItem * sceneRect;
-    if (sceneMap.find(node_id) == sceneMap.end())
+    if (sceneMap.find(node.id()) == sceneMap.end())
     {
-//        sceneRect = scene.addRect(pose.x()-width/2 , pose.z() - height/2, width, height, QPen(QString::fromStdString(color)), brush);
-        sceneRect = scene.addRect(0, 0, width, height, QPen(QString::fromStdString(color)), brush);
-      //  sceneRect->setTransformOriginPoint(sceneRect->boundingRect().center());    
-
-        sceneMap[node_id] = (QGraphicsItem*) sceneRect;
-        create_parent_list(node_id);
+        sceneRect = scene.addRect(rect, QPen(QString::fromStdString(color)), brush);
+        sceneMap[node.id()] = (QGraphicsItem*) sceneRect;
+        create_parent_list(node.id());
     }
     else
     {
-        sceneRect = (QGraphicsRectItem*) sceneMap[node_id];
+        sceneRect = (QGraphicsRectItem*) sceneMap[node.id()];
+        sceneRect->setRect(rect);
     }
-    sceneRect->setRect(pose.x()-width/2 , pose.z() - height/2, width, height);
-    sceneRect->setPos(pose.x(), pose.z());
-    sceneRect->setRotation(pose.ry()*180/M_PI);
-    sceneRect->setZValue(pose.y());
-    sceneRect->setBrush(brush);
+
+    sceneRect->setZValue(zvalue);
+
 }
 
+void  DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node)
+{   
+qDebug() << "********************************";
+qDebug() << __FUNCTION__ ;
+    std::string color = G->get_attrib_by_name<std::string>(node, "color").value_or("orange");
+    std::string filename = G->get_attrib_by_name<std::string>(node, "path").value_or("");
+    int scalex = G->get_attrib_by_name<std::int32_t>(node, "scalex").value_or(0);
+    int scaley = G->get_attrib_by_name<std::int32_t>(node, "scaley").value_or(0);
+    int scalez = G->get_attrib_by_name<std::int32_t>(node, "scalez").value_or(0);
+
+    qDebug()<<"Draw mesh"<<QString::fromStdString(node.name())<<"("<<scalex<<","<<scaley<<","<<scalez<<")";
+
+
+
+
+}
+
+void  DSRtoGraphicsceneViewer::add_or_assign_person(Node &node)
+{   
+qDebug() << "********************************";
+qDebug() << __FUNCTION__ ;
+    std::optional<QVec> pose;
+    try
+    {
+        pose = innermodel->transformS6D("world", node.name());
+    }catch(...){}
+    if (pose.has_value())
+    {
+pose.value().print(QString::fromStdString(node.name()));
+
+        //check if person already exists
+        QGraphicsPixmapItem * scenePixmap;
+        if (sceneMap.find(node.id()) == sceneMap.end())
+        {
+            QPixmap pixmap = QPixmap::fromImage(QImage("/home/robocomp/robocomp/components/robocomp-tests/elasticpath/src/person.png")).scaled(600,300);
+            scenePixmap = scene.addPixmap(pixmap);
+            scenePixmap->setZValue(pose.value().y());
+            scenePixmap->setPos(pose.value().x() - 300,  pose.value().z() - 150);
+            scenePixmap->setRotation(pose.value().ry());
+            sceneMap[node.id()] = (QGraphicsItem*) scenePixmap;
+            create_parent_list(node.id());
+        }
+        else
+        {
+            scenePixmap = (QGraphicsPixmapItem*) sceneMap[node.id()];
+            scenePixmap->setPos(pose.value().x() - 300, pose.value().z() - 150);
+qDebug()<<"angle"<<pose.value().ry()<<qRadiansToDegrees(pose.value().ry());
+            scenePixmap->setRotation(-qRadiansToDegrees(pose.value().ry())+180);
+        }
+    
+    }
+    else
+    {
+        qDebug()<<"Error gettion tranformation from person"<<QString::fromStdString(node.name())<<"to world";
+    }
+
+
+}
 
 void DSRtoGraphicsceneViewer::create_parent_list(std::int32_t node_id)
 {
-
+try{
     auto node = G->get_node(node_id);
     int parent_id;
     int actual_id = node_id;
@@ -202,31 +239,36 @@ void DSRtoGraphicsceneViewer::create_parent_list(std::int32_t node_id)
         edgeMap[edge_name].push_back(node_id);
         actual_id = parent_id;
         node = G->get_node(actual_id);
-
-//std::cout<<edge_name<<" ";
     }while(node.value().type() != "world");
 
-//std::cout<<std::endl;
-    
+
+}catch(...){}
 }
 
 
-void DSRtoGraphicsceneViewer::update_scene_rect_pose(std::int32_t node_id)
+//update pose on edge changes
+void DSRtoGraphicsceneViewer::update_scene_object_pose(std::int32_t node_id)
 {
 std::cout << "*************UPDATE NODE ******" << node_id<<std::endl;
     auto node = G->get_node(node_id);
     if (node.has_value())
     {
-        std::optional<QVec> pose = innermodel->transformS6D("world", node.value().name());
+        QGraphicsItem *item = sceneMap[node_id];
+        std::optional<QVec> pose;
+        try
+        {
+            pose = innermodel->transformS6D("world", node.value().name());
+        }catch(...){};
         if (pose.has_value())
         {
-    pose.value().print(QString::fromStdString(node.value().name()));
-
-            auto item = sceneMap[node_id];
-            item->setPos(pose.value().x(), pose.value().z());
-            item->setRotation(pose.value().ry()*180/M_PI);
-            item->setZValue(pose.value().y());
+            item->setPos(pose.value().x() - item->boundingRect().center().x(), pose.value().z() - item->boundingRect().center().y());
+            item->setRotation(qRadiansToDegrees(pose.value().ry())+180);
         }
+        else   
+        {
+            qDebug()<<"Error gettion tranformation from person"<<QString::fromStdString(node.value().name())<<"to world";
+        }
+
     }
 }
 /*
