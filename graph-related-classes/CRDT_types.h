@@ -45,7 +45,9 @@ namespace CRDT {
 
             ~Value()= default;
 
-            explicit Value(IDL::Val &&x)
+
+
+            Value(IDL::Val &&x)
             {
 
                 switch(x._d())
@@ -71,6 +73,14 @@ namespace CRDT {
                     default:
                         break;
                 }
+            }
+
+            Value(std::vector<float> && float_vec) {
+                val = std::move(float_vec);
+            }
+
+            Value(const std::vector<float> & float_vec) {
+                std::copy(float_vec.begin(), float_vec.end(), val);
             }
 
             Value& operator=(const Value &x)
@@ -335,7 +345,7 @@ namespace CRDT {
         ~Attribute()= default;
 
 
-        explicit Attribute(IDL::Attrib &&x)
+        Attribute(IDL::Attrib &&x)
         {
             m_type = x.type();
             m_timestamp = x.timestamp();
@@ -477,7 +487,6 @@ namespace CRDT {
     };
 
 
-
     class Edge {
         public:
 
@@ -493,10 +502,10 @@ namespace CRDT {
 
             ~Edge()  = default;
 
-            explicit Edge(IDL::MvregEdge &&x)
+            Edge(IDL::MvregEdge &&x)
             {
                 m_to = x.to();
-                m_type = std::to_string(x.type());
+                m_type = x.type();
                 m_from = x.from();
 
                 if (!x.dk().ds().empty()) {
@@ -702,12 +711,12 @@ namespace CRDT {
 
             ~Node()= default;
 
-            explicit Node(const Node &x)
+            Node(const Node &x)
             {
                 *this = x;
             }
 
-            explicit Node(Node &&x)
+            Node(Node &&x)
             {
                 m_type = std::move(x.type());
                 m_name = std::move(x.name());
@@ -718,7 +727,7 @@ namespace CRDT {
 
             }
 
-            explicit Node(IDL::Node &&x)
+            Node(IDL::Node &&x)
             {
                 m_type = std::move(x.type());
                 m_name = std::move(x.name());
@@ -897,15 +906,16 @@ namespace CRDT {
                 m_fano = std::move(_fano);
             }
 
-            const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> & fano() const
+            std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash>& fano()
             {
                 return m_fano;
             }
 
-            std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> & fano()
+            const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash>& fano() const
             {
                 return m_fano;
             }
+
 
             [[nodiscard]] IDL::Node toIDLNode(int id)
             {
