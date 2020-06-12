@@ -18,6 +18,7 @@
 #define DSR_TO_GRAPHCISCENE_VIEWER_H
 
 #include "CRDT.h"
+#include "_abstract_graphic_view.h"
 
 #include <math.h>
 #include <filesystem>
@@ -31,40 +32,30 @@
 #include <QScrollBar>
 
 
+
 namespace DSR
 {
 
-    class DSRtoGraphicsceneViewer : public QGraphicsView
+    class DSRtoGraphicsceneViewer : public AbstractGraphicViewer
     {
         Q_OBJECT
-        public:
-            QGraphicsScene scene;
+
         private:
             std::vector<std::vector<float>> cube_positions = {{0.5,0.5,0.5}, {0.5, 0.5,-0.5}, {0.5, -0.5,0.5}, {0.5, -0.5, -0.5}, {-0.5, 0.5, 0.5}, {-0.5, 0.5, -0.5}, {-0.5, -0.5, 0.5}, {-0.5, -0.5, -0.5} };        
             std::shared_ptr<CRDT::CRDTGraph> G;
-            std::unique_ptr<CRDT::InnerAPI> innermodel;      
-            
-            qreal m_scaleX, m_scaleY;
-            bool _pan = false;
-            int _panStartX, _panStartY;
+            std::unique_ptr<CRDT::InnerAPI> innermodel;
 
             std::map<int, QGraphicsItem*> sceneMap;
             std::map<std::string,std::vector<int>> edgeMap;
 
         public:
-            DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX, float scaleY, QGraphicsView *parent=0);
+            DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent=0);
 
 
         public slots:   // From G
             void add_or_assign_node_slot(const std::int32_t id, const std::string &type);
             void add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type);
-            
-        protected:  
-            virtual void wheelEvent(QWheelEvent* event);
-            virtual void mouseMoveEvent(QMouseEvent *event);
-            virtual void mousePressEvent(QMouseEvent *event);
-            virtual void mouseReleaseEvent(QMouseEvent *event);
-            virtual void resizeEvent(QResizeEvent *event);
+
 
         private:
             void createGraph();
