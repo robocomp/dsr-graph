@@ -232,28 +232,27 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
 
 void DSRtoGraphViewer::wheelEvent(QWheelEvent* event)
 {
-    const QGraphicsView::ViewportAnchor anchor = transformationAnchor();
-	setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	int angle = event->angleDelta().y();
 	qreal factor;
-	if (angle > 0) 
+	if (event->angleDelta().y() > 0)
 	{
 		factor = 1.1;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
+
 	}
 	else
 	{
 		factor = 0.9;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
+
 	}
+	auto view_pos = event->pos();
+	auto scene_pos = this->mapToScene(view_pos);
+	this->centerOn(scene_pos);
 	this->scale(factor, factor);
-	this->setTransformationAnchor(anchor);
+	auto delta = this->mapToScene(view_pos) - this->mapToScene(this->viewport()->rect().center());
+	this->centerOn(scene_pos - delta);
 }
 
 void DSRtoGraphViewer::resizeEvent(QResizeEvent *e)
 {  
 //	qDebug() << "resize_graph_view" << x() << y()<<e->size(); 
-	this->resize(e->size());
+	QGraphicsView::resizeEvent(e);
 } 
