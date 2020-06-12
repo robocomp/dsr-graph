@@ -76,7 +76,7 @@ GraphViewer::GraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, std::list<View> op
 
 	//2D
 	QDockWidget *scene_widget = new QDockWidget("2D");
-	dsr_to_graphicscene_viewer = std::make_unique<DSR::DSRtoGraphicsceneViewer>(G, 1, 1);
+	dsr_to_graphicscene_viewer = std::make_unique<DSR::DSRtoGraphicsceneViewer>(G);
 	scene_widget->setWidget(dsr_to_graphicscene_viewer.get());
 	this->addDockWidget(Qt::RightDockWidgetArea, scene_widget);
 	this->tabifyDockWidget(tree_widget, scene_widget);

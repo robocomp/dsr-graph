@@ -8,24 +8,11 @@
 
 using namespace DSR ;
 
-DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent) :  QGraphicsView(parent)
+DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent) :  AbstractGraphicViewer(parent)
 {
     qRegisterMetaType<std::int32_t>("std::int32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
-    scene.setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene.setSceneRect(-200, -200, 400, 400);
-	this->setScene(&scene);
-    this->setCacheMode(QGraphicsView::CacheBackground);
-	this->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-	this->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-	this->setRenderHint(QPainter::Antialiasing);
-	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	this->setMinimumSize(400, 400);
-	this->fitInView(scene.sceneRect(), Qt::KeepAspectRatio );
-	this->adjustSize();
- 	setMouseTracking(true);
-    this->viewport()->setMouseTracking(true);
 
     createGraph();
 
@@ -223,36 +210,3 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
 // 	}
 // 	catch(const std::exception &e){ std::cout << "Exception: " << e.what() << " pos_x and pos_y attribs not found in node "  << id << std::endl;};
 //  }
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-///// EVENTS
-//////////////////////////////////////////////////////////////////////////////////////
-
-void DSRtoGraphViewer::wheelEvent(QWheelEvent* event)
-{
-	qreal factor;
-	if (event->angleDelta().y() > 0)
-	{
-		factor = 1.1;
-
-	}
-	else
-	{
-		factor = 0.9;
-
-	}
-	auto view_pos = event->pos();
-	auto scene_pos = this->mapToScene(view_pos);
-	this->centerOn(scene_pos);
-	this->scale(factor, factor);
-	auto delta = this->mapToScene(view_pos) - this->mapToScene(this->viewport()->rect().center());
-	this->centerOn(scene_pos - delta);
-}
-
-void DSRtoGraphViewer::resizeEvent(QResizeEvent *e)
-{  
-//	qDebug() << "resize_graph_view" << x() << y()<<e->size(); 
-	QGraphicsView::resizeEvent(e);
-} 
