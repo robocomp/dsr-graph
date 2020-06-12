@@ -97,7 +97,7 @@ std::optional<Node> CRDTGraph::get_node(int id)
 
 
 
-std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const N &node)
+std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const Node &node)
 {
     if (deleted.find(node.id()) == deleted.end()) {
         if (!nodes[node.id()].read().empty() and *nodes[node.id()].read().begin() == node){
@@ -141,7 +141,7 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
 
 
 
-std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::update_node_(const N &node)
+std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::update_node_(const Node &node)
 {
     if (deleted.find(node.id()) == deleted.end()) {
         if (!nodes[node.id()].read().empty()){
@@ -181,7 +181,7 @@ bool CRDTGraph::update_node(N &node)
     }
     if (r) {
          if (vec_node_attr.has_value()){
-            for (const auto &v: vec_node_attr.value())
+            for (auto &v: vec_node_attr.value())
                 dsrpub_node_attrs.write(&v);
 
             emit update_node_signal(node.id(), node.type());
@@ -354,7 +354,6 @@ std::optional<Edge> CRDTGraph::get_edge(int from, int to, const std::string &key
 std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> CRDTGraph::insert_or_assign_edge_(const Edge& attrs, int from, int to)
 {
 
-    bool r = false;
     std::optional<IDL::MvregEdge> delta_edge;
     std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
 
@@ -440,10 +439,9 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
         {
             Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             Attribute tr; tr.type(3); tr.val(Value(std::move(trans))); tr.timestamp(get_unix_timestamp());
-            Attribute rot; tr.type(3); rot.val(Value(std::move(rot_euler))); tr.timestamp(get_unix_timestamp());
-            e.attrs().insert_or_assign("rotation_euler_xyz", rot);
-            e.attrs().insert_or_assign("translation", tr);
-
+            Attribute rot; rot.type(3); rot.val(Value(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
+            e.attrs()["rotation_euler_xyz"].write(rot);
+            e.attrs()["translation"].write(tr);
 
             to_n = get_(to).value();
             bool res1 = modify_attrib(to_n.value(), "parent", n.id());
@@ -454,6 +452,7 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
             //Check if RT edge exist.
             if (n.fano().find({to, "RT"}) == n.fano().end()) {
                 //Create -> from: IDL::MvregEdge, to: vector<IDL::MvregNodeAttr>
+
                 std::tie(r1, node1_insert, std::ignore) = insert_or_assign_edge_(e, n.id(), to);
                 std::tie(r2,  node2) = update_node_(to_n.value());
 
@@ -509,8 +508,8 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
             Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             Attribute tr; tr.type(3); tr.val(Value(trans)); tr.timestamp(get_unix_timestamp());
             Attribute rot; tr.type(3); rot.val(Value(rot_euler)); tr.timestamp(get_unix_timestamp());
-            e.attrs().insert_or_assign("rotation_euler_xyz", rot);
-            e.attrs().insert_or_assign("translation", tr);
+            e.attrs()["rotation_euler_xyz"].write(rot);
+            e.attrs()["translation"].write(tr);
 
 
             to_n = get_(to).value();
@@ -601,7 +600,6 @@ bool CRDTGraph::delete_edge(const std::string& from, const std::string& to, cons
     std::optional<int> id_from = {};
     std::optional<int> id_to = {};
     std::optional<IDL::MvregEdge> delta;
-    bool result = false;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         id_from = get_id_from_name(from);
@@ -664,11 +662,18 @@ std::vector<Edge> CRDTGraph::get_edges_to_id(int id) {
     return edges_;
 }
 
-std::optional<std::unordered_map<std::pair<int, std::string>, mvreg<Edge, int>,pair_hash>> CRDTGraph::get_edges(int id)
+std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> CRDTGraph::get_edges(int id)
 {
-
+    std::unordered_map<std::pair<int, std::string>, Edge,pair_hash> pa;
+    std::shared_lock<std::shared_mutex>  lock(_mutex);
     std::optional<Node> n = get_node(id);
-    return n.has_value() ?  make_optional(n.value().fano()) : std::nullopt;
+    if (n.has_value()) {
+       for (auto & [k,v] : n.value().fano()) {
+           pa.emplace(make_pair(k, v.read_reg()));
+       }
+       return pa;
+    }
+    return  std::nullopt;
 
 };
 
@@ -871,10 +876,32 @@ void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg)
                 nodes[mvreg.id()].join(d);
                 if (nodes[mvreg.id()].read().empty() or mvreg.dk().ds().empty()) {
                     std::cout << "JOIN REMOVE" << std::endl;
+                    //Delete all nodes and attributes received out of order
+                    temp_edge.erase(mvreg.id());
+                    temp_node_attr.erase(mvreg.id());
+                    //Update Maps
                     update_maps_node_delete(mvreg.id(), nd);
                 } else {
                     std::cout << "JOIN INSERT" << std::endl;
                     signal = true;
+                    //We have to consume all unordered delta edges for this node. Normally there won't be any.
+                    for (auto &[k,v] : temp_edge[mvreg.id()]) {
+                        nodes[mvreg.id()].read_reg().fano()[{std::get<1>(k), std::get<2>(k)}].join(v);
+                        if (nodes[mvreg.id()].read_reg().fano()[{std::get<1>(k), std::get<2>(k)}].read().empty()) {
+                            nodes[mvreg.id()].read_reg().fano().erase({std::get<1>(k), std::get<2>(k)});
+                        }
+                        temp_edge[mvreg.id()].erase(k);
+                    }
+
+                    //We have to consume all unordered delta attributes for this node. Normally there won't be any.
+                    for (auto &[k,v] : temp_node_attr[mvreg.id()]) {
+                        nodes[mvreg.id()].read_reg().attrs()[k].join(v);
+                        if (nodes[mvreg.id()].read_reg().attrs()[k].read().empty()) {
+                            nodes[mvreg.id()].read_reg().attrs().erase(k);
+                        }
+                        temp_node_attr[mvreg.id()].erase(k);
+                    }
+
                     update_maps_node_insert(mvreg.id(), *nodes[mvreg.id()].read().begin());
                 }
             }
@@ -905,28 +932,50 @@ void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg)
             //Check if the node where we are joining the edge exist.
             if (!nodes[mvreg.id()].read().empty()) {
                 ok = true;
-                auto n = *nodes[mvreg.id()].read().begin();
-                n.fano()[{mvreg.to(), mvreg.type()}].join(translateEdgeMvIDLtoCRDT(mvreg));
+                auto& n = nodes[mvreg.id()].read_reg();
+                n.fano()[{mvreg.to(), mvreg.type()}].join(d);
 
                 //Check if we are inserting or deleting.
                 if (mvreg.dk().ds().empty() or n.fano().find({mvreg.to(), mvreg.type()}) == n.fano().end()) { //Remove
+                    //Delete received items out of order
+                    temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                     //Update maps
                     update_maps_edge_delete(mvreg.from(), mvreg.to(), mvreg.type());
                 } else { //Insert
                     signal = true;
-                    //Update maps
-                    for (auto &[k,v] : temp_edge_attr) {
-                        //TODO:
+
+                    //We have to consume all unordered delta attributes for this edge. Normally there won't be any.
+                    for (auto &[k,v] : temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}]) {
+                        n.fano()[{mvreg.to(), mvreg.type()}].read_reg().attrs()[k].join(v);
+                        if (n.fano()[{mvreg.to(), mvreg.type()}].read_reg().attrs()[k].read().empty()) {
+                            n.fano()[{mvreg.to(), mvreg.type()}].read_reg().attrs().erase(k);
+                        }
+                        temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(k);
                     }
+                    //Update maps
                     update_maps_edge_insert(mvreg.from(), mvreg.to(), mvreg.type());
                 }
             }
             else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
-                temp_edge[{mvreg.from(), mvreg.to(), mvreg.type()}].join( translateEdgeMvIDLtoCRDT(mvreg));
-                //TODO: Change
-                if (temp_edge.find({mvreg.from(), mvreg.to(), mvreg.type()}) == temp_edge.end()) temp_edge.erase({mvreg.from(), mvreg.to(), mvreg.type()}); //Delete the mvreg if the edge is deleted.
+                temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].join( d);
+
+                //If we are deleting the edge
+                if (temp_edge[mvreg.from()].find({mvreg.from(), mvreg.to(), mvreg.type()}) == temp_edge[mvreg.from()].end()) {
+                    temp_edge[mvreg.from()].erase({mvreg.from(), mvreg.to(), mvreg.type()}); //Delete the mvreg if the edge is deleted.
+                    if (temp_edge[mvreg.id()].empty())  { temp_edge.erase(mvreg.id()); }
+                    temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
+                } else {
+                    //Consume al attributes
+                    for (auto &[k, v] : temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}]) {
+                        temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].read_reg().attrs()[k].join(v);
+                        if (temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].read_reg().attrs()[k].read().empty()) {
+                            temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].read_reg().attrs().erase(k);
+                        }
+                        temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(k);
+                    }
+                }
             }
         }
 
@@ -946,15 +995,109 @@ void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg)
 
 
 void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg)
-{}
+{
+
+    try{
+        bool signal = false, ok = false;
+        auto d = translateNodeAttrMvIDLtoCRDT(mvreg);
+        {
+            std::unique_lock<std::shared_mutex> lock(_mutex);
+            //Check if the node where we are joining the edge exist.
+            if (!nodes[mvreg.id()].read().empty()) {
+                ok = true;
+                auto& n = nodes[mvreg.id()].read_reg();
+                n.attrs()[mvreg.attr_name()].join(d);
+
+                //Check if we are inserting or deleting.
+                if (mvreg.dk().ds().empty() or n.attrs().find(mvreg.attr_name()) == n.attrs().end()) { //Remove
+                    n.attrs().erase(mvreg.attr_name());
+                    //Update maps
+                    update_maps_node_insert(mvreg.id(), n);
+                } else { //Insert
+                    signal = true;
+                    //Update maps
+                    update_maps_node_insert(mvreg.id(), n);
+                }
+            }
+            else if (deleted.find(mvreg.id()) == deleted.end()) {
+                //If the node is not found but it is not deleted, we save de delta for later.
+                //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
+                temp_node_attr[mvreg.id()][mvreg.attr_name()].join( d);
+
+                //If we are deleting the edge
+                if (temp_node_attr[mvreg.id()].find(mvreg.attr_name()) == temp_node_attr[mvreg.id()].end()) {
+                    temp_node_attr[mvreg.id()].erase(mvreg.attr_name()); //Delete the mvreg if the edge is deleted.
+                    if (temp_node_attr[mvreg.id()].empty())  { temp_node_attr.erase(mvreg.id()); }
+                }
+            }
+        }
+
+        if (ok) {
+            if (signal) {
+                emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
+            }
+        }
+
+    } catch(const std::exception &e){
+        std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
+
+
+
+}
 
 
 void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg)
-{}
+{
+    try{
+        bool signal = false, ok = false;
+        auto d = translateEdgeAttrMvIDLtoCRDT(mvreg);
+        {
+            std::unique_lock<std::shared_mutex> lock(_mutex);
+            //Check if the node where we are joining the edge exist.
+            if (!nodes[mvreg.id()].read().empty() and !nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read().empty()) {
+                ok = true;
+                auto& n = nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read_reg();
+                n.attrs()[mvreg.attr_name()].join(d);
+
+                //Check if we are inserting or deleting.
+                if (mvreg.dk().ds().empty() or n.attrs().find(mvreg.attr_name()) == n.attrs().end()) { //Remove
+                    n.attrs().erase(mvreg.attr_name());
+                    //Update maps
+                    update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
+                } else { //Insert
+                    signal = true;
+                    //Update maps
+                    update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
+                }
+            }
+            else if (deleted.find(mvreg.id()) == deleted.end()) {
+                //If the node is not found but it is not deleted, we save de delta for later.
+                //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
+                temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}][mvreg.attr_name()].join( d);
+
+                //If we are deleting the edge
+                if (temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].find(mvreg.attr_name()) == temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].end()) {
+                    temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(mvreg.attr_name()); //Delete the mvreg if the edge is deleted.
+                    if (temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].empty())  { temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()}); }
+                }
+            }
+        }
+
+        if (ok) {
+            if (signal) {
+                emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
+            }
+        }
+
+    } catch(const std::exception &e){
+        std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
+
+
+}
 
 void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
 {
-    /*
+
     vector<tuple<bool, int, std::string, Node>> updates;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -970,17 +1113,37 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
 
             if (deleted.find(k) == deleted.end()) {
                 nodes[k].join(mv);
-                if (mv.read().empty()) {
+                if (mv.read().empty() or nodes[k].read().empty()) {
                     update_maps_node_delete(k, nd);
                     updates.emplace_back(make_tuple(false, k, "", nd));
                 } else {
-                    if (!nodes[k].read().empty()) {
-                        update_maps_node_insert(k, *mv.read().begin());
-                        updates.emplace_back(make_tuple(true, k, nodes[k].read().begin()->type(), nd));
-                    } else {
-                        update_maps_node_delete(k, nd);
+
+                    for (auto &[kk,v] : temp_edge[k]) {
+                        nodes[k].read_reg().fano()[{std::get<1>(kk), std::get<2>(kk)}].join(v);
+                        if (nodes[k].read_reg().fano()[{std::get<1>(kk), std::get<2>(kk)}].read().empty()) {
+                            nodes[k].read_reg().fano().erase({std::get<1>(kk), std::get<2>(kk)});
+                        }
+                        temp_edge[k].erase(kk);
                     }
+
+                    //We have to consume all unordered delta attributes for this node. Normally there won't be any.
+                    for (auto &[kk,v] : temp_node_attr[k]) {
+                        nodes[k].read_reg().attrs()[kk].join(v);
+                        if (nodes[k].read_reg().attrs()[kk].read().empty()) {
+                            nodes[k].read_reg().attrs().erase(kk);
+                        }
+                        temp_node_attr[k].erase(kk);
+                    }
+
+                    update_maps_node_insert(k, *mv.read().begin());
+                    updates.emplace_back(make_tuple(true, k, nodes[k].read().begin()->type(), nd));
                 }
+            } else {
+                //Delete all temporary information.
+                temp_edge.erase(k);
+                temp_node_attr.erase(k);
+                for (auto &[kk,v] : temp_edge_attr)
+                    if (std::get<0>(kk) == k) temp_edge_attr.erase(kk);
             }
         }
 
@@ -992,14 +1155,14 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
             if (nd.attrs() != nodes[id].read().begin()->attrs()) {
                 emit update_node_signal(id, nodes[id].read().begin()->type());
             } else if (nd != *nodes[id].read().begin()){
-                std::map<IDL::EdgeKey, Edge> diff_remove;
+                std::map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_remove;
                 if (!nodes[id].read().begin()->fano().empty()) {
                     std::set_difference(nd.fano().begin(), nd.fano().end(),
                                         nodes[id].read().begin()->fano().begin(),
                                         nodes[id].read().begin()->fano().end(),
                                         std::inserter(diff_remove, diff_remove.begin()));
                 }
-                std::map<IDL::EdgeKey, Edge> diff_insert;
+                std::map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_insert;
                 if (!nd.fano().empty()) {
                     std::set_difference(nodes[id].read().begin()->fano().begin(),
                                         nodes[id].read().begin()->fano().end(),
@@ -1007,17 +1170,17 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
                                         std::inserter(diff_insert, diff_insert.begin()));
                 }
                 for (const auto &[k,v] : diff_remove)
-                        emit del_edge_signal(id, k.to(), k.type());
+                        emit del_edge_signal(id, k.first, k.second);
 
                 for (const auto &[k,v] : diff_insert) {
-                    emit update_edge_signal(id, k.to(), k.type());
+                    emit update_edge_signal(id, k.first, k.second);
                 }
             }
         }
         else {
             emit del_node_signal(id);
         }
-        */
+
 }
 
 bool CRDTGraph::start_fullgraph_request_thread() 
@@ -1074,8 +1237,9 @@ std::map<int,IDL::Mvreg> CRDTGraph::Map()
 
 void CRDTGraph::node_subscription_thread(bool showReceived)
 {
-	 // RTPS Initialize subscriptor
-    auto lambda_general_topic = [&] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
+    // RTPS Initialize subscriptor
+    auto name = __FUNCTION__;
+    auto lambda_general_topic = [&, name = name] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
         if (*work) {
             try {
                 eprosima::fastrtps::SampleInfo_t m_info;
@@ -1084,7 +1248,7 @@ void CRDTGraph::node_subscription_thread(bool showReceived)
                     if(m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
                         if (sample.agent_id() != agent_id) {
-                            if (showReceived)  std::cout << " Received:" << sample.id() << " node from: " << m_info.sample_identity.writer_guid() << std::endl;
+                            if (showReceived)  std::cout << name << " Received:" << sample.id() << " node from: " << m_info.sample_identity.writer_guid() << std::endl;
                             graph->join_delta_node(sample);
                         }
                     }
@@ -1094,22 +1258,85 @@ void CRDTGraph::node_subscription_thread(bool showReceived)
         }
     };
     dsrpub_call_node = NewMessageFunctor(this, &work, lambda_general_topic);
-	auto res = dsrsub_node.init(dsrparticipant.getParticipant(), "DSR", dsrparticipant.getNodeTopicName(), dsrpub_call_node);
-    std::cout << (res == true ? "Ok" : "Error") << std::endl;
+	dsrsub_node.init(dsrparticipant.getParticipant(), "DSR", dsrparticipant.getNodeTopicName(), dsrpub_call_node);
 }
 
 void CRDTGraph::edge_subscription_thread(bool showReceived)
 {
-
+    // RTPS Initialize subscriptor
+    auto name = __FUNCTION__;
+    auto lambda_general_topic = [&, name = name] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
+        if (*work) {
+            try {
+                eprosima::fastrtps::SampleInfo_t m_info;
+                IDL::MvregEdge sample;
+                if (sub->takeNextData(&sample, &m_info)) { // Get sample
+                    if(m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
+                        //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
+                        if (sample.agent_id() != agent_id) {
+                            if (showReceived)  std::cout << name  << " Received:" << sample.id() << " node from: " << m_info.sample_identity.writer_guid() << std::endl;
+                            graph->join_delta_edge(sample);
+                        }
+                    }
+                }
+            }
+            catch (const std::exception &ex) { cerr << ex.what() << endl; }
+        }
+    };
+    dsrpub_call_edge = NewMessageFunctor(this, &work, lambda_general_topic);
+    dsrsub_edge.init(dsrparticipant.getParticipant(), "DSR_EDGE", dsrparticipant.getEdgeTopicName(), dsrpub_call_edge);
 }
 
 void CRDTGraph::edge_attrs_subscription_thread(bool showReceived)
 {
-
+    // RTPS Initialize subscriptor
+    auto name = __FUNCTION__;
+    auto lambda_general_topic = [&, name = name] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
+        if (*work) {
+            try {
+                eprosima::fastrtps::SampleInfo_t m_info;
+                IDL::MvregEdgeAttr sample;
+                if (sub->takeNextData(&sample, &m_info)) { // Get sample
+                    if(m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
+                        //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
+                        if (sample.agent_id() != agent_id) {
+                            if (showReceived)  std::cout << name  << " Received:" << sample.id() << " node from: " << m_info.sample_identity.writer_guid() << std::endl;
+                            graph->join_delta_edge_attr(sample);
+                        }
+                    }
+                }
+            }
+            catch (const std::exception &ex) { cerr << ex.what() << endl; }
+        }
+    };
+    dsrpub_call_edge_attrs = NewMessageFunctor(this, &work, lambda_general_topic);
+    dsrsub_edge_attrs.init(dsrparticipant.getParticipant(), "DSR_EDGE_ATTRS", dsrparticipant.getEdgeAttrTopicName(), dsrpub_call_edge_attrs);
 }
 
 void CRDTGraph::node_attrs_subscription_thread(bool showReceived)
 {
+    // RTPS Initialize subscriptor
+    auto name = __FUNCTION__;
+    auto lambda_general_topic = [&, name = name] (eprosima::fastrtps::Subscriber* sub, bool* work, CRDT::CRDTGraph *graph) {
+        if (*work) {
+            try {
+                eprosima::fastrtps::SampleInfo_t m_info;
+                IDL::MvregNodeAttr sample;
+                if (sub->takeNextData(&sample, &m_info)) { // Get sample
+                    if(m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
+                        //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
+                        if (sample.agent_id() != agent_id) {
+                            if (showReceived)  std::cout << name  << " Received:" << sample.id() << " node from: " << m_info.sample_identity.writer_guid() << std::endl;
+                            graph->join_delta_node_attr(sample);
+                        }
+                    }
+                }
+            }
+            catch (const std::exception &ex) { cerr << ex.what() << endl; }
+        }
+    };
+    dsrpub_call_node_attrs = NewMessageFunctor(this, &work, lambda_general_topic);
+    dsrsub_node_attrs.init(dsrparticipant.getParticipant(), "DSR_NODE_ATTRS", dsrparticipant.getEdgeAttrTopicName(), dsrpub_call_node_attrs);
 }
 
 void CRDTGraph::fullgraph_server_thread() 
@@ -1191,7 +1418,7 @@ bool CRDTGraph::fullgraph_request_thread()
 }
 
 
-IDL::Mvreg CRDTGraph::translateNodeMvCRDTtoIDL(int id, mvreg<N, int> &data)
+IDL::Mvreg CRDTGraph::translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data)
 {
     IDL::Mvreg delta_crdt;
     for (auto &kv_dots : data.dk.ds) {
@@ -1228,11 +1455,11 @@ mvreg<Node, int> CRDTGraph::translateNodeMvIDLtoCRDT(IDL::Mvreg &data)
         s.insert(std::make_pair(v.first(), v.second()));
     dotcontext_aux.setContext(m, s);
     // Dots
-    std::map <pair<int, int>, N> ds_aux;
+    std::map <pair<int, int>, Node> ds_aux;
     for (auto &[k,v] : data.dk().ds())
         ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
     // Join
-    mvreg<N, int> aw = mvreg<N, int>(data.id());
+    mvreg<Node, int> aw = mvreg<N, int>(data.id());
     aw.dk.c = dotcontext_aux;
     aw.dk.set(ds_aux);
     return aw;

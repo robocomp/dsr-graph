@@ -36,13 +36,12 @@ public:
 	void run();
 	eprosima::fastrtps::rtps::GUID_t getParticipantID() const ;
 
-	template<typename T>
-	bool write(T* object) {
-	    while (true) {
-	        if (mp_publisher->write(object)) break;
-	    }
-	    return true;
-	};
+    bool write(IDL::GraphRequest *object);
+    bool write(IDL::Mvreg *object);
+    bool write(IDL::OrMap *object);
+    bool write(IDL::MvregNodeAttr *object);
+    bool write(IDL::MvregEdge *object);
+    bool write(IDL::MvregEdgeAttr *object);
 
 private:
 	eprosima::fastrtps::Participant *mp_participant;

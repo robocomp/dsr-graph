@@ -88,7 +88,7 @@ std::cout<<"update node " << node_id<<std::endl;
     }
 }
 
-void DSRtoGraphicsceneViewer::add_or_assign_box(Node &node)
+void DSRtoGraphicsceneViewer::add_or_assign_box(CRDT::Node &node)
 {
 qDebug() << "********************************";
 qDebug() << __FUNCTION__ ;
@@ -113,7 +113,7 @@ qDebug() << __FUNCTION__ ;
     }
 }
 
-void  DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node)
+void  DSRtoGraphicsceneViewer::add_or_assign_mesh(CRDT::Node &node)
 {   
 qDebug() << "********************************";
 qDebug() << __FUNCTION__ ;
@@ -197,7 +197,7 @@ void DSRtoGraphicsceneViewer::create_parent_list(std::int32_t node_id)
 //std::cout<<"Node: "<<node_id<<" => ";
     do
     {
-        parent_id = node.value().attrs()["parent"].value().dec();
+        parent_id = node.value().attrs()["parent"].read_reg().val().dec();
         std::string edge_name = std::to_string(parent_id) + "_" + std::to_string(actual_id);
         edgeMap[edge_name].push_back(node_id);
         actual_id = parent_id;

@@ -40,7 +40,7 @@
  */
 class AttribPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef Attrib type;
+    typedef IDL::Attrib type;
 
     eProsima_user_DllExport AttribPubSubType();
 
@@ -61,7 +61,7 @@ public:
  */
 class PairIntPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef PairInt type;
+    typedef IDL::PairInt type;
 
     eProsima_user_DllExport PairIntPubSubType();
 
@@ -82,7 +82,7 @@ public:
  */
 class DotContextPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef DotContext type;
+    typedef IDL::DotContext type;
 
     eProsima_user_DllExport DotContextPubSubType();
 
@@ -103,7 +103,7 @@ public:
  */
 class DotKernelAttrPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef DotKernelAttr type;
+    typedef IDL::DotKernelAttr type;
 
     eProsima_user_DllExport DotKernelAttrPubSubType();
 
@@ -124,7 +124,7 @@ public:
  */
 class MvregEdgeAttrPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef MvregEdgeAttr type;
+    typedef IDL::MvregEdgeAttr type;
 
     eProsima_user_DllExport MvregEdgeAttrPubSubType();
 
@@ -145,7 +145,7 @@ public:
  */
 class EdgePubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef Edge type;
+    typedef IDL::Edge type;
 
     eProsima_user_DllExport EdgePubSubType();
 
@@ -166,7 +166,7 @@ public:
  */
 class EdgeKeyPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef EdgeKey type;
+    typedef IDL::EdgeKey type;
 
     eProsima_user_DllExport EdgeKeyPubSubType();
 
@@ -187,7 +187,7 @@ public:
  */
 class MvregNodeAttrPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef MvregNodeAttr type;
+    typedef IDL::MvregNodeAttr type;
 
     eProsima_user_DllExport MvregNodeAttrPubSubType();
 
@@ -208,7 +208,7 @@ public:
  */
 class DotKernelEdgePubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef DotKernelEdge type;
+    typedef IDL::DotKernelEdge type;
 
     eProsima_user_DllExport DotKernelEdgePubSubType();
 
@@ -229,7 +229,7 @@ public:
  */
 class MvregEdgePubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef MvregEdge type;
+    typedef IDL::MvregEdge type;
 
     eProsima_user_DllExport MvregEdgePubSubType();
 
@@ -250,7 +250,7 @@ public:
  */
 class NodePubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef Node type;
+    typedef IDL::Node type;
 
     eProsima_user_DllExport NodePubSubType();
 
@@ -271,7 +271,7 @@ public:
  */
 class GraphRequestPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef GraphRequest type;
+    typedef IDL::GraphRequest type;
 
     eProsima_user_DllExport GraphRequestPubSubType();
 
@@ -292,7 +292,7 @@ public:
  */
 class DotKernelPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef DotKernel type;
+    typedef IDL::DotKernel type;
 
     eProsima_user_DllExport DotKernelPubSubType();
 
@@ -313,7 +313,7 @@ public:
  */
 class MvregPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef Mvreg type;
+    typedef IDL::Mvreg type;
 
     eProsima_user_DllExport MvregPubSubType();
 
@@ -334,7 +334,7 @@ public:
  */
 class OrMapPubSubType : public eprosima::fastrtps::TopicDataType {
 public:
-    typedef OrMap type;
+    typedef IDL::OrMap type;
 
     eProsima_user_DllExport OrMapPubSubType();
 
