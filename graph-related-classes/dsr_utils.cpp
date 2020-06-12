@@ -128,7 +128,7 @@ void Utilities::read_from_json_file(const std::string &json_file_path)
         int srcn = link_obj.value("src").toInt();
         int dstn = link_obj.value("dst").toInt();
         std::string edgeName = link_obj.value("label").toString().toStdString();
-        std::map<string, Attrib> attrs;
+        std::map<string, Attribute> attrs;
         Edge edge;
         edge.from(srcn);
         edge.to(dstn);
@@ -142,9 +142,9 @@ void Utilities::read_from_json_file(const std::string &json_file_path)
             QVariant attr_value = iter.value().toMap()["value"];
             int attr_type = iter.value().toMap()["type"].toInt();
 
-            Attrib av;
+            Attribute av;
             av.type(attr_type);
-            Val value;
+            Value value;
 
             switch (attr_type) 
             {
@@ -201,70 +201,70 @@ void Utilities::write_to_json_file(const std::string &json_file_path)
         symbol["name"] = QString::fromStdString(node.name());
         // symbol attribute
         QJsonObject attrsObject;
-        for (const auto &[key, value]: node.attrs())
+        for (auto &[key, value]: node.attrs())
         {
             QJsonObject content;
             QJsonValue val;
-            switch (value.value()._d()) 
+            switch (value.read_reg().val().selected())
             {
                 case 0:
-                    val = QString::fromStdString(value.value().str());
+                    val = QString::fromStdString(value.read_reg().val().str());
                     break;
                 case 1:
-                    val = value.value().dec();
+                    val = value.read_reg().val().dec();
                     break;
                 case 2:
-                    val = std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000;
+                    val = std::round(static_cast<double>(value.read_reg().val().fl()) *1000000)/ 1000000;
                     break;
                 case 4:
-                    val = value.value().bl();
+                    val = value.read_reg().val().bl();
                     break;
                 case 3:
                     QJsonArray array;
-                    for(const float &value : value.value().float_vec())
+                    for(const float &value : value.read_reg().val().float_vec())
                         array.push_back(value);
                     val = array;                
                     break;
             }
-            content["type"] = value.value()._d();
+            content["type"] = value.read_reg().val().selected();
             content["value"] = val;
             attrsObject[QString::fromStdString(key)] = content;
         }
         symbol["attribute"] = attrsObject;
         //link
         QJsonArray nodeLinksArray;
-        for (const auto &[key, value]: node.fano()) {
+        for (auto &[key, value]: node.fano()) {
             QJsonObject link;
-            link["src"] = value.from();
-            link["dst"] = value.to();
-            link["label"] = QString::fromStdString(value.type());
+            link["src"] = value.read_reg().from();
+            link["dst"] = value.read_reg().to();
+            link["label"] = QString::fromStdString(value.read_reg().type());
             // link attribute
             QJsonObject lattrsObject;
-            for (const auto &[key, value]: value.attrs()) {
+            for (auto &[key, value]: value.read_reg().attrs()) {
                 QJsonObject attr, content;
                 QJsonValue val;
-                switch (value.value()._d()) 
+                switch (value.read_reg().val().selected())
                 {
                     case 0:
-                        val = QString::fromStdString(value.value().str());
+                        val = QString::fromStdString(value.read_reg().val().str());
                         break;
                     case 1:
-                        val = value.value().dec();
+                        val = value.read_reg().val().dec();
                         break;
                     case 2:
-                        val = std::round(static_cast<double>(value.value().fl()) *1000000)/ 1000000 ;
+                        val = std::round(static_cast<double>(value.read_reg().val().fl()) *1000000)/ 1000000 ;
                         break;
                     case 4:
-                        val = value.value().bl();
+                        val = value.read_reg().val().bl();
                         break;
                     case 3:
                         QJsonArray array;
-                        for(const float &value : value.value().float_vec())
+                        for(const float &value : value.read_reg().val().float_vec())
                             array.push_back(value);
                         val = array;                        
                         break;
                 }
-                content["type"] = value.value()._d();
+                content["type"] = value.read_reg().val().selected();
                 content["value"] = val;
                 lattrsObject[QString::fromStdString(key)] = content;
             }
@@ -298,13 +298,13 @@ void Utilities::print()
         std::cout << "  Type:" << node.type() << std::endl;
         std::cout << "  Name:" << node.name() << std::endl;
         std::cout << "  Agent_id:" << node.agent_id()  << std::endl;
-        for(auto [key, val] : node.attrs())
-            std::cout << "      [ " << key << ", " << val.type() << ", " << val.value() << " ]"  << std::endl;
-        for(auto [key, val] : node.fano())
+        for(auto &[key, val] : node.attrs())
+            std::cout << "      [ " << key << ", " << val.read_reg().type() << ", " << val.read_reg().val() << " ]"  << std::endl;
+        for(auto &[key, val] : node.fano())
         {
-            std::cout << "          Edge-type->" << val.type() << " from:" << val.from() << " to:" << val.to()  << std::endl;
-            for(auto [k, v] : val.attrs())
-                std::cout << "              Key->" << k << " Type->" << v.type() << " Value->" << v.value()  << std::endl;
+            std::cout << "          Edge-type->" << val.read_reg().type() << " from:" << val.read_reg().from() << " to:" << val.read_reg().to()  << std::endl;
+            for(auto [k, v] : val.read_reg().attrs())
+                std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->" << v.read_reg().val()  << std::endl;
         }
     }
     std::cout << "------------------------------------------------" << std::endl;
@@ -314,7 +314,7 @@ void Utilities::print_edge(const Edge &edge) {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "Edge-type->" << edge.type() << " from->" << edge.from() << " to->" << edge.to()  << std::endl;
     for(auto [k, v] : edge.attrs())
-        std::cout << "              Key->" << k << " Type->" << v.type() << " Value->" << v.value()  << std::endl;
+        std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->" << v.read_reg().val()  << std::endl;
     std::cout << "------------------------------------" << std::endl;
 }
 
@@ -325,12 +325,12 @@ void Utilities::print_node(const Node &node) {
     std::cout << "  Name->" << node.name() << std::endl;
     std::cout << "  Agent_id->" << node.agent_id()  << std::endl;
     for(auto [key, val] : node.attrs())
-        std::cout << "      Key->" << key << " Type->" << val.type() << " Value->" << val.value()  << std::endl;
+        std::cout << "      Key->" << key << " Type->" << val.read_reg().type() << " Value->" << val.read_reg().val()  << std::endl;
     for(auto [key, val] : node.fano())
     {
-        std::cout << "          Edge-type->" << val.type() << " from->" << val.from() << " to->" << val.to()  << std::endl;
-        for(auto [k, v] : val.attrs())
-            std::cout << "              Key->" << k << " Type->" << v.type() << " Value->" << v.value()  << std::endl;
+        std::cout << "          Edge-type->" << val.read_reg().type() << " from->" << val.read_reg().from() << " to->" << val.read_reg().to()  << std::endl;
+        for(auto [k, v] : val.read_reg().attrs())
+            std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->" << v.read_reg().val()  << std::endl;
     }
 }
 

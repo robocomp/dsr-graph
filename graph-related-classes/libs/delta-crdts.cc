@@ -27,6 +27,9 @@
 //
 //-------------------------------------------------------------------
 
+#ifndef DELTA_CRDT
+#define DELTA_CRDT
+
 #include <set>
 #include <unordered_set>
 #include <map>
@@ -363,6 +366,15 @@ public:
 
     }
 
+    bool operator==(const dotcontext &rhs) const {
+        return cc == rhs.cc &&
+               dc == rhs.dc;
+    }
+
+    bool operator!=(const dotcontext &rhs) const {
+        return !(rhs == *this);
+    }
+
 };
 
 template <typename T, typename K>
@@ -668,6 +680,16 @@ public:
         res.c.compact();
         ds.clear(); // Clear the payload, but remember context
         return res;
+    }
+
+    bool operator==(const dotkernel &rhs) const {
+        return ds == rhs.ds &&
+               cbase == rhs.cbase &&
+               c == rhs.c;
+    }
+
+    bool operator!=(const dotkernel &rhs) const {
+        return !(rhs == *this);
     }
 
 };
@@ -1369,7 +1391,7 @@ public:
 
     V& read_reg ()
     {
-        return *dk.ds.begin();
+        return dk.ds.begin()->second;
     }
 
 
@@ -1415,6 +1437,15 @@ public:
         dk.join_replace_conflict(o.dk);
         //rsv();
         dk.clean();
+    }
+
+    bool operator==(const mvreg &rhs) const {
+        return id == rhs.id &&
+               dk == rhs.dk;
+    }
+
+    bool operator!=(const mvreg &rhs) const {
+        return !(rhs == *this);
     }
 };
 
@@ -1701,14 +1732,14 @@ public:
         return *this;
     }
 
-    ormap<N,V,K> & operator=(ormap<N,V,K> && o)
+    /*ormap<N,V,K> & operator=(ormap<N,V,K> && o)
     {
         if (&o == this) return *this;
         if (&c != &o.c) c=std::move(o.c);
         m= std::move(o.m);
         id=o.id;
         return *this;
-    }
+    }*/
 
 
     bool operator==(const ormap<N,V,K> & o) const
@@ -2439,3 +2470,5 @@ public:
     }
 
 };
+
+#endif

@@ -84,6 +84,48 @@ eprosima::fastrtps::rtps::GUID_t DSRPublisher::getParticipantID() const
 }
 
 
+bool DSRPublisher::write(IDL::Mvreg* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
+bool DSRPublisher::write(IDL::MvregNodeAttr* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
+bool DSRPublisher::write(IDL::MvregEdge* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
+bool DSRPublisher::write(IDL::MvregEdgeAttr* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
+bool DSRPublisher::write(IDL::OrMap* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
+bool DSRPublisher::write(IDL::GraphRequest* object) {
+    while (true) {
+        if (mp_publisher->write(static_cast<void *>(object))) break;
+    }
+    return true;
+};
+
 void DSRPublisher::PubListener::onPublicationMatched(eprosima::fastrtps::Publisher* pub, eprosima::fastrtps::rtps::MatchingInfo& info)
 {
     (void)pub;

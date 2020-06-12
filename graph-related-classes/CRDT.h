@@ -40,8 +40,8 @@
 
 namespace CRDT
 {
-    using N = CRDT::Node;
-    using Nodes = ormap<int, mvreg<CRDT::Node,  int >, int>;
+    using N = Node;
+    using Nodes = ormap<int, mvreg<Node,  int >, int>;
     using IDType = std::int32_t;
 
 
@@ -203,7 +203,8 @@ namespace CRDT
             }
 
             at.val( std::move(value));
-            elem.attrs()[att_name] = at;
+            at.timestamp(get_unix_timestamp());
+            elem.attrs()[att_name].write(at);
 
         }
 
@@ -250,8 +251,8 @@ namespace CRDT
         std::optional<Edge> get_edge(const std::string& from, const std::string& to, const std::string& key);
         std::optional<Edge> get_edge(int from, int to, const std::string& key);
         std::optional<Edge> get_edge(const Node &n, int to, const std::string& key) {
-            EdgeKey ek; ek.to(to); ek.type(key);
-            return (n.fano().getMapRef().find(make_pair{to, key}) != n.fano().end()) ?  std::make_optional(n.fano().find(ek)->second) : std::nullopt;
+            //EdgeKey ek; ek.to(to); ek.type(key);
+            return (n.fano().find({to, key}) != n.fano().end()) ?  std::make_optional(*n.fano().find({to, key})->second.read().begin()) : std::nullopt;
         };
         bool insert_or_assign_edge(const Edge& attrs);
         void insert_or_assign_edge_RT(Node& n, int to, const std::vector<float>& trans, const std::vector<float>& rot_euler);
@@ -261,41 +262,44 @@ namespace CRDT
         std::vector<Edge> get_edges_by_type(const std::string& type);
         std::vector<Edge> get_edges_by_type(const Node& node, const std::string& type);
         std::vector<Edge> get_edges_to_id(int id);
-        std::optional<std::unordered_map<std::pair<int, std::string>, mvreg<Edge, int>,pair_hash>>  get_edges(int id); //TODO: Cambiar con la nueva representación.
+        std::optional<std::unordered_map<std::pair<int, std::string>, Edge ,pair_hash>>  get_edges(int id); //TODO: Cambiar con la nueva representación.
         Edge get_edge_RT(const Node &n, int to);
         RTMat get_edge_RT_as_RTMat(const Edge &edge);
         RTMat get_edge_RT_as_RTMat(Edge &&edge);
         
         
-        // Both
         template <typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<node_or_edge<Type>>>
         std::optional<Ta> get_attrib_by_name(const Type& n, const std::string &key) 
         {
-            std::optional<Attrib> av = get_attrib_by_name_(n, key);
+            std::optional<Attribute> av = get_attrib_by_name_(n, key);
             if (!av.has_value()) return {};
             if constexpr (std::is_same<Ta, std::string>::value)
             {
-                return  av->value().str();
+                return  av->val().str();
             }
             if constexpr (std::is_same<Ta, std::int32_t>::value)
             {
-                return av->value().dec();
+                return av->val().dec();
             }
             if constexpr (std::is_same<Ta, float>::value) 
             {
-                return av->value().fl();
+                return av->val().fl();
             }
             if constexpr (std::is_same<Ta, std::vector<float>>::value)
             {
-                return av->value().float_vec();
+                return av->val().float_vec();
             }
             if constexpr (std::is_same<Ta, bool>::value)
             {
-                return av.value().value().bl();
+                return av->val().bl();
+            }
+            if constexpr (std::is_same<Ta, std::vector<byte>>::value)
+            {
+                return av->val().byte_vec();
             }
             if constexpr (std::is_same<Ta, QVec>::value)
             {
-                const auto &val = av.value().value().float_vec();
+                const auto &val = av->val().float_vec();
                 if ((key == "translation" or key == "rotation_euler_xyz")
                     and (val.size() == 3 or val.size() == 6))
                     return QVec{val};
@@ -303,9 +307,9 @@ namespace CRDT
             }
             if constexpr (std::is_same<Ta, QMat>::value)
             {
-                if (av.value().value()._d() == FLOAT_VEC and key=="rotation_euler_xyz")
+                if (av->val().selected() == FLOAT_VEC and key=="rotation_euler_xyz")
                 {
-                    const auto& val = av.value().value().float_vec();
+                    const auto& val = av->val().float_vec();
                     return QMat{RMat::Rot3DOX(val[0])*RMat::Rot3DOY(val[1])*RMat::Rot3DOZ(val[2])};
                 }
                 throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
@@ -470,9 +474,9 @@ namespace CRDT
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
         ///////////////////////////////////////////////////////////////////////////
-        std::unordered_map<std::pair<int, std::string>, mvreg<Attribute, int>, hash_tuple> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
-        std::unordered_map<std::tuple<int, int, std::string>, std::unordered_set<mvreg<Attribute, int>>, hash_tuple> temp_edge_attr; //temporal storage for attributes to solve problems with unsorted messages.
-        std::unordered_map<std::tuple<int, int, std::string>, mvreg<Edge, int>, hash_tuple> temp_edge; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<int,  std::unordered_map<std::string, mvreg<Attribute, int>>> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<std::tuple<int, int, std::string>, std::unordered_map<std::string, mvreg<Attribute, int>>, hash_tuple> temp_edge_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        std::unordered_map<int, std::unordered_map<std::tuple<int, int, std::string>,mvreg<Edge, int>, hash_tuple>>temp_edge; //temporal storage for attributes to solve problems with unsorted messages.
 
         std::unordered_set<int> deleted;     // deleted nodes, used to avoid insertion after remove.
         std::unordered_map<string, int> name_map;     // mapping between name and id of nodes.
@@ -495,8 +499,8 @@ namespace CRDT
         bool in(const int &id) const;
         std::optional<Node> get_(int id);
         std::optional<Edge> get_edge_(int from, int to, const std::string& key);
-        std::tuple<bool, std::optional<IDL::Mvreg>> insert_node_(const N &node);
-        std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> update_node_(const N &node);
+        std::tuple<bool, std::optional<IDL::Mvreg>> insert_node_(const Node &node);
+        std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> update_node_(const Node &node);
         std::tuple<bool, vector<tuple<int, int, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>> delete_node_(int id);
         std::optional<IDL::MvregEdge> delete_edge_(int from, int t, const std::string& key);
         std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> insert_or_assign_edge_(const Edge &attrs, int from, int to);
@@ -518,12 +522,12 @@ namespace CRDT
         }
 
         template <typename T, typename = std::enable_if_t<node_or_edge<T>>>
-        std::optional<Attrib> get_attrib_by_name_(const T& n, const std::string &key)
+        std::optional<Attribute> get_attrib_by_name_(const T& n, const std::string &key)
         {
             auto attrs = n.attrs();
             auto value  = attrs.find(key);
             if (value != attrs.end())
-                return value->second;
+                return value->second.read_reg();
             else
             {
                 if constexpr (std::is_same<Node,  T>::value)
@@ -536,11 +540,11 @@ namespace CRDT
             return {};
         }
 
-        void join_delta_node(Mvreg &mvreg);
-        void join_delta_edge(MvregEdge &mvreg);
-        void join_delta_node_attr(MvregNodeAttr &mvreg);
-        void join_delta_edge_attr(MvregEdgeAttr &mvreg);
-        void join_full_graph(OrMap &full_graph);
+        void join_delta_node(IDL::Mvreg &mvreg);
+        void join_delta_edge(IDL::MvregEdge &mvreg);
+        void join_delta_node_attr(IDL::MvregNodeAttr &mvreg);
+        void join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg);
+        void join_full_graph(IDL::OrMap &full_graph);
 
         class NewMessageFunctor
         {
@@ -580,7 +584,7 @@ namespace CRDT
 
         // Translators
         IDL::Mvreg translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data);
-        mvreg<N, int> translateNodeMvIDLtoCRDT(IDL::Mvreg &data);
+        mvreg<Node, int> translateNodeMvIDLtoCRDT(IDL::Mvreg &data);
 
         IDL::MvregEdge translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &data);
         mvreg<Edge, int> translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data);
@@ -621,7 +625,7 @@ namespace CRDT
     signals:                                                                  // for graphics update
         void update_node_signal(const std::int32_t, const std::string &type); // REMOVE type
 
-        void update_attrs_signal(const std::int32_t &id, const std::map<string, Attrib> &attribs); //Signal to show node attribs.
+        void update_attrs_signal(const std::int32_t &id, const std::map<string, Attribute> &attribs); //Signal to show node attribs.
         void update_edge_signal(const std::int32_t from, const std::int32_t to, const std::string& type);                   // Signal to show edge attribs.
 
         void del_edge_signal(const std::int32_t from, const std::int32_t to, const std::string &edge_tag); // Signal to del edge.

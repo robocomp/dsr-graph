@@ -755,6 +755,34 @@ class DotContext
 {
 public:
 
+    bool operator==(const DotContext &rhs) const {
+        return m_cc == rhs.m_cc &&
+               m_dc == rhs.m_dc;
+    }
+
+    bool operator!=(const DotContext &rhs) const {
+        return !(rhs == *this);
+    }
+
+    bool operator<(const DotContext &rhs) const {
+        if (m_cc < rhs.m_cc)
+            return true;
+        if (rhs.m_cc < m_cc)
+            return false;
+        return m_dc < rhs.m_dc;
+    }
+
+    bool operator>(const DotContext &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const DotContext &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const DotContext &rhs) const {
+        return !(*this < rhs);
+    }
     /*!
      * @brief Default constructor.
      */
@@ -1029,6 +1057,35 @@ public:
      */
     eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
+    bool operator==(const DotKernelAttr &rhs) const {
+        return m_ds == rhs.m_ds &&
+               m_cbase == rhs.m_cbase;
+    }
+
+    bool operator!=(const DotKernelAttr &rhs) const {
+        return !(rhs == *this);
+    }
+
+    bool operator<(const DotKernelAttr &rhs) const {
+        if (m_ds < rhs.m_ds)
+            return true;
+        if (rhs.m_ds < m_ds)
+            return false;
+        return m_cbase < rhs.m_cbase;
+    }
+
+    bool operator>(const DotKernelAttr &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const DotKernelAttr &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const DotKernelAttr &rhs) const {
+        return !(*this < rhs);
+    }
+
 private:
     std::map<PairInt, Attrib> m_ds;
     DotContext m_cbase;
@@ -1266,6 +1323,55 @@ public:
      * @param cdr CDR serialization object.
      */
     eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
+
+    bool operator==(const MvregEdgeAttr &rhs) const {
+        return m_id == rhs.m_id &&
+               m_from == rhs.m_from &&
+               m_to == rhs.m_to &&
+               m_type == rhs.m_type &&
+               m_attr_name == rhs.m_attr_name &&
+               m_dk == rhs.m_dk;
+    }
+
+    bool operator!=(const MvregEdgeAttr &rhs) const {
+        return !(rhs == *this);
+    }
+
+    bool operator<(const MvregEdgeAttr &rhs) const {
+        if (m_id < rhs.m_id)
+            return true;
+        if (rhs.m_id < m_id)
+            return false;
+        if (m_from < rhs.m_from)
+            return true;
+        if (rhs.m_from < m_from)
+            return false;
+        if (m_to < rhs.m_to)
+            return true;
+        if (rhs.m_to < m_to)
+            return false;
+        if (m_type < rhs.m_type)
+            return true;
+        if (rhs.m_type < m_type)
+            return false;
+        if (m_attr_name < rhs.m_attr_name)
+            return true;
+        if (rhs.m_attr_name < m_attr_name)
+            return false;
+        return m_dk < rhs.m_dk;
+    }
+
+    bool operator>(const MvregEdgeAttr &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const MvregEdgeAttr &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const MvregEdgeAttr &rhs) const {
+        return !(*this < rhs);
+    }
 
 private:
     int32_t m_id;
