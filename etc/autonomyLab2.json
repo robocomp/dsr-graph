@@ -1,0 +1,2249 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "100": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SeaGreen"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -13.628834
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -260.765015
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 0
+                    }
+                },
+                "id": 100,
+                "links": [
+                    {
+                        "dst": 101,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    -1.5707963705062866,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    2500,
+                                    -10,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 100
+                    },
+                    {
+                        "dst": 102,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.3903017044067383,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    4418,
+                                    950,
+                                    245
+                                ]
+                            }
+                        },
+                        "src": 100
+                    },
+                    {
+                        "dst": 103,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    -1.4536875486373901,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    2160,
+                                    950,
+                                    29
+                                ]
+                            }
+                        },
+                        "src": 100
+                    },
+                    {
+                        "dst": 104,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 100
+                    },
+                    {
+                        "dst": 112,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 100
+                    }
+                ],
+                "name": "world",
+                "type": "world"
+            },
+            "101": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 9500
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -8.1773
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -152.642944
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#eebb77"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 10000
+                    }
+                },
+                "id": 101,
+                "links": [
+                    {
+                        "dst": 200,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    1000,
+                                    0,
+                                    1000
+                                ]
+                            }
+                        },
+                        "src": 101
+                    }
+                ],
+                "name": "floor_plane",
+                "type": "plane"
+            },
+            "102": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 336.177887
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -186.260727
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#000088"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 240
+                    }
+                },
+                "id": 102,
+                "links": [
+                ],
+                "name": "muro6",
+                "type": "plane"
+            },
+            "103": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 323.457642
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -248.953369
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#000088"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 209
+                    }
+                },
+                "id": 103,
+                "links": [
+                ],
+                "name": "muro22",
+                "type": "plane"
+            },
+            "104": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -347.080963
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -218.06134
+                    }
+                },
+                "id": 104,
+                "links": [
+                    {
+                        "dst": 105,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    -1.5427546501159668,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -92,
+                                    950,
+                                    2067
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 106,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -0.0406220406293869,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    3235,
+                                    950,
+                                    4201
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 107,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.5200767517089844,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6695,
+                                    950,
+                                    2831
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 108,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.09464486688375473,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6387,
+                                    950,
+                                    1288
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 109,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.504228115081787,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6029,
+                                    950,
+                                    854
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 110,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.054830390959978104,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    5226,
+                                    950,
+                                    412
+                                ]
+                            }
+                        },
+                        "src": 104
+                    },
+                    {
+                        "dst": 111,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.028246305882930756,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    1061,
+                                    950,
+                                    101
+                                ]
+                            }
+                        },
+                        "src": 104
+                    }
+                ],
+                "name": "room_3",
+                "type": "transform"
+            },
+            "105": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -273.48526
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 124.476685
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 3994
+                    }
+                },
+                "id": 105,
+                "links": [
+                ],
+                "name": "muro0",
+                "type": "plane"
+            },
+            "106": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -325.274841
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 167.180359
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 6772
+                    }
+                },
+                "id": 106,
+                "links": [
+                ],
+                "name": "muro1",
+                "type": "plane"
+            },
+            "107": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -295.291382
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 150.82576
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 3018
+                    }
+                },
+                "id": 107,
+                "links": [
+                ],
+                "name": "muro2",
+                "type": "plane"
+            },
+            "108": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -255.313492
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 86.315948
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 773
+                    }
+                },
+                "id": 108,
+                "links": [
+                ],
+                "name": "muro3",
+                "type": "plane"
+            },
+            "109": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -411.59079
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 107.213493
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 796
+                    }
+                },
+                "id": 109,
+                "links": [
+                ],
+                "name": "muro4",
+                "type": "plane"
+            },
+            "110": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -366.161346
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 206.24968
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1660
+                    }
+                },
+                "id": 110,
+                "links": [
+                ],
+                "name": "muro5",
+                "type": "plane"
+            },
+            "111": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 104
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -464.28894
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 2.725767
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#880000"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 2190
+                    }
+                },
+                "id": 111,
+                "links": [
+                ],
+                "name": "muro23",
+                "type": "plane"
+            },
+            "112": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 334.360718
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -141.739868
+                    }
+                },
+                "id": 112,
+                "links": [
+                    {
+                        "dst": 113,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0.1378301978111267,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    4593,
+                                    950,
+                                    106
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 114,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    1.5416783094406128,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    4744,
+                                    950,
+                                    -70
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 115,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -0.002243825700134039,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    5409,
+                                    950,
+                                    -223
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 116,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.542952060699463,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6088,
+                                    950,
+                                    -598
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 117,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0.014887237921357155,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6502,
+                                    950,
+                                    -981
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 118,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    1.5628267526626587,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    6895,
+                                    950,
+                                    -2179
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 119,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.051254428923130035,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    5405,
+                                    950,
+                                    -3447
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 120,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.5428848266601562,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    3929,
+                                    950,
+                                    -3720
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 121,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.07044286280870438,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    3729,
+                                    950,
+                                    -3931
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 122,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -0.04790057614445686,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    1870,
+                                    950,
+                                    -4100
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 123,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.4956562519073486,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    97,
+                                    950,
+                                    -2930
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 124,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0.06168634444475174,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -1010,
+                                    950,
+                                    -1740
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 125,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    -1.5429177284240723,
+                                    3.1415927410125732
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -2030,
+                                    950,
+                                    -1000
+                                ]
+                            }
+                        },
+                        "src": 112
+                    },
+                    {
+                        "dst": 126,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -0.03212504833936691,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    64,
+                                    950,
+                                    -141
+                                ]
+                            }
+                        },
+                        "src": 112
+                    }
+                ],
+                "name": "room_5",
+                "type": "transform"
+            },
+            "113": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 472.466248
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 16.354601
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 313
+                    }
+                },
+                "id": 113,
+                "links": [
+                ],
+                "name": "muro7",
+                "type": "plane"
+            },
+            "114": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 324.366241
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 142.648453
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 309
+                    }
+                },
+                "id": 114,
+                "links": [
+                ],
+                "name": "muro8",
+                "type": "plane"
+            },
+            "115": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 359.801208
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 111.756439
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1338
+                    }
+                },
+                "id": 115,
+                "links": [
+                ],
+                "name": "muro9",
+                "type": "plane"
+            },
+            "116": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 234.415939
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 46.338036
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 754
+                    }
+                },
+                "id": 116,
+                "links": [
+                ],
+                "name": "muro10",
+                "type": "plane"
+            },
+            "117": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 294.382813
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 120.842323
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 806
+                    }
+                },
+                "id": 117,
+                "links": [
+                ],
+                "name": "muro11",
+                "type": "plane"
+            },
+            "118": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 403.413483
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 127.202446
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 2384
+                    }
+                },
+                "id": 118,
+                "links": [
+                ],
+                "name": "muro12",
+                "type": "plane"
+            },
+            "119": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 457.020233
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -100.853371
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 2967
+                    }
+                },
+                "id": 119,
+                "links": [
+                ],
+                "name": "muro13",
+                "type": "plane"
+            },
+            "120": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 478.826355
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 71.778526
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 394
+                    }
+                },
+                "id": 120,
+                "links": [
+                ],
+                "name": "muro14",
+                "type": "plane"
+            },
+            "121": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 468.831879
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 116.299377
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 412
+                    }
+                },
+                "id": 121,
+                "links": [
+                ],
+                "name": "muro15",
+                "type": "plane"
+            },
+            "122": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 19
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 465.19751
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -17.263189
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 3350
+                    }
+                },
+                "id": 122,
+                "links": [
+                ],
+                "name": "1muro1",
+                "type": "plane"
+            },
+            "123": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 254.404892
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 91.767479
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 2530
+                    }
+                },
+                "id": 123,
+                "links": [
+                ],
+                "name": "1muro0",
+                "type": "plane"
+            },
+            "124": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 19
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 442.482788
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 138.105515
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 2010
+                    }
+                },
+                "id": 124,
+                "links": [
+                ],
+                "name": "1muro4",
+                "type": "plane"
+            },
+            "125": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 230.781586
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -0.908589
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1610
+                    }
+                },
+                "id": 125,
+                "links": [
+                ],
+                "name": "muro20",
+                "type": "plane"
+            },
+            "126": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Khaki"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 9
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 112
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 469.740479
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -49.972389
+                    },
+                    "repeat": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#008800"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 4234
+                    }
+                },
+                "id": 126,
+                "links": [
+                ],
+                "name": "muro21",
+                "type": "plane"
+            },
+            "200": {
+                "attribute": {
+                    "collide": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 101
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -34.526379
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -45.429447
+                    }
+                },
+                "id": 200,
+                "links": [
+                    {
+                        "dst": 201,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 202,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    140,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 203,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    210,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 200
+                    }
+                ],
+                "name": "Viriato",
+                "type": "omniRobot"
+            },
+            "201": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": false
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 200
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/robex/robex.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 69.052757
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 12.720244
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    }
+                },
+                "id": 201,
+                "links": [
+                ],
+                "name": "base_viriato",
+                "type": "mesh"
+            },
+            "202": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "angles": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "dists": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 200
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -20.576132
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 134.286331
+                    }
+                },
+                "id": 202,
+                "links": [
+                ],
+                "name": "hokuyo_base",
+                "type": "laser"
+            },
+            "203": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "focal": {
+                        "type": 1,
+                        "value": 490
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "ifconfig": {
+                        "type": 0,
+                        "value": "40000,50000"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "noise": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 200
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 10096
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -132.653976
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 14.537422
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": 203,
+                "links": [
+                ],
+                "name": "real_sense_sensor",
+                "type": "rgbd"
+            }
+        }
+    }
+}
