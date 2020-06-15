@@ -50,6 +50,7 @@ private:
         std::string parent_name;
         std::vector<float> translation;
     };
+    const int MAXTIME = 2000; //Maximum time elapsed without seen a person before deleted    
     std::map<std::string, JOINT_CONNECTION> jointMap{ 
         {"nose", JOINT_CONNECTION{"person",{0.0, 300.0, 0.0}}}, 
         {"left_eye", JOINT_CONNECTION{"nose",{-30.0, 30.0, 0.0}}}, 
@@ -79,6 +80,8 @@ public:
     QHBoxLayout mainLayout;
     QWidget window;
     
+    std::map<int, std::chrono::system_clock::time_point> people_last_seen; 
+
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
@@ -89,7 +92,7 @@ private:
     int get_new_node_id();
     std::optional<Node> create_node(std::string type, std::string name, int parent_idz);
     void process_people_data(RoboCompHumanToDSR::PeopleData people);    
-    
+    void check_unseen_people();
 
 public slots:
 	void compute();
