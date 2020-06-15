@@ -70,7 +70,7 @@ void AbstractGraphicViewer::mousePressEvent(QMouseEvent *event)
 		event->accept();
 		return;
 	}
-	event->ignore();
+	QGraphicsView::mousePressEvent(event);
 }
 
 void AbstractGraphicViewer::mouseReleaseEvent(QMouseEvent *event)
@@ -82,7 +82,7 @@ void AbstractGraphicViewer::mouseReleaseEvent(QMouseEvent *event)
 		event->accept();
 		return;
 	}
-	event->ignore();
+	QGraphicsView::mouseReleaseEvent(event);
 }
 
 void AbstractGraphicViewer::mouseMoveEvent(QMouseEvent *event)
@@ -96,5 +96,5 @@ void AbstractGraphicViewer::mouseMoveEvent(QMouseEvent *event)
 		event->accept();
 		return;
 	}
-	event->ignore();
+	QGraphicsView::mouseMoveEvent(event);
 }
