@@ -87,3 +87,7 @@ components/idserver/cmake-build-release/
 
 components/crdt_rtps_dsr_tests/src/tests/testfiles/write_empty_file.json
 components/crdt_rtps_dsr_tests/src/tests/testfiles/write_initial_dsr2.json
+
+*CMakeFiles
+*CMakeCache.txt
+*_autogen
