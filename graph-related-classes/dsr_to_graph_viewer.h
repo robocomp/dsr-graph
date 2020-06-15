@@ -38,6 +38,7 @@ namespace DSR
         Q_OBJECT
         public:
             DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent=0);
+			~DSRtoGraphViewer();
             std::shared_ptr<CRDT::CRDTGraph> getGraph()  			  	{return G;};
 			std::map<std::int32_t, GraphNode*> getGMap() const 			{return gmap;};
             QGraphicsEllipseItem* getCentralPoint() const 				{return central_point;};
@@ -53,6 +54,7 @@ namespace DSR
 
 
         private:
+			std::shared_ptr<DSRtoGraphViewer> own;
             std::shared_ptr<CRDT::CRDTGraph> G;
             std::map<std::int32_t, GraphNode*> gmap;
 			std::map<std::tuple<std::int32_t, std::int32_t, std::string>, GraphEdge*> gmap_edges;

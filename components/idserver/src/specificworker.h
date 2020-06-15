@@ -52,6 +52,7 @@ public slots:
 	void initialize(int period);
 
 private:
+
 	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
@@ -65,9 +66,6 @@ private:
 	bool dsr_write_to_file;
 
 	void get_max_id_from_G();
-
-	QGraphicsScene scene;
-	QGraphicsView gv;
 
 };
 
