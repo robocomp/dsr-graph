@@ -29,18 +29,18 @@
 
 
 DSRParticipant::DSRParticipant() :
-mp_participant(nullptr),
-mp_node_p(nullptr),
-mp_node_s(nullptr),
-mp_subscriber_graph_request(nullptr),
-mp_publisher_topic_answer(nullptr),
-mp_subscriber_topic_answer(nullptr),
-mp_edge_p(nullptr),
-mp_edge_s(nullptr),
-mp_attr_node_p(nullptr),
-mp_attr_node_s(nullptr),
-mp_attr_edge_p(nullptr),
-mp_attr_edge_s(nullptr)
+mp_participant(nullptr)//,
+//mp_node_p(nullptr),
+//mp_node_s(nullptr),
+//mp_subscriber_graph_request(nullptr),
+//mp_publisher_topic_answer(nullptr),
+//mp_subscriber_topic_answer(nullptr),
+//mp_edge_p(nullptr),
+//mp_edge_s(nullptr),
+//mp_attr_node_p(nullptr),
+//mp_attr_node_s(nullptr),
+//mp_attr_edge_p(nullptr),
+//mp_attr_edge_s(nullptr)
 {}
 
 DSRParticipant::~DSRParticipant() 

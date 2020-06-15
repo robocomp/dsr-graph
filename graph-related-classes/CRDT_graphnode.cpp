@@ -205,7 +205,7 @@ void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
         auto g = dsr_to_graph_viewer->getGraph();
         std::cout << __FILE__ <<":"<<__FUNCTION__<< " node id in graphnode: " << id_in_graph << std::endl;
-        std::optional<Node> n = g->get_node(id_in_graph);
+        std::optional<CRDT::Node> n = g->get_node(id_in_graph);
         if (n.has_value()) {
             bool r = g->modify_attrib(n.value(), "pos_x", (float) event->scenePos().x());
             if (!r) r = g->add_attrib(n.value(), "pos_x", (float) event->scenePos().x());

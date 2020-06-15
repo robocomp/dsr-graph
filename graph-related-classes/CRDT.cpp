@@ -1155,14 +1155,14 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
             if (nd.attrs() != nodes[id].read().begin()->attrs()) {
                 emit update_node_signal(id, nodes[id].read().begin()->type());
             } else if (nd != *nodes[id].read().begin()){
-                std::map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_remove;
+                std::unordered_map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_remove;
                 if (!nodes[id].read().begin()->fano().empty()) {
                     std::set_difference(nd.fano().begin(), nd.fano().end(),
                                         nodes[id].read().begin()->fano().begin(),
                                         nodes[id].read().begin()->fano().end(),
                                         std::inserter(diff_remove, diff_remove.begin()));
                 }
-                std::map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_insert;
+                std::unordered_map<std::pair<int, std::string>, mvreg<Edge, int>, pair_hash> diff_insert;
                 if (!nd.fano().empty()) {
                     std::set_difference(nodes[id].read().begin()->fano().begin(),
                                         nodes[id].read().begin()->fano().end(),

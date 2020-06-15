@@ -27,7 +27,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             {
                 // create node
                 auto id = newID();
-                Node node; node.type("n"); node.id(id);
+                CRDT::Node node; node.type("n"); node.id(id);
                 node.agent_id(agent_id);
                 node.name("plane" + std::to_string(id));
                 G->add_attrib(node, "name", std::string("fucking_plane"));
@@ -60,7 +60,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
         {
             if(rnd_selector() == 0)
             {
-                Edge edge;
+                CRDT::Edge edge;
                 edge.type("Edge");
                 //get two ids
                 edge.from(getID());
@@ -93,7 +93,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             auto nid = keys.at(rnd(mt));
             //qDebug() << __FUNCTION__ << nid;
             if(nid<0) continue;
-            std::optional<Node> node = G->get_node(nid);
+            std::optional<CRDT::Node> node = G->get_node(nid);
             if (!node.has_value())
             {
                 qDebug() << "ERROR OBTENIENDO EL NODO";
@@ -107,18 +107,23 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
 
             auto at = node.value().attrs().find("testattrib");
             if (at == node.value().attrs().end()) {
-                Val v; v.str(str);
-                Attrib ab; ab.value(v); ab.type(STRING);
-                node.value().attrs()["testattrib"] = ab;
-                G->add_attrib(node.value(), "pos_x", rnd_float());
-                G->add_attrib(node.value(), "pos_y", rnd_float());
+                CRDT::Value v;
+                v.str(str);
+                CRDT::Attribute ab;
+                ab.val(std::move(v));
+                ab.type(CRDT::STRING);
+                node.value().attrs()["testattrib"].write(ab);
+                node->agent_id(agent_id);
             }
             else {
-                at->second.value().str(str);
-                G->modify_attrib(node.value(), "pos_x", rnd_float());
-                G->modify_attrib(node.value(), "pos_y", rnd_float());
+                CRDT::Attribute ab;
+                ab = *node.value().attrs()["testattrib"].read().begin();
+                ab.val().str(str);
+                node.value().attrs()["testattrib"].write(ab);
             }
 
+            G->modify_attrib(node.value(), "pos_x", rnd_float());
+            G->modify_attrib(node.value(), "pos_y", rnd_float());
             node->agent_id(agent_id);
             r = G->update_node(node.value());
 

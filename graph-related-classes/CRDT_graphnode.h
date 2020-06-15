@@ -73,7 +73,7 @@ class DoLaserStuff : public QGraphicsView
       try
       {
         std::cout << __FUNCTION__ <<"-> Node: "<<id<< std::endl;
-        std::optional<Node> n = graph->get_node(id);
+        std::optional<CRDT::Node> n = graph->get_node(id);
         if (n.has_value()) 
         {
             const auto lAngles = graph->get_attrib_by_name<vector<float>>(n.value(),"angles");
@@ -114,8 +114,8 @@ class DoRGBDStuff : public  QLabel
       resize(640,480);
       setWindowTitle("RGBD");
       setParent(this);
-      QObject::connect(graph.get(), &CRDT::CRDTGraph::update_attrs_signal, [&](const std::int32_t &id, const std::map<string,Attrib> &attrs){
-                        std::optional<Node> n = graph->get_node(node_id);
+      QObject::connect(graph.get(), &CRDT::CRDTGraph::update_attrs_signal, [&](const std::int32_t &id, const std::map<string,CRDT::Attribute> &attrs){
+                        std::optional<CRDT::Node> n = graph->get_node(node_id);
                         //Esto no hace nada
                         if (n.has_value())
                             const auto &lDists = graph->get_attrib_by_name<std::vector<float>>(n.value(), "rgbd_data");
@@ -135,10 +135,10 @@ class DoTableStuff : public  QTableWidget
     {
       qRegisterMetaType<std::int32_t>("std::int32_t");
       qRegisterMetaType<std::string>("std::string");
-      qRegisterMetaType<map<string, Attrib>>("Attribs");
+      qRegisterMetaType<map<string, CRDT::Attribute>>("Attribs");
 
       //setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-      std::optional<Node> n = graph->get_node(node_id_);
+      std::optional<CRDT::Node> n = graph->get_node(node_id_);
       if (n.has_value()) 
       {
           setWindowTitle("Node " + QString::fromStdString(n.value().type()) + " [" + QString::number(node_id) + "]");
@@ -148,24 +148,24 @@ class DoTableStuff : public  QTableWidget
           int i = 0;
           for (auto &[k, v] : n.value().attrs()) {
               setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));
-              switch (v.value()._d()) {
+              switch (v.read_reg().val().selected()) {
                   case 0:
-                      setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.value().str())));
+                      setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.read_reg().val().str())));
                       break;
                   case 1:
                       setItem(i, 1, new QTableWidgetItem(
-                              QString::fromStdString(std::get<1>(graph_->nativetype_to_string(v.value().dec())))));
+                              QString::fromStdString(std::get<1>(graph_->nativetype_to_string(v.read_reg().val().dec())))));
                       break;
                   case 2:
                       setItem(i, 1, new QTableWidgetItem(
-                              QString::fromStdString(std::get<1>(graph_->nativetype_to_string(v.value().fl())))));
+                              QString::fromStdString(std::get<1>(graph_->nativetype_to_string(v.read_reg().val().fl())))));
                       break;
                   case 3:
                       setItem(i, 1, new QTableWidgetItem(QString::fromStdString(
-                              std::get<1>(graph_->nativetype_to_string(v.value().float_vec())))));
+                              std::get<1>(graph_->nativetype_to_string(v.read_reg().val().float_vec())))));
                       break;
                   case 4:
-                      setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.value().str())));
+                      setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.read_reg().val().str())));
                       break;
               }
               i++;
@@ -187,7 +187,7 @@ class DoTableStuff : public  QTableWidget
     };
 
   public slots:
-    void drawSLOT(const std::int32_t &id, const std::map<string,Attrib> &attribs) 
+    void drawSLOT(const std::int32_t &id, const std::map<string,CRDT::Attribute> &attribs)
     {
         //std::cout << " Window " << this->window()->windowTitle().toStdString() << " id " << QString::number(id).toStdString() << " contains? " << this->window()->windowTitle().contains(QString::number(id)) << std::endl;
         if (this->window()->windowTitle().contains(QString::number(id))) {
@@ -195,21 +195,21 @@ class DoTableStuff : public  QTableWidget
             for (auto &[k,v] : attribs) 
             {
                 setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));   
-                switch (v.value()._d()) {
+                switch (v.val().selected()) {
                     case 0:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.value().str())));
+                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.val().str())));
                         break;
                     case 1:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.value().dec())))));
+                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.val().dec())))));
                         break;
                     case 2:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.value().fl())))));
+                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.val().fl())))));
                         break;
                     case 3:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.value().float_vec())))));
+                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.val().float_vec())))));
                         break;
                     case 4:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.value().str())));
+                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.val().str())));
                         break;
                 }
                 i++;

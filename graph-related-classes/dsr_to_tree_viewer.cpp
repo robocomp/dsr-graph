@@ -35,8 +35,8 @@ void DSRtoTreeViewer::createGraph()
 		for(const auto &[k, node] : map)
 		       add_or_assign_node_SLOT(k,  node.type());
 		for(auto node : map) // Aworset
-           	for(const auto &[k, edges] : node.second.fano())
-			   add_or_assign_edge_SLOT(edges.from(), edges.to(), edges.type());
+           	for( auto &[k, edges] : node.second.fano())
+			   add_or_assign_edge_SLOT(edges.read_reg().from(), edges.read_reg().to(), edges.read_reg().type());
     }
 	catch(const std::exception &e) { std::cout << e.what() << " Error accessing "<< __FUNCTION__<<":"<<__LINE__<< std::endl;}
 }

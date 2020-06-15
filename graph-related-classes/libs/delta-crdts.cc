@@ -375,6 +375,25 @@ public:
         return !(rhs == *this);
     }
 
+    bool operator<(const dotcontext &rhs) const {
+        if (cc < rhs.cc)
+            return true;
+        if (rhs.cc < cc)
+            return false;
+        return dc < rhs.dc;
+    }
+
+    bool operator>(const dotcontext &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const dotcontext &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const dotcontext &rhs) const {
+        return !(*this < rhs);
+    }
 };
 
 template <typename T, typename K>
@@ -692,6 +711,29 @@ public:
         return !(rhs == *this);
     }
 
+    bool operator<(const dotkernel &rhs) const {
+        if (ds < rhs.ds)
+            return true;
+        if (rhs.ds < ds)
+            return false;
+        if (cbase < rhs.cbase)
+            return true;
+        if (rhs.cbase < cbase)
+            return false;
+        return c < rhs.c;
+    }
+
+    bool operator>(const dotkernel &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const dotkernel &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const dotkernel &rhs) const {
+        return !(*this < rhs);
+    }
 };
 
 template <typename V=int, typename K=string>
@@ -1446,6 +1488,26 @@ public:
 
     bool operator!=(const mvreg &rhs) const {
         return !(rhs == *this);
+    }
+
+    bool operator<(const mvreg &rhs) const {
+        if (id < rhs.id)
+            return true;
+        if (rhs.id < id)
+            return false;
+        return dk < rhs.dk;
+    }
+
+    bool operator>(const mvreg &rhs) const {
+        return rhs < *this;
+    }
+
+    bool operator<=(const mvreg &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool operator>=(const mvreg &rhs) const {
+        return !(*this < rhs);
     }
 };
 
