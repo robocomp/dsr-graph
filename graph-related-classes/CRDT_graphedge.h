@@ -39,8 +39,8 @@ class DoRTStuff : public  QTableWidget
       qRegisterMetaType<CRDT::IDType>("DSR::IDType");
 //      qRegisterMetaType<CRDT::AttribsMap>("DSR::Attribs");
 
-      std::optional<Node> n = graph->get_node(from);
-      std::optional<Node> n2 = graph->get_node(to);
+      std::optional<CRDT::Node> n = graph->get_node(from);
+      std::optional<CRDT::Node> n2 = graph->get_node(to);
 
       if (n.has_value() &&  n2.has_value()) 
       {
@@ -89,7 +89,7 @@ class DoRTStuff : public  QTableWidget
       if( from == from_ and to == to_)     //ADD LABEL
         try
         {
-          std::optional<Node> node = graph->get_node(from);
+          std::optional<CRDT::Node> node = graph->get_node(from);
           if (node.has_value()) 
           {
               auto mat = graph->get_edge_RT_as_RTMat(graph->get_edge_RT(node.value(), to));

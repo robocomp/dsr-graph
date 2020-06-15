@@ -388,9 +388,9 @@ TEST_CASE("Maps operations", "[UTILS]") {
         ve = G->get_edges_to_id(118);
         REQUIRE(ve.size() == 1);
     }
-/*
-     TODO: MODIFICAR CON NUEVA REPRESENTACIÓN del grafo para el usuario.
 
+     //TODO: MODIFICAR CON NUEVA REPRESENTACIÓN del grafo para el usuario.
+/*
     SECTION("Get edges from a node") {
         std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> ve = G->get_edges(101);
         REQUIRE(ve.has_value() == true);
@@ -399,18 +399,18 @@ TEST_CASE("Maps operations", "[UTILS]") {
         REQUIRE(n.has_value());
         REQUIRE(n->fano() == ve.value());
     }
-
+*/
     SECTION("Get edges from a node that does not exist") {
-        std::optional<std::map<EdgeKey, Edge>> ve = G->get_edges(45550);
+        std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> ve = G->get_edges(45550);
         REQUIRE(!ve.has_value());
     }
 
     SECTION("Get edges from a node that has no edges") {
-        std::optional<std::map<EdgeKey, Edge>> ve = G->get_edges(118);
+        std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> ve = G->get_edges(118);
         REQUIRE(ve.has_value());
         REQUIRE(ve->empty());
     }
-    */
+
 }
 
 TEST_CASE("Attributes operations", "[ATTRIBUTES]") {

@@ -44,8 +44,8 @@ void DSRtoGraphViewer::createGraph()
 		for(const auto &[k, node] : map)
 		       add_or_assign_node_SLOT(k,  node.type());
 		for(auto node : map) // Aworset
-           	for(const auto &[k, edges] : node.second.fano())
-			   add_or_assign_edge_SLOT(edges.from(), edges.to(), edges.type());
+           	for(auto &[k, edges] : node.second.fano())
+			   add_or_assign_edge_SLOT(edges.read_reg().from(), edges.read_reg().to(), edges.read_reg().type());
     }
 	catch(const std::exception &e) { std::cout << e.what() << " Error accessing "<< __FUNCTION__<<":"<<__LINE__<< std::endl;}
 }
@@ -60,7 +60,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
 
     auto name_op = G->get_name_from_id(id);
     auto name = name_op.value_or("No_name");
-	std::optional<Node> n = G->get_node(id);
+	std::optional<CRDT::Node> n = G->get_node(id);
     if (n.has_value()) {
         if (gmap.count(id) == 0)    // if node does not exist, create it
         {
@@ -139,7 +139,15 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
         if (posx != gnode->x() or posy != gnode->y())
             gnode->setPos(posx, posy);
 
-        emit G->update_attrs_signal(id, n.value().attrs());
+        std::map<std::string, CRDT::Attribute> signal;
+        for (auto &[k,v] : n.value().attrs())
+            signal.insert({k,CRDT::Attribute(v.read_reg())});
+
+        //std::transform(n.value().attrs().begin(), n.value().attrs().end(), signal.begin(),
+        //        [&] (auto &mv) -> std::pair<std::string, CRDT::Attribute> &&{
+        //    return std::move({std::get<0>(mv), CRDT::Attribute(std::get<1>(mv).read_reg())});
+        //});
+        emit G->update_attrs_signal(id, signal);
     }
 }
 

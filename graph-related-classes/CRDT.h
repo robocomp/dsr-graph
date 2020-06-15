@@ -116,21 +116,21 @@ namespace CRDT
             {
                 return  make_tuple("string", t,1);
             }
-            if constexpr (std::is_same<Ta, std::vector<float>>::value)
+            else if constexpr (std::is_same<Ta, std::vector<float>>::value)
             {
                 std::string str;
                 for(auto &f : t)
                     str += std::to_string(f) + " ";
                 return make_tuple("vector<float>",  str += "\n",t.size());
             }
-            if constexpr (std::is_same<Ta, std::vector<byte>>::value)
+            else if constexpr (std::is_same<Ta, std::vector<byte>>::value)
             {
                 std::string str;
                 for(auto &f : t)
                     str += std::to_string(f) + " ";
                 return make_tuple("vector<byte>",  str += "\n",t.size());
             }
-            return  make_tuple(typeid(Ta).name(), std::to_string(t),1);
+            else return  make_tuple(typeid(Ta).name(), std::to_string(t),1);
 
         }; //Used by viewer
 
@@ -216,8 +216,9 @@ namespace CRDT
         };
 
         template <typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
-         bool add_attrib(Type &elem, const std::string& att_name, const Attribute &attr) {
+         bool add_attrib(Type &elem, const std::string& att_name,  Attribute &attr) {
             if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
+            attr.timestamp(get_unix_timestamp());
             elem.attrs()[att_name] = attr;
             return true;
         };
@@ -232,9 +233,10 @@ namespace CRDT
         };
 
         template <typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
-         bool modify_attrib(Type &elem, const std::string& att_name, const Attribute &attr) {
+         bool modify_attrib(Type &elem, const std::string& att_name,  Attribute &attr) {
             if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
                 //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
+            attr.timestamp(get_unix_timestamp());
             elem.attrs()[att_name] = attr;
             return true;
         };

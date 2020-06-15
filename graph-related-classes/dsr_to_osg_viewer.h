@@ -86,14 +86,14 @@ namespace DSR
             void setMainCamera(osgGA::TrackballManipulator *manipulator, CameraView pov) const;
             osgGA::TrackballManipulator* manipulator;
 
-            void add_or_assign_node_slot(const Node &node);
-            void add_or_assign_edge_slot(const Node &from, const Node& to);
+            void add_or_assign_node_slot(const CRDT::Node &node);
+            void add_or_assign_edge_slot(const CRDT::Node &from, const CRDT::Node& to);
 
-            void add_or_assign_box(const Node &node, const Node& parent);
-            void add_or_assign_mesh(const Node &node, const Node& parent);
-            void add_or_assign_transform(const Node &from, const Node& to);
+            void add_or_assign_box(const CRDT::Node &node, const CRDT::Node& parent);
+            void add_or_assign_mesh(const CRDT::Node &node, const CRDT::Node& parent);
+            void add_or_assign_transform(const CRDT::Node &from, const CRDT::Node& to);
 
-            void traverse_RT_tree(const Node& node);
+            void traverse_RT_tree(const CRDT::Node& node);
             void analyse_osg_graph(osg::Node *nd);
     };
 };

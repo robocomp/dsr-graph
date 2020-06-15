@@ -19,7 +19,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
         // ramdomly select create or remove
         if(rnd_selector() == 0)
         {
-            Edge edge;
+            CRDT::Edge edge;
             edge.type("Edge");
             //get two ids
             edge.from(getID());
@@ -55,7 +55,7 @@ void CRDT_insert_remove_edge::run_test()
     try {
         int i = 0;
         while (i++ < 20) {
-            Node node;
+            CRDT::Node node;
             node.type("plane");
             auto id = newID();
             node.id( id );

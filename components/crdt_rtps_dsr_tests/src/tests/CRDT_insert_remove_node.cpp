@@ -19,7 +19,7 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
         if( rnd_selector() == 0)
         {
             // create node
-            Node node;
+            CRDT::Node node;
             node.type("n");
             auto id = newID();
             node.id( id );

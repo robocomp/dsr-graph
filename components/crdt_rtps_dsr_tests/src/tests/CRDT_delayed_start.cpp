@@ -20,7 +20,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
         {
             //qDebug() << __FUNCTION__ << "Create node";
             // create node
-            Node node;
+            CRDT::Node node;
             node.type("plane");
             auto id = newID();
             node.id( id );

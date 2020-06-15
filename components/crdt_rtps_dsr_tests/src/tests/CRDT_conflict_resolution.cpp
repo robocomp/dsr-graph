@@ -16,7 +16,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
     {
         start = std::chrono::steady_clock::now();
         // request node
-        std::optional<Node> node = G->get_node(100);
+        std::optional<CRDT::Node> node = G->get_node(100);
         if (!node.has_value())
         {
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
@@ -26,22 +26,24 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
 
         auto at = node.value().attrs().find("testattrib");
         if (at == node.value().attrs().end()) {
-            Val v;
+            CRDT::Value v;
             v.str(str);
-            Attrib ab;
-            ab.value(v);
-            ab.type(STRING);
-            node.value().attrs()["testattrib"] = ab;
+            CRDT::Attribute ab;
+            ab.val(std::move(v));
+            ab.type(CRDT::STRING);
+            node.value().attrs()["testattrib"].write(ab);
             node->agent_id(agent_id);
-            G->add_attrib(node.value(), "pos_x", rnd_float());
-            G->add_attrib(node.value(), "pos_y", rnd_float());
         }
         else {
-            at->second.value().str(str);
-            G->modify_attrib(node.value(), "pos_x", rnd_float());
-            G->modify_attrib(node.value(), "pos_y", rnd_float());
+            CRDT::Attribute ab;
+            ab = *node.value().attrs()["testattrib"].read().begin();
+            ab.val().str(str);
+            node.value().attrs()["testattrib"].write(ab);
+
         }
 
+        G->modify_attrib(node.value(), "pos_x", rnd_float());
+        G->modify_attrib(node.value(), "pos_y", rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {

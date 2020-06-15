@@ -363,7 +363,25 @@ namespace CRDT {
             m_type = x.type();
             m_timestamp = x.timestamp();
             m_Value = Value(std::move(x.value()));
-            //m_agent_id = x.agent_id();
+            m_agent_id = x.agent_id();
+            return *this;
+        }
+
+        Attribute &operator=(Attribute &&x) {
+
+            m_type = x.type();
+            m_timestamp = x.timestamp();
+            m_Value = std::move(x.val());
+            m_agent_id = x.agent_id();
+            return *this;
+        }
+
+        Attribute &operator=(const Attribute &x) {
+
+            m_type = x.type();
+            m_timestamp = x.timestamp();
+            m_Value = x.val();
+            m_agent_id = x.agent_id();
             return *this;
         }
 
