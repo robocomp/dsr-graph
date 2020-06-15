@@ -13,6 +13,7 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
     qRegisterMetaType<std::int32_t>("std::int32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
+	own = shared_ptr<DSRtoGraphViewer>(this);
 
     createGraph();
 
@@ -20,6 +21,18 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
+}
+
+DSRtoGraphViewer::~DSRtoGraphViewer()
+{
+	qDebug() << __FUNCTION__ << "Destroy";
+	QList<QGraphicsItem*> allGraphicsItems = scene.items();
+	for(int i = 0; i < allGraphicsItems.size(); i++)
+	{
+		QGraphicsItem *graphicItem = allGraphicsItems[i];
+		if(graphicItem->scene() == &scene)
+			scene.removeItem(graphicItem);
+	}
 }
 
 void DSRtoGraphViewer::createGraph()
@@ -51,7 +64,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
     if (n.has_value()) {
         if (gmap.count(id) == 0)    // if node does not exist, create it
         {
-            gnode = new GraphNode(std::shared_ptr<DSRtoGraphViewer>(this));  
+            gnode = new GraphNode(own);
             gnode->id_in_graph = id;
             gnode->setType(type);
 			gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
