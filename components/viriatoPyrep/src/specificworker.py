@@ -54,6 +54,9 @@ class SpecificWorker(GenericWorker):
         self.robot = Viriato()
         
         self.robot_centre = Dummy("Viriato_intermediate_target_base")
+        # self.camera_1_rgb = VisionSensor("camera_1_rgb")
+        # self.camera_2_rgb = VisionSensor("camera_2_rgb")
+        # self.camera_3_rgb = VisionSensor("camera_3_rgb")
         self.camera_head = VisionSensor("real_sense_sensor")
         camera_semi_angle = np.radians(self.camera_head.get_perspective_angle())/2 
         self.cfocal = self.camera_head.get_resolution()[0]/2/np.tan(camera_semi_angle)

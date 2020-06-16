@@ -50,10 +50,7 @@ void SpecificWorker::initialize(int period)
 
     // GraphViewer creation
     using opts = DSR::GraphViewer::View;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(G, std::list<opts>{opts::Scene, opts::OSG});
-	mainLayout.addWidget(graph_viewer.get());
-	window.setLayout(&mainLayout);
-	setCentralWidget(&window);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
     
     this->Period = 100;
     timer.start(Period);
@@ -64,7 +61,8 @@ void SpecificWorker::compute()
 {
     if(auto pdata = people_data_buffer.get(); pdata.has_value())
         process_people_data(pdata.value());
-
+    //check people thas has not been seen
+    check_unseen_people();
 }
 
 
@@ -85,7 +83,7 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSR::PeopleData people)
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
-            std::cout << "Update RT "<<world_n->id()<<" "<<trans<<rot<<std::endl;
+            std::cout << "Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
 /*            for(const auto &[name, key] : person.joints) //update joints edge values
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
@@ -116,7 +114,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         else //create nodes
         {
             qDebug()<<"Person does not exist => Creation";
-            std::optional<Node> person_n = create_node("person", person_name, world_n->id());
+            person_n = create_node("person", person_name, world_n->id());
             if (not person_n.has_value()) 
                 return;
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
@@ -141,7 +139,29 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
                     qDebug()<<"Error adding edge_RT from"<<QString::fromStdString(parent_name)<<"to"<<QString::fromStdString(node_name);
             }*/
         }
+        //update timestamp
+        people_last_seen[person_n.value().id()] = std::chrono::system_clock::now();
     }
+}
+
+void SpecificWorker::check_unseen_people()
+{
+    auto now = std::chrono::system_clock::now();
+	for (std::map<int,std::chrono::system_clock::time_point>::iterator it = people_last_seen.begin(); it != people_last_seen.end();)
+	{
+		auto last_view = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second).count();
+		if(last_view > MAXTIME)
+		{
+			qDebug()<<"REMOVE PERSON"<<it->first;
+			G->delete_node(it->first);
+            people_last_seen.erase(it);			
+		}
+		else
+		{
+			++it;
+		}
+	}
+
 }
 
 
@@ -179,7 +199,7 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     G->insert_or_assign_attrib_by_name(node, "pos_y", 100);
     G->insert_or_assign_attrib_by_name(node, "name", name);
     G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
-    if( G->insert_or_assign_node(node))
+    if( G->insert_node(node))
         return node; 
     return {};
 }
