@@ -29,6 +29,8 @@
 #include <innermodel/innermodel.h>
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include <QHBoxLayout>
+
 
 class SpecificWorker : public GenericWorker
 {
