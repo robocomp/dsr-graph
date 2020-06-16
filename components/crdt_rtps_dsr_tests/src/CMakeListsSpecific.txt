@@ -28,7 +28,8 @@ SET ( SOURCES
   ../../../graph-related-classes/dsr_to_graph_viewer.cpp
   ../../../graph-related-classes/dsr_to_tree_viewer.cpp
   ../../../graph-related-classes/inner_api.cpp
- 
+   ../../../graph-related-classes/_abstract_graphic_view.cpp
+
 )
 
 # Headers set
@@ -41,6 +42,8 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
   ../../../graph-related-classes/dsr_utils.h
+    ../../../graph-related-classes/_abstract_graphic_view.h
+
   tests/CRDT_insert_remove_edge.h
   tests/CRDT_insert_remove_node.h
   tests/CRDT_change_attribute.h

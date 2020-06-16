@@ -360,7 +360,7 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
 
     std::optional<AworSet> awor1;
     std::optional<AworSet> awor2;
-
+    std::optional<Node> to_n;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to))
@@ -373,14 +373,14 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
             e.attrs().insert_or_assign("translation", tr);
             n.fano().insert_or_assign(ek, e);
             n.agent_id(agent_id);
-            Node to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n, "parent", n.id());
-            if (!res1) (void) add_attrib(to_n, "parent", n.id());
-            bool res2 = modify_attrib(to_n, "level",  get_node_level(n).value() + 1 );
-            if (!res2) (void) add_attrib(to_n, "level",  get_node_level(n).value() + 1 );
+            to_n = get_(to);
+            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (!res2) (void) add_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
 
             auto [r1, aw1] = insert_or_assign_node_(n);
-            auto [r2, aw2] = insert_or_assign_node_(to_n);
+            auto [r2, aw2] = insert_or_assign_node_(to_n.value());
 
             if(r1 and r2) {
                 r = true;
@@ -392,9 +392,10 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
         } else
             throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
     }
-    if (r)
-        emit update_edge_signal( n.id(),  to, "RT");
-
+    if (r) {
+        emit update_edge_signal(n.id(), to, "RT");
+        emit update_node_signal(to_n.value().id(), to_n.value().type());
+    }
     if (awor1.has_value()) {  dsrpub.write(&awor1.value()); }
     if (awor2.has_value()) {  dsrpub.write(&awor2.value()); }
 
@@ -406,6 +407,7 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
 
     std::optional<AworSet> awor1;
     std::optional<AworSet> awor2;
+    std::optional<Node> to_n;
 
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -419,14 +421,14 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
             e.attrs().insert_or_assign("translation", tr);
             n.fano().insert_or_assign(ek, e);
             n.agent_id(agent_id);
-            Node to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n, "parent", n.id());
-            if (!res1) (void) add_attrib(to_n, "parent", n.id());
-            bool res2 = modify_attrib(to_n, "level",  get_node_level(n).value() + 1 );
-            if (!res2) (void) add_attrib(to_n, "level",  get_node_level(n).value() + 1 );
+            to_n = get_(to);
+            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (!res2) (void) add_attrib(to_n.value(), "level",  get_node_level(n).value() + 1 );
 
             auto [r1, aw1] = insert_or_assign_node_(n);
-            auto [r2, aw2] = insert_or_assign_node_(to_n);
+            auto [r2, aw2] = insert_or_assign_node_(to_n.value());
 
             if(r1 and r2) {
                 r = true;
@@ -438,9 +440,10 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
         } else
             throw std::runtime_error("Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
     }
-    if (r)
-        emit update_edge_signal( n.id(),  to, "RT");
-
+    if (r) {
+        emit update_edge_signal(n.id(), to, "RT");
+        emit update_node_signal(to_n.value().id(), to_n.value().type());
+    }
     if (awor1.has_value()) {  dsrpub.write(&awor1.value()); }
     if (awor2.has_value()) {  dsrpub.write(&awor2.value()); }
 
@@ -774,27 +777,26 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
         if (signal) {
 
             //check what change is joined
-            if (nd.attrs() != nodes[aworSet.id()].read().begin()->attrs()) {
-                emit update_node_signal(aworSet.id(), nodes[aworSet.id()].read().begin()->type());
-            } else if (nd != *nodes[aworSet.id()].read().begin()){
+            if (nd.attrs() != nodes[aworSet.id()].dots().ds.rbegin()->second.attrs()) {
+                emit update_node_signal(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second.type());
+            } else {
+                auto iter =  nodes[aworSet.id()].dots().ds.rbegin()->second.fano();
                 std::map<EdgeKey, Edge> diff_remove;
+                std::set_difference(nd.fano().begin(), nd.fano().end(),
+                                    iter.begin(),iter.end(),
+                                    std::inserter(diff_remove, diff_remove.begin()));
                 std::map<EdgeKey, Edge> diff_insert;
+                std::set_difference(iter.begin(),
+                                    iter.end(),
+                                    nd.fano().begin(), nd.fano().end(),
+                                    std::inserter(diff_insert, diff_insert.begin()));
 
-                if (!newnd.fano().empty()) {
-                    std::set_difference(nd.fano().begin(), nd.fano().end(),
-                                        newnd.fano().begin(), newnd.fano().end(),
-                                        std::inserter(diff_remove, diff_remove.begin()));
+                for (const auto &[k,v] : diff_remove) {
+                    std::cout << "JOIN REMOVE edge" << k << std::endl;
+                    emit del_edge_signal(aworSet.id(), k.to(), k.type());
                 }
-                if (!nd.fano().empty()) {
-                    std::set_difference(newnd.fano().begin(), newnd.fano().end(),
-                                        nd.fano().begin(), nd.fano().end(),
-                                        std::inserter(diff_insert, diff_insert.begin()));
-                    }
-
-                for (const auto &[k,v] : diff_remove)
-                        emit del_edge_signal(aworSet.id(), k.to(), k.type());
-
                 for (const auto &[k,v] : diff_insert) {
+                    std::cout << "JOIN INSERT edge" << k << std::endl;
                     emit update_edge_signal(aworSet.id(), k.to(), k.type());
                 }
             }
@@ -879,7 +881,7 @@ void CRDTGraph::join_full_graph(OrMap full_graph)
 
             if (deleted.find(k) == deleted.end()) {
                 nodes[k].join_replace(awor);
-                if (awor.dots().ds.size() == 0) {
+                if (awor.dots().ds.empty()) {
                     update_maps_node_delete(k, nd);
                     updates.emplace_back(make_tuple(false, k, "", nd));
                 } else {
