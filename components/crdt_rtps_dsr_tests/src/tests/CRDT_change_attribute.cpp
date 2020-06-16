@@ -53,7 +53,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
             node.value().attrs()["testattrib"].write(ab);
 
         }
-        G->add_attrib(node.value(), "pos_x", rnd_float());
+        G->add_attrib(node.value(), "pos_x", rnd_float()); //modify?
         G->add_attrib(node.value(), "pos_y", rnd_float());
         bool r = G->update_node(node.value());
 
