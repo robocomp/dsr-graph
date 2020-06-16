@@ -206,6 +206,7 @@ int ::idserver::run(int argc, char* argv[])
 		#endif
 		// Run QT Application Event Loop
 		a.exec();
+		cout << "[" << PROGRAM_NAME << "]: Finishing qt application execution\n";
 
 
 		status = EXIT_SUCCESS;
@@ -223,10 +224,15 @@ int ::idserver::run(int argc, char* argv[])
 	#endif
 
 	status = EXIT_SUCCESS;
+	cout << "[" << PROGRAM_NAME << "]: To terminate monitor\n";
 	monitor->terminate();
+	cout << "[" << PROGRAM_NAME << "]: To wait monitor\n";
 	monitor->wait();
+	cout << "[" << PROGRAM_NAME << "]: To delete worker\n";
 	delete worker;
+	cout << "[" << PROGRAM_NAME << "]: deleted worker\n";
 	delete monitor;
+	cout << "[" << PROGRAM_NAME << "]: deleted monitor\n";
 	return status;
 }
 

@@ -8,24 +8,12 @@
 
 using namespace DSR ;
 
-DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent) :  QGraphicsView(parent)
+DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent) :  AbstractGraphicViewer(parent)
 {
     qRegisterMetaType<std::int32_t>("std::int32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
-    scene.setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene.setSceneRect(-200, -200, 400, 400);
-	this->setScene(&scene);
-    this->setCacheMode(QGraphicsView::CacheBackground);
-	this->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-	this->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-	this->setRenderHint(QPainter::Antialiasing);
-	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	this->setMinimumSize(400, 400);
-	this->fitInView(scene.sceneRect(), Qt::KeepAspectRatio );
-	this->adjustSize();
- 	setMouseTracking(true);
-    this->viewport()->setMouseTracking(true);
+	own = shared_ptr<DSRtoGraphViewer>(this);
 
     createGraph();
 
@@ -33,6 +21,18 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
+}
+
+DSRtoGraphViewer::~DSRtoGraphViewer()
+{
+	qDebug() << __FUNCTION__ << "Destroy";
+	QList<QGraphicsItem*> allGraphicsItems = scene.items();
+	for(int i = 0; i < allGraphicsItems.size(); i++)
+	{
+		QGraphicsItem *graphicItem = allGraphicsItems[i];
+		if(graphicItem->scene() == &scene)
+			scene.removeItem(graphicItem);
+	}
 }
 
 void DSRtoGraphViewer::createGraph()
@@ -64,7 +64,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
     if (n.has_value()) {
         if (gmap.count(id) == 0)    // if node does not exist, create it
         {
-            gnode = new GraphNode(std::shared_ptr<DSRtoGraphViewer>(this));  
+            gnode = new GraphNode(own);
             gnode->id_in_graph = id;
             gnode->setType(type);
 			gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
@@ -223,37 +223,3 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
 // 	}
 // 	catch(const std::exception &e){ std::cout << "Exception: " << e.what() << " pos_x and pos_y attribs not found in node "  << id << std::endl;};
 //  }
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-///// EVENTS
-//////////////////////////////////////////////////////////////////////////////////////
-
-void DSRtoGraphViewer::wheelEvent(QWheelEvent* event)
-{
-    const QGraphicsView::ViewportAnchor anchor = transformationAnchor();
-	setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	int angle = event->angleDelta().y();
-	qreal factor;
-	if (angle > 0) 
-	{
-		factor = 1.1;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
-	}
-	else
-	{
-		factor = 0.9;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
-	}
-	this->scale(factor, factor);
-	this->setTransformationAnchor(anchor);
-}
-
-void DSRtoGraphViewer::resizeEvent(QResizeEvent *e)
-{  
-//	qDebug() << "resize_graph_view" << x() << y()<<e->size(); 
-	this->resize(e->size());
-} 

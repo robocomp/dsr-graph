@@ -17,7 +17,7 @@
 #include "CRDT_graphnode.h"
 
 
-GraphNode::GraphNode(std::shared_ptr<DSR::DSRtoGraphViewer> dsr_to_graph_viewer_) : dsr_to_graph_viewer(dsr_to_graph_viewer_)
+GraphNode::GraphNode(std::shared_ptr<DSR::DSRtoGraphViewer> graph_viewer_): QGraphicsItem(), dsr_to_graph_viewer(graph_viewer_)
 {
     setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);

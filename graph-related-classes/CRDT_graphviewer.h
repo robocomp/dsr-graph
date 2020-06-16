@@ -38,12 +38,12 @@ namespace DSR
 	/// Drawing controller to display the graph in real-time using RTPS 
 	//////////////////////////////////////////////////////////////////////////////////////////////77
 	
-	class GraphViewer : public QMainWindow
+	class GraphViewer : QObject
 	{
 		Q_OBJECT
 		public:
 			enum class View {Graph, OSG, Scene, Tree};	
-			GraphViewer(std::shared_ptr<CRDT::CRDTGraph> G, std::list<View> options=std::list<View>());
+			GraphViewer(QMainWindow *window, std::shared_ptr<CRDT::CRDTGraph> G, std::list<View> options=std::list<View>());
 			~GraphViewer();
 			void itemMoved();
 			void createGraph();
@@ -56,6 +56,7 @@ namespace DSR
 			std::shared_ptr<CRDT::CRDTGraph> G;
 			int timerId = 0;
 			bool do_simulate = false;
+			QMainWindow *window;
 			std::unique_ptr<DSR::DSRtoOSGViewer> dsr_to_osg_viewer;
 			std::unique_ptr<DSR::DSRtoGraphicsceneViewer> dsr_to_graphicscene_viewer;
 			std::unique_ptr<DSR::DSRtoGraphViewer> dsr_to_graph_viewer;

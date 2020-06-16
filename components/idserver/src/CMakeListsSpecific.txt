@@ -18,6 +18,7 @@ SET ( SOURCES
   ../../../graph-related-classes/dsr_to_osg_viewer.cpp
   ../../../graph-related-classes/dsr_to_graph_viewer.cpp
   ../../../graph-related-classes/dsr_to_tree_viewer.cpp
+  ../../../graph-related-classes/_abstract_graphic_view.cpp
 )
 
 # Headers set
@@ -29,7 +30,7 @@ SET ( HEADERS
   ../../../graph-related-classes/CRDT_graph.h
   ../../../graph-related-classes/CRDT_graphnode.h
   ../../../graph-related-classes/CRDT_graphedge.h
-  
+  ../../../graph-related-classes/_abstract_graphic_view.h
 )
 
 set(CMAKE_CXX_STANDARD 17)
