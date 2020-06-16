@@ -747,6 +747,7 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
         bool signal = false;
         auto d = translateAwIDLtoCRDT(aworSet);
         Node nd;
+        Node newnd;
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             if (deleted.find(aworSet.id()) == deleted.end()) {
@@ -754,31 +755,41 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
                 (nodes[aworSet.id()].dots().ds.rbegin() != nodes[aworSet.id()].dots().ds.rend()) ?
                     nd = nodes[aworSet.id()].dots().ds.rbegin()->second : Node();
 
+
                 nodes[aworSet.id()].join_replace(d);
                 if (nodes[aworSet.id()].dots().ds.size() == 0 or aworSet.dk().ds().size() == 0) {
+                    std::cout << "JOIN REMOVE" << std::endl;
                     update_maps_node_delete(aworSet.id(), nd);
-                } else {
+                } 
+                else {
+                    std::cout << "JOIN INSERT/UPDATE" << std::endl;
                     signal = true;
-                    update_maps_node_insert(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second);
+                    //newnd = *nodes[aworSet.id()].dots().ds.rbegin();
+                    newnd = nodes[aworSet.id()].dots().ds.rbegin()->second;
+                    update_maps_node_insert(aworSet.id(), newnd);
                 }
             }
         }
 
         if (signal) {
+
             //check what change is joined
-            if (nd.attrs() != nodes[aworSet.id()].dots().ds.rbegin()->second.attrs()) {
-                emit update_node_signal(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second.type());
-            } else {
+            if (nd.attrs() != nodes[aworSet.id()].read().begin()->attrs()) {
+                emit update_node_signal(aworSet.id(), nodes[aworSet.id()].read().begin()->type());
+            } else if (nd != *nodes[aworSet.id()].read().begin()){
                 std::map<EdgeKey, Edge> diff_remove;
-                std::set_difference(nd.fano().begin(), nd.fano().end(),
-                              nodes[aworSet.id()].dots().ds.rbegin()->second.fano().begin(),
-                              nodes[aworSet.id()].dots().ds.rbegin()->second.fano().end(),
-                                    std::inserter(diff_remove, diff_remove.begin()));
                 std::map<EdgeKey, Edge> diff_insert;
-                std::set_difference(nodes[aworSet.id()].dots().ds.rbegin()->second.fano().begin(),
-                                    nodes[aworSet.id()].dots().ds.rbegin()->second.fano().end(),
-                                    nd.fano().begin(), nd.fano().end(),
-                                    std::inserter(diff_insert, diff_insert.begin()));
+
+                if (!newnd.fano().empty()) {
+                    std::set_difference(nd.fano().begin(), nd.fano().end(),
+                                        newnd.fano().begin(), newnd.fano().end(),
+                                        std::inserter(diff_remove, diff_remove.begin()));
+                }
+                if (!nd.fano().empty()) {
+                    std::set_difference(newnd.fano().begin(), newnd.fano().end(),
+                                        nd.fano().begin(), nd.fano().end(),
+                                        std::inserter(diff_insert, diff_insert.begin()));
+                    }
 
                 for (const auto &[k,v] : diff_remove)
                         emit del_edge_signal(aworSet.id(), k.to(), k.type());
@@ -787,13 +798,69 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
                     emit update_edge_signal(aworSet.id(), k.to(), k.type());
                 }
             }
+
         }
         else {
             emit del_node_signal(aworSet.id());
         }
 
-    } catch(const std::exception &e){std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
+    } catch(const std::exception &e){
+         std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
 }
+// void CRDTGraph::join_delta_node(AworSet aworSet)
+// {
+//     try{
+//         //vector<tuple<int, int, std::string>> remove;
+//         bool signal = false;
+//         auto d = translateAwIDLtoCRDT(aworSet);
+//         Node nd;
+//         {
+//             std::unique_lock<std::shared_mutex> lock(_mutex);
+//             if (deleted.find(aworSet.id()) == deleted.end()) {
+
+//                 (nodes[aworSet.id()].dots().ds.rbegin() != nodes[aworSet.id()].dots().ds.rend()) ?
+//                     nd = nodes[aworSet.id()].dots().ds.rbegin()->second : Node();
+
+//                 nodes[aworSet.id()].join_replace(d);
+//                 if (nodes[aworSet.id()].dots().ds.size() == 0 or aworSet.dk().ds().size() == 0) {
+//                     update_maps_node_delete(aworSet.id(), nd);
+//                 } else {
+//                     signal = true;
+//                     update_maps_node_insert(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second);
+//                 }
+//             }
+//         }
+
+//         if (signal) {
+//             //check what change is joined
+//             if (nd.attrs() != nodes[aworSet.id()].dots().ds.rbegin()->second.attrs()) {
+//                 emit update_node_signal(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second.type());
+//             } else {
+//                 std::map<EdgeKey, Edge> diff_remove;
+//                 std::set_difference(nd.fano().begin(), nd.fano().end(),
+//                               nodes[aworSet.id()].dots().ds.rbegin()->second.fano().begin(),
+//                               nodes[aworSet.id()].dots().ds.rbegin()->second.fano().end(),
+//                                     std::inserter(diff_remove, diff_remove.begin()));
+//                 std::map<EdgeKey, Edge> diff_insert;
+//                 std::set_difference(nodes[aworSet.id()].dots().ds.rbegin()->second.fano().begin(),
+//                                     nodes[aworSet.id()].dots().ds.rbegin()->second.fano().end(),
+//                                     nd.fano().begin(), nd.fano().end(),
+//                                     std::inserter(diff_insert, diff_insert.begin()));
+
+//                 for (const auto &[k,v] : diff_remove)
+//                         emit del_edge_signal(aworSet.id(), k.to(), k.type());
+
+//                 for (const auto &[k,v] : diff_insert) {
+//                     emit update_edge_signal(aworSet.id(), k.to(), k.type());
+//                 }
+//             }
+//         }
+//         else {
+//             emit del_node_signal(aworSet.id());
+//         }
+
+//     } catch(const std::exception &e){std::cout <<"EXCEPTION: "<<__FILE__ << " " << __FUNCTION__ <<":"<<__LINE__<< " "<< e.what() << std::endl;};
+// }
 
 void CRDTGraph::join_full_graph(OrMap full_graph) 
 {
