@@ -69,12 +69,8 @@ void SpecificWorker::initialize(int period) {
     //G->print();
 
     // Graph viewer
-    using g_opts = std::list<DSR::GraphViewer::View>;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(G, g_opts{});
-    mainLayout.addWidget(graph_viewer.get());
-    window.setLayout(&mainLayout);
-    setCentralWidget(&window);
-    setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+    using opts = DSR::GraphViewer::View;
+    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
 
 
 
