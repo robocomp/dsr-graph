@@ -64,7 +64,9 @@ Q_OBJECT
 		void initialize(int period);
 		void change_node_slot(int id);
 		void save_node_slot();
+		void delete_node_slot();
 		void change_edge_slot(int id);
+		void delete_edge_slot();
 		void save_edge_slot();
 
 	private:

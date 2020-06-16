@@ -94,6 +94,8 @@ void SpecificWorker::initialize(int period)
     connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
     connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
     connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
+    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
+    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
 }
 
 
@@ -262,11 +264,43 @@ void SpecificWorker::save_edge_slot()
     std::map<std::string, Attrib> new_attrs = get_table_content(edge_attrib_tw, edge.attrs());
     edge.attrs(new_attrs);
     
-    if(true)//G->insert_or_assign_edge(edge))
+    if(G->insert_or_assign_edge(edge))
         qDebug()<<"Edge saved";
     else
     {
         qDebug()<<"Error saving edge";
     }
   
+}
+
+void SpecificWorker::delete_edge_slot()
+{
+    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    bool r = G->delete_edge(edge.from(), edge.to(), "Edge");
+    if (r)
+    {
+        edge_attrib_tw->setRowCount(0);
+        edge_cb->removeItem(edge_cb->currentIndex());
+        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") deleted";
+    }
+    else
+    {
+        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") could not be deleted";
+    }
+}
+
+void SpecificWorker::delete_node_slot()
+{
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    bool r = G->delete_node(node.id());
+    if (r)
+    {
+        node_attrib_tw->setRowCount(0);
+        node_cb->removeItem(node_cb->currentIndex());
+        qDebug()<<"Node"<<QString::fromStdString(node.name())<<"deleted";
+    }
+    else
+    {
+        qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";    
+    }
 }

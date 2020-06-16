@@ -2,12 +2,10 @@
 
 using namespace DSR ;
 
-DSRtoGraphicsceneViewer::DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX, float scaleY, QGraphicsView *parent) : QGraphicsView(parent)
+DSRtoGraphicsceneViewer::DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *parent) : AbstractGraphicViewer(parent)
 {
-qDebug()<<"***************INIT DSRtoGraphicsceneViewer********************";
+    qDebug()<<"***************INIT DSRtoGraphicsceneViewer********************";
     G = G_;
-    m_scaleX = scaleX;
-    m_scaleY = scaleY;
     this->setMinimumSize(400,400);
 
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -278,75 +276,3 @@ void DSRtoGraphicsceneViewer::delete_scene_rect(std::int32_t node_id)
 }
 
 */
-
-
-//////////////////////////////////////////////////////////////
-//                  MOUSE                                   //
-//////////////////////////////////////////////////////////////
-void DSRtoGraphicsceneViewer::wheelEvent(QWheelEvent* event)
-{
-//    qDebug()<<"wheel";
-    const QGraphicsView::ViewportAnchor anchor = this->transformationAnchor();
-	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	qreal factor;
-	if (event->angleDelta().y() > 0) 
-	{
-		factor = 1.1;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
-	}
-	else
-	{
-		factor = 0.9;
-		QRectF r = scene.sceneRect();
-		scene.setSceneRect(r);
-	}
-	this->scale(factor, factor);
-	this->setTransformationAnchor(anchor);
-}
-
-void DSRtoGraphicsceneViewer::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::RightButton)
-    {
-        _pan = true;
-        _panStartX = event->x();
-        _panStartY = event->y();
-        setCursor(Qt::ClosedHandCursor);
-        event->accept();
-        return;
-    }
-    event->ignore();
-}
-
-void DSRtoGraphicsceneViewer::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::RightButton)
-    {
-        _pan = false;
-        setCursor(Qt::ArrowCursor);
-        event->accept();
-        return;
-    }
-    event->ignore();
-}
-
-void DSRtoGraphicsceneViewer::mouseMoveEvent(QMouseEvent *event)
-{
-    if (_pan)
-    {
-        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - (event->x() - _panStartX));
-        verticalScrollBar()->setValue(verticalScrollBar()->value() - (event->y() - _panStartY));
-        _panStartX = event->x();
-        _panStartY = event->y();
-        event->accept();
-        return;
-    }
-    event->ignore();
-}
-
-void DSRtoGraphicsceneViewer::resizeEvent(QResizeEvent *e)
-{  
-//	qDebug() << "resize_graph_view" << x() << y()<<e->size(); 
-	this->resize(e->size());
-} 

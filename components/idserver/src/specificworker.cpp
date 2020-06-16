@@ -45,7 +45,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
    	 	dsr_output_path = params["dsr_output_path"].value;
 		dsr_write_to_file = params["dsr_write_to_file"].value == "true";
     	this->Period = stoi(params["period"].value);
-        return true;
 	}
 	catch(const std::exception &e) { qFatal("Error reading config params"); }
 	return true;
@@ -62,10 +61,10 @@ void SpecificWorker::initialize(int period)
 
 	// Graph viewer
 	using opts = DSR::GraphViewer::View;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(G, std::list<opts>{opts::Scene, opts::OSG});
-	mainLayout.addWidget(graph_viewer.get());
-	window.setLayout(&mainLayout);
-	setCentralWidget(&window);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
+//	mainLayout.addWidget(graph_viewer.get());
+//	window.setLayout(&mainLayout);
+//	setCentralWidget(&window);
 	setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 	connect(actionSaveToFile, &QAction::triggered,  [this]()
 		{ 
