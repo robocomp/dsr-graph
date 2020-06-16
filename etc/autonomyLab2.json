@@ -185,7 +185,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#eebb77"
+                        "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
                     },
                     "width": {
                         "type": 1,
