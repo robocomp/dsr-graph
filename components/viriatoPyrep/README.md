@@ -1,5 +1,10 @@
 # viriatoPyrep
-Intro to component here
+
+You need to copy the viriato.py file in this directory to:
+
+/home/xxxyour-userxxx/.local/lib/python3.6/site-packages/pyrep/robots/mobiles/viriato.py
+(for a local install of Pyrep in python3.6)
+
 
 
 ## Configuration parameters
