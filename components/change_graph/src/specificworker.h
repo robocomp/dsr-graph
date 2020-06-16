@@ -68,11 +68,11 @@ Q_OBJECT
 		void save_edge_slot();
 
 	private:
-		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);
-		std::map<std::string, Attrib> get_table_content(QTableWidget *table_widget, std::map<std::string, Attrib> attrs);
+		void fill_table(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrib);
+		std::map<std::string, CRDT::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrs);
 
 
 };
-Q_DECLARE_METATYPE(Node);
-Q_DECLARE_METATYPE(Edge);
+Q_DECLARE_METATYPE(CRDT::Node);
+Q_DECLARE_METATYPE(CRDT::Edge);
 #endif

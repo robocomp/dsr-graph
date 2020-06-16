@@ -94,17 +94,17 @@ namespace CRDT {
             if (static_cast<int32_t>(val.index()) != rhs.selected()) return false;
 
             switch (val.index()) {
-                case 1:
+                case 0:
                     return str() < rhs.str();
-                case 2:
+                case 1:
                     return dec() < rhs.dec();
-                case 3:
+                case 2:
                     return fl() < rhs.fl();
-                case 4:
+                case 3:
                     return float_vec() < rhs.float_vec();
-                case 5:
+                case 4:
                     return bl() < rhs.bl();
-                case 6:
+                case 5:
                     return byte_vec() < rhs.byte_vec();
                 default:
                     return false;
@@ -136,28 +136,28 @@ namespace CRDT {
         friend std::ostream &operator<<(std::ostream &os, const Value &type) {
 
             switch (type.selected()) {
+                //case 0:
+                //    os << "UNINITIALIZED ";
+                //    break;
                 case 0:
-                    os << "UNINITIALIZED ";
-                    break;
-                case 1:
                     os << " str: " << type.str();
                     break;
-                case 2:
+                case 1:
                     os << " dec: " << type.dec();
                     break;
-                case 3:
+                case 2:
                     os << " float: " << type.fl();
                     break;
-                case 4:
+                case 3:
                     os << " float_vec: [ ";
                     for (const auto &k: type.float_vec())
                         os << k << ", ";
                     os << "] ";
                     break;
-                case 5:
+                case 4:
                     os << "bool: " << (type.bl() ? " TRUE" : " FALSE");
                     break;
-                case 6:
+                case 5:
                     os << " byte_vec: [ ";
                     for (const auto &k: type.byte_vec())
                         os << static_cast<uint8_t >(k) << ", ";
@@ -171,7 +171,7 @@ namespace CRDT {
         }
 
         [[nodiscard]] int32_t selected() const {
-            return val.index()-1;
+            return val.index();
         }
 
         std::string &str() {
@@ -293,22 +293,22 @@ namespace CRDT {
             IDL::Val value;
 
             switch (val.index()) {
-                case 1:
+                case 0:
                     value.str(std::get<std::string>(val));
                     break;
-                case 2:
+                case 1:
                     value.dec(std::get<int32_t>(val));
                     break;
-                case 3:
+                case 2:
                     value.fl(std::get<float>(val));
                     break;
-                case 4:
+                case 3:
                     value.float_vec(std::get<std::vector<float>>(val));
                     break;
-                case 5:
+                case 4:
                     value.bl(std::get<bool>(val));
                     break;
-                case 6:
+                case 5:
                     value.byte_vec(
                             std::vector<uint8_t>(
                                     reinterpret_cast<uint8_t *>(std::get<std::vector<byte>>(val).data()),
@@ -647,6 +647,7 @@ namespace CRDT {
             edge.type(m_type);
             edge.agent_id(m_agent_id);
             for (auto &[k, v] : m_attrs) {
+
                 IDL::MvregEdgeAttr edgeAttr;
                 for (auto &kv_dots : v.dk.ds) {
                     IDL::PairInt pi;
@@ -654,19 +655,24 @@ namespace CRDT {
                     pi.second(kv_dots.first.second);
 
                     edgeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+                    edgeAttr.dk().cbase().cc().emplace(kv_dots.first);
+
                 }
-                for (auto &kv_cc : v.context().getCcDc().first) {
-                    edgeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-                }
-                for (auto &kv_dc : v.context().getCcDc().second) {
+
+                for (auto &kv_dc : v.context().dc){
                     IDL::PairInt pi;
                     pi.first(kv_dc.first);
                     pi.second(kv_dc.second);
 
                     edgeAttr.dk().cbase().dc().push_back(pi);
                 }
+
+                edgeAttr.from(m_from);
+                edgeAttr.to(m_to);
+                edgeAttr.type(m_type);
+                edgeAttr.agent_id(v.read_reg().agent_id());
                 edgeAttr.id(id);
-                edgeAttr.agent_id(v.read().begin()->agent_id());
+
                 edge.attrs()[k] = edgeAttr;
             }
             return edge;
@@ -713,14 +719,11 @@ namespace CRDT {
             m_id = x.id();
             m_agent_id = x.agent_id();
             for (auto&[k, v] : x.attrs()) {
-                mvreg<Attribute, int> mv(0);
-                mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
-                m_attrs[k] = mv;
+                m_attrs[k].write(Attribute(std::move(v.dk().ds().begin()->second)));
+                m_attrs[k];
             }
             for (auto&[k, v] : x.fano()) {
-                mvreg<Edge, int> mv(0);
-                mv.write(Edge(std::move(v)));
-                m_fano[make_pair(k.to(), k.type())] = mv;
+                m_fano[make_pair(k.to(), k.type())].write(Edge(std::move(v)));
             }
         }
 
@@ -849,11 +852,11 @@ namespace CRDT {
         }
 
 
-        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() {
+        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() & {
             return m_attrs;
         }
 
-        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const {
+        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const& {
             return m_attrs;
         }
 
@@ -888,11 +891,13 @@ namespace CRDT {
                     pi.second(kv_dots.first.second);
 
                     nodeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+                    nodeAttr.dk().cbase().cc().emplace(kv_dots.first);
                 }
-                for (auto &kv_cc : v.context().getCcDc().first) {
-                    nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-                }
-                for (auto &kv_dc : v.context().getCcDc().second) {
+
+                //for (auto &kv_cc : v.context().getCcDc().first) {
+                //    nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+                //}
+                for (auto &kv_dc : v.context().dc) {
                     IDL::PairInt pi;
                     pi.first(kv_dc.first);
                     pi.second(kv_dc.second);
@@ -900,6 +905,7 @@ namespace CRDT {
                     nodeAttr.dk().cbase().dc().push_back(pi);
                 }
                 nodeAttr.id(id);
+                nodeAttr.attr_name(k);
                 nodeAttr.agent_id(v.read().begin()->agent_id());
                 node.attrs()[k] = nodeAttr;
             }
@@ -912,11 +918,11 @@ namespace CRDT {
                     pi.second(kv_dots.first.second);
 
                     mvregEdge.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLEdge(id)));
+                    mvregEdge.dk().cbase().cc().emplace(kv_dots.first);
+
                 }
-                for (auto &kv_cc : v.context().getCcDc().first) {
-                    mvregEdge.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-                }
-                for (auto &kv_dc : v.context().getCcDc().second) {
+
+                for (auto &kv_dc : v.context().dc) {
                     IDL::PairInt pi;
                     pi.first(kv_dc.first);
                     pi.second(kv_dc.second);

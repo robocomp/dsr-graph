@@ -143,25 +143,37 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
 
 std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::update_node_(const Node &node)
 {
+
     if (deleted.find(node.id()) == deleted.end()) {
         if (!nodes[node.id()].read().empty()){
-            if (*nodes[node.id()].read().begin() == node) {
-                return {true, {}};
-            }
 
             vector<IDL::MvregNodeAttr> atts_deltas;
-            auto iter = nodes[node.id()].read().begin()->attrs();
-            for (auto [k,att]: node.attrs()) {
-                //comparar timestamp o inexistencia
-                if (iter.find(k) != iter.end() and att.read().begin()->timestamp() > iter.at(k).read().begin()->timestamp()) {
-                    auto delta = iter.at(k).write(*iter.at(k).read().begin());
+            auto &iter = nodes[node.id()].read_reg().attrs();
+            //New attributes and updates.
+            for (auto &[k,att]: node.attrs()) {
+                //Insertar si inigualdad o inexistencia
+                if (iter.find(k) == iter.end() or *att.read().begin() != *iter.at(k).read().begin()) {
+                    auto delta = iter[k].write(*att.read().begin());
                     atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), node.id(), k, delta ));
+                }
+            }
+            //Remove old attributes.
+            auto it_a = iter.begin();
+            while(it_a != iter.end() ) {
+                const std::string& k = it_a->first;
+                if (node.attrs().find(k) == node.attrs().end()) {
+                    auto delta = iter[k].reset();
+                    it_a = iter.erase(it_a);
+                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), node.id(), k, delta));
+                } else {
+                    it_a++;
                 }
             }
 
             if (!atts_deltas.empty()) return { true, atts_deltas};
         }
     }
+
     return {false, {}};
 }
 
@@ -357,20 +369,20 @@ std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::M
     std::optional<IDL::MvregEdge> delta_edge;
     std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
 
-    auto node = get_(from);
-    if (node.has_value()) {
-        //check if we are creating an edge or we are updating it.
-        if (node->fano().find({to, attrs.type()}) != node->fano().end()) {//Update
 
+    if (!nodes[from].read().empty()) {
+        auto& node = nodes[from].read_reg();
+        //check if we are creating an edge or we are updating it.
+        if (node.fano().find({to, attrs.type()}) != node.fano().end()) {//Update
             vector<IDL::MvregEdgeAttr> atts_deltas;
-            auto iter = nodes[from].read().begin()->fano().find({attrs.to(), attrs.type()});
-            if (iter != nodes[from].read().begin()->fano().end()) {
+            auto iter = nodes[from].read_reg().fano().find({attrs.to(), attrs.type()});
+            if (iter != nodes[from].read_reg().fano().end()) {
                 auto iter_edge = iter->second.read().begin()->attrs();
                 for (auto[k, att]: attrs.attrs()) {
-                    //comparar timestamp o inexistencia
+                    //comparar igualdad o inexistencia
                     if (iter_edge.find(k) != iter_edge.end() and
-                        att.read().begin()->timestamp() >
-                        iter_edge.at(k).read().begin()->timestamp()) {
+                        *att.read().begin() !=
+                        *iter_edge.at(k).read().begin()) {
                         auto delta = iter_edge.at(k).write(*iter_edge.at(k).read().begin());
                         atts_deltas.emplace_back(translateEdgeAttrMvCRDTtoIDL(from, from, to, attrs.type(), k, delta));
                     }
@@ -378,7 +390,7 @@ std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::M
                 return {true, {}, atts_deltas};
             }
         } else { // Insert
-            auto delta = node->fano()[{to, attrs.type()}].write(attrs);
+            auto delta = node.fano()[{to, attrs.type()}].write(attrs);
             return {true, translateEdgeMvCRDTtoIDL(from, delta), {}};
         }
     }
@@ -1427,10 +1439,11 @@ IDL::Mvreg CRDTGraph::translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data)
         pi.second(kv_dots.first.second);
 
         delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLNode(id)));
+        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
     }
-    for (auto &kv_cc : data.context().getCcDc().first){
-        delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    }
+    //for (auto &kv_cc : data.context().getCcDc().first){
+    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+    //}
     for (auto &kv_dc : data.context().getCcDc().second){
         IDL::PairInt pi;
         pi.first(kv_dc.first);
@@ -1475,12 +1488,14 @@ IDL::MvregEdgeAttr CRDTGraph::translateEdgeAttrMvCRDTtoIDL(int id, int from, int
         pi.second(kv_dots.first.second);
 
         delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
     }
-    pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    for (auto &kv_cc : data.context().getCcDc().first){
-        delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    }
-    for (auto &kv_dc : data.context().getCcDc().second){
+
+    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+    //for (auto &kv_cc : data.context().getCcDc().first){
+    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+    //}
+    for (auto &kv_dc : data.context().dc){
         IDL::PairInt pi;
         pi.first(kv_dc.first);
         pi.second(kv_dc.second);
@@ -1520,28 +1535,34 @@ mvreg<Attribute, int> CRDTGraph::translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr
 IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data) {
     IDL::MvregNodeAttr delta_crdt;
 
-    for (auto &kv_dots : data.dk.ds) {
-        IDL::PairInt pi;
-        pi.first(kv_dots.first.first);
-        pi.second(kv_dots.first.second);
+    try {
+        for (auto &kv_dots : data.dk.ds) {
+            IDL::PairInt pi;
+            pi.first(kv_dots.first.first);
+            pi.second(kv_dots.first.second);
 
-        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-    }
-    pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    for (auto &kv_cc : data.context().getCcDc().first){
-        delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    }
-    for (auto &kv_dc : data.context().getCcDc().second){
-        IDL::PairInt pi;
-        pi.first(kv_dc.first);
-        pi.second(kv_dc.second);
+            delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+        }
+        //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+        //for (auto &kv_cc : d.first) {
+        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+        //}
+        for (auto &kv_dc : data.context().dc) {
+            IDL::PairInt pi;
+            pi.first(kv_dc.first);
+            pi.second(kv_dc.second);
 
-        delta_crdt.dk().cbase().dc().push_back(pi);
+            delta_crdt.dk().cbase().dc().push_back(pi);
+        }
+
+        delta_crdt.id(id);
+        delta_crdt.attr_name(attr);
+        delta_crdt.node(node);
+        delta_crdt.agent_id(agent_id);
+    } catch (exception e) {
+        std::cout << __FUNCTION__ <<":" << __LINE__ << " Error: "<< e.what() << endl;
     }
-    delta_crdt.id(id);
-    delta_crdt.attr_name(attr);
-    delta_crdt.node(node);
-    delta_crdt.agent_id(agent_id);
     return delta_crdt;
 }
 
@@ -1600,12 +1621,14 @@ IDL::MvregEdge CRDTGraph::translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &dat
         delta_crdt.from(edge.from());
         delta_crdt.to(edge.to());
         delta_crdt.type(edge.type());
+        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+
     }
-    pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    for (auto &kv_cc : data.context().getCcDc().first){
-        delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    }
-    for (auto &kv_dc : data.context().getCcDc().second){
+    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+    //for (auto &kv_cc : data.context().getCcDc().first){
+    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+    //}
+    for (auto &kv_dc : data.context().dc){
         IDL::PairInt pi;
         pi.first(kv_dc.first);
         pi.second(kv_dc.second);

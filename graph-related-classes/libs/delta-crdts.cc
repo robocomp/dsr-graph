@@ -702,9 +702,9 @@ public:
     }
 
     bool operator==(const dotkernel &rhs) const {
-        return ds == rhs.ds &&
-               cbase == rhs.cbase &&
-               c == rhs.c;
+        return ds == rhs.ds;// &&
+               //cbase == rhs.cbase &&
+               //c == rhs.c;
     }
 
     bool operator!=(const dotkernel &rhs) const {
