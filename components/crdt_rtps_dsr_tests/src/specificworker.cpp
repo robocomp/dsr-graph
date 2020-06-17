@@ -91,7 +91,7 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 6> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start"};
+    constexpr std::array<std::string_view, 7> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
     std::distance(tests.begin(), iter);
 
