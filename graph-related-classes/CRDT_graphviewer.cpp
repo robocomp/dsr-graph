@@ -27,7 +27,7 @@
 
 using namespace DSR;
 
-GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> G_, std::list<View> options) : QObject()
+GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> G_, int options, view main) : QObject()
 {
 	G = G_;
     qRegisterMetaType<std::int32_t>("std::int32_t");
@@ -45,61 +45,10 @@ GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> 
 	// 	graphicsView->setTransform(settings.value("matrix", QTransform()).value<QTransform>());
 	// settings.endGroup();
 
-
 	//MenuBar
-    QMenu *viewMenu = window->menuBar()->addMenu(window->tr("&View"));
+    viewMenu = window->menuBar()->addMenu(window->tr("&View"));
 
-	//Create docks view
-	//graph
-	dsr_to_graph_viewer = std::make_unique<DSR::DSRtoGraphViewer>(G);
-	window->setCentralWidget(dsr_to_graph_viewer.get());
-
-	//3D
-	QDockWidget *osg_widget = new QDockWidget("3D");
-	dsr_to_osg_viewer = std::make_unique<DSR::DSRtoOSGViewer>(G, 1, 1);
-	osg_widget->setWidget(dsr_to_osg_viewer.get());
-	window->addDockWidget(Qt::RightDockWidgetArea, osg_widget);
-	QAction *action3D = viewMenu->addAction("&3D");
-    action3D->setCheckable(true);
-    action3D->setChecked(true);
-//	connect(action3D, SIGNAL(triggered(bool)), osg_widget, SLOT(setVisible(bool)));
-
-	//Tree
-	QDockWidget *tree_widget = new QDockWidget("Tree");
-	dsr_to_tree_viewer = std::make_unique<DSR::DSRtoTreeViewer>(G);
-	tree_widget->setWidget(dsr_to_tree_viewer.get());
-	window->addDockWidget(Qt::RightDockWidgetArea, tree_widget);
-	window->tabifyDockWidget(tree_widget, osg_widget);
-	QAction *actionTree = viewMenu->addAction("&Tree");
-    actionTree->setCheckable(true);
-    actionTree->setChecked(true);
-	window->connect(actionTree, SIGNAL(triggered(bool)), tree_widget, SLOT(setVisible(bool)));
-
-	//2D
-	QDockWidget *scene_widget = new QDockWidget("2D");
-	dsr_to_graphicscene_viewer = std::make_unique<DSR::DSRtoGraphicsceneViewer>(G);
-	scene_widget->setWidget(dsr_to_graphicscene_viewer.get());
-	window->addDockWidget(Qt::RightDockWidgetArea, scene_widget);
-	window->tabifyDockWidget(tree_widget, scene_widget);
-	QAction *action2D = viewMenu->addAction("&2D");
-    action2D->setCheckable(true);
-    action2D->setChecked(true);
-	window->connect(action2D, SIGNAL(triggered(bool)), scene_widget, SLOT(setVisible(bool)));
-
-
-
-/*	for(auto option: options)
-	{
-		if(option == View::Scene)
-		 	dsr_to_graph_viewer = std::make_unique<DSR::DSRtoGraphViewer>(G, graphicsView);
-
-		// //dsr_to_tree_viewer = std::make_unique<DSR::DSRtoTreeViewer>(G, treeWidget);
-		if(option == View::OSG)
-		 	dsr_to_osg_viewer = std::make_unique<DSR::DSRtoOSGViewer>(G, 1, 1, openGLWidget);
-		// if(option == View::Graph)
-		// 	dsr_to_graphicscene_viewer = std::make_unique<DSR::DSRtoGraphicsceneViewer>(G, 1, 1, graphicsView_2D);
-	}*/
-
+	initialize_views(options, main);
 }
 
 GraphViewer::~GraphViewer()
@@ -110,6 +59,71 @@ GraphViewer::~GraphViewer()
 		settings.setValue("pos", window->pos());
     settings.endGroup();
 }
+
+
+void GraphViewer::initialize_views(int options, view central){
+	//Create docks view and main widget
+	std::map<view,QString> valid_options{{view::graph,"Graph"}, {view::tree,"Tree"}, {view::osg,"3D"}, {view::scene, "2D"}};
+
+	for (auto option: valid_options) {
+		auto viewer = create_widget(option.first);
+		if(option.first == central)
+			window->setCentralWidget(viewer);
+		else if(options & option.first ) {
+			create_dock_and_menu(QString(option.second), viewer);
+		}
+	}
+
+	QDockWidget * previous = nullptr;
+	for(auto dock: docks) {
+		if (previous)
+			window->tabifyDockWidget(previous, dock.second);
+		previous = dock.second;
+	}
+}
+
+
+QWidget* GraphViewer::create_widget(view type){
+
+	QWidget * widget_view = nullptr;
+	switch(type) {
+//		graph
+		case view::graph:
+			widget_view = new DSR::DSRtoGraphViewer(G);
+			break;
+//		3D
+		case view::osg:
+			widget_view = new DSR::DSRtoOSGViewer(G, 1, 1);
+			break;
+//		Tree
+		case view::tree:
+			widget_view = new DSR::DSRtoTreeViewer(G);
+			break;
+//		2D
+		case view::scene:
+			widget_view = new DSR::DSRtoGraphicsceneViewer(G);
+			break;
+	}
+	return widget_view;
+}
+
+void GraphViewer::create_dock_and_menu(QString name, QWidget* view){
+//	TODO: Check if name exists in docks
+	QDockWidget* dock_widget;
+	if(this->docks.count(name)) {
+		dock_widget = this->docks[name];
+		window->removeDockWidget(dock_widget);
+	}
+	else{
+		dock_widget = new QDockWidget(name);
+		viewMenu->addAction(dock_widget->toggleViewAction());
+		this->docks[name] = dock_widget;
+	}
+	dock_widget->setWidget(view);
+	window->addDockWidget(Qt::RightDockWidgetArea, dock_widget);
+}
+
+
 
 ////////////////////////////////////////
 /// UI slots

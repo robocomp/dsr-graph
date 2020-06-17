@@ -42,8 +42,14 @@ namespace DSR
 	{
 		Q_OBJECT
 		public:
-			enum class View {Graph, OSG, Scene, Tree};	
-			GraphViewer(QMainWindow *window, std::shared_ptr<CRDT::CRDTGraph> G, std::list<View> options=std::list<View>());
+			enum view
+			{
+				graph = (1 << 0),
+				osg = (1 << 1),
+				scene = (1 << 2),
+				tree = (1 << 3),
+			};
+			GraphViewer(QMainWindow *window, std::shared_ptr<CRDT::CRDTGraph> G, int options, view main = view::graph);
 			~GraphViewer();
 			void itemMoved();
 			void createGraph();
@@ -57,10 +63,13 @@ namespace DSR
 			int timerId = 0;
 			bool do_simulate = false;
 			QMainWindow *window;
+			QMenu *viewMenu;
 			std::unique_ptr<DSR::DSRtoOSGViewer> dsr_to_osg_viewer;
 			std::unique_ptr<DSR::DSRtoGraphicsceneViewer> dsr_to_graphicscene_viewer;
 			std::unique_ptr<DSR::DSRtoGraphViewer> dsr_to_graph_viewer;
 			std::unique_ptr<DSR::DSRtoTreeViewer> dsr_to_tree_viewer;
+			std::map<QString, QDockWidget *> docks;
+			QWidget * main_widget;
 
 		public slots:
 			void saveGraphSLOT();		
@@ -69,6 +78,10 @@ namespace DSR
 		signals:
 			void saveGraphSIGNAL();
 			void closeWindowSIGNAL();
+		private:
+			void create_dock_and_menu(QString name,  QWidget *view);
+			void initialize_views(int options, view main);
+			QWidget * create_widget(view type);
 	};
 }
 
