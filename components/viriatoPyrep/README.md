@@ -7,8 +7,8 @@ You need to copy the viriato.py file in this directory to:
 
 To start the component use the script run.sh. Make sure first that you have commented this two lines, in case you have them:
 
-# export LD_LIBRARY_PATH=$COPPELIASIM_ROOT
-# export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
+export LD_LIBRARY_PATH=$COPPELIASIM_ROOT
+export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 
 
 ## Configuration parameters
