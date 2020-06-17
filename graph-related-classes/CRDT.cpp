@@ -257,9 +257,9 @@ std::tuple<bool, vector<tuple<int, int, std::string>>, vector<AworSet>> CRDTGrap
         // Remove all edges between them
         auto visited_node =  Node(v.dots().ds.rbegin()->second);
         for (const auto &key : edges[{k, id}]) {
-            EdgeKey ek; ek.to(k); ek.type(key);
+            EdgeKey ek; ek.to(id); ek.type(key);
             visited_node.fano().erase(ek);
-            edges_.emplace_back(make_tuple(visited_node.id(), id, key));
+            edges_.emplace_back(make_tuple(k, id, key));
 
             edgeType[key].erase({visited_node.id(), id});
         }

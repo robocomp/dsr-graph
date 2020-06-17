@@ -276,7 +276,7 @@ void SpecificWorker::save_edge_slot()
 void SpecificWorker::delete_edge_slot()
 {
     Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-    bool r = G->delete_edge(edge.from(), edge.to(), "Edge");
+    bool r = G->delete_edge(edge.from(), edge.to(), edge.type());
     if (r)
     {
         edge_attrib_tw->setRowCount(0);
