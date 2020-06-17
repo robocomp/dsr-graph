@@ -34,6 +34,7 @@ import numpy as np
 import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
+import queue
 
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map):
@@ -67,6 +68,7 @@ class SpecificWorker(GenericWorker):
        
         self.joy_queue = queue.Queue(1)
         self.omnirobot_queue = queue.Queue(1)
+        
 
     #@QtCore.Slot()
     def compute(self):
@@ -74,15 +76,17 @@ class SpecificWorker(GenericWorker):
             try:
                 #start = time.time()
                 self.pr.step()
-                self.image = self.camera_head.capture_rgb()
-                self.depth = self.camera_head.capture_depth(in_meters=True)
+                image = self.camera_head.capture_rgb()
+                depth = self.camera_head.capture_depth(in_meters=True)
                 # compute RGBDSimple
-                h, w, d = self.image.shape
-                self.timg = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=np.copy(self.image))
-                h, w = self.depth.shape
-                self.tdepth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), depth=np.copy(self.depth))
+                h, w, d = image.shape
+                list_image = image.flatten()
+                self.camera_head_rgb = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=list_image)
+                h, w = depth.shape
+                list_depth = depth.flatten()
+                self.camera_head_depth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), depth=list_depth)
                 try:
-                    self.camerargbdsimplepub_proxy.pushRGBD(self.timg, self.tdepth)
+                    self.camerargbdsimplepub_proxy.pushRGBD(self.camera_head_rgb, self.camera_head_depth)
                 except Ice.Exception as e:
                     print(e)
 
@@ -175,7 +179,7 @@ class SpecificWorker(GenericWorker):
     # getAll
     #
     def CameraRGBDSimple_getAll(self):
-        return self.timg, self.tdepth
+        return self.camera_head_rgb, self.camera_head_depth
 
     #
     # getDepth
