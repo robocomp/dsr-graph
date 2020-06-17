@@ -56,12 +56,10 @@ void SpecificWorker::initialize(int period)
 		G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
-        // Graph viewer
-        graph_viewer = std::make_unique<DSR::GraphViewer>(G);
-        mainLayout.addWidget(graph_viewer.get());
-        window.setLayout(&mainLayout);
-        setCentralWidget(&window);
-    	setWindowTitle(QString::fromStdString(agent_name));
+		// Graph viewer
+		using opts = DSR::GraphViewer::View;
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
+		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         timer.start(100);
     }
 }

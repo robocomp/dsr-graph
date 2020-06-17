@@ -46,7 +46,7 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '/home/robocomp/software/vrep-simulator/viriato/autonomy-lab.ttt'
+        SCENE_FILE = '../../etc/autonomy-lab.ttt'
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
@@ -54,9 +54,9 @@ class SpecificWorker(GenericWorker):
         self.robot = Viriato()
         
         self.robot_centre = Dummy("Viriato_intermediate_target_base")
-        # self.camera_1_rgb = VisionSensor("camera_1_rgb")
-        # self.camera_2_rgb = VisionSensor("camera_2_rgb")
-        # self.camera_3_rgb = VisionSensor("camera_3_rgb")
+        self.camera_1_rgb = VisionSensor("camera_1_rgbd_sensor")
+        self.camera_2_rgb = VisionSensor("camera_2_rgbd_sensor")
+        self.camera_3_rgb = VisionSensor("camera_3_rgbd_sensor")
         self.camera_head = VisionSensor("real_sense_sensor")
         camera_semi_angle = np.radians(self.camera_head.get_perspective_angle())/2 
         self.cfocal = self.camera_head.get_resolution()[0]/2/np.tan(camera_semi_angle)
@@ -175,7 +175,7 @@ class SpecificWorker(GenericWorker):
     # getAll
     #
     def CameraRGBDSimple_getAll(self):
-        return [self.timg, self.tdeph]
+        return self.timg, self.tdepth
 
     #
     # getDepth
@@ -197,7 +197,7 @@ class SpecificWorker(GenericWorker):
     #
     def Laser_getLaserAndBStateData(self):
         bState = RoboCompGenericBase.TBaseState()
-        return [self.ldata, bState]
+        return self.ldata, bState
 
     #
     # getLaserConfData
