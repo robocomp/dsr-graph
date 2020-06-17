@@ -779,6 +779,11 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
             //check what change is joined
             if (nd.attrs() != nodes[aworSet.id()].dots().ds.rbegin()->second.attrs()) {
                 emit update_node_signal(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second.type());
+                if (nd.type().empty()) {
+                    for (auto &[k,v] : nodes[aworSet.id()].dots().ds.rbegin()->second.fano()) {
+                        emit update_edge_signal(aworSet.id(), k.to(), k.type());
+                    }
+                }
             } else {
                 auto iter =  nodes[aworSet.id()].dots().ds.rbegin()->second.fano();
                 for (const auto &[k,v] : nd.fano()) {
