@@ -61,6 +61,7 @@ namespace DSR
             void mouseReleaseEvent(QMouseEvent* event) override;
             void wheelEvent(QWheelEvent* event) override;
             bool event(QEvent* event) override;
+            void initializeGL() override;
 
         private:
             std::shared_ptr<CRDT::CRDTGraph> G;
