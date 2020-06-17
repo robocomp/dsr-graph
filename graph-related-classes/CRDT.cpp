@@ -781,24 +781,15 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
                 emit update_node_signal(aworSet.id(), nodes[aworSet.id()].dots().ds.rbegin()->second.type());
             } else {
                 auto iter =  nodes[aworSet.id()].dots().ds.rbegin()->second.fano();
-                std::map<EdgeKey, Edge> diff_remove;
-                std::set_difference(nd.fano().begin(), nd.fano().end(),
-                                    iter.begin(),iter.end(),
-                                    std::inserter(diff_remove, diff_remove.begin()));
-                std::map<EdgeKey, Edge> diff_insert;
-                std::set_difference(iter.begin(),
-                                    iter.end(),
-                                    nd.fano().begin(), nd.fano().end(),
-                                    std::inserter(diff_insert, diff_insert.begin()));
+                for (const auto &[k,v] : nd.fano()) {
+                    if (iter.find(k) == iter.end() or iter[k] != v)
+                        emit del_edge_signal(aworSet.id(), k.to(), k.type());
+                }
+                for (const auto &[k,v] : iter) {
+                    if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v)
+                        emit update_edge_signal(aworSet.id(), k.to(), k.type());
+                }
 
-                for (const auto &[k,v] : diff_remove) {
-                    std::cout << "JOIN REMOVE edge" << k << std::endl;
-                    emit del_edge_signal(aworSet.id(), k.to(), k.type());
-                }
-                for (const auto &[k,v] : diff_insert) {
-                    std::cout << "JOIN INSERT edge" << k << std::endl;
-                    emit update_edge_signal(aworSet.id(), k.to(), k.type());
-                }
             }
 
         }
@@ -903,22 +894,14 @@ void CRDTGraph::join_full_graph(OrMap full_graph)
             if (nd.attrs() != nodes[id].dots().ds.rbegin()->second.attrs()) {
                 emit update_node_signal(id, nodes[id].dots().ds.rbegin()->second.type());
             } else {
-                std::map<EdgeKey, Edge> diff_remove;
-                std::set_difference(nd.fano().begin(), nd.fano().end(),
-                                    nodes[id].dots().ds.rbegin()->second.fano().begin(),
-                                    nodes[id].dots().ds.rbegin()->second.fano().end(),
-                                    std::inserter(diff_remove, diff_remove.begin()));
-                std::map<EdgeKey, Edge> diff_insert;
-                std::set_difference(nodes[id].dots().ds.rbegin()->second.fano().begin(),
-                                    nodes[id].dots().ds.rbegin()->second.fano().end(),
-                                    nd.fano().begin(), nd.fano().end(),
-                                    std::inserter(diff_insert, diff_insert.begin()));
-
-                for (const auto &[k,v] : diff_remove)
-                        emit del_edge_signal(id, k.to(), k.type());
-
-                for (const auto &[k,v] : diff_insert) {
-                    emit update_edge_signal(id, k.to(), k.type());
+                auto iter =  nodes[id].dots().ds.rbegin()->second.fano();
+                for (const auto &[k,v] : nd.fano()) {
+                    if (iter.find(k) == iter.end() or iter[k] != v)
+                            emit del_edge_signal(id, k.to(), k.type());
+                }
+                for (const auto &[k,v] : iter) {
+                    if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v)
+                            emit update_edge_signal(id, k.to(), k.type());
                 }
             }
         }
