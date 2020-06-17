@@ -24,54 +24,40 @@ DSRtoOSGViewer::DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX
     camera->setGraphicsContext( _mGraphicsWindow );
     _mViewer->setCamera(camera);
     manipulator = new osgGA::TrackballManipulator;
-    //manipulator->setAllowThrow( false );
-    //this->setMouseTracking(true);
-    osg::Vec3d eye(osg::Vec3(4000.,4000.,1000.));
-    osg::Vec3d center(osg::Vec3(0.,0.,-0.));
+//    manipulator->setAllowThrow( false );
+//    this->setMouseTracking(true);
+    osg::Vec3d eye(osg::Vec3(1000.,7000.,4000.));
+    osg::Vec3d center(osg::Vec3(3000.,0., 0.));
     osg::Vec3d up(osg::Vec3(0.,1.,0.));
-    manipulator->setHomePosition(eye, center, up, true);
+    manipulator->setHomePosition(eye, center, up, false);
     manipulator->setByMatrix(osg::Matrixf::lookAt(eye,center,up));
     _mViewer->setCameraManipulator(manipulator);
     _mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    //_mViewer->addEventHandler(new osgGA::GUIEventHandler());
- 	
-     //global stateset
-	osg::StateSet *globalStateSet = new osg::StateSet;
-	globalStateSet->setGlobalDefaults();
-	globalStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+//    _mViewer->addEventHandler(new osgGA::GUIEventHandler());
 
-	// enable lighting
-	globalStateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
-	osg::Light* light = _mViewer->getLight();
-	_mViewer->getLight()->setPosition(osg::Vec4(1,-1, 1, 0)); // make 4th coord 1 for point
-	_mViewer->getLight()->setAmbient(osg::Vec4(0.2, 0.2, 0.2, 1.0));
-	_mViewer->getLight()->setSpecular(osg::Vec4(1.0, 1.0, 1.0, 1.0));
 
-    osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
-	lightSource->setLight(light);
-	lightSource->setLocalStateSetModes(osg::StateAttribute::ON);
-	lightSource->setStateSetModes(*globalStateSet,osg::StateAttribute::ON);
 
 	root = createGraph();
-    root->addChild(lightSource.get() );
 
-    analyse_osg_graph(root.get());
-    qDebug()<< "End analyse";
+	analyse_osg_graph(root.get());
+	qDebug()<< "End analyse";
 
-    _mViewer->setSceneData( root.get());
-	
+	analyse_osg_graph(root.get());
+
+	_mViewer->setSceneData(root.get());
+
     connect(G.get(), &CRDT::CRDTGraph::update_node_signal, [this](auto id, auto type)
         { try
-          { 
-            auto node = G->get_node(id); 
-            if (node.has_value()) 
+          {
+            auto node = G->get_node(id);
+            if (node.has_value())
                 add_or_assign_node_slot(node.value());
           }
           catch(const std::exception &e){ std::cout << e.what() << std::endl; throw e;};
         });
-	connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, 
-        [this](auto from, auto to, auto type){ 
-                                                auto parent = G->get_node(from); 
+	connect(G.get(), &CRDT::CRDTGraph::update_edge_signal,
+        [this](auto from, auto to, auto type){
+                                                auto parent = G->get_node(from);
                                                 auto node = G->get_node(to);
                                                 if(parent.has_value() and node.has_value())
                                                     add_or_assign_edge_slot(parent.value(), node.value());
@@ -80,8 +66,30 @@ DSRtoOSGViewer::DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX
 	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoOSGViewer::delNodeSLOT);
 
     _mViewer->realize();
-    setMainCamera(manipulator, TOP_POV);
+//    setMainCamera(manipulator, TOP_POV);
    
+}
+
+void DSRtoOSGViewer::initializeGL(){
+//    osg::Geode* geode = dynamic_cast<osg::Geode*>(_mViewer->getSceneData());
+    osg::StateSet* stateSet = root->getOrCreateStateSet();
+    osg::Material* material = new osg::Material;
+    material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );
+    stateSet->setAttributeAndModes( material, osg::StateAttribute::ON );
+    stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
+
+	// enable lighting
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
+	osg::Light* light = _mViewer->getLight();
+	_mViewer->getLight()->setPosition(osg::Vec4(1,-1, 1, 0)); // make 4th coord 1 for point
+	_mViewer->getLight()->setAmbient(osg::Vec4(0.2, 0.2, 0.2, 1.0));
+	_mViewer->getLight()->setSpecular(osg::Vec4(1.0, 1.0, 1.0, 1.0));
+
+	osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
+	lightSource->setLight(light);
+	lightSource->setLocalStateSetModes(osg::StateAttribute::ON);
+	lightSource->setStateSetModes(*stateSet,osg::StateAttribute::ON);
+	root->addChild(lightSource.get());
 }
 
 // We need to go down the tree breadth first
@@ -106,7 +114,8 @@ osg::ref_ptr<osg::Group> DSRtoOSGViewer::createGraph()
 {
     qDebug() << __FUNCTION__ << "Reading graph in OSG Viewer";
     try
-    {   std::optional<Node> g_root = G->get_node_root().value();  //HAS TO BE TRANSFORM
+    {
+    	std::optional<Node> g_root = G->get_node_root().value();  //HAS TO BE TRANSFORM
         root = new osg::Group();
         osg_map.insert_or_assign(std::make_tuple(g_root.value().id(), g_root.value().id()), root);
 
