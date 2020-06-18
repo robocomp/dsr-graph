@@ -172,7 +172,7 @@ void DSRtoOSGViewer::add_or_assign_node_slot(const Node &node)
     {
         if(node.id() == G->get_node_root().value().id())
             return;
-        auto parent_id = G->get_node_parent(node);
+        auto parent_id = G->get_parent_id(node);
         if (not parent_id.has_value())
             throw std::runtime_error("Node cannot be inserted without a parent");
         auto parent = G->get_node(parent_id.value());
