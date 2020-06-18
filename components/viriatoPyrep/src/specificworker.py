@@ -54,13 +54,46 @@ class SpecificWorker(GenericWorker):
         
         self.robot = Viriato()
         
-        self.robot_centre = Dummy("Viriato_intermediate_target_base")
-        self.camera_1_rgb = VisionSensor("camera_1_rgbd_sensor")
-        self.camera_2_rgb = VisionSensor("camera_2_rgbd_sensor")
-        self.camera_3_rgb = VisionSensor("camera_3_rgbd_sensor")
-        self.camera_head = VisionSensor("Viriato_head_camera_front_sensor")
-        camera_semi_angle = np.radians(self.camera_head.get_perspective_angle())/2 
-        self.cfocal = self.camera_head.get_resolution()[0]/2/np.tan(camera_semi_angle)
+        self.cameras = {}
+        cam = VisionSensor("camera_1_rgbd_sensor")
+        self.cameras["camera_1_rgbd_sensor"] = {    "handle": cam, 
+                                                    "id": 1,
+                                                    "angle": np.radians(cam.get_perspective_angle()), 
+                                                    "width": cam.get_resolution()[0],
+                                                    "height": cam.get_resolution()[1],
+                                                    "depth": 3,
+                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+                                                    "rgb": np.array(0), 
+                                                    "depth": np.ndarray(0) }
+        cam = VisionSensor("camera_2_rgbd_sensor")                                            
+        self.cameras["camera_2_rgbd_sensor"] = {    "handle": cam, 
+                                                    "id": 2,
+                                                    "angle": np.radians(cam.get_perspective_angle()), 
+                                                    "width": cam.get_resolution()[0],
+                                                    "height": cam.get_resolution()[1],
+                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+                                                    "rgb": np.array(0), 
+                                                    "depth": np.ndarray(0) }
+        cam = VisionSensor("camera_3_rgbd_sensor")                                            
+        self.cameras["camera_3_rgbd_sensor"] = {    "handle": cam, 
+                                                    "id": 3,
+                                                    "angle": np.radians(cam.get_perspective_angle()), 
+                                                    "width": cam.get_resolution()[0],
+                                                    "height": cam.get_resolution()[1],
+                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+                                                    "rgb": np.array(0), 
+                                                    "depth": np.ndarray(0) }
+
+        cam = VisionSensor("Viriato_head_camera_front_sensor")                                            
+        self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam, 
+                                                                "id": 0,
+                                                                "angle": np.radians(cam.get_perspective_angle()), 
+                                                                "width": cam.get_resolution()[0],
+                                                                "height": cam.get_resolution()[1],
+                                                                "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+                                                                "rgb": np.array(0), 
+                                                                "depth": np.ndarray(0) }
+        
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
@@ -76,22 +109,13 @@ class SpecificWorker(GenericWorker):
             try:
                 #start = time.time()
                 self.pr.step()
-                image = self.camera_head.capture_rgb()
-                depth = self.camera_head.capture_depth(in_meters=True)
-                # compute RGBDSimple
-                h, w, d = image.shape
-                list_image = image.tobytes()
-                print(len(list_image), h, w, d)
-                cv2.imshow("", image)
-                self.camera_head_rgb = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=list_image)
-                h, w = depth.shape
-                list_depth = depth.tobytes()
+                for name,cam in self.cameras.items():
+                    image_float = cam["handle"].capture_rgb()
+                    depth = cam["handle"].capture_depth()
+                    image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                    cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
+                    cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
                 
-                self.camera_head_depth = RoboCompCameraRGBDSimple.TDepth(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), depth=list_depth)
-                try:
-                    self.camerargbdsimplepub_proxy.pushRGBD(self.camera_head_rgb, self.camera_head_depth)
-                except Ice.Exception as e:
-                    print(e)
 
                 # compute TLaserData and publish
                 ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
@@ -181,19 +205,19 @@ class SpecificWorker(GenericWorker):
     #
     # getAll
     #
-    def CameraRGBDSimple_getAll(self):
-        return self.camera_head_rgb, self.camera_head_depth
+    def CameraRGBDSimple_getAll(self, camera):
+        return RoboCompCameraRGBDSimple.TRGBD(self.cameras[camera]["rgb"], self.cameras[camera]["depth"])
 
     #
     # getDepth
     #
-    def CameraRGBDSimple_getDepth(self):
-        return self.tdepth
+    def CameraRGBDSimple_getDepth(self, camera):
+        return self.cameras[camera]["depth"]
     #
     # getImage
     #
-    def CameraRGBDSimple_getImage(self):
-        return self.timg
+    def CameraRGBDSimple_getImage(self, camera):
+        return self.cameras[camera]["rgb"]
 
     #######################################################
     #### Laser
