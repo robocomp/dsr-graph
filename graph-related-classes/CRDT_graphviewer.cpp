@@ -83,7 +83,6 @@ void GraphViewer::initialize_views(int options, view central){
 			window->tabifyDockWidget(previous, dock.second);
 		previous = dock.second;
 	}
-	qDebug()<<(docks.count(QString("Tree"))==1)<<(qobject_cast<DSRtoGraphViewer*>(this->main_widget));
 	if(docks.count(QString("Tree"))==1)
 	{
 		auto graph_widget = qobject_cast<DSRtoGraphViewer*>(this->main_widget);
