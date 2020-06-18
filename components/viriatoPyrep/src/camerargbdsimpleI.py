@@ -50,12 +50,11 @@ class CameraRGBDSimpleI(CameraRGBDSimple):
     def __init__(self, worker):
         self.worker = worker
 
+    def getAll(self, camera, c):
+        return self.worker.CameraRGBDSimple_getAll(camera)
 
-    def getAll(self, c):
-        return self.worker.CameraRGBDSimple_getAll()
+    def getDepth(self, camera, c):
+        return self.worker.CameraRGBDSimple_getDepth(camera)
 
-    def getDepth(self, c):
-        return self.worker.CameraRGBDSimple_getDepth()
-
-    def getImage(self, c):
-        return self.worker.CameraRGBDSimple_getImage()
+    def getImage(self, camera, c):
+        return self.worker.CameraRGBDSimple_getImage(camera)
