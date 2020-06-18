@@ -7,6 +7,7 @@ You need to copy the viriato.py file in this directory to:
 
 To start the component use the script run.sh. Make sure first that you have commented this two lines, in case you have them:
 
+export COPPELIASIM_ROOT=/path-to-your-Coppelia-instalation/CoppeliaSim_Edu_V4_0_0_Ubuntu18_04  
 export LD_LIBRARY_PATH=$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 
