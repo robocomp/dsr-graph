@@ -122,7 +122,10 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
 			else if(type == "imu") color = "LightSalmon";
 			gnode->setColor(color);
         } else
+		{
             gnode = gmap.at(id);
+        	gnode->change_detected();
+		}
 
         float posx = 10;
         float posy = 10;
