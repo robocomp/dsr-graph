@@ -787,12 +787,16 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
             } else {
                 auto iter =  nodes[aworSet.id()].dots().ds.rbegin()->second.fano();
                 for (const auto &[k,v] : nd.fano()) {
-                    if (iter.find(k) == iter.end() or iter[k] != v)
+                    if (iter.find(k) == iter.end() or iter[k] != v) {
+                        std::cout << "DELETE EDGE: " << aworSet.id() << "  -  "<< k <<std::endl;
                         emit del_edge_signal(aworSet.id(), k.to(), k.type());
+                    }
                 }
                 for (const auto &[k,v] : iter) {
-                    if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v)
+                    if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v) {
+                        std::cout << "INSERT EDGE: " << aworSet.id() << "  -  "<< k <<std::endl;
                         emit update_edge_signal(aworSet.id(), k.to(), k.type());
+                    }
                 }
 
             }
