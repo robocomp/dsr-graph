@@ -31,6 +31,8 @@
 #include "inner_api.h"
 #include "dsr_utils.h"
 
+#include <DSRGetID.h>
+
 #define NO_PARENT -1
 #define TIMEOUT 5000
 
@@ -86,7 +88,7 @@ namespace CRDT
         Q_OBJECT
         public:
         size_t size();
-        CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string());
+        CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy = nullptr);
         ~CRDTGraph();
 
 
