@@ -6,8 +6,8 @@
 #include <optional>
 #include <filesystem>
 
-#include "../../../../graph-related-classes/topics/DSRGraph.h"
-#include "../../../../graph-related-classes/CRDT.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/topics/DSRGraph.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"

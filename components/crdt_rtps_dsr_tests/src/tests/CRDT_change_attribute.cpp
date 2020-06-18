@@ -5,7 +5,7 @@
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_change_attribute.h"
-#include "../../../../graph-related-classes/topics/DSRGraph.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/topics/DSRGraph.h"
 #include <thread>
 #include <random>
 #include <fstream>
