@@ -128,11 +128,11 @@ void GraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidg
 			painter->drawText(rectangle.center(), tag);
 				
 			// Draw the arrows
-			QPointF destArrowP1 = QPointF(-line.length()*0.5,0) + QPointF(sin(M_PI / 2) * arrowSize, cos(M_PI / 2) * arrowSize);
-			QPointF destArrowP2 = QPointF(-line.length()*0.5,0) + QPointF(sin(M_PI / 4) * arrowSize, cos(M_PI / 4) * arrowSize);
+			QPointF destArrowP1 = QPointF(line.length()*0.5,0) - QPointF(sin(M_PI / 2) * arrowSize, cos(M_PI / 2) * arrowSize);
+			QPointF destArrowP2 = QPointF(line.length()*0.5,0) - QPointF(sin(M_PI / 4) * arrowSize, cos(M_PI / 4) * arrowSize);
 			painter->setBrush(Qt::black);
 			painter->setPen(Qt::black);
-			painter->drawPolygon(QPolygonF() << QPointF(-line.length()*0.5,0) << destArrowP1 << destArrowP2 );
+			painter->drawPolygon(QPolygonF() << QPointF(line.length()*0.5,0) << destArrowP1 << destArrowP2 );
 			painter->restore();
 		}
 	
