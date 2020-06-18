@@ -5,9 +5,10 @@ You need to copy the viriato.py file in this directory to:
 /home/xxxyour-userxxx/.local/lib/python3.6/site-packages/pyrep/robots/mobiles/viriato.py
 (for a local install of Pyrep in python3.6)
 
-To start the component use the script run.sh. Make sure first that you have commented this two lines, in case you have them:
+To start the component copy the config file form etc to . and use the script run.sh. 
 
-export COPPELIASIM_ROOT=/path-to-your-Coppelia-instalation/CoppeliaSim_Edu_V4_0_0_Ubuntu18_04  
+Make sure first that you have commented this two lines, in case you have them:
+ 
 export LD_LIBRARY_PATH=$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 
