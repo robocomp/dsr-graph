@@ -45,7 +45,7 @@ void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
 
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     innermodel = G->get_inner_api();
 
     // GraphViewer creation
