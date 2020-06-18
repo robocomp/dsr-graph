@@ -71,7 +71,7 @@ DSRtoOSGViewer::DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX
 }
 
 void DSRtoOSGViewer::initializeGL(){
-//    osg::Geode* geode = dynamic_cast<osg::Geode*>(_mViewer->getSceneData());
+
     osg::StateSet* stateSet = root->getOrCreateStateSet();
     osg::Material* material = new osg::Material;
     material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );

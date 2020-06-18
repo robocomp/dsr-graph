@@ -68,7 +68,10 @@ void GraphViewer::initialize_views(int options, view central){
 	for (auto option: valid_options) {
 		auto viewer = create_widget(option.first);
 		if(option.first == central)
+		{
 			window->setCentralWidget(viewer);
+			this->main_widget = viewer;
+		}
 		else if(options & option.first ) {
 			create_dock_and_menu(QString(option.second), viewer);
 		}
@@ -79,6 +82,21 @@ void GraphViewer::initialize_views(int options, view central){
 		if (previous)
 			window->tabifyDockWidget(previous, dock.second);
 		previous = dock.second;
+	}
+	qDebug()<<(docks.count(QString("Tree"))==1)<<(qobject_cast<DSRtoGraphViewer*>(this->main_widget));
+	if(docks.count(QString("Tree"))==1)
+	{
+		auto graph_widget = qobject_cast<DSRtoGraphViewer*>(this->main_widget);
+		if(graph_widget)
+		{
+			DSRtoTreeViewer * tree_widget= qobject_cast<DSRtoTreeViewer*>(docks["Tree"]->widget());
+			GraphViewer::connect(
+					tree_widget,
+					&DSRtoTreeViewer::node_check_state_changed,
+					graph_widget,
+					[=] (int value, int id, const std::string &type, QTreeWidgetItem*) {graph_widget->hide_show_node_SLOT(id, value==2);});
+		}
+
 	}
 }
 
