@@ -66,9 +66,9 @@ class SpecificWorker(GenericWorker):
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
         self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
        
-        self.joy_queue = queue.Queue(1)
-        self.omnirobot_queue = queue.Queue(1)
-        
+        #self.joy_queue = queue.Queue(1)
+        #self.omnirobot_queue = queue.Queue(1)
+        self.joystick_newdata = []
 
     #@QtCore.Slot()
     def compute(self):
@@ -81,7 +81,8 @@ class SpecificWorker(GenericWorker):
                 # compute RGBDSimple
                 h, w, d = image.shape
                 list_image = image.tobytes()
-                print(len(list_image), h, w)
+                print(len(list_image), h, w, d)
+                cv2.imshow("", image)
                 self.camera_head_rgb = RoboCompCameraRGBDSimple.TImage(cameraID=0, width=w, height=h, focalx=self.cfocal, focaly=self.cfocal, alivetime=time.time(), image=list_image)
                 h, w = depth.shape
                 list_depth = depth.tobytes()
@@ -105,9 +106,8 @@ class SpecificWorker(GenericWorker):
                     print(e)
                 
                 # Move robot from data in joystick buffer
-                if not self.joy_queue.empty():
-                    datos = self.joy_queue.get()
-                    self.update_joystick(datos)
+                if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
+                    self.update_joystick(self.joystick_newdata[0])
 
                 # Get and publish robot pose
                 pose = self.robot.get_2d_pose()
@@ -118,9 +118,9 @@ class SpecificWorker(GenericWorker):
                     print(e)
 
                 # Move robot from data setSpeedBase
-                if not self.omnirobot_queue.empty():
-                    vels = self.omnirobot_queue.get()
-                    self.robot.set_base_angular_velocites(vels)
+                # if not self.omnirobot_queue.empty():
+                #     vels = self.omnirobot_queue.get()
+                #     self.robot.set_base_angular_velocites(vels)
 
                 time.sleep(0.001)
                 #print(time.time()-start)
@@ -172,7 +172,8 @@ class SpecificWorker(GenericWorker):
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
     #
     def JoystickAdapter_sendData(self, data):
-        self.joy_queue.put(data)
+        #self.joy_queue.put(data)
+        self.joystick_newdata = [data, time.time()]
 
     # =============== Methods for Component Implements ==================
     # ===================================================================
@@ -268,7 +269,8 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        self.omnirobot_queue.put([advz, advx, rot])
+        #self.omnirobot_queue.put([advz, advx, rot])
+        pass
 
     #
     # stopBase
