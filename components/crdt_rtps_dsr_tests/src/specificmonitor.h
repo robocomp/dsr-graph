@@ -19,6 +19,7 @@
  */
 #ifndef SPECIFICMONITOR_H
 #define SPECIFICMONITOR_H
+
 #include "genericmonitor.h"
 
 /**

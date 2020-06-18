@@ -1,10 +1,36 @@
+/*
+ *    Copyright (C) 2020 by YOUR NAME HERE
+ *
+ *    This file is part of RoboComp
+ *
+ *    RoboComp is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    RoboComp is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+	\brief
+	@author authorname
+*/
+
+
+
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT_graphviewer.h"
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 #include <thread>
@@ -18,18 +44,18 @@
 
 class SpecificWorker : public GenericWorker
 {
-	Q_OBJECT
-	public:
-		SpecificWorker(TuplePrx tprx);
-		~SpecificWorker();
-		bool setParams(RoboCompCommonBehavior::ParameterList params);
+Q_OBJECT
+public:
+	SpecificWorker(TuplePrx tprx, bool startup_check);
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-        std::string agent_name;
-        std::shared_ptr<CRDT::CRDTGraph> G;
+
 
     public slots:
 		void autokill();
 		void compute();
+		int startup_check();
 		void initialize(int period);
 
 	signals:
@@ -38,11 +64,13 @@ class SpecificWorker : public GenericWorker
 
 	private:
 		InnerModel *innerModel;
-
+		bool startup_check_flag;
 		bool read_file;
 		bool write_string;
 		int agent_id;
+		std::string agent_name;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+        std::shared_ptr<CRDT::CRDTGraph> G;
         QHBoxLayout mainLayout;
         QWidget window;
 
