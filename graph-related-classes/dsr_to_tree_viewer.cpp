@@ -45,7 +45,6 @@ void DSRtoTreeViewer::createGraph()
 //////////////////////////////////////////////////////////////////////////////////////
 void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type,  const std::string &name)
 {
-	qDebug() << __FUNCTION__ << "Adding node "<<id<<"to type "<<QString::fromUtf8(type.c_str());
 	try
 	{
 		QTreeWidgetItem *symbol_widget = nullptr;
