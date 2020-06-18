@@ -5,7 +5,7 @@
 #ifndef CRDT_RTPS_DSR_CRDT_conflict_resolution_H
 #define CRDT_RTPS_DSR_CRDT_conflict_resolution_H
 
-#include "../../../../graph-related-classes/CRDT.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
 #include "DSR_test.h"
 
 
