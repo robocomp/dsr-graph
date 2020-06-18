@@ -575,11 +575,11 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
 
 std::optional<IDL::MvregEdge> CRDTGraph::delete_edge_(int from, int to, const std::string& key)
 {
-    auto node = get_(from);
-    if (node.has_value()) {
-        if (node.value().fano().find({to, key}) != node.value().fano().end()) {
-            auto delta = node.value().fano().at({to, key}).reset();
-            node.value().fano().erase({to, key});
+    if (!nodes[from].read().empty()) {
+        auto &node = nodes[from].read_reg();
+        if (node.fano().find({to, key}) != node.fano().end()) {
+            auto delta = node.fano().at({to, key}).reset();
+            node.fano().erase({to, key});
             update_maps_edge_delete(from, to, key);
             //node.value().agent_id(agent_id);
             return translateEdgeMvCRDTtoIDL(from, delta);

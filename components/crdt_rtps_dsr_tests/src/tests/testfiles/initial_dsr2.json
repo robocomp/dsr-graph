@@ -87,46 +87,23 @@
                 "id": 101,
                 "links": [
                     {
-                        "dst": 103,
+                        "dst": 106,
                         "label": "RT",
                         "linkAttribute": {
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    3.1415927410125732,
                                     0,
-                                    0
+                                    0,
+                                    3.1415927410125732
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    2500,
-                                    200,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 101
-                    },
-                    {
-                        "dst": 104,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    3.1415927410125732,
                                     0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    -2500,
                                     200,
-                                    0
+                                    -2500
                                 ]
                             }
                         },
@@ -156,23 +133,23 @@
                         "src": 101
                     },
                     {
-                        "dst": 106,
+                        "dst": 103,
                         "label": "RT",
                         "linkAttribute": {
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
+                                    3.1415927410125732,
                                     0,
-                                    0,
-                                    3.1415927410125732
+                                    0
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    0,
+                                    2500,
                                     200,
-                                    -2500
+                                    0
                                 ]
                             }
                         },
@@ -195,6 +172,29 @@
                                 "value": [
                                     0,
                                     0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 101
+                    },
+                    {
+                        "dst": 104,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1415927410125732,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -2500,
+                                    200,
                                     0
                                 ]
                             }
@@ -435,52 +435,6 @@
                 "id": 111,
                 "links": [
                     {
-                        "dst": 112,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 111
-                    },
-                    {
-                        "dst": 116,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    210,
-                                    200
-                                ]
-                            }
-                        },
-                        "src": 111
-                    },
-                    {
                         "dst": 117,
                         "label": "RT",
                         "linkAttribute": {
@@ -521,6 +475,52 @@
                                     0,
                                     0,
                                     50
+                                ]
+                            }
+                        },
+                        "src": 111
+                    },
+                    {
+                        "dst": 112,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 111
+                    },
+                    {
+                        "dst": 116,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    210,
+                                    200
                                 ]
                             }
                         },
