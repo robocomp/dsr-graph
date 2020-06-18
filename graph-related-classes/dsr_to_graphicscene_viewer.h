@@ -61,7 +61,7 @@ namespace DSR
             void del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);
 
         private:
-            void createGraph();
+            void create_graph();
             std::list<int> get_parent_list(std::int32_t node_id);
             void update_edge_chain(std::list<int> parent_list);
             void get_2d_projection(std::string node_name, std::vector<int> size, QPolygon &polygon, int &zvalue);
