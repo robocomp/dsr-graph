@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2018 by YOUR NAME HERE
+ *    Copyright (C) 2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -30,8 +30,9 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
+    this->startup_check_flag = startup_check;
     connect(&autokill_timer, SIGNAL(timeout()), this, SLOT(autokill()));
 }
 
@@ -42,6 +43,13 @@ SpecificWorker::~SpecificWorker() {
     std::cout << "Destroying SpecificWorker" << std::endl;
     G.reset();
 
+}
+
+int SpecificWorker::startup_check()
+{
+	std::cout << "Startup check" << std::endl;
+	QTimer::singleShot(200, qApp, SLOT(quit()));
+	return 0;
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
@@ -65,13 +73,14 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     //G->print();
 
     // Graph viewer
     using opts = DSR::GraphViewer::view;
     graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree);
 
+    setWindowTitle(QString::fromStdString(agent_name));
 
 
     // qDebug() << __FUNCTION__ << "Graph Viewer started";

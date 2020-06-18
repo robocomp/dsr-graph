@@ -7,7 +7,7 @@
 
 #include <DSRGetID.h>
 #include <random>
-#include "../../../../graph-related-classes/CRDT.h"
+#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
 
 static const std::string MARKER = ";";
 

@@ -2,20 +2,22 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  ../../../graph-related-classes/CRDT.cpp
-  ../../../graph-related-classes/CRDT_graphviewer.cpp
-  ../../../graph-related-classes/CRDT_graphnode.cpp
-  ../../../graph-related-classes/CRDT_graphedge.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-  ../../../graph-related-classes/dsr_utils.cpp
-  ../../../graph-related-classes/inner_api.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraph.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/inner_api.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_osg_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_graph_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_tree_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/_abstract_graphic_view.cpp
   tests/CRDT_insert_remove_edge.cpp
   tests/CRDT_insert_remove_node.cpp
   tests/CRDT_change_attribute.cpp
@@ -23,60 +25,53 @@ SET ( SOURCES
   tests/CRDT_concurrent_operations.cpp
   tests/CRDT_delayed_start.cpp
   tests/DSR_test.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
-  ../../../graph-related-classes/inner_api.cpp
-   ../../../graph-related-classes/_abstract_graphic_view.cpp
-
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/CRDT_graphviewer.h
-  ../../../graph-related-classes/CRDT_graph.h
-  ../../../graph-related-classes/CRDT_graphnode.h
-  ../../../graph-related-classes/CRDT_graphedge.h
-  ../../../graph-related-classes/dsr_utils.h
-    ../../../graph-related-classes/_abstract_graphic_view.h
-
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/_abstract_graphic_view.h
   tests/CRDT_insert_remove_edge.h
   tests/CRDT_insert_remove_node.h
   tests/CRDT_change_attribute.h
   tests/CRDT_conflict_resolution.h
-   tests/CRDT_delayed_start.h
+  tests/CRDT_delayed_start.h
   tests/CRDT_concurrent_operations.h
   tests/DSR_test.h
-
 )
 
+set(CMAKE_CXX_STANDARD 17)
+
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 
 SET ( TEST_SOURCES
-  ../../../graph-related-classes/CRDT.cpp
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-    ../../../graph-related-classes/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraph.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.cpp
   tests/CRDT_G_api_test.cpp
+  DSRGetID.cpp
 )
-
 
 
 # Headers set
 SET ( TEST_HEADERS
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/dsr_utils.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.h
   tests/CRDT_G_api_test.h
   tests/catch.hpp
-
+  DSRGetID.h
 )
 
+    
 find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
 set(CMAKE_CXX_STANDARD 17)
