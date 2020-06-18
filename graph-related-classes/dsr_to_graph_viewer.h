@@ -49,6 +49,7 @@ namespace DSR
             void add_or_assign_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string& type);
 			void del_edge_SLOT(const std::int32_t from, const std::int32_t to,  const std::string &edge_tag);
 			void del_node_SLOT(int id);
+			void hide_show_node_SLOT(int id, bool visible);
 //            void save_graph_SLOT();		
 //			void toggle_simulation_SLOT();
 

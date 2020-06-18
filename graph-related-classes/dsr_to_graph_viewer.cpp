@@ -210,6 +210,14 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
 }
 
 
+void DSRtoGraphViewer::hide_show_node_SLOT(int id, bool visible)
+{
+	auto item = gmap[id];
+	item->setVisible(visible);
+	for (const auto &gedge: item->edgeList)
+		gedge->setVisible(visible);
+}
+
 //  void GraphViewer::NodeAttrsChangedSLOT(const std::int32_t &id, const DSR::Attribs &attribs)
 //  {
 // 	try 
