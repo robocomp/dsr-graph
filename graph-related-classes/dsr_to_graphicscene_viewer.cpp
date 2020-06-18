@@ -29,7 +29,7 @@ DSRtoGraphicsceneViewer::DSRtoGraphicsceneViewer(std::shared_ptr<CRDT::CRDTGraph
     scene.addRect(-5000, -5000, 30, 1000, QPen(QColor("blue")),QBrush(QColor("blue")));
 
     //initial graph
-    createGraph();
+    create_graph();
 
     //update signals
     connect(G.get(), &CRDT::CRDTGraph::update_node_signal, this, &DSRtoGraphicsceneViewer::add_or_assign_node_slot);
@@ -45,7 +45,7 @@ std::cout<<item.first<<item.second<<std::endl;
 }
 }
 
-void DSRtoGraphicsceneViewer::createGraph()
+void DSRtoGraphicsceneViewer::create_graph()
 {
     innermodel = G->get_inner_api();
     try
@@ -325,7 +325,7 @@ std::list<int> DSRtoGraphicsceneViewer::get_parent_list(std::int32_t node_id)
         int parent_id;
         do
         {
-            parent_id = node.value().attrs()["parent"].value().dec();
+            parent_id = G->get_parent_id(node.value()).value();
             parent_list.push_front(parent_id);
             node = G->get_node(parent_id);
         }while(node.value().type() != "world");
