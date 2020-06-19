@@ -45,19 +45,23 @@ SpecificWorker::~SpecificWorker() {
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
-    agent_name = params["agent_name"].value;
-    read_file = params["read_file"].value == "true";
-    write_string = params["write_string"].value == "true";
-    agent_id = stoi(params["agent_id"].value);
+    try {
+        agent_name = params["agent_name"].value;
+        read_file = params["read_file"].value == "true";
+        test_name = params["test_name"].value;
+        agent_id = stoi(params["agent_id"].value);
 
-    dsr_output_file = params["dsr_output_file"].value;
-    dsr_input_file = params["dsr_input_file"].value;
-    test_output_file = params["test_output_file"].value;
-    dsr_input_file = params["dsr_input_file"].value;
+        write_string = params["write_string"].value == "true";
 
-    test_name = params["test_name"].value;
+        dsr_output_file = params["dsr_output_file"].value;
+        dsr_input_file = params["dsr_input_file"].value;
+        test_output_file = params["test_output_file"].value;
+        dsr_input_file = params["dsr_input_file"].value;
+
 //    gui = params["gui"].value == "true";
-
+    } catch(...) {
+        std::cout << "ERROR: One or more parameters not found in the configuration"<<  std::endl;
+    }
     return true;
 }
 
@@ -95,10 +99,9 @@ void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 6> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start"};
+    constexpr std::array<std::string_view, 7> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start", "dummy"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
-    std::distance(tests.begin(), iter);
-
+    bool exit_ = true;
     switch(std::distance(tests.begin(), iter)){
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
@@ -148,6 +151,11 @@ void SpecificWorker::compute()
             concurrent_test.save_json_result();
             break;
         }
+        case 6: {
+            qDebug() << "DUMMY:";
+            exit_ = false;
+            break;
+        }
         default: {
             qDebug() << "TEST NOT FOUND";
 
@@ -155,7 +163,8 @@ void SpecificWorker::compute()
         }
     }
 
-    exit(0);
+    if (exit_)
+        exit(0);
 
 }
 
