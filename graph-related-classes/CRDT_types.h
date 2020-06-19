@@ -659,6 +659,7 @@ namespace CRDT {
 
                 }
 
+                /*
                 for (auto &kv_dc : v.context().dc){
                     IDL::PairInt pi;
                     pi.first(kv_dc.first);
@@ -666,7 +667,7 @@ namespace CRDT {
 
                     edgeAttr.dk().cbase().dc().push_back(pi);
                 }
-
+*/
                 edgeAttr.from(m_from);
                 edgeAttr.to(m_to);
                 edgeAttr.type(m_type);
@@ -897,13 +898,18 @@ namespace CRDT {
                 //for (auto &kv_cc : v.context().getCcDc().first) {
                 //    nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
                 //}
-                for (auto &kv_dc : v.context().dc) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dc.first);
-                    pi.second(kv_dc.second);
+                /*
+                if (v.context().dc.begin() != v.context().dc.end()){
+                    for (auto &kv_dc : v.context().dc) {
+                        IDL::PairInt pi;
+                        pi.first(kv_dc.first);
+                        pi.second(kv_dc.second);
 
-                    nodeAttr.dk().cbase().dc().push_back(pi);
+                        nodeAttr.dk().cbase().dc().push_back(pi);
                 }
+
+                }
+                */
                 nodeAttr.id(id);
                 nodeAttr.attr_name(k);
                 nodeAttr.agent_id(v.read().begin()->agent_id());
@@ -921,7 +927,7 @@ namespace CRDT {
                     mvregEdge.dk().cbase().cc().emplace(kv_dots.first);
 
                 }
-
+                /*
                 for (auto &kv_dc : v.context().dc) {
                     IDL::PairInt pi;
                     pi.first(kv_dc.first);
@@ -929,6 +935,7 @@ namespace CRDT {
 
                     mvregEdge.dk().cbase().dc().push_back(pi);
                 }
+                 */
                 mvregEdge.id(id);
                 mvregEdge.agent_id(v.read().begin()->agent_id());
                 IDL::EdgeKey ek;

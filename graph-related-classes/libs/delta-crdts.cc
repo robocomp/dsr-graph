@@ -1391,7 +1391,7 @@ private:
 public:
     dotkernel<V,K> dk; // Dot kernel
 
-    mvreg() {} // Only for deltas and those should not be mutated
+    mvreg() { if constexpr(std::is_same<int, K>::value) { id = 0;}} // Only for deltas and those should not be mutated
     mvreg(K k) : id(k) {} // Mutable replicas need a unique id
     mvreg(K k, dotcontext<K> &jointc) : id(k), dk(jointc) {}
 
@@ -1400,7 +1400,9 @@ public:
         return dk.c;
     }
 
-
+    void setContext(dotcontext<K> &cbase) {
+        dk.c = cbase;
+    }
 
     friend ostream &operator<<( ostream &output, const mvreg<V,K>& o)
     {
