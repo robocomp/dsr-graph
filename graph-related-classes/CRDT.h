@@ -144,7 +144,7 @@ namespace CRDT
         //std::optional<VertexPtr> get_vertex(int id);
         [[deprecated ("You should be using \"insert_node\" to insert new nodes and \"update_node\" to update them")]]
         bool insert_or_assign_node(const N &node);
-        std::optional<uint32_t> insert_node(const Node& node);
+        std::optional<uint32_t> insert_node(Node node);
         bool update_node(const Node& node);
         //bool insert_or_assign_node(const VertexPtr &vertex);
         //bool insert_or_assign_node(Vertex &vertex);
@@ -462,7 +462,7 @@ namespace CRDT
         const int agent_id;
         std::string agent_name;
         std::unique_ptr<Utilities> utils;
-
+        RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy; // proxy to obtain unique node ids
 
         //////////////////////////////////////////////////////////////////////////
         // Cache maps

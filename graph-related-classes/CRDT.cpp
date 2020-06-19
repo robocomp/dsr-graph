@@ -17,9 +17,9 @@ using namespace CRDT;
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy) : agent_id(id) , agent_name(name)
+CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id) , agent_name(name)
 {
-
+    dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);
     utils = std::make_unique<Utilities>(this);
@@ -133,14 +133,28 @@ std::pair<bool, std::optional<AworSet>> CRDTGraph::insert_or_assign_node_(const 
     return {false, {} };
 }
 
-std::optional<uint32_t> CRDTGraph::insert_node(const Node& node) {
-    if (node.id() == -1) return {};
+std::optional<uint32_t> CRDTGraph::insert_node(Node node) {
+//    if (node.id() == -1) return {};
     std::optional<AworSet> aw;
     bool r = false;
+//TODO: Poner id con el proxy y generar el nombre ==> force to use except on json_file_read
+/*    try{
+        if (dsr_getid_proxy != nullptr)
+        {
+            int new_node_id = dsr_getid_proxy->getID();    
+            node.id(new_node_id);
+            node.name(node.type() + "_" + std::to_string(new_node_id));
+        }
+    }
+    catch(const std::exception& e)
+    {
+        throw std::runtime_error((std::string("Cannot get new id from idserver, check config file ")
+                                         + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+    }*/
+//TODO    
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name())  == name_map.end()) {
-            //TODO: Poner id con el proxy y generar el nombre
             std::tie(r, aw) = insert_or_assign_node_(node);
         } else throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
                                          + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
