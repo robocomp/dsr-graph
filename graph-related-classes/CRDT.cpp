@@ -170,7 +170,7 @@ std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::upd
                 }
             }
 
-            if (!atts_deltas.empty()) return { true, atts_deltas};
+            return { true, atts_deltas};
         }
     }
 
@@ -391,6 +391,7 @@ std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::M
             }
         } else { // Insert
             auto delta = node.fano()[{to, attrs.type()}].write(attrs);
+            update_maps_node_insert(from, node);
             return {true, translateEdgeMvCRDTtoIDL(from, delta), {}};
         }
     }
@@ -1535,34 +1536,32 @@ mvreg<Attribute, int> CRDTGraph::translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr
 IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data) {
     IDL::MvregNodeAttr delta_crdt;
 
-    try {
-        for (auto &kv_dots : data.dk.ds) {
-            IDL::PairInt pi;
-            pi.first(kv_dots.first.first);
-            pi.second(kv_dots.first.second);
 
-            delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
-        }
-        //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-        //for (auto &kv_cc : d.first) {
-        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-        //}
-        for (auto &kv_dc : data.context().dc) {
-            IDL::PairInt pi;
-            pi.first(kv_dc.first);
-            pi.second(kv_dc.second);
+    for (auto &kv_dots : data.dk.ds) {
+        IDL::PairInt pi;
+        pi.first(kv_dots.first.first);
+        pi.second(kv_dots.first.second);
 
-            delta_crdt.dk().cbase().dc().push_back(pi);
-        }
-
-        delta_crdt.id(id);
-        delta_crdt.attr_name(attr);
-        delta_crdt.node(node);
-        delta_crdt.agent_id(agent_id);
-    } catch (exception e) {
-        std::cout << __FUNCTION__ <<":" << __LINE__ << " Error: "<< e.what() << endl;
+        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
     }
+    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+    //for (auto &kv_cc : d.first) {
+    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+    //}
+    for (auto &kv_dc : data.context().dc) {
+        IDL::PairInt pi;
+        pi.first(kv_dc.first);
+        pi.second(kv_dc.second);
+
+        delta_crdt.dk().cbase().dc().push_back(pi);
+    }
+
+    delta_crdt.id(id);
+    delta_crdt.attr_name(attr);
+    delta_crdt.node(node);
+    delta_crdt.agent_id(agent_id);
+
     return delta_crdt;
 }
 

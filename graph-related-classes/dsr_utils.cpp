@@ -201,7 +201,8 @@ void Utilities::write_to_json_file(const std::string &json_file_path)
         symbol["name"] = QString::fromStdString(node.name());
         // symbol attribute
         QJsonObject attrsObject;
-        for (auto &[key, value]: node.attrs())
+        std::map<std::string,  mvreg<Attribute, int>> ordered_map_attr = std::map(node.attrs().begin(), node.attrs().end());
+        for (auto &[key, value]: ordered_map_attr)
         {
             QJsonObject content;
             QJsonValue val;
@@ -233,7 +234,8 @@ void Utilities::write_to_json_file(const std::string &json_file_path)
         symbol["attribute"] = attrsObject;
         //link
         QJsonArray nodeLinksArray;
-        for (auto &[key, value]: node.fano()) {
+        std::map<std::pair<int, std::string>,  mvreg<Edge, int>> ordered_map_fano = std::map(node.fano().begin(), node.fano().end());
+        for (auto &[key, value]: ordered_map_fano) {
             QJsonObject link;
             link["src"] = value.read_reg().from();
             link["dst"] = value.read_reg().to();
