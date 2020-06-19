@@ -46,6 +46,8 @@ Ice.loadSlice("-I ./src/ --all ./src/OmniRobot.ice")
 import RoboCompOmniRobot 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobotPub.ice")
 import RoboCompOmniRobotPub 
+Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
+import RoboCompHumanToDSRPub 
 
 import camerargbdsimpleI 
 import laserI 
@@ -62,3 +64,4 @@ class GenericWorker():
         self.camerargbdsimplepub_proxy = mprx["CameraRGBDSimplePubPub"]
         self.laserpub_proxy = mprx["LaserPubPub"]
         self.omnirobotpub_proxy = mprx["OmniRobotPubPub"]
+        self.humantodsrpub_proxy = mprx["HumanToDSRPubPub"]

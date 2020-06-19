@@ -173,6 +173,23 @@ if __name__ == '__main__':
     omnirobotpubTopic = RoboCompOmniRobotPub.OmniRobotPubPrx.uncheckedCast(pub)
     mprx["OmniRobotPubPub"] = omnirobotpubTopic
 
+    # Create a proxy to publish a LaserPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("HumanToDSRPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("HumanToDSRPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("HumanToDSRPub")
+            except:
+                print('Another client created the HumanToDSRPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    humantodsrpubTopic = RoboCompHumanToDSRPub.HumanToDSRPubPrx.uncheckedCast(pub)
+    mprx["HumanToDSRPubPub"] = humantodsrpubTopic
 
     if status == 0:
         worker = SpecificWorker(mprx)

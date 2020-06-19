@@ -49,8 +49,8 @@ void SpecificWorker::initialize(int period)
     innermodel = G->get_inner_api();
 
     // GraphViewer creation
-    using opts = DSR::GraphViewer::View;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
+    using opts = DSR::GraphViewer::view;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree);
     
     this->Period = 100;
     timer.start(Period);
@@ -65,6 +65,7 @@ void SpecificWorker::compute()
     check_unseen_people();
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 void SpecificWorker::process_people_data(RoboCompHumanToDSR::PeopleData people)
 {
@@ -143,6 +144,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         people_last_seen[person_n.value().id()] = std::chrono::system_clock::now();
     }
 }
+
 
 void SpecificWorker::check_unseen_people()
 {

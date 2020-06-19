@@ -30,6 +30,7 @@ from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
+
 import numpy as np
 import numpy_indexed as npi
 from itertools import zip_longest
@@ -99,6 +100,12 @@ class SpecificWorker(GenericWorker):
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
         self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
        
+        self.people = {}
+        for i in range(1,5):
+            name = "Bill#" + str(i)
+            if Dummy.exists(name):
+                self.people["name"] = Dummy(name)
+
         #self.joy_queue = queue.Queue(1)
         #self.omnirobot_queue = queue.Queue(1)
         self.joystick_newdata = []
@@ -109,13 +116,28 @@ class SpecificWorker(GenericWorker):
             try:
                 #start = time.time()
                 self.pr.step()
-                for name,cam in self.cameras.items():
-                    image_float = cam["handle"].capture_rgb()
-                    depth = cam["handle"].capture_depth()
-                    image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-                    cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
-                    cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
-                
+                #for name,cam in self.cameras.items():
+                cam = self.cameras["Viriato_head_camera_front_sensor"]
+                image_float = cam["handle"].capture_rgb()
+                depth = cam["handle"].capture_depth()
+                image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
+                cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
+            
+                # get People position
+                people_data = RoboCompHumanToDSRPub.PeopleData()
+                people_data.timestamp = time.time()
+                people = [] #RoboCompHumanToDSRPub.People()
+                for name, handle in self.people.items():
+                    pos = handle.get_position()
+                    rot = handle.get_orientation()
+                    person = RoboCompHumanToDSRPub.Person(0, pos[0], pos[1], pos[2], rot[2], [])
+                    people.append(person)
+                try:
+                    people_data.people = people
+                    self.humantodsrpub_proxy.newPeopleData(people_data)
+                except Ice.Exception as e:
+                    print(e)
 
                 # compute TLaserData and publish
                 ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
