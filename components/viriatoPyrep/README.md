@@ -12,6 +12,8 @@ Make sure first that you have commented this two lines, in case you have them:
 export LD_LIBRARY_PATH=$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 
+If you have a joystick, start ~/robocomp/components/robocomp-robolab/components/hardware/external_control/joystickpublish
+Check the config file to set the ranges of the axis.
 
 ## Configuration parameters
 As any other component, *viriatoPyrep* needs a configuration file to start. In
