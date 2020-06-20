@@ -204,13 +204,15 @@ class SpecificWorker(GenericWorker):
         adv = 0.0
         rot = 0.0
         side = 0.0
+       
         for x in datos.axes:
-            if x.name == "advance" and np.abs(x.value)>100:
-                adv = x.value/10
-            if x.name=="rotate" and np.abs(x.value)>100:
-                rot = x.value/10
-            if x.name=="side" and np.abs(x.value)>100:
-                side = x.value/10
+            if x.name == "advance":
+                adv = x.value
+            if x.name=="rotate":
+                rot = x.value
+            if x.name=="side":
+                side = x.value
+        print(adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 
     ##################################################################################
