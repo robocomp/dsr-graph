@@ -21,11 +21,33 @@
 #include <QGLViewer/qglviewer.h>
 #include <QApplication>
 #include <QTableWidget>
+#include <QStringList>
 #include "CRDT_graphnode.h"
 #include "CRDT_graphedge.h"
 #include "specificworker.h"
+#include <unistd.h>
 
 using namespace DSR;
+
+std::string get_self_path()
+{
+	std::vector<char> buf(400);
+	ssize_t len;
+
+	do
+	{
+		buf.resize(buf.size() + 100);
+		len = ::readlink("/proc/self/exe", &(buf[0]), buf.size());
+	} while (buf.size() == len);
+
+	if (len > 0)
+	{
+		buf[len] = '\0';
+		return (std::string(&(buf[0])));
+	}
+	/* handle error */
+	return "";
+}
 
 GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> G_, int options, view main) : QObject()
 {
@@ -47,9 +69,20 @@ GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> 
 
 	//MenuBar
     viewMenu = window->menuBar()->addMenu(window->tr("&View"));
+	auto actionsMenu = window->menuBar()->addMenu(window->tr("&Actions"));
+	auto restart_action = actionsMenu->addAction("Restart");
+
+	connect(restart_action, &QAction::triggered, this, [=] (bool)
+	{
+		qDebug()<<"TO RESTART";
+		std::system("/usr/bin/xclock&");
+		qDebug()<<"TO RESTART2";
+	});
+
 
 	initialize_views(options, main);
 }
+
 
 GraphViewer::~GraphViewer()
 {
@@ -61,10 +94,53 @@ GraphViewer::~GraphViewer()
 }
 
 
+void GraphViewer::restart_app(bool)
+{
+	qDebug()<<"TO RESTART";
+	auto executable_path = get_self_path();
+	std::system("/usr/bin/xclock&");
+//	qDebug()<<command.c_str();
+//
+//
+//	process->setWorkingDirectory("/home/robolab");
+//	process->setProcessEnvironment(QProcessEnvironment::systemEnvironment());
+//
+//	process->start(command.c_str());
+//	qDebug()<<process->readAllStandardOutput();
+//	QTimer::singleShot(3000, QApplication::quit);
+//	int pid = fork();
+//	if (pid == 0)
+//	{
+//
+//		auto command = std::string("/usr/bin/xclock");
+//		qDebug()<<"TO RESTART"<<command.c_str();
+//		// We are in the child process, execute the command
+//		execl(command.c_str(), command.c_str(), nullptr);
+//
+//		// If execl returns, there was an error
+//		std::cout << "Exec error: " << errno << ", " << strerror(errno) << '\n';
+//
+//		// Exit child process
+//		exit(1);
+//	}
+//	else if (pid > 0)
+//	{
+//		// The parent process, do whatever is needed
+//		// The parent process can even exit while the child process is running, since it's independent
+//		QTimer::singleShot(3000, QApplication::quit);
+//	}
+//	else
+//	{
+//		// Error forking, still in parent process (there are no child process at this point)
+//		std::cout << "Fork error: " << errno << ", " << strerror(errno) << '\n';
+//	}
+}
+
 void GraphViewer::initialize_views(int options, view central){
 	//Create docks view and main widget
 	std::map<view,QString> valid_options{{view::graph,"Graph"}, {view::tree,"Tree"}, {view::osg,"3D"}, {view::scene, "2D"}};
 
+	// creation of docks and mainwidget
 	for (auto option: valid_options) {
 		auto viewer = create_widget(option.first);
 		if(option.first == central)
@@ -77,12 +153,15 @@ void GraphViewer::initialize_views(int options, view central){
 		}
 	}
 
+//	Tabification of curren docks
 	QDockWidget * previous = nullptr;
 	for(auto dock: docks) {
 		if (previous)
 			window->tabifyDockWidget(previous, dock.second);
 		previous = dock.second;
 	}
+
+//	connection of tree to graph signals
 	if(docks.count(QString("Tree"))==1)
 	{
 		auto graph_widget = qobject_cast<DSRtoGraphViewer*>(this->main_widget);
@@ -97,6 +176,7 @@ void GraphViewer::initialize_views(int options, view central){
 		}
 
 	}
+
 }
 
 

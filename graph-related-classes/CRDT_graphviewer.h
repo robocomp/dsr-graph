@@ -38,7 +38,7 @@ namespace DSR
 	/// Drawing controller to display the graph in real-time using RTPS 
 	//////////////////////////////////////////////////////////////////////////////////////////////77
 	
-	class GraphViewer : QObject
+	class GraphViewer : public QObject
 	{
 		Q_OBJECT
 		public:
@@ -74,6 +74,7 @@ namespace DSR
 		public slots:
 			void saveGraphSLOT();		
 			void toggleSimulationSLOT();
+			void restart_app(bool);
 
 		signals:
 			void saveGraphSIGNAL();
