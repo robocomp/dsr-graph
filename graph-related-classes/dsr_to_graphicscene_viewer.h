@@ -66,6 +66,7 @@ namespace DSR
             void update_edge_chain(std::list<int> parent_list);
             void get_2d_projection(std::string node_name, std::vector<int> size, QPolygon &polygon, int &zvalue);
             bool is_drawable(std::list<int> parent_list);
+            bool check_RT_required_attributes(Node node);
 
             void add_or_assign_plane(Node &node);
             void add_or_assign_person(Node &node);
