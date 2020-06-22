@@ -81,7 +81,7 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
-#include <humantodsrI.h>
+#include <humantodsrpubI.h>
 
 
 
@@ -202,27 +202,27 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 
 		// Server adapter creation and publication
-		std::shared_ptr<IceStorm::TopicPrx> humantodsr_topic;
-		Ice::ObjectPrxPtr humantodsr;
+		std::shared_ptr<IceStorm::TopicPrx> humantodsrpub_topic;
+		Ice::ObjectPrxPtr humantodsrpub;
 		try
 		{
-			if (not GenericMonitor::configGetString(communicator(), prefix, "HumanToDSRTopic.Endpoints", tmp, ""))
+			if (not GenericMonitor::configGetString(communicator(), prefix, "HumanToDSRPubTopic.Endpoints", tmp, ""))
 			{
-				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy HumanToDSRProxy";
+				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy HumanToDSRPubProxy";
 			}
-			Ice::ObjectAdapterPtr HumanToDSR_adapter = communicator()->createObjectAdapterWithEndpoints("humantodsr", tmp);
-			RoboCompHumanToDSR::HumanToDSRPtr humantodsrI_ =  std::make_shared <HumanToDSRI>(worker);
-			auto humantodsr = HumanToDSR_adapter->addWithUUID(humantodsrI_)->ice_oneway();
-			if(!humantodsr_topic)
+			Ice::ObjectAdapterPtr HumanToDSRPub_adapter = communicator()->createObjectAdapterWithEndpoints("humantodsrpub", tmp);
+			RoboCompHumanToDSRPub::HumanToDSRPubPtr humantodsrpubI_ =  std::make_shared <HumanToDSRPubI>(worker);
+			auto humantodsrpub = HumanToDSRPub_adapter->addWithUUID(humantodsrpubI_)->ice_oneway();
+			if(!humantodsrpub_topic)
 			{
 				try {
-					humantodsr_topic = topicManager->create("HumanToDSR");
+					humantodsrpub_topic = topicManager->create("HumanToDSRPub");
 				}
 				catch (const IceStorm::TopicExists&) {
 					//Another client created the topic
 					try{
 						cout << "[" << PROGRAM_NAME << "]: Probably other client already opened the topic. Trying to connect.\n";
-						humantodsr_topic = topicManager->retrieve("HumanToDSR");
+						humantodsrpub_topic = topicManager->retrieve("HumanToDSRPub");
 					}
 					catch(const IceStorm::NoSuchTopic&)
 					{
@@ -237,13 +237,13 @@ int ::people_to_dsr::run(int argc, char* argv[])
 					return EXIT_FAILURE;
 				}
 				IceStorm::QoS qos;
-				humantodsr_topic->subscribeAndGetPublisher(qos, humantodsr);
+				humantodsrpub_topic->subscribeAndGetPublisher(qos, humantodsrpub);
 			}
-			HumanToDSR_adapter->activate();
+			HumanToDSRPub_adapter->activate();
 		}
 		catch(const IceStorm::NoSuchTopic&)
 		{
-			cout << "[" << PROGRAM_NAME << "]: Error creating HumanToDSR topic.\n";
+			cout << "[" << PROGRAM_NAME << "]: Error creating HumanToDSRPub topic.\n";
 			//Error. Topic does not exist
 		}
 
@@ -262,12 +262,12 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 		try
 		{
-			std::cout << "Unsubscribing topic: humantodsr " <<std::endl;
-			humantodsr_topic->unsubscribe( humantodsr );
+			std::cout << "Unsubscribing topic: humantodsrpub " <<std::endl;
+			humantodsrpub_topic->unsubscribe( humantodsrpub );
 		}
 		catch(const Ice::Exception& ex)
 		{
-			std::cout << "ERROR Unsubscribing topic: humantodsr " << ex.what()<<std::endl;
+			std::cout << "ERROR Unsubscribing topic: humantodsrpub " << ex.what()<<std::endl;
 		}
 
 
