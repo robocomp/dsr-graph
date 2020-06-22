@@ -72,7 +72,7 @@ private:
         {"right_knee", JOINT_CONNECTION{"right_hip",{0.0, -400.0, 0.0}}},
         {"right_ankle", JOINT_CONNECTION{"right_knee",{0.0, -400.0, 0.0}}}
     };
-    DoubleBuffer<RoboCompHumanToDSR::PeopleData, RoboCompHumanToDSR::PeopleData> people_data_buffer;
+    DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
 public:
     std::string agent_name;
     std::shared_ptr<CRDT::CRDTGraph> G;
@@ -86,12 +86,12 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-    void HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people);    
+    void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);    
 
 private: 
     int get_new_node_id();
     std::optional<Node> create_node(std::string type, std::string name, int parent_idz);
-    void process_people_data(RoboCompHumanToDSR::PeopleData people);    
+    void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
     void check_unseen_people();
 
 public slots:

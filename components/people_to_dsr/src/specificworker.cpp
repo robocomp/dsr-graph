@@ -67,14 +67,14 @@ void SpecificWorker::compute()
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-void SpecificWorker::process_people_data(RoboCompHumanToDSR::PeopleData people)
+void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData people)
 {
     std::vector<float> zeros{0.0,0.0,0.0};
     std::optional<Node> world_n = G->get_node("world");
     if(not world_n.has_value())
         return;
     
-    for(const RoboCompHumanToDSR::Person &person: people.peoplelist)
+    for(const RoboCompHumanToDSRPub::Person &person: people.peoplelist)
     {
         std::string person_name = "person [" + std::to_string(person.id) + "]";
         std::optional<Node> person_n = G->get_node(person_name);
@@ -169,8 +169,9 @@ void SpecificWorker::check_unseen_people()
 
 
 //SUBSCRIPTION to newPeopleData method from HumanToDSR interface
-void SpecificWorker::HumanToDSR_newPeopleData(RoboCompHumanToDSR::PeopleData people)
+void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
 {
+    qDebug()<<"received RoboCompHumanToDSRPub::PeopleData "<<people.peoplelist.size();
     people_data_buffer.put(std::move(people));
 }
 
