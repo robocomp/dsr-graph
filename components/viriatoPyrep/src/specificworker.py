@@ -105,7 +105,7 @@ class SpecificWorker(GenericWorker):
             name = "Bill#" + str(i)
             if Dummy.exists(name):
                 self.people["name"] = Dummy(name)
-
+        print (self.people)
         #self.joy_queue = queue.Queue(1)
         #self.omnirobot_queue = queue.Queue(1)
         self.joystick_newdata = []
@@ -131,10 +131,13 @@ class SpecificWorker(GenericWorker):
                 for name, handle in self.people.items():
                     pos = handle.get_position()
                     rot = handle.get_orientation()
-                    person = RoboCompHumanToDSRPub.Person(0, pos[0], pos[1], pos[2], rot[2], [])
+                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, rot[2], {})
                     people.append(person)
                 try:
-                    people_data.people = people
+                    
+                    people_data.peoplelist = people
+                    print("time", people_data.timestamp)
+                    print("people", people_data.peoplelist)
                     self.humantodsrpub_proxy.newPeopleData(people_data)
                 except Ice.Exception as e:
                     print(e)
