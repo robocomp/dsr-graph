@@ -248,7 +248,7 @@ class GraphNode : public QObject, public QGraphicsEllipseItem
     QList<GraphEdge *> edges() const;
     void calculateForces();
     bool advancePosition();
-		void setTag(const std::string &tag_);
+    void setTag(const std::string &tag_);
     std::string getTag() const { return tag->text().toStdString();};
     std::string getColor() const { return plain_color.toStdString(); };
     void setType(const std::string &type_);
