@@ -1,12 +1,12 @@
 <innerModel>
-	<transform id="world">
-
+<transform id="world">
+    <transform id="building_center" tx="1700" tz="3500" ry="1.57" >
 		<!-- FLOOR -->
 		<plane id="floor_plane" px="2500" py="-10" ny="1" size="10000,9500,10" texture="#eebb77" />
 
 
 		<!-- WALL BETWEEN ROOMS -->
-		<plane id="muro6" px="4418" py="950" pz="245" nx="222" nz="40.510742" size="240,1900,9"  texture="#000088" />
+		<plane id="muro6" px="4418" py="950" pz="245" nx="222" nz="40.510742" size="240,1900,9"  texture="#FFFF00" />
 		<plane id="muro22" px="2160" py="950" pz="29" nx="-340" nz="-40" size="209,1900,9"  texture="#000088" />
 
 
@@ -40,5 +40,6 @@
 			<plane id="muro21" px="64" py="950" pz="-141" nx="-136" nz="4232" size="4234,1900,9"  texture="#008800" />
         </transform><!--ROOM B-->
 
-	</transform>
+    </transform><!--BUILDING --> 
+</transform>
 </innerModel>
