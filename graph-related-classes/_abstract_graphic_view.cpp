@@ -12,7 +12,7 @@ using namespace DSR ;
 AbstractGraphicViewer::AbstractGraphicViewer(QWidget* parent) :  QGraphicsView(parent)
 {
 	scene.setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene.setSceneRect(-200, -200, 400, 400);
+	scene.setSceneRect(-2000,-2000, 4000, 4000);
 	this->setScene(&scene);
 	this->setCacheMode(QGraphicsView::CacheBackground);
 	this->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
@@ -20,7 +20,6 @@ AbstractGraphicViewer::AbstractGraphicViewer(QWidget* parent) :  QGraphicsView(p
 	this->setRenderHint(QPainter::Antialiasing);
 	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 	this->setMinimumSize(400, 400);
-	this->fitInView(scene.sceneRect(), Qt::KeepAspectRatio );
 	this->adjustSize();
 	this->setMouseTracking(true);
 	this->viewport()->setMouseTracking(true);
