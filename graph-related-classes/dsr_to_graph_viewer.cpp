@@ -2,6 +2,7 @@
 #include <cppitertools/range.hpp>
 #include <qmat/QMatAll>
 #include <QTableWidget>
+#include <QApplication>
 #include "CRDT_graphnode.h"
 #include "CRDT_graphedge.h"
 #include "dsr_to_graph_viewer.h"
@@ -16,6 +17,10 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 	own = shared_ptr<DSRtoGraphViewer>(this);
 
     createGraph();
+
+	this->scene.setSceneRect(scene.itemsBoundingRect());
+
+	this->fitInView(scene.itemsBoundingRect(), Qt::KeepAspectRatio );
 
     connect(G.get(), &CRDT::CRDTGraph::update_node_signal, this, &DSRtoGraphViewer::add_or_assign_node_SLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
