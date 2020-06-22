@@ -148,13 +148,14 @@ void GraphViewer::initialize_views(int options, view central){
 
 	// creation of docks and mainwidget
 	for (auto option: valid_options) {
-		auto viewer = create_widget(option.first);
 		if(option.first == central)
 		{
+			auto viewer = create_widget(option.first);
 			window->setCentralWidget(viewer);
 			this->main_widget = viewer;
 		}
 		else if(options & option.first ) {
+			auto viewer = create_widget(option.first);
 			create_dock_and_menu(QString(option.second), viewer);
 		}
 	}
