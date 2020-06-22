@@ -17,7 +17,7 @@
 #include "CRDT_graphnode.h"
 
 
-GraphNode::GraphNode(std::shared_ptr<DSR::DSRtoGraphViewer> graph_viewer_): QGraphicsEllipseItem(), dsr_to_graph_viewer(graph_viewer_)
+GraphNode::GraphNode(std::shared_ptr<DSR::DSRtoGraphViewer> graph_viewer_): QGraphicsEllipseItem(0,0,30,30), dsr_to_graph_viewer(graph_viewer_)
 {
     setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
@@ -179,7 +179,7 @@ QVariant GraphNode::itemChange(GraphicsItemChange change, const QVariant &value)
         case ItemPositionChange:
         {
             foreach (GraphEdge *edge, edgeList)
-                 edge->adjust();
+                 edge->adjust(this, value.toPointF());
             break;
         }
 
@@ -223,10 +223,12 @@ void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         std::cout << __FILE__ <<":"<<__FUNCTION__<< " node id in graphnode: " << id_in_graph << std::endl;
         std::optional<Node> n = g->get_node(id_in_graph);
         if (n.has_value()) {
-            bool r = g->modify_attrib(n.value(), "pos_x", (float) event->scenePos().x());
-            if (!r) r = g->add_attrib(n.value(), "pos_x", (float) event->scenePos().x());
-            r = g->modify_attrib(n.value(), "pos_y", (float) event->scenePos().y());
-            if (!r) r = g->add_attrib(n.value(), "pos_y", (float) event->scenePos().y());
+//            qDebug()<<"ScenePos X"<<(float) event->scenePos().x()<<" Width "<<(this->rect())<<" this "<<this->pos().x();
+//            qDebug()<<"ScenePos Y"<<(float) event->scenePos().y()<<" Height "<<(this->rect())<<" this "<<this->pos().y();
+            bool r = g->modify_attrib(n.value(), "pos_x", (float) this->pos().x());
+            if (!r) r = g->add_attrib(n.value(), "pos_x", (float) this->pos().x());
+            r = g->modify_attrib(n.value(), "pos_y", (float) this->pos().y());
+            if (!r) r = g->add_attrib(n.value(), "pos_y", (float) this->pos().y());
             g->update_node(n.value());
         }
     }
