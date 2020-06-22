@@ -56,12 +56,9 @@ namespace DSR
 			
 		protected:
 			virtual void keyPressEvent(QKeyEvent *event);
-			virtual void timerEvent(QTimerEvent *event);
 		
 		private:
 			std::shared_ptr<CRDT::CRDTGraph> G;
-			int timerId = 0;
-			bool do_simulate = false;
 			QMainWindow *window;
 			QMenu *viewMenu;
 			std::unique_ptr<DSR::DSRtoOSGViewer> dsr_to_osg_viewer;

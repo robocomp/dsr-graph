@@ -23,6 +23,8 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 	this->fitInView(scene.itemsBoundingRect(), Qt::KeepAspectRatio );
 
     connect(G.get(), &CRDT::CRDTGraph::update_node_signal, this, &DSRtoGraphViewer::add_or_assign_node_SLOT);
+	central_point = new QGraphicsEllipseItem(0,0,0,0);
+	scene.addItem(central_point);
 	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
@@ -58,6 +60,41 @@ void DSRtoGraphViewer::createGraph()
 	catch(const std::exception &e) { std::cout << e.what() << " Error accessing "<< __FUNCTION__<<":"<<__LINE__<< std::endl;}
 }
 
+
+///////////////////////////////////////
+
+void DSRtoGraphViewer::itemMoved()
+{
+	do_simulate = true;
+	std::cout << "timerId " << timerId << std::endl;
+	if(do_simulate and timerId == 0)
+	if (timerId == 0)
+	   timerId = startTimer(1000 / 25);
+}
+
+void DSRtoGraphViewer::timerEvent(QTimerEvent *event)
+{
+	// Q_UNUSED(event)
+
+	for( auto &[k,node] : gmap)
+	{
+		(void)k;
+		node->calculateForces();
+	}
+	bool itemsMoved = false;
+
+	for( auto &[k,node] : gmap)
+	{
+		(void)k;
+		if (node->advancePosition())
+			itemsMoved = true;
+	}
+	if (!itemsMoved)
+	{
+		killTimer(timerId);
+		timerId = 0;
+	}
+}
 //////////////////////////////////////////////////////////////////////////////////////
 ///// SLOTS
 //////////////////////////////////////////////////////////////////////////////////////

@@ -236,46 +236,14 @@ void GraphViewer::saveGraphSLOT()
 	emit saveGraphSIGNAL(); 
 }
 
-void GraphViewer::toggleSimulationSLOT()
-{
-	this->do_simulate = !do_simulate;
-	if(do_simulate)
-	   timerId = window->startTimer(1000 / 25);
-}
+//void GraphViewer::toggleSimulationSLOT()
+//{
+//	this->do_simulate = !do_simulate;
+//	if(do_simulate)
+//	   timerId = window->startTimer(1000 / 25);
+//}
 
-///////////////////////////////////////
 
-void GraphViewer::itemMoved()
-{
-	//std::cout << "timerId " << timerId << std::endl;
-	//if(do_simulate and timerId == 0)
-    //if (timerId == 0)
-    //   timerId = startTimer(1000 / 25);
-}
-
-void GraphViewer::timerEvent(QTimerEvent *event)
-{
-    // Q_UNUSED(event)
-
-	// for( auto &[k,node] : gmap)
-	// {
-	// 	(void)k;
-	//     node->calculateForces();
-	// }
-	// bool itemsMoved = false;
-	
-	// for( auto &[k,node] : gmap)
-	// {
-	// 	(void)k;
-    //     if (node->advancePosition())
-    //         itemsMoved = true;
-    // }
-	// if (!itemsMoved) 
-	// {
-    //     killTimer(timerId);
-    //     timerId = 0;
-    // }
-}
 
 /////////////////////////
 ///// Qt Events

@@ -42,6 +42,7 @@ namespace DSR
             std::shared_ptr<CRDT::CRDTGraph> getGraph()  			  	{return G;};
 			std::map<std::int32_t, GraphNode*> getGMap() const 			{return gmap;};
             QGraphicsEllipseItem* getCentralPoint() const 				{return central_point;};
+			void itemMoved();
 
 
         public slots:   // From G
@@ -60,7 +61,15 @@ namespace DSR
             std::map<std::int32_t, GraphNode*> gmap;
 			std::map<std::tuple<std::int32_t, std::int32_t, std::string>, GraphEdge*> gmap_edges;
 			QGraphicsEllipseItem *central_point;
+			int timerId = 0;
+			bool do_simulate = false;
             void createGraph();
+
+
+    	protected:
+			virtual void timerEvent(QTimerEvent *event);
+//			virtual void mouseReleaseEvent(QMouseEvent *event);
+
     };
 };
 #endif
