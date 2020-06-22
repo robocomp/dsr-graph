@@ -857,7 +857,7 @@ bool DotKernelPubSubType::getKey(void *data, InstanceHandle_t* handle, bool forc
 AworSetPubSubType::AworSetPubSubType()
 {
     setName("AworSet");
-    m_typeSize = 684136020; //static_cast<uint32_t>(AworSet::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 500000000; //static_cast<uint32_t>(AworSet::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = AworSet::isKeyDefined();
     size_t keyLength = AworSet::getKeyMaxCdrSerializedSize()>16 ? AworSet::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char*>(malloc(keyLength));
@@ -960,7 +960,7 @@ bool AworSetPubSubType::getKey(void *data, InstanceHandle_t* handle, bool force_
 OrMapPubSubType::OrMapPubSubType()
 {
     setName("OrMap");
-    m_typeSize = 3989094180; // static_cast<uint32_t>(OrMap::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 500000000; // static_cast<uint32_t>(OrMap::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = OrMap::isKeyDefined();
     size_t keyLength = OrMap::getKeyMaxCdrSerializedSize()>16 ? OrMap::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char*>(malloc(keyLength));
