@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
     // GraphViewer creation
     using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree);
+//	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree);
     
     this->Period = 100;
     timer.start(Period);
@@ -69,6 +69,7 @@ void SpecificWorker::compute()
 
 void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData people)
 {
+    qDebug()<<"PROCESS PEOPLEDATA";
     std::vector<float> zeros{0.0,0.0,0.0};
     std::optional<Node> world_n = G->get_node("world");
     if(not world_n.has_value())
@@ -120,14 +121,14 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
                 return;
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
             //create joints nodes
-            for(std::string name : COCO_IDS)
+/*            for(std::string name : COCO_IDS)
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
                 std::optional<Node> joint_n = create_node("joint", node_name, person_n->id());
             }
             //create edge with cannonical position
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), zeros, zeros);
-/*            for(std::string name : COCO_IDS)
+            for(std::string name : COCO_IDS)
             {
                 JOINT_CONNECTION joint = jointMap[name];
                 std::string parent_name = joint.parent_name + " [" + std::to_string(person.id) + "]";
@@ -143,6 +144,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         //update timestamp
         people_last_seen[person_n.value().id()] = std::chrono::system_clock::now();
     }
+    qDebug()<<"PROCESS PEOPLEDATA END";
 }
 
 
@@ -172,6 +174,7 @@ void SpecificWorker::check_unseen_people()
 void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
 {
     qDebug()<<"received RoboCompHumanToDSRPub::PeopleData "<<people.peoplelist.size();
+    qDebug()<<"time"<<people.timestamp;
     people_data_buffer.put(std::move(people));
 }
 
@@ -192,17 +195,20 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
 {
     int id = get_new_node_id();
     if (id == -1)
-       return {};
+    return {};
     Node node;
     node.type(type);
     node.id(id);
     node.agent_id(agent_id);
     node.name(name);
-    G->insert_or_assign_attrib_by_name(node, "pos_x", 100);
-    G->insert_or_assign_attrib_by_name(node, "pos_y", 100);
-    G->insert_or_assign_attrib_by_name(node, "name", name);
-    G->insert_or_assign_attrib_by_name(node, "color", std::string("GoldenRod"));
+qDebug()<<"Create node: ID "<<id;    
+    G->add_or_modify(node, "pos_x", 100);
+    G->add_or_modify(node, "pos_y", 100);
+    G->add_or_modify(node, "name", name);
+    G->add_or_modify(node, "color", std::string("GoldenRod"));
     if( G->insert_node(node))
         return node; 
+    else
+        qDebug()<<"Error on node "<<QString::fromStdString(node.name())<<"creation";
     return {};
 }
