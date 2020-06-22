@@ -16,14 +16,14 @@ DSRtoOSGViewer::DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX
 {
     G = G_;
     this->setMinimumSize(400, 400);
-    osg::Camera* camera = new osg::Camera;
+    osg::ref_ptr<osg::Camera> camera = new osg::Camera;
     camera->setViewport( 0, 0, this->width(), this->height() );
     camera->setClearColor( osg::Vec4( 0.9f, 0.9f, 1.f, 1.f ) );
     float aspectRatio = this->width()/this->height();
     camera->setProjectionMatrixAsPerspective(55.0f, aspectRatio, 0.000001, 100000.0);
     camera->setGraphicsContext( _mGraphicsWindow );
     _mViewer->setCamera(camera);
-    manipulator = new osgGA::TrackballManipulator;
+	manipulator = new osgGA::TrackballManipulator;
 //    manipulator->setAllowThrow( false );
 //    this->setMouseTracking(true);
     osg::Vec3d eye(osg::Vec3(1000.,7000.,4000.));
@@ -70,10 +70,17 @@ DSRtoOSGViewer::DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX
    
 }
 
+DSRtoOSGViewer::~DSRtoOSGViewer()
+{
+	root->removeChildren(0, root->getNumChildren());
+	root->dirtyBound();
+	root = NULL;
+}
+
 void DSRtoOSGViewer::initializeGL(){
 
-    osg::StateSet* stateSet = root->getOrCreateStateSet();
-    osg::Material* material = new osg::Material;
+    osg::ref_ptr<osg::StateSet> stateSet = root->getOrCreateStateSet();
+    osg::ref_ptr<osg::Material> material = new osg::Material;
     material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );
     stateSet->setAttributeAndModes( material, osg::StateAttribute::ON );
     stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
@@ -215,7 +222,7 @@ void DSRtoOSGViewer::add_or_assign_edge_slot(const Node &from, const Node& to)
                 else
                     throw std::runtime_error("Exception: dynamic_cast to MatrixTransform failed");
             } else {
-                osg::MatrixTransform *transform = new osg::MatrixTransform(mat);
+                osg::ref_ptr<osg::MatrixTransform> transform = new osg::MatrixTransform(mat);
                 (*res).second->addChild(transform);
                 osg_map.insert_or_assign(std::make_tuple(from.id(), to.id()), transform);
             }
@@ -237,7 +244,7 @@ void DSRtoOSGViewer::add_or_assign_transform(const Node &node, const Node& paren
     {
         if( auto anterior = osg_map.find(std::make_tuple(node.id(), node.id())); anterior == osg_map.end())
         {
-            osg::MatrixTransform* transform = new osg::MatrixTransform();
+            osg::ref_ptr<osg::MatrixTransform> transform = new osg::MatrixTransform();
             transform->setName(std::to_string(node.id())+"-"+std::to_string(node.id()));
             (*res).second->addChild(transform);
             osg_map.insert_or_assign(std::make_tuple(node.id(), node.id()), transform);
@@ -270,10 +277,10 @@ void DSRtoOSGViewer::add_or_assign_box(const Node &node, const Node& parent)
 
         // Create object
         osg::ref_ptr<osg::Box> box = new osg::Box(QVecToOSGVec(QVec::vec3(0,0,0)), width.value(), height.value(), depth.value());
-        auto plane_drawable = new osg::ShapeDrawable(box);
-        osg::Geode* geode = new osg::Geode;
+		osg::ref_ptr<osg::ShapeDrawable> plane_drawable = new osg::ShapeDrawable(box);
+		osg::ref_ptr<osg::Geode> geode = new osg::Geode;
         geode->addDrawable(plane_drawable);
-        osg::Group *group = new osg::Group;
+		osg::ref_ptr<osg::Group> group = new osg::Group;
         group->setName(std::to_string(node.id())+"-"+std::to_string(node.id()));
         group->addChild(geode);
         
@@ -298,35 +305,35 @@ void DSRtoOSGViewer::add_or_assign_box(const Node &node, const Node& parent)
         else
         {
             // image
-            osg::Image *image;
+			  osg::ref_ptr<osg::Image> image;
             if (textu.size()>0 and not constantColor)
                 if( image = osgDB::readImageFile(textu), image == nullptr)
                     throw std::runtime_error("Couldn't load texture from file: " + texture.value());
             // texture
-            auto texture = new osg::Texture2D;
-            texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-            texture->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
-            texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-            texture->setImage(image);
-            //texture->setDataVariance(Object::DYNAMIC);
-            texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-            texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-            texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-            texture->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
-            texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-            texture->setTextureWidth(1);
-            texture->setTextureHeight(1);
-            texture->setResizeNonPowerOfTwoHint(false);
-            // Material
-            osg::ref_ptr<osg::Material> material = new osg::Material();
-            //material->setTransparency( osg::Material::FRONT_AND_BACK, 0);
-            material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 0.5));
-            // Assign the material and texture to the plane
-            osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
-            sphereStateSet->ref();
-            sphereStateSet->setAttribute(material);
-            sphereStateSet->setTextureMode(0, GL_TEXTURE_GEN_R, osg::StateAttribute::ON);
-            sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+//            osg::ref_ptr<osg::Texture2D>texture = new osg::Texture2D;
+//            texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+//            texture->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
+//            texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+//            texture->setImage(image);
+//            //texture->setDataVariance(Object::DYNAMIC);
+//            texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+//            texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+//            texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+//            texture->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
+//            texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+//            texture->setTextureWidth(1);
+//            texture->setTextureHeight(1);
+//            texture->setResizeNonPowerOfTwoHint(false);
+//            // Material
+//            osg::ref_ptr<osg::Material> material = new osg::Material();
+//            //material->setTransparency( osg::Material::FRONT_AND_BACK, 0);
+//            material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 0.5));
+//            // Assign the material and texture to the plane
+//            osg::ref_ptr<osg::StateSet> sphereStateSet = geode->getOrCreateStateSet();
+//            sphereStateSet->ref();
+//            sphereStateSet->setAttribute(material);
+//            sphereStateSet->setTextureMode(0, GL_TEXTURE_GEN_R, osg::StateAttribute::ON);
+//            sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
         }
      }
     catch(const std::exception &e)

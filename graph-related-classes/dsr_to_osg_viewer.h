@@ -50,6 +50,7 @@ namespace DSR
     {
         public:
             DSRtoOSGViewer(std::shared_ptr<CRDT::CRDTGraph> G_, float scaleX, float scaleY, QWidget *parent=0);
+			~DSRtoOSGViewer();
         
         protected:  
             virtual void resizeEvent(QResizeEvent *e); 

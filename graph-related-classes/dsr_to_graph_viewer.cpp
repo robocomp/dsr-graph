@@ -25,6 +25,8 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 
 DSRtoGraphViewer::~DSRtoGraphViewer()
 {
+	gmap.clear();
+	gmap_edges.clear();
 	qDebug() << __FUNCTION__ << "Destroy";
 	QList<QGraphicsItem*> allGraphicsItems = scene.items();
 	for(int i = 0; i < allGraphicsItems.size(); i++)
@@ -33,6 +35,7 @@ DSRtoGraphViewer::~DSRtoGraphViewer()
 		if(graphicItem->scene() == &scene)
 			scene.removeItem(graphicItem);
 	}
+	scene.clear();
 }
 
 void DSRtoGraphViewer::createGraph()
