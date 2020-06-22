@@ -22,6 +22,10 @@
 #include <QTreeWidget>
 #include <QMouseEvent>
 #include <QCheckBox>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QHBoxLayout>
 #include "CRDT.h"
 
 class GraphNode;

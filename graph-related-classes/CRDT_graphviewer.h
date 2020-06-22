@@ -70,7 +70,7 @@ namespace DSR
 
 		public slots:
 			void saveGraphSLOT();		
-			void toggleSimulationSLOT();
+//			void toggleSimulationSLOT();
 			void restart_app(bool);
 
 		signals:
