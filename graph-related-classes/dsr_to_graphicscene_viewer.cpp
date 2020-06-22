@@ -79,6 +79,9 @@ std::cout << node.value().name() << " " << node.value().id() << std::endl;
         if (ignore_nodes.find(node.value().id()) != ignore_nodes.end()) //
             return;
 
+        if( not check_RT_required_attributes(node.value()))
+            return;
+
         if( type == "plane" )
             add_or_assign_plane(node.value());
         if( type == "mesh")
@@ -206,6 +209,17 @@ bool DSRtoGraphicsceneViewer::is_drawable(std::list<int> parent_list)
     return drawable;
 }
 
+bool DSRtoGraphicsceneViewer::check_RT_required_attributes(Node node)
+{
+    try{
+        std::optional<int> level = G->get_node_level(node);
+        std::optional<int> parent = G->get_parent_id(node);
+        if(level.has_value() and parent.has_value())
+            return true;
+    }
+    catch(...){ }
+    return false;
+}
 
 void  DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node)
 {   
@@ -322,12 +336,17 @@ std::list<int> DSRtoGraphicsceneViewer::get_parent_list(std::int32_t node_id)
     parent_list.push_back(node_id);
     auto node = G->get_node(node_id);
     try{
-        int parent_id;
+        std::optional<int> parent_id;
         do
         {
-            parent_id = G->get_parent_id(node.value()).value();
-            parent_list.push_front(parent_id);
-            node = G->get_node(parent_id);
+            parent_id = G->get_parent_id(node.value());
+            if (parent_id.has_value())
+            {
+                parent_list.push_front(parent_id.value());
+                node = G->get_node(parent_id.value());
+            }
+            else
+                return std::list<int>();
         }while(node.value().type() != "world");
     }catch(...){}
     return parent_list;
@@ -336,6 +355,8 @@ std::list<int> DSRtoGraphicsceneViewer::get_parent_list(std::int32_t node_id)
 //get all edges involve on node->world transformation chain
 void DSRtoGraphicsceneViewer::update_edge_chain(std::list<int> parent_list)
 {
+    if (parent_list.size()< 2)
+        return;
 /*    std::cout<<"PARENT_LIST: ";
     for(auto item : parent_list)
         std::cout<<item<<" ";
