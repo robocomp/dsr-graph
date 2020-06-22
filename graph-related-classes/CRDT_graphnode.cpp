@@ -231,7 +231,7 @@ void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             if (!r) r = g->add_attrib(n.value(), "pos_y", (float) this->pos().y());
             g->update_node(n.value());
         }
-        this->dsr_to_graph_viewer->itemMoved();
+//        this->dsr_to_graph_viewer->itemMoved();
     }
 
     QGraphicsItem::mouseReleaseEvent(event);
