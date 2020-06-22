@@ -32,7 +32,7 @@
 #include <CommonBehavior.h>
 
 #include <DSRGetID.h>
-#include <HumanToDSR.h>
+#include <HumanToDSRPub.h>
 
 
 #define CHECK_PERIOD 5000
@@ -57,7 +57,7 @@ public:
 
 	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
-	virtual void HumanToDSR_newPeopleData (RoboCompHumanToDSR::PeopleData people) = 0;
+	virtual void HumanToDSRPub_newPeopleData (RoboCompHumanToDSRPub::PeopleData people) = 0;
 
 protected:
 

@@ -1,11 +1,11 @@
-import "HumanToDSR.idsl";
+import "HumanToDSRPub.idsl";
 import "DSRGetID.idsl";
 
 Component people_to_dsr
 {
     Communications
     {
-        subscribesTo HumanToDSR;
+        subscribesTo HumanToDSRPub;
         requires DSRGetID;
     };
     language Cpp11;
