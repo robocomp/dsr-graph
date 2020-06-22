@@ -51,7 +51,7 @@ void GraphNode::setColor(const std::string &plain)
     QString c = QString::fromStdString(plain);
 	plain_color = c;
 	dark_color = "dark" + c;
-    animation->setStartValue(QColor("Green"));
+    animation->setStartValue(QColor("green").lighter());
     animation->setEndValue(QColor(c));
     node_brush.setColor(QColor(c));
 
