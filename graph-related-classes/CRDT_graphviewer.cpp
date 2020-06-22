@@ -75,8 +75,14 @@ GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<CRDT::CRDTGraph> 
 	connect(restart_action, &QAction::triggered, this, [=] (bool)
 	{
 		qDebug()<<"TO RESTART";
-		std::system("/usr/bin/xclock&");
-		qDebug()<<"TO RESTART2";
+		auto current_path = get_self_path();
+		auto command = ("sleep 4 && "+current_path+"&");
+		std::system(command.c_str());
+//		QProcess a;
+//		a.startDetached(command);
+		qDebug()<<"TO RESTART2: "<<command.c_str();
+		QTimer::singleShot(1000,QApplication::quit);
+//		restart_app(true);
 	});
 
 
@@ -96,9 +102,9 @@ GraphViewer::~GraphViewer()
 
 void GraphViewer::restart_app(bool)
 {
-	qDebug()<<"TO RESTART";
-	auto executable_path = get_self_path();
-	std::system("/usr/bin/xclock&");
+//	qDebug()<<"TO RESTART";
+//	auto executable_path = get_self_path();
+//	std::system("/usr/bin/xclock&");
 //	qDebug()<<command.c_str();
 //
 //
@@ -112,7 +118,7 @@ void GraphViewer::restart_app(bool)
 //	if (pid == 0)
 //	{
 //
-//		auto command = std::string("/usr/bin/xclock");
+//		auto command = std::string("sleep 1;/usr/bin/xclock");
 //		qDebug()<<"TO RESTART"<<command.c_str();
 //		// We are in the child process, execute the command
 //		execl(command.c_str(), command.c_str(), nullptr);
