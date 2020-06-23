@@ -435,7 +435,13 @@ void DSRtoGraphicsceneViewer::del_edge_slot(const std::int32_t from, const std::
 {
 qDebug() << "********************************";
 qDebug() << __FUNCTION__ ;
-
+    
+    std::string edge_key = std::to_string(from) + "_" + std::to_string(to);
+std::cout << "******Delete EDGE "<<edge_key<<std::endl;
+    if (edge_map.find(edge_key) != edge_map.end())
+    {
+        edge_map.erase(edge_key);
+    }
 
 }
 
