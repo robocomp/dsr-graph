@@ -264,7 +264,7 @@ pose.value().print(QString::fromStdString(node.name()));
         QGraphicsPixmapItem * scenePixmap;
         if (scene_map.find(node.id()) == scene_map.end())
         {
-            QPixmap pixmap = QPixmap::fromImage(QImage("/home/robocomp/robocomp/components/robocomp-tests/elasticpath/src/person.png")).scaled(600,300);
+            QPixmap pixmap = QPixmap::fromImage(QImage("/home/robocomp/robocomp/components/dsr-graph/etc/person.png")).scaled(600,300);
             scenePixmap = scene.addPixmap(pixmap);
             scenePixmap->setZValue(pose.value().y());
             scene_map[node.id()] = (QGraphicsItem*) scenePixmap;
@@ -404,6 +404,38 @@ pose.value().print(QString::fromStdString(node.value().name()));
 }
 
 void DSRtoGraphicsceneViewer::del_node_slot(const std::int32_t id)
-{}
+{
+qDebug() << "********************************";
+qDebug() << __FUNCTION__ ; 
+    //check if node has graphical representation
+    if (scene_map.find(id) != scene_map.end())
+    {
+        QGraphicsItem *item = scene_map[id];
+        delete item;
+        scene_map.erase(id);
+        //clear edge update chain
+        for (std::map<std::string,std::vector<int>>::iterator it = edge_map.begin(); it != edge_map.end();it++)
+	    {
+            std::vector<int>::iterator pos = std::find(it->second.begin(), it->second.end(), id);
+            if(pos != it->second.end())
+                it->second.erase(pos);
+        }
+    }
+
+    //remove from ignored just to keep consistency
+    if (ignore_nodes.find(id) != ignore_nodes.end()) 
+    {
+        ignore_nodes.erase(id);
+    }
+
+    //TODO: check what happens with rt edges
+}
+
 void DSRtoGraphicsceneViewer::del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag)
-{}
+{
+qDebug() << "********************************";
+qDebug() << __FUNCTION__ ;
+
+
+}
+
