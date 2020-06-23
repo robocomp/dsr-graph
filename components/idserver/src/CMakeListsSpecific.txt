@@ -4,6 +4,8 @@ SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
   ../../../graph-related-classes/CRDT.cpp
+  ../../../graph-related-classes/CRDT_types.cpp
+
   ../../../graph-related-classes/CRDT_graphviewer.cpp
   ../../../graph-related-classes/CRDT_graphnode.cpp
   ../../../graph-related-classes/CRDT_graphedge.cpp

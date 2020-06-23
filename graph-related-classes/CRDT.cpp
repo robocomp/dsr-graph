@@ -103,10 +103,11 @@ std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const Node &
         if (!nodes[node.id()].read().empty() and *nodes[node.id()].read().begin() == node){
                 return {true, {} };
         }
+
         mvreg<Node, int> delta = nodes[node.id()].write(node);
         update_maps_node_insert(node.id(), node);
 
-        return { true, translateNodeMvCRDTtoIDL(node.id(), delta) };
+        return { true, translateNodeMvCRDTtoIDL(agent_id, node.id(), delta) };
     }
     return {false, {} };
 }
@@ -152,9 +153,13 @@ std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::upd
             //New attributes and updates.
             for (auto &[k,att]: node.attrs()) {
                 //Insertar si inigualdad o inexistencia
-                if (iter.find(k) == iter.end() or *att.read().begin() != *iter.at(k).read().begin()) {
+                if (iter.find(k) == iter.end()) {
+                    mvreg<Attribute, int> mv;
+                    iter.insert(make_pair(k, mv));
+                }
+                if (iter[k].read().empty() or *att.read().begin() != *iter.at(k).read().begin()) {
                     auto delta = iter[k].write(*att.read().begin());
-                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), node.id(), k, delta ));
+                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(agent_id, node.id(), node.id(), k, delta ));
                 }
             }
             //Remove old attributes.
@@ -164,7 +169,7 @@ std::tuple<bool,  std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::upd
                 if (node.attrs().find(k) == node.attrs().end()) {
                     auto delta = iter[k].reset();
                     it_a = iter.erase(it_a);
-                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.id(), node.id(), k, delta));
+                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(node.agent_id(), node.id(), node.id(), k, delta));
                 } else {
                     it_a++;
                 }
@@ -220,7 +225,7 @@ std::tuple<bool, vector<tuple<int, int, std::string>>, std::optional<IDL::Mvreg>
     }
     // Get remove delta.
     auto delta = nodes[id].reset();
-    IDL::Mvreg delta_remove = translateNodeMvCRDTtoIDL(id, delta);
+    IDL::Mvreg delta_remove = translateNodeMvCRDTtoIDL(agent_id, id, delta);
     update_maps_node_delete(id, node.value());
 
     //2. search and remove edges.
@@ -232,7 +237,7 @@ std::tuple<bool, vector<tuple<int, int, std::string>>, std::optional<IDL::Mvreg>
         for (const auto &key : edges[{k, id}]) {
 
             auto delta_fano =  visited_node.fano()[{k, key}].reset();
-            aw.emplace_back( translateEdgeMvCRDTtoIDL(visited_node.id(), delta_fano));
+            aw.emplace_back( translateEdgeMvCRDTtoIDL(agent_id, visited_node.id(), delta_fano));
             visited_node.fano().erase({k, key});
             edges_.emplace_back(make_tuple(visited_node.id(), id, key));
 
@@ -377,22 +382,28 @@ std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::M
             vector<IDL::MvregEdgeAttr> atts_deltas;
             auto iter = nodes[from].read_reg().fano().find({attrs.to(), attrs.type()});
             if (iter != nodes[from].read_reg().fano().end()) {
-                auto iter_edge = iter->second.read().begin()->attrs();
+                auto &iter_edge = iter->second.read_reg().attrs();
                 for (auto[k, att]: attrs.attrs()) {
                     //comparar igualdad o inexistencia
-                    if (iter_edge.find(k) != iter_edge.end() and
+                    if (iter_edge.find(k) == iter_edge.end()) {
+                        mvreg<Attribute, int> mv;
+                        iter_edge.insert({k, mv});
+                    }
+                    if (iter_edge[k].read().empty() or
                         *att.read().begin() !=
                         *iter_edge.at(k).read().begin()) {
                         auto delta = iter_edge.at(k).write(*iter_edge.at(k).read().begin());
-                        atts_deltas.emplace_back(translateEdgeAttrMvCRDTtoIDL(from, from, to, attrs.type(), k, delta));
+                        atts_deltas.emplace_back(translateEdgeAttrMvCRDTtoIDL(agent_id, from, from, to, attrs.type(), k, delta));
                     }
                 }
                 return {true, {}, atts_deltas};
             }
         } else { // Insert
+            mvreg<Edge, int> mv;
+            node.fano().insert({{to, attrs.type()}, mv});
             auto delta = node.fano()[{to, attrs.type()}].write(attrs);
             update_maps_node_insert(from, node);
-            return {true, translateEdgeMvCRDTtoIDL(from, delta), {}};
+            return {true, translateEdgeMvCRDTtoIDL(agent_id, from, delta), {}};
         }
     }
     return {false, {}, {}};
@@ -453,7 +464,15 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, std::vector<float>&& t
             Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             Attribute tr; tr.type(3); tr.val(Value(std::move(trans))); tr.timestamp(get_unix_timestamp());
             Attribute rot; rot.type(3); rot.val(Value(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
+            if (e.attrs().find("rotation_euler_xyz") == e.attrs().end()) {
+                mvreg<Attribute, int> mv;
+                e.attrs().insert(make_pair("rotation_euler_xyz", mv));
+            }
             e.attrs()["rotation_euler_xyz"].write(rot);
+            if (e.attrs().find("translation") == e.attrs().end()) {
+                mvreg<Attribute, int> mv;
+                e.attrs().insert(make_pair("translation", mv));
+            }
             e.attrs()["translation"].write(tr);
 
             to_n = get_(to).value();
@@ -521,7 +540,15 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
             Edge e; e.to(to); e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             Attribute tr; tr.type(3); tr.val(Value(trans)); tr.timestamp(get_unix_timestamp());
             Attribute rot; tr.type(3); rot.val(Value(rot_euler)); tr.timestamp(get_unix_timestamp());
+            if (e.attrs().find("rotation_euler_xyz") == e.attrs().end()) {
+                mvreg<Attribute, int> mv;
+                e.attrs().insert(make_pair("rotation_euler_xyz", mv));
+            }
             e.attrs()["rotation_euler_xyz"].write(rot);
+            if (e.attrs().find("translation") == e.attrs().end()) {
+                mvreg<Attribute, int> mv;
+                e.attrs().insert(make_pair("translation", mv));
+            }
             e.attrs()["translation"].write(tr);
 
 
@@ -583,7 +610,7 @@ std::optional<IDL::MvregEdge> CRDTGraph::delete_edge_(int from, int to, const st
             node.fano().erase({to, key});
             update_maps_edge_delete(from, to, key);
             //node.value().agent_id(agent_id);
-            return translateEdgeMvCRDTtoIDL(from, delta);
+            return translateEdgeMvCRDTtoIDL(agent_id,from, delta);
         }
     }
     return {};
@@ -1019,6 +1046,10 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg)
             if (!nodes[mvreg.id()].read().empty()) {
                 ok = true;
                 auto& n = nodes[mvreg.id()].read_reg();
+                if (n.attrs().find(mvreg.attr_name()) == n.attrs().end()) {
+                    ::mvreg<Attribute, int> new_mv;
+                    n.attrs().insert({mvreg.attr_name(), new_mv});
+                }
                 n.attrs()[mvreg.attr_name()].join(d);
 
                 //Check if we are inserting or deleting.
@@ -1035,6 +1066,10 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg)
             else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
+                if (temp_node_attr[mvreg.id()].find(mvreg.attr_name()) == temp_node_attr[mvreg.id()].end()) {
+                    ::mvreg<Attribute, int> new_mv;
+                    temp_node_attr[mvreg.id()].insert({mvreg.attr_name(), new_mv});
+                }
                 temp_node_attr[mvreg.id()][mvreg.attr_name()].join( d);
 
                 //If we are deleting the edge
@@ -1114,11 +1149,12 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph)
     vector<tuple<bool, int, std::string, Node>> updates;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
+        /*
         auto m = static_cast<map<int, int>>(full_graph.cbase().cc());
         std::set<pair<int, int>> s;
         for (auto &v : full_graph.cbase().dc())
             s.emplace(std::make_pair(v.first(), v.second()));
-
+        */
         for (auto &[k, val] : full_graph.m())
         {
             auto mv = translateNodeMvIDLtoCRDT(val);
@@ -1243,7 +1279,7 @@ std::map<int,IDL::Mvreg> CRDTGraph::Map()
     std::map<int,IDL::Mvreg>  m;
     for (auto kv : nodes.getMapRef())
     {
-        m[kv.first] = translateNodeMvCRDTtoIDL(kv.first, kv.second);
+        m[kv.first] = translateNodeMvCRDTtoIDL(agent_id, kv.first, kv.second);
     }
     return m;
 }
@@ -1349,7 +1385,7 @@ void CRDTGraph::node_attrs_subscription_thread(bool showReceived)
         }
     };
     dsrpub_call_node_attrs = NewMessageFunctor(this, &work, lambda_general_topic);
-    dsrsub_node_attrs.init(dsrparticipant.getParticipant(), "DSR_NODE_ATTRS", dsrparticipant.getEdgeAttrTopicName(), dsrpub_call_node_attrs);
+    dsrsub_node_attrs.init(dsrparticipant.getParticipant(), "DSR_NODE_ATTRS", dsrparticipant.getNodeAttrTopicName(), dsrpub_call_node_attrs);
 }
 
 void CRDTGraph::fullgraph_server_thread() 
@@ -1430,211 +1466,3 @@ bool CRDTGraph::fullgraph_request_thread()
     return sync;
 }
 
-
-IDL::Mvreg CRDTGraph::translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data)
-{
-    IDL::Mvreg delta_crdt;
-    for (auto &kv_dots : data.dk.ds) {
-        IDL::PairInt pi;
-        pi.first(kv_dots.first.first);
-        pi.second(kv_dots.first.second);
-
-        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLNode(id)));
-        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
-    }
-    //for (auto &kv_cc : data.context().getCcDc().first){
-    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    //}
-    for (auto &kv_dc : data.context().getCcDc().second){
-        IDL::PairInt pi;
-        pi.first(kv_dc.first);
-        pi.second(kv_dc.second);
-
-        delta_crdt.dk().cbase().dc().push_back(pi);
-    }
-    delta_crdt.id(id);
-    delta_crdt.agent_id(agent_id);
-    return delta_crdt;
-}
-
-mvreg<Node, int> CRDTGraph::translateNodeMvIDLtoCRDT(IDL::Mvreg &data)
-{
-    // Context
-    dotcontext<int> dotcontext_aux;
-    std::map<int, int> m;
-    for (auto &v : data.dk().cbase().cc())
-        m.insert(std::make_pair(v.first, v.second));
-    std::set <pair<int, int>> s;
-    for (auto &v : data.dk().cbase().dc())
-        s.insert(std::make_pair(v.first(), v.second()));
-    dotcontext_aux.setContext(m, s);
-    // Dots
-    std::map <pair<int, int>, Node> ds_aux;
-    for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
-    // Join
-    mvreg<Node, int> aw = mvreg<N, int>(data.id());
-    aw.dk.c = dotcontext_aux;
-    aw.dk.set(ds_aux);
-    return aw;
-}
-
-
-IDL::MvregEdgeAttr CRDTGraph::translateEdgeAttrMvCRDTtoIDL(int id, int from, int to,  const std::string& type, const std::string& attr, mvreg<Attribute, int> &data) {
-    IDL::MvregEdgeAttr delta_crdt;
-
-    for (auto &kv_dots : data.dk.ds) {
-        IDL::PairInt pi;
-        pi.first(kv_dots.first.first);
-        pi.second(kv_dots.first.second);
-
-        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
-    }
-
-    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    //for (auto &kv_cc : data.context().getCcDc().first){
-    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    //}
-    for (auto &kv_dc : data.context().dc){
-        IDL::PairInt pi;
-        pi.first(kv_dc.first);
-        pi.second(kv_dc.second);
-
-        delta_crdt.dk().cbase().dc().push_back(pi);
-    }
-    delta_crdt.id(id);
-    delta_crdt.attr_name(attr);
-    delta_crdt.from(from);
-    delta_crdt.to(to);
-    delta_crdt.agent_id(agent_id);
-    return delta_crdt;
-
-}
-
-mvreg<Attribute, int> CRDTGraph::translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr &data) {
-    // Context
-    dotcontext<int> dotcontext_aux;
-    std::map<int, int> m;
-    for (auto &v : data.dk().cbase().cc())
-        m.insert(std::make_pair(v.first, v.second));
-    std::set <pair<int, int>> s;
-    for (auto &v : data.dk().cbase().dc())
-        s.insert(std::make_pair(v.first(), v.second()));
-    dotcontext_aux.setContext(m, s);
-    // Dots
-    std::map <pair<int, int>, Attribute> ds_aux;
-    for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
-    // Join
-    mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
-    aw.dk.c = dotcontext_aux;
-    aw.dk.set(ds_aux);
-    return aw;
-}
-
-IDL::MvregNodeAttr CRDTGraph::translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data) {
-    IDL::MvregNodeAttr delta_crdt;
-
-
-    for (auto &kv_dots : data.dk.ds) {
-        IDL::PairInt pi;
-        pi.first(kv_dots.first.first);
-        pi.second(kv_dots.first.second);
-
-        delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
-    }
-    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    //for (auto &kv_cc : d.first) {
-    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    //}
-    for (auto &kv_dc : data.context().dc) {
-        IDL::PairInt pi;
-        pi.first(kv_dc.first);
-        pi.second(kv_dc.second);
-
-        delta_crdt.dk().cbase().dc().push_back(pi);
-    }
-
-    delta_crdt.id(id);
-    delta_crdt.attr_name(attr);
-    delta_crdt.node(node);
-    delta_crdt.agent_id(agent_id);
-
-    return delta_crdt;
-}
-
-mvreg<Attribute, int> CRDTGraph::translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr &data) {
-    // Context
-    dotcontext<int> dotcontext_aux;
-    std::map<int, int> m;
-    for (auto &v : data.dk().cbase().cc())
-        m.insert(std::make_pair(v.first, v.second));
-    std::set <pair<int, int>> s;
-    for (auto &v : data.dk().cbase().dc())
-        s.insert(std::make_pair(v.first(), v.second()));
-    dotcontext_aux.setContext(m, s);
-    // Dots
-    std::map <pair<int, int>, Attribute> ds_aux;
-    for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
-    // Join
-    mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
-    aw.dk.c = dotcontext_aux;
-    aw.dk.set(ds_aux);
-    return aw;
-}
-
-mvreg<Edge, int> CRDTGraph::translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data) {
-    // Context
-    dotcontext<int> dotcontext_aux;
-    std::map<int, int> m;
-    for (auto &v : data.dk().cbase().cc())
-        m.insert(std::make_pair(v.first, v.second));
-    std::set <pair<int, int>> s;
-    for (auto &v : data.dk().cbase().dc())
-        s.insert(std::make_pair(v.first(), v.second()));
-    dotcontext_aux.setContext(m, s);
-    // Dots
-    std::map <pair<int, int>, Edge> ds_aux;
-    for (auto &[k,v] : data.dk().ds())
-        ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
-    // Join
-    mvreg<Edge, int> aw = mvreg<Edge, int>(data.id());
-    aw.dk.c = dotcontext_aux;
-    aw.dk.set(ds_aux);
-    return aw;
-}
-
-IDL::MvregEdge CRDTGraph::translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &data) {
-    IDL::MvregEdge delta_crdt;
-
-    for (auto &kv_dots : data.dk.ds) {
-        IDL::PairInt pi;
-        pi.first(kv_dots.first.first);
-        pi.second(kv_dots.first.second);
-
-        auto edge = kv_dots.second.toIDLEdge(id);
-        delta_crdt.dk().ds().emplace(make_pair(pi, edge));
-        delta_crdt.from(edge.from());
-        delta_crdt.to(edge.to());
-        delta_crdt.type(edge.type());
-        delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
-
-    }
-    //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
-    //for (auto &kv_cc : data.context().getCcDc().first){
-    //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-    //}
-    for (auto &kv_dc : data.context().dc){
-        IDL::PairInt pi;
-        pi.first(kv_dc.first);
-        pi.second(kv_dc.second);
-
-        delta_crdt.dk().cbase().dc().push_back(pi);
-    }
-    delta_crdt.id(id);
-    delta_crdt.agent_id(agent_id);
-    return delta_crdt;
-}

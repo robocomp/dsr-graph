@@ -407,7 +407,7 @@ public:
     dotcontext<K> & c;
 
     // if no causal context supplied, used base one
-    dotkernel() : c(cbase) {}
+    dotkernel() : c {cbase} {}
     // if supplied, use a shared causal context
     dotkernel(dotcontext<K> &jointc) : c(jointc) {}
 //  dotkernel(const dotkernel<T,K> &adk) : c(adk.c), ds(adk.ds) {}
@@ -594,8 +594,12 @@ public:
 
     dotkernel<T,K> add (const K& id, const T& val)
     {
+
+
         dotkernel<T,K> res;
         // get new dot
+
+
         pair<K,int> dot=c.makedot(id);
         // add under new dot
         ds.insert(pair<pair<K,int>,T>(dot,val));
@@ -714,13 +718,7 @@ public:
     bool operator<(const dotkernel &rhs) const {
         if (ds < rhs.ds)
             return true;
-        if (rhs.ds < ds)
-            return false;
-        if (cbase < rhs.cbase)
-            return true;
-        if (rhs.cbase < cbase)
-            return false;
-        return c < rhs.c;
+        return false;
     }
 
     bool operator>(const dotkernel &rhs) const {
@@ -1391,8 +1389,11 @@ private:
 public:
     dotkernel<V,K> dk; // Dot kernel
 
-    mvreg() { if constexpr(std::is_same<int, K>::value) { id = 0;}} // Only for deltas and those should not be mutated
-    mvreg(K k) : id(k) {} // Mutable replicas need a unique id
+    mvreg() {
+        if constexpr(std::is_same<int, K>::value) { id = 0;};
+        dk.c = dk.cbase;
+    } // Only for deltas and those should not be mutated
+    mvreg(K k) : id(k) {dk.c = dk.cbase;} // Mutable replicas need a unique id
     mvreg(K k, dotcontext<K> &jointc) : id(k), dk(jointc) {}
 
     dotcontext<K> & context()
@@ -1413,6 +1414,7 @@ public:
     mvreg<V,K> write (const V& val)
     {
         mvreg<V,K> r,a;
+        //if (!dk.cbase.cc.empty() && dk.c.cc.empty()) dk.c = dk.cbase;
         r.dk=dk.rmv();
         a.dk=dk.add(id,val);
         r.join(a);
@@ -1480,7 +1482,7 @@ public:
     {
         dk.join_replace_conflict(o.dk);
         //rsv();
-        dk.clean();
+        //dk.clean();
     }
 
     bool operator==(const mvreg &rhs) const {
@@ -1783,7 +1785,7 @@ public:
     ormap() : c(cbase) {}
     ormap(K i) : id(i), c(cbase) {}
     // if supplied, use a shared causal context
-    ormap(K i, dotcontext<K> &jointc) : id(i), c(jointc) {}
+    ormap(K i, dotcontext<K> &jointc) : id(i), /*c(jointc)*/ c(cbase) {}
 
 //  ormap( const ormap<N,V,K>& o ) :  id(o.id), m(o.m), c(o.c) {}
 
@@ -1871,6 +1873,7 @@ public:
         auto i = m.find(n);
         if (i == m.end()) // 1st key access
         {
+            std::cout << "Created" << std::endl;
             auto ins = m.insert(i,pair<N,V>(n,V(id,c)));
             return ins->second;
 
