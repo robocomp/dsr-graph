@@ -158,23 +158,21 @@ void SpecificWorker::check_unseen_people()
 		{
 			qDebug()<<"REMOVE PERSON"<<it->first;
 			G->delete_node(it->first);
-            people_last_seen.erase(it);			
+            it = people_last_seen.erase(it);			
 		}
 		else
 		{
 			++it;
 		}
 	}
-
 }
 
 
 
-//SUBSCRIPTION to newPeopleData method from HumanToDSR interface
+//SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
 void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
 {
     qDebug()<<"received RoboCompHumanToDSRPub::PeopleData "<<people.peoplelist.size();
-    qDebug()<<"time"<<people.timestamp;
     people_data_buffer.put(std::move(people));
 }
 
