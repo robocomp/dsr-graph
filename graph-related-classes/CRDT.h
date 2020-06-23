@@ -291,7 +291,7 @@ namespace CRDT
                 if ((key == "translation" or key == "rotation_euler_xyz")
                     and (val.size() == 3 or val.size() == 6))
                     return QVec{val};
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                throw std::runtime_error("vec size must be 3 or 6 in get_attrib_by_name<QVec>()");
             }
             if constexpr (std::is_same<Ta, QMat>::value)
             {
@@ -300,7 +300,7 @@ namespace CRDT
                     const auto& val = av.value().value().float_vec();
                     return QMat{RMat::Rot3DOX(val[0])*RMat::Rot3DOY(val[1])*RMat::Rot3DOZ(val[2])};
                 }
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                throw std::runtime_error("vec size must be 3 or 6 in get_attrib_by_name<QVec>()");
             }  //else
             //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
         }

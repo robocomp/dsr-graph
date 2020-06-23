@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
     // GraphViewer creation
     using opts = DSR::GraphViewer::view;
-//	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree);
     
     this->Period = 100;
     timer.start(Period);
@@ -200,8 +200,8 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     node.agent_id(agent_id);
     node.name(name);
 qDebug()<<"Create node: ID "<<id;    
-    G->add_or_modify(node, "pos_x", 100);
-    G->add_or_modify(node, "pos_y", 100);
+    G->add_or_modify(node, "pos_x", 100.0);
+    G->add_or_modify(node, "pos_y", 100.0);
     G->add_or_modify(node, "name", name);
     G->add_or_modify(node, "color", std::string("GoldenRod"));
     if( G->insert_node(node))
