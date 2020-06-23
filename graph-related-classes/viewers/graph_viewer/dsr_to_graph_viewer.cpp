@@ -1,10 +1,10 @@
-#include "CRDT_graphviewer.h"
+#include "../../CRDT_graphviewer.h"
 #include <cppitertools/range.hpp>
 #include <qmat/QMatAll>
 #include <QTableWidget>
 #include <QApplication>
-#include "CRDT_graphnode.h"
-#include "CRDT_graphedge.h"
+#include "../../CRDT_graphnode.h"
+#include "../../CRDT_graphedge.h"
 #include "dsr_to_graph_viewer.h"
 
 using namespace DSR ;

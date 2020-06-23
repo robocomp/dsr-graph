@@ -26,7 +26,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QHBoxLayout>
-#include "CRDT.h"
+#include "../../CRDT.h"
 
 class GraphNode;
 class GraphEdge;

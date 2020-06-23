@@ -26,10 +26,10 @@
 #include "CRDT.h"
 #include <typeinfo>
 #include <QDockWidget>
-#include "dsr_to_osg_viewer.h"
-#include "dsr_to_graphicscene_viewer.h"
-#include "dsr_to_graph_viewer.h"
-#include "dsr_to_tree_viewer.h"
+#include "viewers/osg_viewer/dsr_to_osg_viewer.h"
+#include "viewers/scene_viewer/dsr_to_graphicscene_viewer.h"
+#include "viewers/graph_viewer/dsr_to_graph_viewer.h"
+#include "viewers/tree_viewer/dsr_to_tree_viewer.h"
 
 
 namespace DSR

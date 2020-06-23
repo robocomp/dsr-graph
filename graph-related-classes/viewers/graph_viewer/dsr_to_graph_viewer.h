@@ -17,8 +17,8 @@
 #ifndef DSR_TO_GRAPH_VIEWER_H
 #define DSR_TO_GRAPH_VIEWER_H
 
-#include "CRDT.h"
-#include "_abstract_graphic_view.h"
+#include "../../CRDT.h"
+#include "../_abstract_graphic_view.h"
 
 #include <chrono>
 #include <QWidget>
