@@ -14,11 +14,11 @@ SET ( SOURCES
   ../../../graph-related-classes/topics/DSRGraph.cxx
   ../../../graph-related-classes/topics/DSRGraph.cxx
   ../../../graph-related-classes/inner_api.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
-  ../../../graph-related-classes/_abstract_graphic_view.cpp
+  ../../../graph-related-classes/viewers/scene_viewer/dsr_to_graphicscene_viewer.cpp
+  ../../../graph-related-classes/viewers/osg_viewer/dsr_to_osg_viewer.cpp
+  ../../../graph-related-classes/viewers/graph_viewer/dsr_to_graph_viewer.cpp
+  ../../../graph-related-classes/viewers/tree_viewer/dsr_to_tree_viewer.cpp
+  ../../../graph-related-classes/viewers/_abstract_graphic_view.cpp
 )
 
 # Headers set

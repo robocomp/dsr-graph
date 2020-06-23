@@ -39,7 +39,7 @@
 #include <osgViewer/GraphicsWindow>
 #include <QOpenGLWidget>
 #include <QResizeEvent>
-#include "CRDT.h"
+#include "../../CRDT.h"
 
 using namespace std::chrono_literals;
 
