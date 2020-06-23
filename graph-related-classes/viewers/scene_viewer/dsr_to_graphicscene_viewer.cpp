@@ -440,8 +440,10 @@ qDebug() << __FUNCTION__ ;
 std::cout << "******Delete EDGE "<<edge_key<<std::endl;
     if (edge_map.find(edge_key) != edge_map.end())
     {
-        edge_map.erase(edge_key);
+//        edge_map.erase(edge_key);
     }
+
+//TODO: removed until signals detection workds properly
 
 }
 
