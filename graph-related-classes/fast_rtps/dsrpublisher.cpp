@@ -69,7 +69,7 @@ bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const 
         Wparam.times.heartbeatPeriod.nanosec = 300000000; //300 ms
 
     }
-    Wparam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+    Wparam.historyMemoryPolicy = DYNAMIC_RESERVE_MEMORY_MODE; //PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     mp_publisher = eprosima::fastrtps::Domain::createPublisher(mp_participant,Wparam,static_cast<eprosima::fastrtps::PublisherListener*>(&m_listener));
 
     if(mp_publisher == nullptr)

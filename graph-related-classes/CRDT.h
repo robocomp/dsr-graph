@@ -204,6 +204,10 @@ namespace CRDT
 
             at.val( std::move(value));
             at.timestamp(get_unix_timestamp());
+            if (elem.attrs().find(att_name) == elem.attrs().end()) {
+                mvreg<Attribute, int> mv;
+                elem.attrs().insert(make_pair(att_name, mv));
+            }
             elem.attrs()[att_name].write(at);
 
         }
@@ -584,18 +588,6 @@ namespace CRDT
         bool fullgraph_request_thread();
 
 
-        // Translators
-        IDL::Mvreg translateNodeMvCRDTtoIDL(int id, mvreg<Node, int> &data);
-        mvreg<Node, int> translateNodeMvIDLtoCRDT(IDL::Mvreg &data);
-
-        IDL::MvregEdge translateEdgeMvCRDTtoIDL(int id, mvreg<Edge, int> &data);
-        mvreg<Edge, int> translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data);
-
-        IDL::MvregNodeAttr translateNodeAttrMvCRDTtoIDL(int id, int node, const std::string& attr, mvreg<Attribute, int> &data);
-        mvreg<Attribute, int> translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr &data);
-
-        IDL::MvregEdgeAttr translateEdgeAttrMvCRDTtoIDL(int id, int from, int to, const std::string& type, const std::string& attr, mvreg<Attribute, int> &data);
-        mvreg<Attribute, int> translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr &data);
 
         // RTSP participant
         DSRParticipant dsrparticipant;

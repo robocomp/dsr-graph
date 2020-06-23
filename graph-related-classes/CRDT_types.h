@@ -2,8 +2,8 @@
 // Created by juancarlos on 8/6/20.
 //
 
-#ifndef CRDT_RTPS_DSR_TESTS_CRDT_NODE_H
-#define CRDT_RTPS_DSR_TESTS_CRDT_NODE_H
+#ifndef CRDT_RTPS_DSR_CRDT_TYPES_H
+#define CRDT_RTPS_DSR_CRDT_TYPES_H
 
 #include "libs/delta-crdts.cc"
 #include <iostream>
@@ -40,6 +40,7 @@ namespace CRDT {
         Value() = default;
 
         ~Value() = default;
+
 
 
         Value(IDL::Val &&x) {
@@ -133,6 +134,8 @@ namespace CRDT {
             return !(rhs == *this);
         }
 
+
+
         friend std::ostream &operator<<(std::ostream &os, const Value &type) {
 
             switch (type.selected()) {
@@ -170,159 +173,45 @@ namespace CRDT {
             return os;
         }
 
-        [[nodiscard]] int32_t selected() const {
-            return val.index();
-        }
+        [[nodiscard]] int32_t selected() const ;
 
-        std::string &str() {
-            if (auto pval = std::get_if<std::string>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("STRING is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
+        std::string &str() ;
 
-        }
+        [[nodiscard]] const std::string &str() const ;
 
-        [[nodiscard]] const std::string &str() const {
-            if (auto pval = std::get_if<std::string>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("STRING is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
+        void str(const std::string &_str) ;
 
-        }
+        void str(std::string &&_str) ;
 
-        void str(const std::string &_str) {
-            val = _str;
-        }
+        void dec(int32_t _dec) ;
 
-        void str(std::string &&_str) {
-            val = std::move(_str);
-        }
+        [[nodiscard]] int32_t dec() const ;
 
-        void dec(int32_t _dec) {
-            val = _dec;
-        }
+        void fl(float _fl) ;
 
-        [[nodiscard]] int32_t dec() const {
-            if (auto pval = std::get_if<int32_t>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("INT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
+        [[nodiscard]] float fl() const ;
 
-        }
+        void float_vec(const std::vector<float> &_float_vec) ;
 
-        void fl(float _fl) {
-            val = _fl;
-        }
+        void float_vec(std::vector<float> &&_float_vec) ;
 
-        [[nodiscard]] float fl() const {
-            if (auto pval = std::get_if<float>(&val)) {
-                return *pval;
-            }
+        [[nodiscard]] const std::vector<float> &float_vec() const ;
 
-            throw std::runtime_error(
-                    ("FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
+        std::vector<float> &float_vec() ;
 
-        void float_vec(const std::vector<float> &_float_vec) {
-            val = _float_vec;
-        }
+        void bl(bool _bl) ;
 
-        void float_vec(std::vector<float> &&_float_vec) {
-            val = std::move(_float_vec);
-        }
+        [[nodiscard]] bool bl() const ;
 
-        [[nodiscard]] const std::vector<float> &float_vec() const {
-            if (auto pval = std::get_if<vector<float>>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("VECTOR_FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
+        void byte_vec(const std::vector<byte> &_float_vec) ;
 
-        std::vector<float> &float_vec() {
+        void byte_vec(std::vector<byte> &&_float_vec) ;
 
-            if (auto pval = std::get_if<vector<float>>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("VECTOR_FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
+        [[nodiscard]] const std::vector<byte> &byte_vec() const ;
 
-        void bl(bool _bl) {
-            val = _bl;
-        }
+        std::vector<byte> &byte_vec() ;
 
-        [[nodiscard]] bool bl() const {
-
-            if (auto pval = std::get_if<bool>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("BOOL is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
-
-        void byte_vec(const std::vector<byte> &_float_vec) {
-            val = _float_vec;
-        }
-
-        void byte_vec(std::vector<byte> &&_float_vec) {
-            val = std::move(_float_vec);
-        }
-
-        [[nodiscard]] const std::vector<byte> &byte_vec() const {
-            if (auto pval = std::get_if<vector<byte>>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
-
-        std::vector<byte> &byte_vec() {
-
-            if (auto pval = std::get_if<vector<byte >>(&val)) {
-                return *pval;
-            }
-            throw std::runtime_error(
-                    ("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
-        }
-
-        [[nodiscard]] IDL::Val toIDLVal() {
-            IDL::Val value;
-
-            switch (val.index()) {
-                case 0:
-                    value.str(std::get<std::string>(val));
-                    break;
-                case 1:
-                    value.dec(std::get<int32_t>(val));
-                    break;
-                case 2:
-                    value.fl(std::get<float>(val));
-                    break;
-                case 3:
-                    value.float_vec(std::get<std::vector<float>>(val));
-                    break;
-                case 4:
-                    value.bl(std::get<bool>(val));
-                    break;
-                case 5:
-                    value.byte_vec(
-                            std::vector<uint8_t>(
-                                    reinterpret_cast<uint8_t *>(std::get<std::vector<byte>>(val).data()),
-                                    reinterpret_cast<uint8_t *>(std::get<std::vector<byte>>(val).data()) + std::get<std::vector<byte>>(val).size())
-                                    );
-                    break;
-                default:
-                    throw std::runtime_error(
-                            ("Error converting CRDT::Attribute to IDL::Attrib. The Attribute is uninitialized. " +
-                             std::to_string(__LINE__) + " " + __FILE__).data());
-            }
-
-            return value;
-        }
+        [[nodiscard]] IDL::Val toIDLVal() ;
 
     private:
         ValType val;
@@ -339,14 +228,6 @@ namespace CRDT {
         }
 
         ~Attribute() = default;
-
-
-        Attribute(IDL::Attrib &&x) {
-            m_type = x.type();
-            m_timestamp = x.timestamp();
-            m_Value = Value(std::move(x.value()));
-            m_agent_id = x.agent_id();
-        }
 
         Attribute(const Attribute &x)
         {
@@ -427,59 +308,29 @@ namespace CRDT {
             output << "Type: " << av_.type() << ", Value[" << av_.val() << "]: " << av_.val() << ", ";
             return output;
         };
+        void type(int32_t _type) ;
 
 
-        void type(int32_t _type) {
-            m_type = _type;
-        }
+        [[nodiscard]] int32_t type() const ;
+
+        void timestamp(uint64_t _time) ;
+
+        [[nodiscard]] uint64_t timestamp() const ;
 
 
-        [[nodiscard]] int32_t type() const {
-            return m_type;
-        }
+        void val(IDL::Val &&_Value) ;
 
-        void timestamp(uint64_t _time) {
-            m_timestamp = _time;
-        }
+        void val(Value &&_Value) ;
 
+        [[nodiscard]] const Value &val() const ;
 
-        [[nodiscard]] uint64_t timestamp() const {
-            return m_timestamp;
-        }
+        Value &val() ;
 
+        void agent_id(int32_t _agent_id) ;
 
-        void val(IDL::Val &&_Value) {
-            m_Value = Value(std::move(_Value));
-        }
+        [[nodiscard]] int32_t agent_id() const ;
 
-        void val(Value &&_Value) {
-            m_Value = std::move(_Value);
-        }
-
-        [[nodiscard]] const Value &val() const {
-            return m_Value;
-        }
-
-        Value &val() {
-            return m_Value;
-        }
-
-        void agent_id(int32_t _agent_id) {
-            m_agent_id = _agent_id;
-        }
-
-        [[nodiscard]] int32_t agent_id() const {
-            return m_agent_id;
-        }
-
-        [[nodiscard]] IDL::Attrib toIDLAttrib() {
-            IDL::Attrib att;
-            att.timestamp(m_timestamp);
-            att.type(m_type);
-            att.value(m_Value.toIDLVal());
-            att.agent_id(m_agent_id);
-            return att;
-        }
+        [[nodiscard]] IDL::Attrib toIDLAttrib() ;
 
     private:
         int32_t m_type;
@@ -502,38 +353,10 @@ namespace CRDT {
 
         ~Edge() = default;
 
-        Edge(IDL::MvregEdge &&x) {
-            m_to = x.to();
-            m_type = x.type();
-            m_from = x.from();
-
-            if (!x.dk().ds().empty()) {
-                for (auto&[k, v] : x.dk().ds().begin()->second.attrs()) {
-                    mvreg<Attribute, int> mv(0);
-                    mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
-                    m_attrs[k] = mv;
-                }
-            }
-        }
 
         Edge &operator=(const Edge &x) = default;
 
-        Edge &operator=(IDL::Edge &&x) noexcept {
-
-            m_to = x.to();
-            m_type = std::move(x.type());
-            m_from = x.from();
-            if (!x.attrs().empty()) {
-                for (auto&[k, v] : x.attrs()) {
-                    mvreg<Attribute, int> mv(0);
-                    mv.write(Attribute(std::move(v.dk().ds().begin()->second)));
-                    m_attrs[k] = mv;
-                }
-            }
-            m_agent_id = x.agent_id();
-
-            return *this;
-        }
+        Edge &operator=(IDL::Edge &&x) ;
 
         bool operator==(const Edge &eA_) const {
             if (this == &eA_) {
@@ -582,109 +405,43 @@ namespace CRDT {
             return output;
         };
 
-        void to(int32_t _to) {
-            m_to = _to;
-        }
+        void to(int32_t _to) ;
 
-        [[nodiscard]] int32_t to() const {
-            return m_to;
-        }
+        [[nodiscard]] int32_t to() const ;
 
 
-        void type(const std::string &_type) {
-            m_type = _type;
-        }
+        void type(const std::string &_type) ;
 
-        void type(std::string &&_type) {
-            m_type = std::move(_type);
-        }
+        void type(std::string &&_type) ;
 
-        [[nodiscard]] const std::string &type() const {
-            return m_type;
-        }
+        [[nodiscard]] const std::string &type() const ;
 
-        std::string &type() {
-            return m_type;
-        }
+        std::string &type() ;
 
-        void from(int32_t _from) {
-            m_from = _from;
-        }
+        void from(int32_t _from) ;
 
-        [[nodiscard]] int32_t from() const {
-            return m_from;
-        }
+        [[nodiscard]] int32_t from() const ;
 
-        void attrs(const std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs) {
-            m_attrs = _attrs;
-        }
+        void attrs(const std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs) ;
 
-        void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs) {
-            m_attrs = std::move(_attrs);
-        }
+        void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs) ;
 
-        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const {
-            return m_attrs;
-        }
+        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const ;
 
+        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() ;
 
-        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() {
-            return m_attrs;
-        }
+        void agent_id(int32_t _agent_id) ;
 
-        void agent_id(int32_t _agent_id) {
-            m_agent_id = _agent_id;
-        }
+        [[nodiscard]] int32_t agent_id() const ;
 
-        [[nodiscard]] int32_t agent_id() const {
-            return m_agent_id;
-        }
-
-        [[nodiscard]] IDL::Edge toIDLEdge(int id) {
-            IDL::Edge edge;
-            edge.from(m_from);
-            edge.to(m_to);
-            edge.type(m_type);
-            edge.agent_id(m_agent_id);
-            for (auto &[k, v] : m_attrs) {
-
-                IDL::MvregEdgeAttr edgeAttr;
-                for (auto &kv_dots : v.dk.ds) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dots.first.first);
-                    pi.second(kv_dots.first.second);
-
-                    edgeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-                    edgeAttr.dk().cbase().cc().emplace(kv_dots.first);
-
-                }
-
-                /*
-                for (auto &kv_dc : v.context().dc){
-                    IDL::PairInt pi;
-                    pi.first(kv_dc.first);
-                    pi.second(kv_dc.second);
-
-                    edgeAttr.dk().cbase().dc().push_back(pi);
-                }
-*/
-                edgeAttr.from(m_from);
-                edgeAttr.to(m_to);
-                edgeAttr.type(m_type);
-                edgeAttr.agent_id(v.read_reg().agent_id());
-                edgeAttr.id(id);
-
-                edge.attrs()[k] = edgeAttr;
-            }
-            return edge;
-        }
+        [[nodiscard]] IDL::Edge toIDLEdge(int id) ;
 
     private:
         int32_t m_to;
         std::string m_type;
         int32_t m_from;
         std::unordered_map<std::string, mvreg<Attribute, int>> m_attrs;
-        int32_t m_agent_id;
+        int32_t m_agent_id{};
     };
 
     class Node {
@@ -713,20 +470,7 @@ namespace CRDT {
             m_fano = std::move(x.m_fano);
 
         }
-
-        Node(IDL::Node &&x) {
-            m_type = std::move(x.type());
-            m_name = std::move(x.name());
-            m_id = x.id();
-            m_agent_id = x.agent_id();
-            for (auto&[k, v] : x.attrs()) {
-                m_attrs[k].write(Attribute(std::move(v.dk().ds().begin()->second)));
-                m_attrs[k];
-            }
-            for (auto&[k, v] : x.fano()) {
-                m_fano[make_pair(k.to(), k.type())].write(Edge(std::move(v)));
-            }
-        }
+        Node(IDL::Node &&x) ;
 
         Node &operator=(const Node &x) = default;
 
@@ -794,157 +538,49 @@ namespace CRDT {
             output << "]";
             return output;
         }
+        void type(const std::string &_type) ;
+
+        void type(std::string &&_type) ;
+
+        [[nodiscard]] const std::string &type() const ;
+
+        std::string &type() ;
+
+        void name(const std::string &_name) ;
+
+        void name(std::string &&_name) ;
+
+        [[nodiscard]] const std::string &name() const ;
+
+        std::string &name() ;
+
+        void id(int32_t _id) ;
+
+        [[nodiscard]] int32_t id() const ;
+
+        void agent_id(int32_t _agent_id) ;
+
+        [[nodiscard]] int32_t agent_id() const ;
+
+        void attrs(const std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs) ;
+
+        void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs) ;
 
 
-        void type(const std::string &_type) {
-            m_type = _type;
-        }
+        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() & ;
 
-        void type(std::string &&_type) {
-            m_type = std::move(_type);
-        }
+        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const& ;
 
-        [[nodiscard]] const std::string &type() const {
-            return m_type;
-        }
+        void fano(const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &_fano) ;
 
-        std::string &type() {
-            return m_type;
-        }
+        void fano(std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &&_fano) ;
 
-        void name(const std::string &_name) {
-            m_name = _name;
-        }
+        std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &fano() ;
 
-        void name(std::string &&_name) {
-            m_name = std::move(_name);
-        }
-
-        [[nodiscard]] const std::string &name() const {
-            return m_name;
-        }
-
-        std::string &name() {
-            return m_name;
-        }
-
-        void id(int32_t _id) {
-            m_id = _id;
-        }
-
-        [[nodiscard]] int32_t id() const {
-            return m_id;
-        }
-
-        void agent_id(int32_t _agent_id) {
-            m_agent_id = _agent_id;
-        }
-
-        [[nodiscard]] int32_t agent_id() const {
-            return m_agent_id;
-        }
-
-        void attrs(const std::unordered_map<std::string, mvreg<Attribute, int>> &_attrs) {
-            m_attrs = _attrs;
-        }
-
-        void attrs(std::unordered_map<std::string, mvreg<Attribute, int>> &&_attrs) {
-            m_attrs = std::move(_attrs);
-        }
+        const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &fano() const ;
 
 
-        std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() & {
-            return m_attrs;
-        }
-
-        const std::unordered_map<std::string, mvreg<Attribute, int>> &attrs() const& {
-            return m_attrs;
-        }
-
-        void fano(const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &_fano) {
-            m_fano = _fano;
-        }
-
-        void fano(std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &&_fano) {
-            m_fano = std::move(_fano);
-        }
-
-        std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &fano() {
-            return m_fano;
-        }
-
-        const std::unordered_map<std::pair<int32_t, std::string>, mvreg<Edge, int>, CRDT::pair_hash> &fano() const {
-            return m_fano;
-        }
-
-
-        [[nodiscard]] IDL::Node toIDLNode(int id) {
-            IDL::Node node;
-            node.id(m_id);
-            node.name(m_name);
-            node.type(m_type);
-            node.agent_id(m_agent_id);
-            for (auto &[k, v] : m_attrs) {
-                IDL::MvregNodeAttr nodeAttr;
-                for (auto &kv_dots : v.dk.ds) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dots.first.first);
-                    pi.second(kv_dots.first.second);
-
-                    nodeAttr.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
-                    nodeAttr.dk().cbase().cc().emplace(kv_dots.first);
-                }
-
-                //for (auto &kv_cc : v.context().getCcDc().first) {
-                //    nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-                //}
-                /*
-                if (v.context().dc.begin() != v.context().dc.end()){
-                    for (auto &kv_dc : v.context().dc) {
-                        IDL::PairInt pi;
-                        pi.first(kv_dc.first);
-                        pi.second(kv_dc.second);
-
-                        nodeAttr.dk().cbase().dc().push_back(pi);
-                }
-
-                }
-                */
-                nodeAttr.id(id);
-                nodeAttr.attr_name(k);
-                nodeAttr.agent_id(v.read().begin()->agent_id());
-                node.attrs()[k] = nodeAttr;
-            }
-
-            for (auto &[k, v] : m_fano) {
-                IDL::MvregEdge mvregEdge;
-                for (auto &kv_dots : v.dk.ds) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dots.first.first);
-                    pi.second(kv_dots.first.second);
-
-                    mvregEdge.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLEdge(id)));
-                    mvregEdge.dk().cbase().cc().emplace(kv_dots.first);
-
-                }
-                /*
-                for (auto &kv_dc : v.context().dc) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dc.first);
-                    pi.second(kv_dc.second);
-
-                    mvregEdge.dk().cbase().dc().push_back(pi);
-                }
-                 */
-                mvregEdge.id(id);
-                mvregEdge.agent_id(v.read().begin()->agent_id());
-                IDL::EdgeKey ek;
-                ek.to(k.first);
-                ek.type(k.second);
-                node.fano()[ek] = mvregEdge;
-            }
-            return node;
-        }
+        [[nodiscard]] IDL::Node toIDLNode(int id) ;
 
     private:
         std::string m_type;
@@ -956,6 +592,221 @@ namespace CRDT {
     };
 
 
+
+    // Translators
+    inline static IDL::Mvreg translateNodeMvCRDTtoIDL(int agent_id, int id, mvreg<Node, int> &data)
+    {
+        IDL::Mvreg delta_crdt;
+        for (auto &kv_dots : data.dk.ds) {
+            IDL::PairInt pi;
+            pi.first(kv_dots.first.first);
+            pi.second(kv_dots.first.second);
+
+            delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLNode(id)));
+            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+        }
+        //for (auto &kv_cc : data.context().getCcDc().first){
+        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+        //}
+        for (auto &kv_dc : data.context().getCcDc().second){
+            IDL::PairInt pi;
+            pi.first(kv_dc.first);
+            pi.second(kv_dc.second);
+
+            delta_crdt.dk().cbase().dc().push_back(pi);
+        }
+        delta_crdt.id(id);
+        delta_crdt.agent_id(agent_id);
+        return delta_crdt;
+    }
+
+    inline static mvreg<Node, int> translateNodeMvIDLtoCRDT(IDL::Mvreg &data)
+    {
+        // Context
+        dotcontext<int> dotcontext_aux;
+        std::map<int, int> m;
+        for (auto &v : data.dk().cbase().cc())
+            m.insert(std::make_pair(v.first, v.second));
+        std::set <pair<int, int>> s;
+        for (auto &v : data.dk().cbase().dc())
+            s.insert(std::make_pair(v.first(), v.second()));
+        dotcontext_aux.setContext(m, s);
+        // Dots
+        std::map <pair<int, int>, Node> ds_aux;
+        for (auto &[k,v] : data.dk().ds())
+            ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
+        // Join
+        mvreg<Node, int> aw = mvreg<Node, int>(data.id());
+        aw.dk.c = dotcontext_aux;
+        aw.dk.set(ds_aux);
+        return aw;
+    }
+
+    inline static IDL::MvregEdgeAttr translateEdgeAttrMvCRDTtoIDL(int agent_id, int id, int from, int to, const std::string& type, const std::string& attr, mvreg<Attribute, int> &data)
+    {
+        IDL::MvregEdgeAttr delta_crdt;
+
+        for (auto &kv_dots : data.dk.ds) {
+            IDL::PairInt pi;
+            pi.first(kv_dots.first.first);
+            pi.second(kv_dots.first.second);
+
+            delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+        }
+
+        //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+        //for (auto &kv_cc : data.context().getCcDc().first){
+        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+        //}
+        for (auto &kv_dc : data.context().dc){
+            IDL::PairInt pi;
+            pi.first(kv_dc.first);
+            pi.second(kv_dc.second);
+
+            delta_crdt.dk().cbase().dc().push_back(pi);
+        }
+        delta_crdt.id(id);
+        delta_crdt.attr_name(attr);
+        delta_crdt.from(from);
+        delta_crdt.to(to);
+        delta_crdt.agent_id(agent_id);
+        return delta_crdt;
+
+    }
+
+    inline static mvreg<Attribute, int> translateEdgeAttrMvIDLtoCRDT(IDL::MvregEdgeAttr &data)
+    {
+        // Context
+        dotcontext<int> dotcontext_aux;
+        std::map<int, int> m;
+        for (auto &v : data.dk().cbase().cc())
+            m.insert(std::make_pair(v.first, v.second));
+        std::set <pair<int, int>> s;
+        for (auto &v : data.dk().cbase().dc())
+            s.insert(std::make_pair(v.first(), v.second()));
+        dotcontext_aux.setContext(m, s);
+        // Dots
+        std::map <pair<int, int>, Attribute> ds_aux;
+        for (auto &[k,v] : data.dk().ds())
+            ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
+        // Join
+        mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
+        aw.dk.c = dotcontext_aux;
+        aw.dk.set(ds_aux);
+        return aw;
+    }
+
+    inline static IDL::MvregNodeAttr translateNodeAttrMvCRDTtoIDL(int agent_id, int id, int node, const std::string& attr, mvreg<Attribute, int> &data)
+    {
+        IDL::MvregNodeAttr delta_crdt;
+
+
+        for (auto &kv_dots : data.dk.ds) {
+            IDL::PairInt pi;
+            pi.first(kv_dots.first.first);
+            pi.second(kv_dots.first.second);
+
+            delta_crdt.dk().ds().emplace(make_pair(pi, kv_dots.second.toIDLAttrib()));
+            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+        }
+        //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+        //for (auto &kv_cc : d.first) {
+        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+        //}
+        for (auto &kv_dc : data.context().dc) {
+            IDL::PairInt pi;
+            pi.first(kv_dc.first);
+            pi.second(kv_dc.second);
+
+            delta_crdt.dk().cbase().dc().push_back(pi);
+        }
+
+        delta_crdt.id(id);
+        delta_crdt.attr_name(attr);
+        delta_crdt.node(node);
+        delta_crdt.agent_id(agent_id);
+
+        return delta_crdt;
+    }
+
+    inline static mvreg<Attribute, int> translateNodeAttrMvIDLtoCRDT(IDL::MvregNodeAttr &data)
+    {
+        // Context
+        dotcontext<int> dotcontext_aux;
+        std::map<int, int> m;
+        for (auto &v : data.dk().cbase().cc())
+            m.insert(std::make_pair(v.first, v.second));
+        std::set <pair<int, int>> s;
+        for (auto &v : data.dk().cbase().dc())
+            s.insert(std::make_pair(v.first(), v.second()));
+        dotcontext_aux.setContext(m, s);
+        // Dots
+        std::map <pair<int, int>, Attribute> ds_aux;
+        for (auto &[k,v] : data.dk().ds())
+            ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
+        // Join
+        mvreg<Attribute, int> aw = mvreg<Attribute, int>(data.id());
+        aw.dk.c = dotcontext_aux;
+        aw.dk.set(ds_aux);
+        return aw;
+    }
+
+    inline static mvreg<Edge, int> translateEdgeMvIDLtoCRDT(IDL::MvregEdge &data)
+    {
+        // Context
+        dotcontext<int> dotcontext_aux;
+        std::map<int, int> m;
+        for (auto &v : data.dk().cbase().cc())
+            m.insert(std::make_pair(v.first, v.second));
+        std::set <pair<int, int>> s;
+        for (auto &v : data.dk().cbase().dc())
+            s.insert(std::make_pair(v.first(), v.second()));
+        dotcontext_aux.setContext(m, s);
+        // Dots
+        std::map <pair<int, int>, Edge> ds_aux;
+        for (auto &[k,v] : data.dk().ds())
+            ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
+        // Join
+        mvreg<Edge, int> aw = mvreg<Edge, int>(data.id());
+        aw.dk.c = dotcontext_aux;
+        aw.dk.set(ds_aux);
+        return aw;
+    }
+
+    inline static IDL::MvregEdge translateEdgeMvCRDTtoIDL(int agent_id, int id, mvreg<Edge, int> &data)
+    {
+        IDL::MvregEdge delta_crdt;
+
+        for (auto &kv_dots : data.dk.ds) {
+            IDL::PairInt pi;
+            pi.first(kv_dots.first.first);
+            pi.second(kv_dots.first.second);
+
+            auto edge = kv_dots.second.toIDLEdge(id);
+            delta_crdt.dk().ds().emplace(make_pair(pi, edge));
+            delta_crdt.from(edge.from());
+            delta_crdt.to(edge.to());
+            delta_crdt.type(edge.type());
+            delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
+
+        }
+        //pair<map<int, int>, set<pair<int, int>>> d = data.context().getCcDc();
+        //for (auto &kv_cc : data.context().getCcDc().first){
+        //    delta_crdt.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
+        //}
+        for (auto &kv_dc : data.context().dc){
+            IDL::PairInt pi;
+            pi.first(kv_dc.first);
+            pi.second(kv_dc.second);
+
+            delta_crdt.dk().cbase().dc().push_back(pi);
+        }
+        delta_crdt.id(id);
+        delta_crdt.agent_id(agent_id);
+        return delta_crdt;
+    }
+
 }
 
-#endif //CRDT_RTPS_DSR_TESTS_CRDT_NODE_H
+#endif //CRDT_RTPS_DSR_CRDT_TYPES_H
