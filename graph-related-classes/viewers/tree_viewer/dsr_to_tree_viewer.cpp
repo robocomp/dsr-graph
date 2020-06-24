@@ -29,8 +29,8 @@ DSRtoTreeViewer::DSRtoTreeViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget *p
 	this->setHeaderLabels( horzHeaders );
 	this->header()->setDefaultSectionSize(250);
 	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
-	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
-	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
+//	connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoTreeViewer::);
+	connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoTreeViewer::del_node_SLOT);
 }
 
 void DSRtoTreeViewer::createGraph()
@@ -168,13 +168,19 @@ void DSRtoTreeViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t to
 void DSRtoTreeViewer::del_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string &edge_tag)
 {
     std::cout<<__FUNCTION__<<":"<<__LINE__<< std::endl;
-	
+
 }
 
 void DSRtoTreeViewer::del_node_SLOT(int id)
 {
+
     std::cout<<__FUNCTION__<<":"<<__LINE__<< std::endl;
-   
+	while (tree_map.count(id) > 0) {
+		auto item = tree_map[id];
+		this->invisibleRootItem()->removeChild(item);
+		delete item;
+		tree_map.erase(id);
+	}
 }
 
 void DSRtoTreeViewer::category_change_SLOT(int value, QTreeWidgetItem* parent)
