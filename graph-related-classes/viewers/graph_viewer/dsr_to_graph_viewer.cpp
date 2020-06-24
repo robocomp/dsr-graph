@@ -27,7 +27,7 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
 	scene.addItem(central_point);
 	connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::add_or_assign_edge_SLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
-	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
+	connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::del_node_SLOT);
 }
 
 DSRtoGraphViewer::~DSRtoGraphViewer()
@@ -41,6 +41,7 @@ DSRtoGraphViewer::~DSRtoGraphViewer()
 		QGraphicsItem *graphicItem = allGraphicsItems[i];
 		if(graphicItem->scene() == &scene)
 			scene.removeItem(graphicItem);
+
 	}
 	scene.clear();
 }
@@ -109,7 +110,8 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
     if (n.has_value()) {
         if (gmap.count(id) == 0)    // if node does not exist, create it
         {
-            gnode = new GraphNode(own);
+            qDebug()<<__FUNCTION__<<"##### New node";
+        	gnode = new GraphNode(own);
             gnode->id_in_graph = id;
             gnode->setType(type);
 			gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
@@ -168,6 +170,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
 			gnode->setColor(color);
         } else
 		{
+			qDebug()<<__FUNCTION__<<"##### Updated node";
             gnode = gmap.at(id);
         	gnode->change_detected();
 		}
@@ -184,8 +187,10 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
             posx = rd.x();
             posy = rd.y();
         }
-        if (posx != gnode->x() or posy != gnode->y())
-            gnode->setPos(posx, posy);
+        if (posx != gnode->x() or posy != gnode->y()) {
+			qDebug()<<__FUNCTION__<<"##### posx "<<posx<<" != gnode->x() "<<gnode->x()<<" or posy "<<posy<<" != gnode->y() "<<gnode->y();
+			gnode->setPos(posx, posy);
+		}
 
         emit G->update_attrs_signal(id, n.value().attrs());
     }
@@ -250,7 +255,9 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
     std::cout<<__FUNCTION__<<":"<<__LINE__<< std::endl;
     try {
         while (gmap.count(id) > 0) {
-            scene.removeItem(gmap.at(id));
+        	auto item = gmap.at(id);
+            scene.removeItem(item);
+            delete item;
             gmap.erase(id);
         }
     } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
