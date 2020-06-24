@@ -57,8 +57,8 @@ void SpecificWorker::initialize(int period)
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		using opts = DSR::GraphViewer::View;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, std::list<opts>{opts::Scene, opts::OSG});
+		using opts = DSR::GraphViewer::view;
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         timer.start(100);
     }
