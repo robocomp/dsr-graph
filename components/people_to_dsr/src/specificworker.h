@@ -33,6 +33,7 @@
 #include "../../../graph-related-classes/CRDT.h"
 #include "../../../graph-related-classes/CRDT_graphviewer.h"
 #include <QHBoxLayout>
+#include "unordered_map"
 
 class SpecificWorker : public GenericWorker
 {
@@ -40,11 +41,13 @@ Q_OBJECT
 private: 
     std::unique_ptr<CRDT::InnerAPI> innermodel;
 
+
     int agent_id;
     std::string dsr_output_path;
     std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
             "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"};
-    
+
+
     struct JOINT_CONNECTION
     {
         std::string parent_name;
@@ -73,6 +76,10 @@ private:
         {"right_ankle", JOINT_CONNECTION{"right_knee",{0.0, -400.0, 0.0}}}
     };
     DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
+
+
+    std::unordered_map<int, int> G_person_id;
+
 public:
     std::string agent_name;
     std::shared_ptr<CRDT::CRDTGraph> G;
@@ -90,7 +97,7 @@ public:
 
 private: 
     int get_new_node_id();
-    std::optional<Node> create_node(std::string type, std::string name, int parent_idz);
+    std::optional<Node> create_node(std::string type, std::string name, int person_id,  int parent_idz);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
     void check_unseen_people();
 

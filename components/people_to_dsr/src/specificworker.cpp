@@ -77,8 +77,13 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
     
     for(const RoboCompHumanToDSRPub::Person &person: people.peoplelist)
     {
+        int G_id = -1;
+        //We have to keep an equivalence between detector and graph ids.
+        if (G_person_id.find(person.id) != G_person_id.end()) {
+            G_id = G_person_id[person.id];
+        }
         std::string person_name = "person [" + std::to_string(person.id) + "]";
-        std::optional<Node> person_n = G->get_node(person_name);
+        std::optional<Node> person_n = G->get_node(G_id);
         if(person_n.has_value()) //update edges
         {
             qDebug()<<"update person:"<<person_n->id();
@@ -116,7 +121,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         else //create nodes
         {
             qDebug()<<"Person does not exist => Creation";
-            person_n = create_node("person", person_name, world_n->id());
+            person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
                 return;
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
@@ -189,23 +194,25 @@ int SpecificWorker::get_new_node_id()
     return new_id;
 }
 
-std::optional<Node> SpecificWorker::create_node(std::string type, std::string name, int parent_id)
+std::optional<Node> SpecificWorker::create_node(std::string type, std::string name, int person_id,  int parent_id)
 {
-    int id = get_new_node_id();
-    if (id == -1)
-    return {};
+
     Node node;
     node.type(type);
-    node.id(id);
     node.agent_id(agent_id);
     node.name(name);
-qDebug()<<"Create node: ID "<<id;    
     G->add_or_modify(node, "pos_x", 100.0);
     G->add_or_modify(node, "pos_y", 100.0);
     G->add_or_modify(node, "name", name);
     G->add_or_modify(node, "color", std::string("GoldenRod"));
-    if( G->insert_node(node))
-        return node; 
+    std::optional<int> new_id = G->insert_node(node);
+
+    if(new_id.has_value()) {
+        qDebug()<<"Create node: ID "<<new_id.value();
+        //We have to keep an equivalence between detector and graph ids.
+        G_person_id[person_id] = new_id.value();
+        return node;
+    }
     else
         qDebug()<<"Error on node "<<QString::fromStdString(node.name())<<"creation";
     return {};
