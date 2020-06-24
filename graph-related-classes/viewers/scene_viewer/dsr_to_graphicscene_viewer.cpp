@@ -408,7 +408,7 @@ void DSRtoGraphicsceneViewer::del_node_slot(const std::int32_t id)
 qDebug() << "********************************";
 qDebug() << __FUNCTION__ ; 
     //check if node has graphical representation
-    if (scene_map.find(id) != scene_map.end())
+    if (scene_map.count(id) != 0)
     {
         QGraphicsItem *item = scene_map[id];
         delete item;
