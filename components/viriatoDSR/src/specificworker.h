@@ -27,8 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "graph-related-classes/CRDT.h"
+#include "graph-related-classes/CRDT_graphviewer.h"
 #include "doublebuffer/DoubleBuffer.h"
 
 class SpecificWorker : public GenericWorker
