@@ -248,7 +248,7 @@ void SpecificWorker::save_node_slot()
     std::map<std::string, Attrib> new_attrs = get_table_content(node_attrib_tw, node.attrs());
     node.attrs(new_attrs);
     
-    if(G->insert_or_assign_node(node))
+    if(G->update_node(node))
         qDebug()<<"Node saved";
     else
     {

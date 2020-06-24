@@ -3,23 +3,22 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  ../../../graph-related-classes/CRDT.cpp
-  ../../../graph-related-classes/CRDT_graphviewer.cpp
-  ../../../graph-related-classes/CRDT_graphnode.cpp
-  ../../../graph-related-classes/CRDT_graphedge.cpp
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-  ../../../graph-related-classes/inner_api.cpp
-  ../../../graph-related-classes/dsr_utils.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
-  ../../../graph-related-classes/_abstract_graphic_view.cpp
-      ../../../graph-related-classes/_abstract_graphic_view.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraph.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/inner_api.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/osg_viewer/dsr_to_osg_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/scene_viewer/dsr_to_graphicscene_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/graph_viewer/dsr_to_graph_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/tree_viewer/dsr_to_tree_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/_abstract_graphic_view.cpp
 
 )
 
@@ -27,13 +26,11 @@ SET ( SOURCES
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/CRDT_graphviewer.h
-  ../../../graph-related-classes/CRDT_graph.h
-  ../../../graph-related-classes/CRDT_graphnode.h
-  ../../../graph-related-classes/CRDT_graphedge.h
-  ../../../graph-related-classes/_abstract_graphic_view.h
-      ../../../graph-related-classes/_abstract_graphic_view.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/_abstract_graphic_view.h
 
 )
 

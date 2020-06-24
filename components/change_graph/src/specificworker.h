@@ -32,10 +32,8 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <genericworker.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
-#include "../../../graph-related-classes/dsr_to_osg_viewer.h"
-
+#include "graph-related-classes/CRDT.h"
+#include "graph-related-classes/CRDT_graphviewer.h"
 
 class SpecificWorker : public GenericWorker
 {
