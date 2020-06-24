@@ -25,7 +25,7 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<CRDT::CRDTGraph> G_, QWidget 
     connect(G.get(), &CRDT::CRDTGraph::update_node_signal, this, &DSRtoGraphViewer::add_or_assign_node_SLOT);
 	central_point = new QGraphicsEllipseItem(0,0,0,0);
 	scene.addItem(central_point);
-	//connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::addEdgeSLOT);
+	connect(G.get(), &CRDT::CRDTGraph::update_edge_signal, this, &DSRtoGraphViewer::add_or_assign_edge_SLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
 	//connect(G.get(), &CRDT::CRDTGraph::del_node_signal, this, &DSRtoGraphViewer::delNodeSLOT);
 }

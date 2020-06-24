@@ -429,7 +429,7 @@ void CRDTGraph::insert_or_assign_edge_RT(Node& n, int to, const std::vector<floa
         if (in(to))
         {
             EdgeKey ek; ek.to(to); ek.type("RT");   // PONER EN UNA TABLA
-            Edge e; e.to(to); e.from(n.id()); n.type("RT");
+            Edge e; e.to(to); e.from(n.id()); e.type("RT");
             Attrib tr; tr.type(3); tr.value().float_vec(trans);
             Attrib rot; rot.type(3); rot.value().float_vec(rot_euler);
             e.attrs().insert_or_assign("rotation_euler_xyz", rot);
@@ -802,14 +802,14 @@ void CRDTGraph::join_delta_node(AworSet aworSet)
             } else {
                 auto iter =  nodes[aworSet.id()].dots().ds.rbegin()->second.fano();
                 for (const auto &[k,v] : nd.fano()) {
-                    if (iter.find(k) == iter.end() or iter[k] != v) {
+                    if (iter.find(k) == iter.end()) {
                         std::cout << "DELETE EDGE: " << aworSet.id() << "  -  "<< k <<std::endl;
                         emit del_edge_signal(aworSet.id(), k.to(), k.type());
                     }
                 }
                 for (const auto &[k,v] : iter) {
                     if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v) {
-                        std::cout << "INSERT EDGE: " << aworSet.id() << "  -  "<< k <<std::endl;
+                        std::cout << "INSERT/UPDATE EDGE: " << aworSet.id() << "  -  "<< k <<std::endl;
                         emit update_edge_signal(aworSet.id(), k.to(), k.type());
                     }
                 }
@@ -920,7 +920,7 @@ void CRDTGraph::join_full_graph(OrMap full_graph)
             } else {
                 auto iter =  nodes[id].dots().ds.rbegin()->second.fano();
                 for (const auto &[k,v] : nd.fano()) {
-                    if (iter.find(k) == iter.end() or iter[k] != v)
+                    if (iter.find(k) == iter.end())
                             emit del_edge_signal(id, k.to(), k.type());
                 }
                 for (const auto &[k,v] : iter) {
