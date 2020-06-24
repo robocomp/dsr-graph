@@ -86,6 +86,33 @@ namespace CRDT
     class CRDTGraph : public QObject
     {
         Q_OBJECT
+
+        private:
+        std::function<std::optional<int>(const Node&)> insert_node_read_file = [&] (const Node& node) -> std::optional<int> {
+            if (node.id() == -1) return {};
+            std::optional<AworSet> aw;
+            bool r = false;
+            {
+                std::unique_lock<std::shared_mutex> lock(_mutex);
+                if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name())  == name_map.end()) {
+                    std::tie(r, aw) = insert_or_assign_node_(node);
+                } else throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
+                                                 + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+            }
+            if (r) {
+                if (aw.has_value())
+                    dsrpub.write(&aw.value());
+
+                emit update_node_signal(node.id(), node.type());
+                for (const auto &[k,v]: node.fano())
+                        emit update_edge_signal(node.id(), k.to(), v.type());
+
+                return node.id();
+            }
+            return {};
+        };
+
+
         public:
         size_t size();
         CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy = nullptr);
@@ -127,7 +154,7 @@ namespace CRDT
         void print_node(int id) { utils->print_node(id);};
         void print_RT(std::int32_t root) const                  { utils->print_RT(root);};
         void write_to_json_file(const std::string &file) const  { utils->write_to_json_file(file); };
-        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file); };
+        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file, insert_node_read_file); };
 
         // not working yet
         typename std::map<int, aworset<N,int>>::const_iterator begin() const { return nodes.getMap().begin(); };
@@ -144,7 +171,7 @@ namespace CRDT
         //std::optional<VertexPtr> get_vertex(int id);
         [[deprecated ("You should be using \"insert_node\" to insert new nodes and \"update_node\" to update them")]]
         bool insert_or_assign_node(const N &node);
-        std::optional<uint32_t> insert_node(Node node);
+        std::optional<uint32_t> insert_node(Node& node);
         bool update_node(const Node& node);
         //bool insert_or_assign_node(const VertexPtr &vertex);
         //bool insert_or_assign_node(Vertex &vertex);
@@ -500,6 +527,7 @@ namespace CRDT
         int id();
         DotContext context();
         std::map<int, AworSet> Map();
+
 
 
         template <typename T, typename = std::enable_if_t<node_or_edge<T>>>

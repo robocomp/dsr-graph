@@ -39,7 +39,7 @@ CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_f
     {
         try
         {   
-            utils->read_from_json_file(dsr_input_file); 
+            read_from_json_file(dsr_input_file);
             qDebug() << __FUNCTION__ << "Warning, graph read from file " << QString::fromStdString(dsr_input_file);     
         }
         catch(const CRDT::DSRException& e)
@@ -133,12 +133,12 @@ std::pair<bool, std::optional<AworSet>> CRDTGraph::insert_or_assign_node_(const 
     return {false, {} };
 }
 
-std::optional<uint32_t> CRDTGraph::insert_node(Node node) {
+std::optional<uint32_t> CRDTGraph::insert_node(Node& node) {
 //    if (node.id() == -1) return {};
     std::optional<AworSet> aw;
     bool r = false;
 //TODO: Poner id con el proxy y generar el nombre ==> force to use except on json_file_read
-/*    try{
+    try{
         if (dsr_getid_proxy != nullptr)
         {
             int new_node_id = dsr_getid_proxy->getID();    
@@ -150,7 +150,7 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node node) {
     {
         throw std::runtime_error((std::string("Cannot get new id from idserver, check config file ")
                                          + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
-    }*/
+    }
 //TODO    
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -171,6 +171,9 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node node) {
     }
     return {};
 }
+
+
+
 
 bool CRDTGraph::update_node(const N &node)
 {
