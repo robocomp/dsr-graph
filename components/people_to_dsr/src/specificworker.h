@@ -30,8 +30,8 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include "doublebuffer/DoubleBuffer.h"
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "graph-related-classes/CRDT.h"
+#include "graph-related-classes/CRDT_graphviewer.h"
 #include <QHBoxLayout>
 #include "unordered_map"
 
@@ -96,7 +96,7 @@ public:
     void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);    
 
 private: 
-    int get_new_node_id();
+//    int get_new_node_id();
     std::optional<Node> create_node(std::string type, std::string name, int person_id,  int parent_idz);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
     void check_unseen_people();

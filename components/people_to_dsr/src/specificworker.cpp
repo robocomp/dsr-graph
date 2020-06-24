@@ -163,7 +163,18 @@ void SpecificWorker::check_unseen_people()
 		{
 			qDebug()<<"REMOVE PERSON"<<it->first;
 			G->delete_node(it->first);
-            it = people_last_seen.erase(it);			
+            // remove from equivalence map
+            int node_person_id = it->first;
+            std::unordered_map<int,int>::iterator it2 = std::find_if(G_person_id.begin(), G_person_id.end(),
+						[&node_person_id](const std::pair<int, int> &p) {
+							return p.second == node_person_id;
+						});
+            if(it2 != G_person_id.end())
+                G_person_id.erase(it2);
+
+            it = people_last_seen.erase(it);
+ 
+            //TODO: remove joints when enabled
 		}
 		else
 		{
@@ -180,7 +191,7 @@ void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleDa
     qDebug()<<"received RoboCompHumanToDSRPub::PeopleData "<<people.peoplelist.size();
     people_data_buffer.put(std::move(people));
 }
-
+/*
 int SpecificWorker::get_new_node_id()
 {
     int new_id = -1;
@@ -192,7 +203,7 @@ int SpecificWorker::get_new_node_id()
         std::cerr << "Error asking for new node id " << e.what() << '\n';
     }
     return new_id;
-}
+}*/
 
 std::optional<Node> SpecificWorker::create_node(std::string type, std::string name, int person_id,  int parent_id)
 {
