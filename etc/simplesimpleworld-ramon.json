@@ -556,7 +556,7 @@
                     }
                 ],
                 "name": "base",
-                "type": "differentialRobot"
+                "type": "differentialrobot"
             },
             "112": {
                 "attribute": {
