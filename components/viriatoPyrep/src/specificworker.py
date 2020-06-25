@@ -136,8 +136,6 @@ class SpecificWorker(GenericWorker):
                 try:
                     
                     people_data.peoplelist = people
-                    print("time", people_data.timestamp)
-                    print("people", people_data.peoplelist)
                     self.humantodsrpub_proxy.newPeopleData(people_data)
                 except Ice.Exception as e:
                     print(e)
@@ -161,7 +159,8 @@ class SpecificWorker(GenericWorker):
                 # Get and publish robot pose
                 pose = self.robot.get_2d_pose()
                 try:
-                    self.bState = RoboCompGenericBase.TBaseState(x=pose[0]*1000, z=pose[1]*1000, alpha=pose[2])
+                    self.bState = RoboCompGenericBase.TBaseState(x=-pose[0]*1000, z=-pose[1]*1000, alpha=-pose[2])
+                    print("Base pose", self.bState.x,self.bState.z, self.bState.alpha)
                     self.omnirobotpub_proxy.pushBaseState(self.bState)
                 except Ice.Exception as e:
                     print(e)
