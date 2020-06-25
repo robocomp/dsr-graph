@@ -22,10 +22,38 @@
                     "parent": {
                         "type": 1,
                         "value": 0
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 0
                     }
+                    
                 },
                 "id": 100,
                 "links": [
+                    {
+                        "dst": 200,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    1000,
+                                    0,
+                                    1000
+                                ]
+                            }
+                        },
+                        "src": 100
+                    },
                     {
                         "dst": 101,
                         "label": "RT",
@@ -194,29 +222,6 @@
                 },
                 "id": 101,
                 "links": [
-                    {
-                        "dst": 200,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    1000,
-                                    0,
-                                    1000
-                                ]
-                            }
-                        },
-                        "src": 101
-                    }
                 ],
                 "name": "floor_plane",
                 "type": "plane"
@@ -2009,11 +2014,11 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 1
                     },
                     "parent": {
                         "type": 1,
-                        "value": 101
+                        "value": 100
                     },
                     "pos_x": {
                         "type": 2,
@@ -2097,7 +2102,7 @@
                     }
                 ],
                 "name": "Viriato",
-                "type": "omniRobot"
+                "type": "omnirobot"
             },
             "201": {
                 "attribute": {
@@ -2111,7 +2116,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 2
                     },
                     "parent": {
                         "type": 1,
