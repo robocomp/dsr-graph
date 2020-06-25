@@ -1,7 +1,4 @@
 # dsr-graph
-Development of new DSR shared graph
 
-To install this component, 
+Development of a new CRDT-based shared graph to be used as a highly efficient working memory
 
-- Dowload and install DataStorm from https://zeroc.com/downloads/datastorm
-- Replace /usr/include/DataStorm/DataStorm.h ~/robocomp/components/dsr-graph/components/crdt_comp/DataStorm_libraries/DataStorm.h
