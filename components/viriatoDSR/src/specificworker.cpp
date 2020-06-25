@@ -81,7 +81,7 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
     std::transform(ldata.begin(), ldata.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
 
 	// update laser in DSR
-	auto node = G->get_node("hokuyo_base");
+	auto node = G->get_node("laser");
 	if (node.has_value())
 	{
 		G->modify_attrib(node.value(), "dists", dists);
@@ -93,16 +93,23 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bState)
 {
 	static RoboCompGenericBase::TBaseState last_state;
-	auto robot = G->get_node(200); //Viriato
-	if(not robot.has_value())
-	{ std::cout << __FUNCTION__ << " No node " << std::to_string(200) << std::endl; return; }
-	auto parent = G->get_parent_node(robot.value());  //Viriato
+	auto robots = G->get_nodes_by_type("omnirobot"); //any omnirobot
+	if (robots.size() == 0)
+	{ 
+		std::cout << __FUNCTION__ << " No node omnirobot" << std::endl; 
+		return; 
+	}
+	auto robot = robots.at(0); //TODO: what sould be done if there are more than one robot?
+	auto parent = G->get_parent_node(robot);  
 	if(not parent.has_value()) 
-	{ std::cout << __FUNCTION__ << " No parent found for node " << robot.value().name() << std::endl; return;}
+	{ 
+		std::cout << __FUNCTION__ << " No parent found for node " << robot.name() << std::endl; 
+		return;
+	}
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		G->insert_or_assign_edge_RT(parent.value(), 200, std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
+		G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
 		last_state = bState;
 	}
 }
