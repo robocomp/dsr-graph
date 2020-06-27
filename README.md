@@ -21,6 +21,8 @@ https://robolab.unex.es/wp-content/plugins/papercite/pdf/cortex-new-cognitive-ar
 Paulo Sérgio Almeida, Ali Shoker, Carlos Baquero, «Delta State Replicated Data Types» Journal of Parallel and Distributed Computing, Volume 111, January 2018, Pages 162-173 
 https://arxiv.org/abs/1603.01529
 
+The Figure below shows an artist view of a CORTEX instantiation.
+
 ![alt text](https://github.com/robocomp/dsr-graph/blob/development/dsr-graph.png "CORTEX")
 
 ## Basic use-case
@@ -33,7 +35,8 @@ Definitions:
 - G, a distributed graph used as the CORTEX working memory. It exists as the set of local copies held by all the participating components in a CORTEX configuration
 - DSR Agent (DA), is a C++ RoboComp component extended with the functionality to edit the distributed graph G.
 - Node, a vertex of the graph G.
-- Edge, an edge connecting to nodes
+- Edge, a directional edge connecting to nodes. Edges can have attributes.
+- All nodes and edges have type. The list of possible types is shown below.
 - Attribute, a property of a node or an edge. Attributes can be of any of these types
   1. string
   2. int (signed 32)
@@ -42,5 +45,11 @@ Definitions:
   5. bool
   6. in V1.1 vector<byte>
   All attributes have a name and in V1.1 will hava a timestamp with the last modification time
+  
+- Attributes' names must be taken from a predefined list of tokens with types, for example ('name', string)('pos_x', float). A complete lists is provided below.
+- _RT edges_ are edges of type _RT_ that code a geometric relation between two nodes. RT edges have two atributes _rotation_euler_xyz_ and _translation_ that hold    the euler angles and translation coordinates of the R|t 4x4 matrix that represents a rotation followed by a translation pose of the child with respect to the parent's reference frame. There are methods in the G-API to directly recover the Rt matrix from the edge as a RoboComp RTMat.
+- There is a singular node in G named, "world", that representes the origin o the current reference frame for the robot. This node is the root of a kinematic tree       linked by RT edges. This tree is embedded in G and represent the set of physical elements believed to exist in the world. This tree is called _innermodel_ and can be automatically drawn in 3D using OpenSceneGraph and in 2D using Qt. Both representation are included in the UI off all generated agents.
+- An agent generated with _robocompdsl_ includes the object _G_ that can be accessed using its public API
+  
   
   
