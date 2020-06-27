@@ -21,6 +21,8 @@ https://robolab.unex.es/wp-content/plugins/papercite/pdf/cortex-new-cognitive-ar
 Paulo Sérgio Almeida, Ali Shoker, Carlos Baquero, «Delta State Replicated Data Types» Journal of Parallel and Distributed Computing, Volume 111, January 2018, Pages 162-173 
 https://arxiv.org/abs/1603.01529
 
+![alt text](https://github.com/robocomp/dsr-graph/blob/development/dsr-graph.png "CORTEX")
+
 ## Basic use-case
 
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
@@ -39,4 +41,6 @@ Definitions:
   4. vector<float>
   5. bool
   6. in V1.1 vector<byte>
-
+  All attributes have a name and in V1.1 will hava a timestamp with the last modification time
+  
+  
