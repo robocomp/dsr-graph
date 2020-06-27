@@ -24,7 +24,7 @@ The Figure below shows an artist view of a CORTEX instantiation.
 
 ![alt text](https://github.com/robocomp/dsr-graph/blob/development/dsr-graph.png "CORTEX")
 
-## Basic use-case
+## Basic use case
 
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
 
@@ -50,5 +50,16 @@ We are working on an initial use-case that involves RoboLab's adapted aparment A
 - There is a singular node in G named, "world", that representes the origin o the current reference frame for the robot. This node is the root of a kinematic tree       linked by RT edges. This tree is embedded in G and represent the set of physical elements believed to exist in the world. This tree is called _innermodel_ and can be automatically drawn in 3D using OpenSceneGraph and in 2D using Qt. Both representation are included in the UI off all generated agents.
 - An agent generated with _robocompdsl_ includes the object _G_ that can be accessed using its public API
   
+  ### Installation
+  To install the software in Ubuntu 18.04, install RoboComp first. The follow the instruccions to clone and install this repository under the ~/robocomp/components folder.
   
+  ### Running
+  To start the basic configuration for this use case:
   
+  0. Execute rcnode in a free terminal to initiate ZeroC Ice pub/sub broker.
+  1. Execute ViriatoPyrep (Python3) You should have installed first CoppeliaRobotics simulator. Then follow the instructions in ViriatoPyrep's README.md
+  2. Compile and run idserver
+  3. Compile and run viriatoDSR
+  
+  If you have a JoyStick, you can clone robocomp-robolab under ~/robocomp/components and go to components/hardware/external_control/joystickPub. Compile the component and run it. You'll see the robot moving in the simulator. You can change the name and ranges of axes in the configuration file.
+## Create a new agent to interact with the running CORTEX instance.
