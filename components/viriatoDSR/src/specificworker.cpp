@@ -84,8 +84,8 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 	auto node = G->get_node("laser");
 	if (node.has_value())
 	{
-		G->modify_attrib(node.value(), "dists", dists);
-		G->modify_attrib(node.value(), "angles", angles);
+		G->add_or_modify(node.value(), "dists", dists);
+		G->add_or_modify(node.value(), "angles", angles);
 		G->update_node(node.value());
 	}
 }
