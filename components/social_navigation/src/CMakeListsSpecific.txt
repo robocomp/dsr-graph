@@ -1,0 +1,42 @@
+
+# Sources set
+SET ( SOURCES
+  specificworker.cpp
+  specificmonitor.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraph.cxx
+  $ENV{ROBOCOMP}/classes/graph-related-classes/inner_api.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_osg_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_graphicscene_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_graph_viewer.cpp
+  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_to_tree_viewer.cpp
+)
+
+# Headers set
+SET ( HEADERS
+  specificworker.h
+  specificmonitor.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graph.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.h
+  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.h
+)
+
+set(CMAKE_CXX_STANDARD 17)
+
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
+
+add_definitions(-O3  -fmax-errors=1 -std=c++2a )
+SET(SPECIFIC_LIBS OpenThreads fastcdr fastrtps osgDB)
+SET (LIBS ${LIBS}  )
+
+
