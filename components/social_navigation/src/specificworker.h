@@ -29,8 +29,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
-#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT_graphviewer.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 class SpecificWorker : public GenericWorker
 {

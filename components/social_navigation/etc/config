@@ -1,16 +1,16 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 17700
 
 # Endpoints for subscriptions interfaces
-SocialRulesTopic.Endpoints=tcp -p 0
+SocialRulesTopic.Endpoints=tcp -p 14400
 
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
-agent_id = 0 # Change id
+agent_id = 35 # Change id
 agent_name = social_navigation
-dsr_input_file = "/path/to/json/input/file.json"
 
-InnerModelPath = innermodel.xml
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0
