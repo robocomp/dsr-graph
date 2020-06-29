@@ -31,6 +31,7 @@
 #include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
+#include <DSRGetID.h>
 #include <SocialNavigationGaussian.h>
 #include <SocialRules.h>
 
@@ -39,7 +40,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -55,6 +56,7 @@ public:
 	QMutex *mutex;
 
 
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 	virtual void SocialRules_objectsChanged (RoboCompSocialRules::SRObjectSeq objectsAffordances) = 0;
 	virtual void SocialRules_personalSpacesChanged (RoboCompSocialNavigationGaussian::SNGPolylineSeq intimateSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq personalSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq socialSpaces) = 0;

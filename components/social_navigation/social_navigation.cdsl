@@ -1,9 +1,11 @@
+import "DSRGetID.idsl";
 import "SocialRules.idsl";
 
 Component social_navigation
 {
     Communications
     {
+        requires DSRGetID;
         subscribesTo SocialRules;
     };
     language Cpp11;

@@ -38,24 +38,8 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
-	read_dsr = params["read_dsr"].value == "true";
-	dsr_input_file = params["dsr_input_file"].value;
 
 	return true;
 }
@@ -76,11 +60,8 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		graph_viewer = std::make_unique<DSR::GraphViewer>(G);
-		mainLayout.addWidget(graph_viewer.get());
-		window.setLayout(&mainLayout);
-		setCentralWidget(&window);
-		setWindowTitle(QString::fromStdString(agent_name));
+	using opts = DSR::GraphViewer::view;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree|opts::osg);
 
 		this->Period = period;
 		timer.start(Period);
