@@ -51,7 +51,7 @@ We are working on an initial use-case that involves RoboLab's adapted aparment A
 - An agent generated with _robocompdsl_ includes the object _G_ that can be accessed using its public API
   
   ### Installation
-  To install the software in Ubuntu 18.04, install RoboComp first. The follow the instruccions to clone and install this repository under the ~/robocomp/components folder.
+  To install the software in Ubuntu 18.04, install RoboComp first. Then follow the instruccions to clone and install this repository under the ~/robocomp/components folder.
   
   ### Running
   To start the basic configuration for this use case:
