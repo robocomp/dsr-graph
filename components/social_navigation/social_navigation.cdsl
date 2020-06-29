@@ -1,0 +1,13 @@
+import "SocialRules.idsl";
+
+Component social_navigation
+{
+    Communications
+    {
+        subscribesTo SocialRules;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+
