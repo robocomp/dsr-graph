@@ -105,7 +105,7 @@ class SpecificWorker(GenericWorker):
             name = "Bill#" + str(i)
             if Dummy.exists(name):
                 self.people["name"] = Dummy(name)
-        print (self.people)
+        #print (self.people)
         #self.joy_queue = queue.Queue(1)
         #self.omnirobot_queue = queue.Queue(1)
         self.joystick_newdata = []
@@ -160,7 +160,7 @@ class SpecificWorker(GenericWorker):
                 pose = self.robot.get_2d_pose()
                 try:
                     self.bState = RoboCompGenericBase.TBaseState(x=-pose[0]*1000, z=-pose[1]*1000, alpha=-pose[2])
-                    print("Base pose", self.bState.x,self.bState.z, self.bState.alpha)
+                    #print("Base pose", self.bState.x,self.bState.z, self.bState.alpha)
                     self.omnirobotpub_proxy.pushBaseState(self.bState)
                 except Ice.Exception as e:
                     print(e)
@@ -174,6 +174,8 @@ class SpecificWorker(GenericWorker):
                 #print(time.time()-start)
             except KeyboardInterrupt:
                 break
+
+    ###################################################################################################
 
     # General laser computation
     def compute_omni_laser(self, lasers, robot):
