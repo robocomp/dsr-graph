@@ -28,17 +28,34 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include <innermodel/innermodel.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+
+
+#include "grid.h"
+#include "controller.h"
+#include "navigation.h"
+#include <algorithm>
+#include <localPerson.h>
+#include <cppitertools/zip.hpp>
 
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 public:
+	using retPersonalSpaces = std::tuple <vector<QPolygonF>,vector<QPolygonF>,vector<QPolygonF>>;
+	using retAffordanceSpaces = std::tuple <std::map<float, vector<QPolygonF>>,vector<QPolygonF>,vector<QPolygonF>>;
+
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
+
+
+	RoboCompLaser::TLaserData updateLaser();
+	void getPersonsFromModel();
+	retPersonalSpaces getPolylinesFromModel();
+	retAffordanceSpaces getAffordancesFromModel();
+	void checkHumanBlock();
 
 
 	void SocialRules_objectsChanged(RoboCompSocialRules::SRObjectSeq objectsAffordances);
@@ -49,7 +66,7 @@ public slots:
 	int startup_check();
 	void initialize(int period);
 private:
-	std::shared_ptr<InnerModel> innerModel;
+	std::shared_ptr<CRDT::InnerAPI> innermodel;
 	// DSR graph
 	std::shared_ptr<CRDT::CRDTGraph> G;
 
@@ -64,6 +81,17 @@ private:
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
+
+	std::shared_ptr<RoboCompCommonBehavior::ParameterList> confParams;
+    Navigation<Grid<>,Controller> navigation;
+
+ 	SNGPolylineSeq intimate_seq, personal_seq, social_seq;
+    SRObjectSeq objects_seq;
+
+    bool personalSpacesChanged = false;
+    bool affordancesChanged = false;
+
+
 
 };
 
