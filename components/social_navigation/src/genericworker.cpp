@@ -28,10 +28,9 @@ GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 	mutex = new QMutex(QMutex::Recursive);
 
 
-	#ifdef USE_QTGUI
-		setupUi(this);
-		show();
-	#endif
+	setupUi(this);
+	show();
+
 	Period = BASIC_PERIOD;
 	connect(&timer, SIGNAL(timeout()), this, SLOT(compute()));
 

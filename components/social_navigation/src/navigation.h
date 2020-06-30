@@ -7,8 +7,8 @@
 
 #include <math.h>
 
-#include <genericworker.h>
-#include <dsr/api/dsr_inner_api.h>
+
+
 #include <Laser.h>
 #include "collisions.h"
 #include <QPolygonF>
@@ -25,6 +25,7 @@
 #include <localPerson.h>
 #include <typeinfo>
 
+#include <dsr/api/dsr_inner_api.h>
 
 // Map
 struct TMapDefault
@@ -75,7 +76,7 @@ void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_, std::shared_
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
 
-    innermodel = innerModel_;
+    innerModel = innerModel_;
     configparams = configparams_;
 
     stopRobot();
@@ -85,7 +86,7 @@ void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_, std::shared_
 
     collisions->initialize(innerModel, configparams);
     grid.initialize(collisions);
-    grid.draw(viewer);
+ //   grid.draw(viewer);
     controller.initialize(innerModel,configparams);
 
 
@@ -192,7 +193,7 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
 
     if (!blocked and active)
     {
-        if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
+ //       if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
     }
 
  //   drawRoad();
@@ -324,7 +325,7 @@ void updateAffordancesPolylines(std::map<float, vector<QPolygonF>> mapCostObject
 
     gridChanged = true;
 
-    }
+}
 
 
 
@@ -613,8 +614,8 @@ bool checkHumanSoftBlock()
 
 bool isVisible(QPointF p)
 {
-    QVec pointInLaser = innerModel->transform("laser", QVec::vec3(p.x(),0,p.y()),"world");
-    return laser_poly.containsPoint(QPointF(pointInLaser.x(),pointInLaser.z()), Qt::OddEvenFill);
+    std::optional<QVec> pointInLaser = innerModel->transform("laser", QVec::vec3(p.x(),0,p.y()),"world");
+    return laser_poly.containsPoint(QPointF(pointInLaser.value().x(),pointInLaser.value().z()), Qt::OddEvenFill);
 }
 
 
@@ -899,10 +900,10 @@ QPolygonF getRobotPolygon()
     auto tLWorld = innerModel->transform ("world", robotTopLeft ,"base_mesh");
 
 
-    robotP << QPointF(bLWorld.x(),bLWorld.z());
-    robotP << QPointF(bRWorld.x(),bRWorld.z());
-    robotP << QPointF(tRWorld.x(),tRWorld.z());
-    robotP << QPointF(tLWorld.x(),tLWorld.z());
+    robotP << QPointF(bLWorld.value().x(),bLWorld.value().z());
+    robotP << QPointF(bRWorld.value().x(),bRWorld.value().z());
+    robotP << QPointF(tRWorld.value().x(),tRWorld.value().z());
+    robotP << QPointF(tLWorld.value().x(),tLWorld.value().z());
 
     FILE *fd = fopen("robot.txt", "w");
     for (const auto &r: robotP)
@@ -924,7 +925,7 @@ void updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
 
     laser_poly.clear(); //stores the points of the laser in lasers refrence system
     laser_cart.clear();
-    auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
+ /*   auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
 
     for (const auto &l : lData)
     {
@@ -947,7 +948,7 @@ void updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
         fprintf(fd, "%d %d\n", (int)p.x(), (int)p.z());
     }
     fclose(fd);
-
+*/
 
 }
 
@@ -1011,11 +1012,11 @@ void drawRoad()
 
     }
     catch(const QString &s){qDebug()<<"drawRoad" << s;}
-//        qDebug()<<"END "<<__FUNCTION__;
+//        qDebug()<<"END "<<__FUNCTION__;*/
 }
 
 
-*/
+
 };
 
 

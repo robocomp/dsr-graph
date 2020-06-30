@@ -107,13 +107,13 @@ void SpecificWorker::compute()
 	}
 
     
-//    RoboCompLaser::TLaserData laserData = updateLaser();
+    RoboCompLaser::TLaserData laserData = updateLaser();
 
 	navigation.update(totalPersons, laserData, needsReplaning);
 
 //    static QTime reloj = QTime::currentTime();
 
-    viewer->run();
+//    viewer->run();
 //    qDebug()<< "viewer " << reloj.restart();
 
 

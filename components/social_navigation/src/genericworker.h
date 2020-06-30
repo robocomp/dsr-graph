@@ -43,7 +43,7 @@
 using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
 
 
-class GenericWorker : public QMainWindow, public Ui_guiDlg
+class GenericWorker : public QWidget, public Ui_guiDlg
 {
 Q_OBJECT
 public:
