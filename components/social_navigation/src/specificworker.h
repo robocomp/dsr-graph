@@ -32,9 +32,9 @@
 #include "dsr/gui/dsr_gui.h"
 
 
-#include "grid.h"
-#include "controller.h"
-#include "navigation.h"
+#include <grid.h>
+#include <controller.h>
+#include <navigation.h>
 #include <algorithm>
 #include <localPerson.h>
 #include <cppitertools/zip.hpp>
@@ -85,8 +85,8 @@ private:
 	std::shared_ptr<RoboCompCommonBehavior::ParameterList> confParams;
     Navigation<Grid<>,Controller> navigation;
 
- 	SNGPolylineSeq intimate_seq, personal_seq, social_seq;
-    SRObjectSeq objects_seq;
+ 	RoboCompSocialNavigationGaussian::SNGPolylineSeq intimate_seq, personal_seq, social_seq;
+    RoboCompSocialRules::SRObjectSeq objects_seq;
 
     bool personalSpacesChanged = false;
     bool affordancesChanged = false;

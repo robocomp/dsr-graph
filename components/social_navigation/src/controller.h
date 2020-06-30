@@ -5,6 +5,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <dsr/api/dsr_inner_api.h>
 #include <Laser.h>
 #include <CommonBehavior.h>
 #include "genericworker.h"
