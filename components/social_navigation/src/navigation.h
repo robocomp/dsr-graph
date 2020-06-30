@@ -72,11 +72,12 @@ public:
 //void initialize(const std::shared_ptr<InnerModel> &innerModel_, const std::shared_ptr<InnerViewer> &viewer_,
 //        std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_, OmniRobotPrx omnirobot_proxy_)
 //{
-void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_)
+void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_)
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
 
-    innerModel = innerModel_;
+    G = graph;
+    innerModel = G->get_inner_api();
     configparams = configparams_;
 
     stopRobot();
@@ -84,7 +85,7 @@ void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_, std::shared_
 
     collisions =  std::make_shared<Collisions>();
 
-    collisions->initialize(innerModel, configparams);
+    collisions->initialize(G, configparams);
     grid.initialize(collisions);
  //   grid.draw(viewer);
     controller.initialize(innerModel,configparams);
@@ -330,6 +331,7 @@ void updateAffordancesPolylines(std::map<float, vector<QPolygonF>> mapCostObject
 
 
 private:
+    std::shared_ptr<CRDT::CRDTGraph> G;
     std::shared_ptr<Collisions> collisions;
     std::shared_ptr<CRDT::InnerAPI> innerModel;
 //    std::shared_ptr<InnerViewer> viewer;

@@ -5,8 +5,20 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
+#include "dsr/api/dsr_api.h"
 #include <dsr/api/dsr_inner_api.h>
 #include <CommonBehavior.h>
+
+#include <fcl/collision.h>
+#include <fcl/distance.h>
+#include <fcl/narrowphase/narrowphase.h>
+#include <fcl/ccd/motion.h>
+#include <fcl/BV/BV.h>
+#include <fcl/BVH/BVH_model.h>
+#include <fcl/shape/geometric_shapes.h>
+#include <fcl/traversal/traversal_node_setup.h>
+#include <fcl/traversal/traversal_node_bvh_shape.h>
+#include <fcl/traversal/traversal_node_bvhs.h>
 
 
 class Collisions {
@@ -17,11 +29,12 @@ public:
     std::set<QString> excludedNodes;
     QRectF outerRegion;
 
-    void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
+    void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
 
 
         qDebug()<<"Collisions - " <<__FUNCTION__;
-        innerModel = innerModel_;
+        G = graph_;
+        innerModel = G->get_inner_api();
 
         /// Processing configuration parameters
         try
@@ -124,10 +137,50 @@ public:
 
     }
 */
+    bool collide(const std::string &node_a_name, const std::string &node_b_name)
+    {
+        std::cout << "collide " << node_a_name << node_b_name << std::endl;
+        
+        QMat r1q = innerModel->getTransformationMatrixS("world", node_a_name).value();
+        fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
+        fcl::Vec3f T1( r1q(0,3), r1q(1,3), r1q(2,3) );
+
+
+        QMat r2q = innerModel->getTransformationMatrixS("world", node_b_name).value();
+        fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
+        fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
+        
+
+        fcl::CollisionRequest request;
+        fcl::CollisionResult result;
+
+        fcl::CollisionObject* n1 = create_collision_object(node_a_name);
+        n1->setTransform(R1, T1);
+        n1->computeAABB();
+        fcl::AABB a1 = n1->getAABB();
+        fcl::Vec3f v1 = a1.center();
+
+        fcl::CollisionObject* n2 = create_collision_object(node_b_name);
+        n2->setTransform(R2, T2);
+        n2->computeAABB();
+        fcl::AABB a2 = n2->getAABB();
+        fcl::Vec3f v2 = a2.center();
+
+        fcl::collide(n1, n2, request, result);
+        return result.isCollision();
+    }
+
+    fcl::CollisionObject* create_collision_object(std::string node_name)
+    {
+
+
+
+    }
+
 private:
 
     std::shared_ptr<CRDT::InnerAPI> innerModel;
-
+    std::shared_ptr<CRDT::CRDTGraph> G;
 };
 
 #endif //COLLISIONS_H
