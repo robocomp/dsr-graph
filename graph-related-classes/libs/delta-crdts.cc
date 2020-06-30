@@ -306,7 +306,8 @@ public:
         // On a valid dot generator, all dots should be compact on the used id
         // Making the new dot, updates the dot generator and returns the dot
         // pair<typename map<K,int>::iterator,bool> ret;
-        auto kib=cc.insert(pair<K,int>(id,1));
+        auto p = pair<K, int>(id, 1);
+        auto kib=cc.insert(p);
         if (kib.second==false) // already there, so update it
             (kib.first->second)+=1;
         //return dot;
@@ -403,11 +404,11 @@ public:
 
     map<pair<K,int>,T> ds;  // Map of dots to vals
 
-    dotcontext<K> cbase;
-    dotcontext<K> & c;
+    //dotcontext<K> cbase;
+    dotcontext<K> c;
 
     // if no causal context supplied, used base one
-    dotkernel() : c {cbase} {}
+    dotkernel()  {}
     // if supplied, use a shared causal context
     dotkernel(dotcontext<K> &jointc) : c(jointc) {}
 //  dotkernel(const dotkernel<T,K> &adk) : c(adk.c), ds(adk.ds) {}
@@ -1391,9 +1392,8 @@ public:
 
     mvreg() {
         if constexpr(std::is_same<int, K>::value) { id = 0;};
-        dk.c = dk.cbase;
     } // Only for deltas and those should not be mutated
-    mvreg(K k) : id(k) {dk.c = dk.cbase;} // Mutable replicas need a unique id
+    mvreg(K k) : id(k) {} // Mutable replicas need a unique id
     mvreg(K k, dotcontext<K> &jointc) : id(k), dk(jointc) {}
 
     dotcontext<K> & context()
@@ -1415,10 +1415,11 @@ public:
     {
         mvreg<V,K> r,a;
         //if (!dk.cbase.cc.empty() && dk.c.cc.empty()) dk.c = dk.cbase;
-        r.dk=dk.rmv();
+        r.dk = dk.rmv();
         a.dk=dk.add(id,val);
         r.join(a);
         return r;
+
     }
 
     set<V> read ()  {
@@ -1832,6 +1833,10 @@ public:
         return m;
     }
 
+    const std::map<N,V> & getMapRef() const
+    {
+        return m;
+    }
 
     std::map<N,V>  getMap() const
     {

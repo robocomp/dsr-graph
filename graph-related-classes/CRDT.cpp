@@ -663,7 +663,7 @@ bool CRDTGraph::delete_edge(const std::string& from, const std::string& to, cons
 std::vector<Edge> CRDTGraph::get_edges_by_type(const Node& node, const std::string& type)
 {
     std::vector<Edge> edges_;
-    for (auto &[key, edge] : node.fano()) 
+    for (auto &[key, edge] : node.fano())
         if( key.second == type )
             edges_.emplace_back(*edge.read().begin());
     return edges_;
