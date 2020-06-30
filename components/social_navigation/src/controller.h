@@ -5,13 +5,14 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <dsr/api/dsr_inner_api.h>
+
 #include <Laser.h>
 #include <CommonBehavior.h>
-#include "genericworker.h"
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/range.hpp>
 #include <tuple>
+
+#include <dsr/api/dsr_inner_api.h>
 
 class Controller {
 public:

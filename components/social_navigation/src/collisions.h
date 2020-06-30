@@ -5,8 +5,8 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include <innermodel/innermodel.h>
-#include "CommonBehavior.h"
+#include <dsr/api/dsr_inner_api.h>
+#include <CommonBehavior.h>
 
 
 class Collisions {
@@ -17,7 +17,7 @@ public:
     std::set<QString> excludedNodes;
     QRectF outerRegion;
 
-    void initialize(const std::shared_ptr<InnerModel> &innerModel_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
+    void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
 
 
         qDebug()<<"Collisions - " <<__FUNCTION__;
@@ -51,7 +51,7 @@ public:
 
         // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
         robotNodes.clear(); restNodes.clear();
-        recursiveIncludeMeshes(innerModel->getRoot(), "robot", false, robotNodes, restNodes, excludedNodes);
+//        recursiveIncludeMeshes(innerModel->getRoot(), "robot", false, robotNodes, restNodes, excludedNodes);
         qsrand( QTime::currentTime().msec() );
 
     }
@@ -59,7 +59,7 @@ public:
     bool checkRobotValidStateAtTargetFast(const QVec &targetPos, const QVec &targetRot) const   {
         //First we move the robot in our copy of innermodel to its current coordinates
 
-            innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
+  //          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
 
             ///////////////////////
             //// Check if the robot at the target collides with any know object
@@ -72,7 +72,7 @@ public:
                 for ( auto &out : restNodes )
                 {
                     try {
-                        collision = innerModel->collide(in, out);
+//                        collision = innerModel->collide(in, out);
                     }
 
                     catch(QString s) {qDebug()<< __FUNCTION__ << s;}
@@ -86,7 +86,7 @@ public:
             return true;
         }
 
-
+/*
     void recursiveIncludeMeshes(InnerModelNode *node, QString robotId, bool inside, std::vector<QString> &in, std::vector<QString> &out, std::set<QString> &excluded) {
 
         if (node->id == robotId)
@@ -123,10 +123,10 @@ public:
         }
 
     }
-
+*/
 private:
 
-    std::shared_ptr<InnerModel> innerModel;
+    std::shared_ptr<CRDT::InnerAPI> innerModel;
 
 };
 

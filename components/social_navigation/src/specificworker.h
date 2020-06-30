@@ -28,16 +28,20 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <Laser.h>
+#include <navigation.h>
+#include <grid.h>
+#include <controller.h>
+
+
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 
 
-#include <grid.h>
-#include <controller.h>
-#include <navigation.h>
-#include <algorithm>
 #include <localPerson.h>
 #include <cppitertools/zip.hpp>
+
+#include <algorithm>
 
 class SpecificWorker : public GenericWorker
 {
@@ -65,6 +69,12 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+	void checkRobotAutoMovState();
+    void moveRobot();
+    void sendRobotTo();
+	void forcesSliderChanged(int value = 0);
+
+
 private:
 	std::shared_ptr<CRDT::InnerAPI> innermodel;
 	// DSR graph
@@ -82,6 +92,7 @@ private:
 	QWidget window;
 	bool startup_check_flag;
 
+	//navigation
 	std::shared_ptr<RoboCompCommonBehavior::ParameterList> confParams;
     Navigation<Grid<>,Controller> navigation;
 
@@ -91,6 +102,10 @@ private:
     bool personalSpacesChanged = false;
     bool affordancesChanged = false;
 
+	std::vector <int32_t> prev_blockingIDs = {};
+	std::vector<std::vector<int32_t>> prev_softBlockingIDs = {};
+
+	localPersonsVec totalPersons;
 
 
 };
