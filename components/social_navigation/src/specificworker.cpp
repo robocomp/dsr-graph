@@ -77,7 +77,7 @@ void SpecificWorker::initialize(int period)
 	    forcesSliderChanged();
     	moveRobot();
 
-		navigation.initialize(innermodel, confParams);
+		navigation.initialize(G, confParams);
 	
 		this->Period = period;
 //		timer.start(Period);
