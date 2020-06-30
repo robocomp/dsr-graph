@@ -63,7 +63,7 @@ void DSRtoTreeViewer::del_edge_SLOT(const std::int32_t from, const std::int32_t 
 void DSRtoTreeViewer::del_node_SLOT(int id)
 {
     std::cout<<__FUNCTION__<<":"<<__LINE__<< std::endl;
-   
+
 }
 //////////////////////////////////////////////////////////////////////////////////////
 ///// EVENTS
@@ -71,7 +71,7 @@ void DSRtoTreeViewer::del_node_SLOT(int id)
 
 void DSRtoTreeViewer::wheelEvent(QWheelEvent* event)
 {
-    
+
 }
 
 void DSRtoTreeViewer::resizeEvent(QResizeEvent* event)

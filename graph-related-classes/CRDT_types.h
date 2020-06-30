@@ -61,9 +61,12 @@ namespace CRDT {
                 case 4:
                     val = x.bl();
                     break;
-                case 5:
-                    val = x.byte_vec().data();
+                case 5: {
+                    std::vector<std::byte> b = std::vector<std::byte>(reinterpret_cast<std::byte *>(x.byte_vec().data()),
+                                           reinterpret_cast<std::byte *>(x.byte_vec().data()) + x.byte_vec().size());
+                    val = b;
                     break;
+                }
                 default:
                     break;
             }
