@@ -24,7 +24,7 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/range.hpp>
 #include <limits>
-#include "collisions.h"
+#include <collisions.h>
 using namespace std;
 
 #define TILE_SIZE_ 250
