@@ -4,8 +4,8 @@
 //  
 //  File name: CommonBehavior.ice
 //  Source: CommonBehavior.idsl
-//  
-//****************************************************************** 
+//
+//******************************************************************
 #ifndef ROBOCOMPCOMMONBEHAVIOR_ICE
 #define ROBOCOMPCOMMONBEHAVIOR_ICE
 module RoboCompCommonBehavior
@@ -13,9 +13,9 @@ module RoboCompCommonBehavior
 	enum State {  Starting, Running };
 	struct Parameter
 	{
-		 bool editable;
-		 string value;
-		 string type;
+		bool editable;
+		string value;
+		string type;
 	};
 	dictionary <string,Parameter> ParameterList;
 	interface CommonBehavior

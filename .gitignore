@@ -32,5 +32,8 @@ test/__pycache__/
 components/crdt_rtps_dsr_tests/test_result.txt
 components/crdt_rtps_dsr_tests/src/tests/testfiles/write_empty_file.json
 components/crdt_rtps_dsr_tests/src/tests/testfiles/write_initial_dsr2.json
+**/perf.data
+**/config
+**/__pycache__/
 
 
