@@ -16,6 +16,7 @@ NavigationAgent.MaxZSpeed = 450
 NavigationAgent.MaxXSpeed = 350
 NavigationAgent.MaxRotationSpeed = 0.75
 
+NavigationAgent.RobotName = omnirobot
 NavigationAgent.RobotXWidth = 540
 NavigationAgent.RobotZLong = 460
 NavigationAgent.RobotRadius = 400

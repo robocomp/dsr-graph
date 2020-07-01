@@ -169,11 +169,11 @@ public:
         for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
             for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
             {
-                bool free = collisions_->checkRobotValidStateAtTargetFast(QVec::vec3(i,10,j),QVec::zeros(3));
+                bool free = collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{(float)i,10.0,(float)j},std::vector<float>{0.0,0.0,0.0});
                 fmap.emplace(Key(i, j), T{count++, free, false, 1.f});
             }
 
-		collisions_->checkRobotValidStateAtTargetFast(QVec::vec3(0,10,0),QVec::zeros(3)); //para devolver el robot a la posición 0,0
+		collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{0.0,10.0,0.0},std::vector<float>{0.0,0.0,0.0}); //para devolver el robot a la posición 0,0
 
 		fmap_aux = fmap;
 
