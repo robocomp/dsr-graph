@@ -32,7 +32,7 @@
 #include <navigation.h>
 #include <grid.h>
 #include <controller.h>
-
+#include <custom_widget.h>
 
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
@@ -107,6 +107,8 @@ private:
 
 	localPersonsVec totalPersons;
 
+	//local widget
+	Custom_widget custom_widget;
 
 };
 

@@ -61,18 +61,21 @@ void SpecificWorker::initialize(int period)
 
 		// Graph viewer
 		using opts = DSR::GraphViewer::view;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(nullptr, G, opts::scene|opts::graph|opts::tree|opts::osg);
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree|opts::osg);
 
 		//Inner Api
 		innermodel = G->get_inner_api();
 
-		connect(autoMov_checkbox, SIGNAL(clicked()),this, SLOT(checkRobotAutoMovState()));
-    	connect(robotMov_checkbox, SIGNAL(clicked()),this, SLOT(moveRobot()));
 
-    	connect(ki_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
-    	connect(ke_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
+		//Custom widget
+		custom_widget.show();
+		connect(custom_widget.autoMov_checkbox, SIGNAL(clicked()),this, SLOT(checkRobotAutoMovState()));
+    	connect(custom_widget.robotMov_checkbox, SIGNAL(clicked()),this, SLOT(moveRobot()));
 
-    	connect(send_button, SIGNAL(clicked()),this, SLOT(sendRobotTo()));
+    	connect(custom_widget.ki_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
+    	connect(custom_widget.ke_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
+
+    	connect(custom_widget.send_button, SIGNAL(clicked()),this, SLOT(sendRobotTo()));
 
 	    forcesSliderChanged();
     	moveRobot();
@@ -438,9 +441,9 @@ void  SpecificWorker::moveRobot()
 {
     qDebug()<<__FUNCTION__;
 
-    if(robotMov_checkbox->checkState() == Qt::CheckState(2))
+    if(custom_widget.robotMov_checkbox->checkState() == Qt::CheckState(2))
     {
-        autoMov_checkbox->setEnabled(true);
+        custom_widget.autoMov_checkbox->setEnabled(true);
         navigation.moveRobot = true;
 		navigation.stopMovingRobot = false;
     }
@@ -456,7 +459,7 @@ void  SpecificWorker::moveRobot()
 			navigation.stopMovingRobot = false;
 		}
 
-        autoMov_checkbox->setEnabled(false);
+        custom_widget.autoMov_checkbox->setEnabled(false);
 
     }
 
@@ -467,7 +470,7 @@ void  SpecificWorker::checkRobotAutoMovState()
 {
 	qDebug()<<__FUNCTION__;
 
-	if(autoMov_checkbox->checkState() == Qt::CheckState(2))
+	if(custom_widget.autoMov_checkbox->checkState() == Qt::CheckState(2))
 	{
 		navigation.robotAutoMov = true;
 		navigation.newRandomTarget();
@@ -483,8 +486,8 @@ void  SpecificWorker::checkRobotAutoMovState()
 
 void SpecificWorker::sendRobotTo()
 {
-    auto x =  x_spinbox->value();
-    auto z =  z_spinbox->value();
+    auto x =  custom_widget.x_spinbox->value();
+    auto z =  custom_widget.z_spinbox->value();
 
     navigation.newTarget(QPointF(x,z));
 
@@ -495,8 +498,8 @@ void SpecificWorker::
 forcesSliderChanged(int value)
 {
 
-    navigation.KI = (float) ki_slider -> sliderPosition();
-    navigation.KE = (float) ke_slider -> sliderPosition();
+    navigation.KI = (float) custom_widget.ki_slider -> sliderPosition();
+    navigation.KE = (float) custom_widget.ke_slider -> sliderPosition();
 
 }
 
