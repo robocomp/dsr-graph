@@ -126,9 +126,9 @@ class CalculateTriangles : public osg::NodeVisitor
 class Collisions {
 
 public:
-    std::vector<QString> robotNodes;
-    std::vector<QString> restNodes;
-    std::set<QString> excludedNodes;
+    std::vector<std::string> robotNodes;
+    std::vector<std::string> restNodes;
+    std::set<std::string> excludedNodes;
     QRectF outerRegion;
 
     void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
@@ -138,7 +138,7 @@ public:
         G = graph_;
         innerModel = G->get_inner_api();
 
-//qDebug()<<"collide"<<collide("fridge_mesh", "viriato_mesh");
+//qDebug()<<"collide"<<collide("floor_plane", "tableA");
 //exit(0);
         /// Processing configuration parameters
         try
@@ -163,8 +163,8 @@ public:
         QStringList ls = QString::fromStdString(params_->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
         qDebug() << __FILE__ << __FUNCTION__ << ls.size() << "objects read for exclusion list";
 
-                foreach(const QString &s, ls)
-                excludedNodes.insert(s);
+        foreach(const QString &s, ls)
+            excludedNodes.insert(s.toStdString());
 
         // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
         robotNodes.clear(); restNodes.clear();
@@ -173,35 +173,35 @@ public:
 
     }
 
-    bool checkRobotValidStateAtTargetFast(const QVec &targetPos, const QVec &targetRot) const   {
-        //First we move the robot in our copy of innermodel to its current coordinates
+    bool checkRobotValidStateAtTargetFast(const QVec &targetPos, const QVec &targetRot)    
+    {
+    //First we move the robot in our copy of innermodel to its current coordinates
 
-  //          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
+//          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
 
-            ///////////////////////
-            //// Check if the robot at the target collides with any know object
-            ///////////////////////
+        ///////////////////////
+        //// Check if the robot at the target collides with any know object
+        ///////////////////////
 
-            bool collision = false;
+        bool collision = false;
 
-            for ( auto &in : robotNodes )
+        for ( std::string in : robotNodes )
+        {
+            for ( std::string  out : restNodes )
             {
-                for ( auto &out : restNodes )
+                try
                 {
-                    try {
-//                        collision = innerModel->collide(in, out);
-                    }
-
-                    catch(QString s) {qDebug()<< __FUNCTION__ << s;}
-
-                    if (collision)
-                    {
-                        return false;
-                    }
+                    collision = collide(in, out);
+                }
+                catch(QString s) {qDebug()<< __FUNCTION__ << s;}
+                if (collision)
+                {
+                    return false;
                 }
             }
-            return true;
         }
+        return true;
+    }
 
 /*
     void recursiveIncludeMeshes(InnerModelNode *node, QString robotId, bool inside, std::vector<QString> &in, std::vector<QString> &out, std::set<QString> &excluded) {
@@ -243,7 +243,7 @@ public:
 */
     bool collide(const std::string &node_a_name, const std::string &node_b_name)
     {
-        std::cout << "collide " << node_a_name << node_b_name << std::endl;
+        std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
         
         QMat r1q = innerModel->getTransformationMatrixS("world", node_a_name).value();
         fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
@@ -259,15 +259,23 @@ public:
         fcl::CollisionResult result;
 
         fcl::CollisionObject* n1 = get_collision_object(node_a_name);
-        n1->setTransform(R1, T1);
-        n1->computeAABB();
-
         fcl::CollisionObject* n2 = get_collision_object(node_b_name);
-        n2->setTransform(R2, T2);
-        n2->computeAABB();
 
-        fcl::collide(n1, n2, request, result);
-        return result.isCollision();
+        if (n1 != nullptr and n2 != nullptr)
+        {
+            n1->setTransform(R1, T1);
+            n1->computeAABB();
+
+            n2->setTransform(R2, T2);
+            n2->computeAABB();
+            fcl::collide(n1, n2, request, result);
+            return result.isCollision();
+        }
+        else
+        {
+            return false;
+        }
+        
     }
     //TODO: update objects if node parameters values changed
 
@@ -342,6 +350,63 @@ public:
     fcl::CollisionObject* create_plane_collision_object(Node node)
     {
         fcl::CollisionObject* collision_object = nullptr;
+        std::optional<int> width = G->get_attrib_by_name<int>(node, "width");
+        std::optional<int> height = G->get_attrib_by_name<int>(node, "height");
+        std::optional<int> depth = G->get_attrib_by_name<int>(node, "depth");
+        if(not (width.has_value() and height.has_value() and depth.has_value()))
+            return collision_object;
+        std::vector<fcl::Vec3f> vertices;
+        vertices.push_back(fcl::Vec3f(-width.value()/2., +height.value()/2., -depth.value()/2.)); // Front NW
+        vertices.push_back(fcl::Vec3f(+width.value()/2., +height.value()/2., -depth.value()/2.)); // Front NE
+        vertices.push_back(fcl::Vec3f(-width.value()/2., -height.value()/2., -depth.value()/2.)); // Front SW
+        vertices.push_back(fcl::Vec3f(+width.value()/2., -height.value()/2., -depth.value()/2.)); // Front SE
+        vertices.push_back(fcl::Vec3f(-width.value()/2., +height.value()/2., +depth.value()/2.)); // Back NW
+        vertices.push_back(fcl::Vec3f(+width.value()/2., +height.value()/2., +depth.value()/2.)); // Back NE
+        vertices.push_back(fcl::Vec3f(-width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SW
+        vertices.push_back(fcl::Vec3f(+width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SE
+
+        std::optional<Node> parent = G->get_parent_node(node);
+        if(not parent.has_value())
+            return collision_object;
+        std::optional<QVec> pose = innerModel->transformS6D(parent.value().name(), node.name());
+        osg::Matrix r;
+        r.makeRotate(osg::Vec3(0, 0, 1), osg::Vec3(pose.value().rx(), pose.value().ry(), -pose.value().rz()));
+        QMat qmatmat(4,4);
+        for (int rro=0; rro<4; rro++)
+        {
+            for (int cco=0; cco<4; cco++)
+            {
+                qmatmat(rro,cco) = r(rro,cco);
+            }
+        }
+
+        for (size_t i=0; i<vertices.size(); i++)
+        {
+            fcl::Vec3f v = vertices[i];
+            const QVec rotated = (qmatmat*(QVec::vec3(v[0], v[1], v[2]).toHomogeneousCoordinates())).fromHomogeneousCoordinates();
+            vertices[i] = fcl::Vec3f(rotated(0)+pose.value().x(), rotated(1)+pose.value().y(), rotated(2)+pose.value().z());
+        }
+
+        std::vector<fcl::Triangle> triangles;
+        triangles.push_back(fcl::Triangle(0,1,2)); // Front
+        triangles.push_back(fcl::Triangle(1,2,3));
+        triangles.push_back(fcl::Triangle(4,5,6)); // Back
+        triangles.push_back(fcl::Triangle(5,6,7));
+        triangles.push_back(fcl::Triangle(4,0,6)); // Left
+        triangles.push_back(fcl::Triangle(0,6,2));
+        triangles.push_back(fcl::Triangle(5,1,7)); // Right
+        triangles.push_back(fcl::Triangle(1,7,3));
+        triangles.push_back(fcl::Triangle(5,1,4)); // Top
+        triangles.push_back(fcl::Triangle(1,4,0));
+        triangles.push_back(fcl::Triangle(2,3,6)); // Bottom
+        triangles.push_back(fcl::Triangle(3,6,7));
+
+        FCLModelPtr fclMesh = FCLModelPtr(new FCLModel());
+        fclMesh->beginModel();
+        fclMesh->addSubModel(vertices, triangles);
+        fclMesh->endModel();
+           
+        collision_object = new fcl::CollisionObject(fclMesh);
 
         return collision_object;
     }
