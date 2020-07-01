@@ -27,8 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 #include <QHBoxLayout>
 
 class SpecificWorker : public GenericWorker

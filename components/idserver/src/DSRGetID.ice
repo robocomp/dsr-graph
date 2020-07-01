@@ -4,8 +4,8 @@
 //  
 //  File name: DSRGetID.ice
 //  Source: DSRGetID.idsl
-//  
-//****************************************************************** 
+//
+//******************************************************************
 #ifndef ROBOCOMPDSRGETID_ICE
 #define ROBOCOMPDSRGETID_ICE
 module RoboCompDSRGetID
