@@ -80,6 +80,10 @@ namespace CRDT {
             val = std::move(v);
         }
 
+        void variant(const ValType& v) {
+            val = v;
+        }
+
         CRDTValue(std::vector<float> &&float_vec) {
             val = std::move(float_vec);
         }

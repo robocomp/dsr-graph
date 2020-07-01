@@ -5,6 +5,8 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
 
+#include "user_types.h"
+
 namespace CRDT {
 
     // Translators
@@ -221,7 +223,7 @@ namespace CRDT {
         CRDTAttribute attribute;
         CRDTValue val;
         attribute.type(attr.value().index());
-        val.variant(std::move(attr.move_value()));
+        val.variant(std::move(attr.value()));
         attribute.val(std::move(val));
         attribute.agent_id(attr.agent_id());
         attribute.timestamp(attr.timestamp());
@@ -229,7 +231,18 @@ namespace CRDT {
         return attribute;
     }
 
+    inline static CRDTAttribute user_attribute_to_crdt(const Attribute& attr) {
 
+        CRDTAttribute attribute;
+        CRDTValue val;
+        attribute.type(attr.value().index());
+        val.variant(attr.value());
+        attribute.val(std::move(val));
+        attribute.agent_id(attr.agent_id());
+        attribute.timestamp(attr.timestamp());
+
+        return attribute;
+    }
 
     inline static CRDTEdge user_edge_to_crdt(Edge&& edge) {
         CRDTEdge crdt_edge;
@@ -238,14 +251,31 @@ namespace CRDT {
         crdt_edge.from(edge.from());
         crdt_edge.to(edge.to());
         crdt_edge.type(std::move(edge.type()));
-        for (auto &&[k,v] : edge.move_attrs()) {
+        for (auto &&[k,v] : edge.attrs()) {
             mvreg<CRDTAttribute, int> mv;
             mv.write(user_attribute_to_crdt(std::move(v)));
-            crdt_edge.attrs().emplace(std::move(k), std::move(mv));
+            crdt_edge.attrs().emplace(k, std::move(mv));
         }
 
         return crdt_edge;
     }
+
+    inline static CRDTEdge user_edge_to_crdt(const Edge& edge) {
+        CRDTEdge crdt_edge;
+
+        crdt_edge.agent_id(edge.agent_id());
+        crdt_edge.from(edge.from());
+        crdt_edge.to(edge.to());
+        crdt_edge.type(edge.type());
+        for (auto &&[k,v] : edge.attrs()) {
+            mvreg<CRDTAttribute, int> mv;
+            mv.write(user_attribute_to_crdt(v));
+            crdt_edge.attrs().emplace(k, mv);
+        }
+
+        return crdt_edge;
+    }
+
 
     inline static CRDTNode user_node_to_crdt(Node&& node) {
         CRDTNode crdt_node;
@@ -254,16 +284,38 @@ namespace CRDT {
         crdt_node.id(node.id());
         crdt_node.type(std::move(node.type()));
         crdt_node.name(std::move(node.name()));
-        for (auto &&[k,v] : node.move_attrs()) {
+        for (auto &&[k,v] : node.attrs()) {
             mvreg<CRDTAttribute, int> mv;
             mv.write(user_attribute_to_crdt(std::move(v)));
-            crdt_node.attrs().emplace(std::move(k), std::move(mv));
+            crdt_node.attrs().emplace(k, std::move(mv));
         }
 
-        for (auto &&[k,v] : node.move_fano()) {
+        for (auto &&[k,v] : node.fano()) {
             mvreg<CRDTEdge, int> mv;
             mv.write(user_edge_to_crdt(std::move(v)));
-            crdt_node.fano().emplace(std::move(k), std::move(mv));
+            crdt_node.fano().emplace(k, std::move(mv));
+        }
+        return crdt_node;
+    }
+
+
+    inline static CRDTNode user_node_to_crdt(const Node& node) {
+        CRDTNode crdt_node;
+
+        crdt_node.agent_id(node.agent_id());
+        crdt_node.id(node.id());
+        crdt_node.type(node.type());
+        crdt_node.name(node.name());
+        for (auto &&[k,v] : node.attrs()) {
+            mvreg<CRDTAttribute, int> mv;
+            mv.write(user_attribute_to_crdt(v));
+            crdt_node.attrs().emplace(k, mv);
+        }
+
+        for (auto &&[k,v] : node.fano()) {
+            mvreg<CRDTEdge, int> mv;
+            mv.write(user_edge_to_crdt(v));
+            crdt_node.fano().emplace(k, mv);
         }
         return crdt_node;
     }

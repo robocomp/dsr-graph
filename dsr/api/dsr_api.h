@@ -43,8 +43,8 @@
 namespace CRDT {
 
     using N = CRDTNode;
-    using Nodes = ormap<int, mvreg<CRDTNode, int>, int>;
-    using IDType = std::int32_t;
+    using Nodes = ormap<uint32_t , mvreg<CRDTNode, int>, int>;
+    using IDType = std::uint32_t;
 
 
     class hash_tuple {
@@ -73,6 +73,7 @@ namespace CRDT {
 
     template<typename Va>
     static bool constexpr allowed_types = std::is_same<std::int32_t, Va>::value ||
+                                          std::is_same<std::uint32_t, Va>::value ||
                                           std::is_same<std::string_view, Va>::value ||
                                           std::is_same<std::string, Va>::value ||
                                           std::is_same<std::float_t, Va>::value ||
@@ -82,7 +83,10 @@ namespace CRDT {
                                           std::is_same<bool, Va>::value;
     template<typename Va>
     static bool constexpr node_or_edge = std::is_same<CRDT::CRDTNode, Va>::value ||
-                                         std::is_same<CRDT::CRDTEdge, Va>::value;
+                                         std::is_same<CRDT::CRDTEdge, Va>::value ||
+                                         std::is_same<CRDT::Node, Va>::value ||
+                                         std::is_same<CRDT::Edge, Va>::value
+                                         ;
 
     template<typename Va>
     static bool constexpr allowed_return_types = std::is_same<std::int32_t, Va>::value ||
@@ -133,11 +137,11 @@ namespace CRDT {
 
         }; //Used by viewer
 
-        std::map<long, CRDTNode> getCopy() const;
+        std::map<long, Node> getCopy() const;
 
-        std::vector<long> getKeys() const;
+        std::vector<uint32_t> getKeys() const;
 
-        inline int32_t get_agent_id() const { return agent_id; };
+        inline uint32_t get_agent_id() const { return agent_id; };
 
         inline std::string get_agent_name() const { return agent_name; };
 
@@ -156,24 +160,22 @@ namespace CRDT {
         void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file); };
 
         // not working yet
-        typename std::map<int, mvreg<CRDTNode, int>>::const_iterator begin() const { return nodes.getMap().begin(); };
+        //typename std::map<int, mvreg<CRDTNode, int>>::const_iterator begin() const { return nodes.getMap().begin(); };
 
-        typename std::map<int, mvreg<CRDTNode, int>>::const_iterator end() const { return nodes.getMap().end(); };
+        //typename std::map<int, mvreg<CRDTNode, int>>::const_iterator end() const { return nodes.getMap().end(); };
 
         // Innermodel API
         std::unique_ptr<InnerAPI> get_inner_api() { return std::make_unique<InnerAPI>(this); };
 
         // Nodes
-        std::optional<CRDTNode> get_node_root() { return get_node(100); };  //CHANGE THIS
-        std::optional<CRDTNode> get_node(const std::string &name);
+        std::optional<Node> get_node_root() { return get_node(100); };  //CHANGE THIS
+        std::optional<Node> get_node(const std::string &name);
 
-        std::optional<CRDTNode> get_node(int id);
+        std::optional<Node> get_node(int id);
 
-        //[[deprecated ("You should be using \"insert_node\" to insert new nodes and \"update_node\" to update them")]]
-        //bool insert_or_assign_node(Node &node);
-        std::optional<uint32_t> insert_node(CRDTNode &node);
+        std::optional<uint32_t> insert_node(Node &node);
 
-        bool update_node(CRDTNode &node);
+        bool update_node(Node &node);
 
         bool delete_node(const std::string &name);
 
@@ -182,47 +184,50 @@ namespace CRDT {
         std::vector<CRDTNode> get_nodes_by_type(const std::string &type);
 
         std::optional<std::string> get_name_from_id(std::int32_t id);  // caché
-        std::optional<int> get_id_from_name(const std::string &name);  // caché
-        std::optional<std::int32_t> get_node_level(CRDTNode &n);
+        std::optional<std::uint32_t> get_id_from_name(const std::string &name);  // caché
+        std::optional<std::int32_t> get_node_level(Node &n);
 
-        std::optional<std::int32_t> get_parent_id(const CRDTNode &n);
+        std::optional<std::uint32_t> get_parent_id(const Node &n);
 
-        std::optional<CRDTNode> get_parent_node(const CRDTNode &n);
+        std::optional<Node> get_parent_node(const Node &n);
 
-        std::string get_node_type(CRDTNode &n);
+        std::string get_node_type(Node &n);
 
         template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         void add_or_modify(Type &elem, const std::string &att_name, const Ta &att_value) {
 
+            if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
+                Attribute at(att_value, get_unix_timestamp(), agent_id);
+                elem.attrs().insert_or_assign(att_name, at);
+            } else {
+                CRDTAttribute at;
+                CRDTValue value;
+                if constexpr (std::is_same<std::string, Ta>::value || std::is_same<std::string_view, Ta>::value ||
+                              std::is_same<const string &, Ta>::value) {
+                    at.type(STRING);
+                    value.str(att_value);
+                } else if constexpr (std::is_same<std::int32_t, Ta>::value) {
+                    at.type(INT);
+                    value.dec(att_value);
+                } else if constexpr (std::is_same<float, Ta>::value || std::is_same<double, Ta>::value) {
+                    at.type(FLOAT);
+                    value.fl(att_value);
+                } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
+                    at.type(FLOAT_VEC);
+                    value.float_vec(att_value);
+                } else if constexpr (std::is_same<bool, Ta>::value) {
+                    at.type(BOOL);
+                    value.bl(att_value);
+                }
 
-            CRDTAttribute at;
-            CRDTValue value;
-            if constexpr (std::is_same<std::string, Ta>::value || std::is_same<std::string_view, Ta>::value ||
-                          std::is_same<const string &, Ta>::value) {
-                at.type(STRING);
-                value.str(att_value);
-            } else if constexpr (std::is_same<std::int32_t, Ta>::value) {
-                at.type(INT);
-                value.dec(att_value);
-            } else if constexpr (std::is_same<float, Ta>::value || std::is_same<double, Ta>::value) {
-                at.type(FLOAT);
-                value.fl(att_value);
-            } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
-                at.type(FLOAT_VEC);
-                value.float_vec(att_value);
-            } else if constexpr (std::is_same<bool, Ta>::value) {
-                at.type(BOOL);
-                value.bl(att_value);
+                at.val(std::move(value));
+                at.timestamp(get_unix_timestamp());
+                if (elem.attrs().find(att_name) == elem.attrs().end()) {
+                    mvreg<CRDTAttribute, int> mv;
+                    elem.attrs().insert(make_pair(att_name, mv));
+                }
+                elem.attrs()[att_name].write(at);
             }
-
-            at.val(std::move(value));
-            at.timestamp(get_unix_timestamp());
-            if (elem.attrs().find(att_name) == elem.attrs().end()) {
-                mvreg<CRDTAttribute, int> mv;
-                elem.attrs().insert(make_pair(att_name, mv));
-            }
-            elem.attrs()[att_name].write(at);
-
         }
 
         template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
@@ -233,7 +238,7 @@ namespace CRDT {
         };
 
         template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
-        bool add_attrib(Type &elem, const std::string &att_name, CRDTAttribute &attr) {
+        bool add_attrib(Type &elem, const std::string &att_name, Attribute &attr) {
             if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[att_name] = attr;
@@ -267,40 +272,40 @@ namespace CRDT {
         }
 
         // Edges
-        std::optional<CRDTEdge> get_edge(const std::string &from, const std::string &to, const std::string &key);
+        std::optional<Edge> get_edge(const std::string &from, const std::string &to, const std::string &key);
 
-        std::optional<CRDTEdge> get_edge(int from, int to, const std::string &key);
+        std::optional<Edge> get_edge(int from, int to, const std::string &key);
 
-        std::optional<CRDTEdge> get_edge(const CRDTNode &n, int to, const std::string &key) {
+        std::optional<Edge> get_edge(const CRDTNode &n, int to, const std::string &key) {
             //EdgeKey ek; ek.to(to); ek.type(key);
             return (n.fano().find({to, key}) != n.fano().end()) ? std::make_optional(
                     *n.fano().find({to, key})->second.read().begin()) : std::nullopt;
         };
 
-        bool insert_or_assign_edge(const CRDTEdge &attrs);
+        bool insert_or_assign_edge(const Edge &attrs);
 
         void
-        insert_or_assign_edge_RT(CRDTNode &n, int to, const std::vector<float> &trans, const std::vector<float> &rot_euler);
+        insert_or_assign_edge_RT(Node &n, int to, const std::vector<float> &trans, const std::vector<float> &rot_euler);
 
-        void insert_or_assign_edge_RT(CRDTNode &n, int to, std::vector<float> &&trans, std::vector<float> &&rot_euler);
+        void insert_or_assign_edge_RT(Node &n, int to, std::vector<float> &&trans, std::vector<float> &&rot_euler);
 
         bool delete_edge(const std::string &from, const std::string &t, const std::string &key);
 
         bool delete_edge(int from, int t, const std::string &key);
 
-        std::vector<CRDTEdge> get_edges_by_type(const std::string &type);
+        std::vector<Edge> get_edges_by_type(const std::string &type);
 
-        std::vector<CRDTEdge> get_edges_by_type(const CRDTNode &node, const std::string &type);
+        std::vector<Edge> get_edges_by_type(const CRDTNode &node, const std::string &type);
 
-        std::vector<CRDTEdge> get_edges_to_id(int id);
+        std::vector<Edge> get_edges_to_id(int id);
 
-        std::optional<std::unordered_map<std::pair<int, std::string>, CRDTEdge, pair_hash>>
-        get_edges(int id); //TODO: Cambiar con la nueva representación.
-        Edge get_edge_RT(const CRDTNode &n, int to);
+        std::optional<std::unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash>> get_edges(uint32_t id);
 
-        RTMat get_edge_RT_as_RTMat(const CRDTEdge &edge);
+        Edge get_edge_RT(const Node &n, int to);
 
-        RTMat get_edge_RT_as_RTMat(CRDTEdge &&edge);
+        RTMat get_edge_RT_as_RTMat(const Edge &edge);
+
+        RTMat get_edge_RT_as_RTMat(Edge &&edge);
 
 
         template<typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<node_or_edge<Type>>>
@@ -342,13 +347,14 @@ namespace CRDT {
             //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
         }
 
-        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
+        template<typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
-        void insert_or_assign_attrib_by_name(Type &elem, const std::string &att_name, const Va &new_val) {
-            add_or_modify(elem, att_name, new_val);
+        void insert_or_assign_attrib_by_name(Ta &elem, const std::string &att_name, const Va &att_value) {
+
+            add_or_modify(elem, att_name, att_value);
 
             // insert in node
-            if constexpr (std::is_same<CRDTNode, Type>::value) {
+            if constexpr (std::is_same<Node, Ta>::value) {
                 if (update_node(elem))
                     return;
                 else
@@ -356,7 +362,7 @@ namespace CRDT {
                             "Could not insert Node " + std::to_string(elem.id()) + " in G in add_attrib_by_name()");
             }
                 // insert in edge
-            else if constexpr (std::is_same<CRDTEdge, Type>::value) {
+            else if constexpr (std::is_same<Edge, Ta>::value) {
                 auto node = get_node(elem.from());
                 if (node.has_value()) {
                     if (insert_or_assign_edge(elem))
@@ -589,7 +595,7 @@ namespace CRDT {
             NewMessageFunctor() = default;
 
 
-            void operator()(eprosima::fastrtps::Subscriber *sub) { f(sub, work, graph); };
+            void operator()(eprosima::fastrtps::Subscriber *sub) const { f(sub, work, graph); };
         };
 
 

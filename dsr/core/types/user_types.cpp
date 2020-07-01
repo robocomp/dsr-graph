@@ -12,8 +12,8 @@ namespace CRDT {
         return m_value;
     }
 
-    ValType&& Attribute::move_value()  {
-        return std::move(m_value);
+    ValType& Attribute::value()  {
+        return m_value;
     }
 
     uint64_t Attribute::timestamp() const {
@@ -22,6 +22,10 @@ namespace CRDT {
 
     uint32_t Attribute::agent_id() const {
         return m_agent_id;
+    }
+
+    void Attribute::timestamp(uint64_t t) {
+        m_timestamp = t;
     }
 
     Edge::Edge(uint32_t mTo, uint32_t mFrom, const string &mType,
@@ -41,12 +45,16 @@ namespace CRDT {
         return m_type;
     }
 
+    string &Edge::type() {
+        return m_type;
+    }
+
     const unordered_map<std::string, Attribute> &Edge::attrs() const {
         return m_attrs;
     }
 
-    unordered_map<std::string, Attribute> &&Node::move_attrs()  {
-        return std::move(m_attrs);
+    unordered_map<std::string, Attribute> &Edge::attrs()  {
+        return m_attrs;
     }
 
     uint32_t Edge::agent_id() const {
@@ -67,7 +75,15 @@ namespace CRDT {
         return m_type;
     }
 
+    string &Node::type()  {
+        return m_type;
+    }
+
     const string &Node::name() const {
+        return m_name;
+    }
+
+    string &Node::name()  {
         return m_name;
     }
 
@@ -75,16 +91,16 @@ namespace CRDT {
         return m_attrs;
     }
 
-    unordered_map<std::string, Attribute> &&Node::move_attrs()  {
-        return std::move(m_attrs);
+    unordered_map<std::string, Attribute>& Node::attrs()  {
+        return m_attrs;
     }
 
     const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &Node::fano() const {
         return m_fano;
     }
 
-     unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &&Node::move_fano()  {
-        return std::move(m_fano);
+     unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &Node::fano()  {
+        return m_fano;
     }
 
     uint32_t Node::agent_id() const {
