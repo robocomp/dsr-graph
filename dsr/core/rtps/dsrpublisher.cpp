@@ -57,17 +57,18 @@ DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char 
     Wparam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
 
 
-    if (std::string_view(topicName) == "DSR") {
+    //if (std::string_view(topicName) == "DSR") {
         // This would be better, but we sent a lots of messages to use it.
         //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
-        Wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
-        Wparam.topic.historyQos.depth = 150; // Adjust this value if we are losing  messages
+    Wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
+    Wparam.topic.historyQos.depth = 20; // Adjust this value if we are losing  messages
 
         // Check ACK for sended messages.
-        Wparam.times.heartbeatPeriod.seconds = 0;
-        Wparam.times.heartbeatPeriod.nanosec = 300000000; //300 ms
+    Wparam.times.heartbeatPeriod.seconds = 0;
+    Wparam.times.heartbeatPeriod.nanosec = 300000000; //300 ms
 
-    }
+    Wparam.topic.resourceLimitsQos.max_samples = 200;
+    //}
     Wparam.historyMemoryPolicy = DYNAMIC_RESERVE_MEMORY_MODE; //PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     mp_publisher = eprosima::fastrtps::Domain::createPublisher(mp_participant, Wparam,
                                                                static_cast<eprosima::fastrtps::PublisherListener *>(&m_listener));

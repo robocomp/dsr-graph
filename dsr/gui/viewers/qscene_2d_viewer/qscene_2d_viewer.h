@@ -17,8 +17,9 @@
 #ifndef DSR_TO_GRAPHCISCENE_VIEWER_H
 #define DSR_TO_GRAPHCISCENE_VIEWER_H
 
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/viewers/_abstract_graphic_view.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../gui/viewers/_abstract_graphic_view.h"
+#include "../../../core/types/user_types.h"
 
 #include <math.h>
 #include <filesystem>
@@ -82,17 +83,17 @@ namespace DSR {
 
         bool is_drawable(std::list<int> parent_list);
 
-        bool check_RT_required_attributes(Node node);
+        bool check_RT_required_attributes(CRDT::Node node);
 
-        void add_or_assign_plane(Node &node);
+        void add_or_assign_plane(CRDT::Node &node);
 
-        void add_or_assign_person(Node &node);
+        void add_or_assign_person(CRDT::Node &node);
 
-        void add_or_assign_mesh(Node &node);
+        void add_or_assign_mesh(CRDT::Node &node);
 
-        void add_or_assign_robot(Node &node);
+        void add_or_assign_robot(CRDT::Node &node);
 
-        void add_or_assign_rect(Node &node, std::string color, std::string texture, int width, int height, int depth);
+        void add_or_assign_rect(CRDT::Node &node, std::string color, std::string texture, int width, int height, int depth);
 
         void update_scene_object_pose(std::int32_t node_id);
     };

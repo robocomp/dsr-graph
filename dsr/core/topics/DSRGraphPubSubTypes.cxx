@@ -407,7 +407,7 @@ bool DotKernelAttrPubSubType::getKey(void *data, InstanceHandle_t *handle, bool 
 
 MvregEdgeAttrPubSubType::MvregEdgeAttrPubSubType() {
     setName("MvregEdgeAttr");
-    m_typeSize = 45356; //static_cast<uint32_t>(MvregEdgeAttr::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 2 << 11; //static_cast<uint32_t>(MvregEdgeAttr::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = MvregEdgeAttr::isKeyDefined();
     size_t keyLength =
             MvregEdgeAttr::getKeyMaxCdrSerializedSize() > 16 ? MvregEdgeAttr::getKeyMaxCdrSerializedSize() : 16;
@@ -688,7 +688,7 @@ bool EdgeKeyPubSubType::getKey(void *data, InstanceHandle_t *handle, bool force_
 
 MvregNodeAttrPubSubType::MvregNodeAttrPubSubType() {
     setName("MvregNodeAttr");
-    m_typeSize = 45092; //static_cast<uint32_t>(MvregNodeAttr::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 2 << 11; //static_cast<uint32_t>(MvregNodeAttr::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = MvregNodeAttr::isKeyDefined();
     size_t keyLength =
             MvregNodeAttr::getKeyMaxCdrSerializedSize() > 16 ? MvregNodeAttr::getKeyMaxCdrSerializedSize() : 16;
@@ -878,7 +878,7 @@ bool DotKernelEdgePubSubType::getKey(void *data, InstanceHandle_t *handle, bool 
 
 MvregEdgePubSubType::MvregEdgePubSubType() {
     setName("MvregEdge");
-    m_typeSize = 456110692; // static_cast<uint32_t>(MvregEdge::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 2 << 14; // static_cast<uint32_t>(MvregEdge::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = MvregEdge::isKeyDefined();
     size_t keyLength = MvregEdge::getKeyMaxCdrSerializedSize() > 16 ? MvregEdge::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char *>(malloc(keyLength));
@@ -1252,7 +1252,7 @@ bool DotKernelPubSubType::getKey(void *data, InstanceHandle_t *handle, bool forc
 
 MvregPubSubType::MvregPubSubType() {
     setName("Mvreg");
-    m_typeSize = 456110692; //static_cast<uint32_t>(Mvreg::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 2 << 15; //static_cast<uint32_t>(Mvreg::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = Mvreg::isKeyDefined();
     size_t keyLength = Mvreg::getKeyMaxCdrSerializedSize() > 16 ? Mvreg::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char *>(malloc(keyLength));
@@ -1345,7 +1345,7 @@ bool MvregPubSubType::getKey(void *data, InstanceHandle_t *handle, bool force_md
 
 OrMapPubSubType::OrMapPubSubType() {
     setName("OrMap");
-    m_typeSize = 456110692; //static_cast<uint32_t>(OrMap::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    m_typeSize = 2 << 20; //static_cast<uint32_t>(OrMap::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
     m_isGetKeyDefined = OrMap::isKeyDefined();
     size_t keyLength = OrMap::getKeyMaxCdrSerializedSize() > 16 ? OrMap::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char *>(malloc(keyLength));

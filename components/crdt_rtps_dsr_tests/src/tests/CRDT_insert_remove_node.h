@@ -5,7 +5,6 @@
 #ifndef CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H
 #define CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H
 
-#include "../../../../graph-related-classes/CRDT.h"
 #include "DSR_test.h"
 
 

@@ -28,6 +28,15 @@ namespace CRDT {
         m_timestamp = t;
     }
 
+    void Attribute::value(const ValType &mValue) {
+        m_value = mValue;
+    }
+
+
+    void Attribute::agent_id(uint32_t mAgentId) {
+        m_agent_id = mAgentId;
+    }
+
     Edge::Edge(uint32_t mTo, uint32_t mFrom, const string &mType,
                    const unordered_map<std::string, Attribute> &mAttrs,
                    uint32_t mAgentId) : m_to(mTo), m_from(mFrom), m_type(mType), m_attrs{mAttrs},
@@ -59,6 +68,26 @@ namespace CRDT {
 
     uint32_t Edge::agent_id() const {
         return m_agent_id;
+    }
+
+    void Edge::to(uint32_t mTo) {
+        m_to = mTo;
+    }
+
+    void Edge::from(uint32_t mFrom) {
+        m_from = mFrom;
+    }
+
+    void Edge::type(const string &mType) {
+        m_type = mType;
+    }
+
+    void Edge::attrs(const unordered_map<std::string, Attribute> &mAttrs) {
+        m_attrs = mAttrs;
+    }
+
+    void Edge::agent_id(uint32_t mAgentId) {
+        m_agent_id = mAgentId;
     }
 
     Node::Node(uint32_t mId, const string &mType, const string &mName,
@@ -105,5 +134,29 @@ namespace CRDT {
 
     uint32_t Node::agent_id() const {
         return m_agent_id;
+    }
+
+    void Node::id(uint32_t mId) {
+        m_id = mId;
+    }
+
+    void Node::type (const string &mType) {
+        m_type = mType;
+    }
+
+    void Node::name(const string &mName) {
+        m_name = mName;
+    }
+
+    void Node::attrs(const unordered_map<std::string, Attribute> &mAttrs) {
+        m_attrs = mAttrs;
+    }
+
+    void Node::fano(const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &mFano) {
+        m_fano = mFano;
+    }
+
+    void Node::agent_id(uint32_t mAgentId) {
+        m_agent_id = mAgentId;
     }
 }

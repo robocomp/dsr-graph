@@ -30,15 +30,15 @@
 #ifndef DELTA_CRDT
 #define DELTA_CRDT
 
-#include "../../../../../../../../usr/include/c++/9/set"
-#include "../../../../../../../../usr/include/c++/9/unordered_set"
-#include "../../../../../../../../usr/include/c++/9/map"
-#include "../../../../../../../../usr/include/c++/9/list"
-#include "../../../../../../../../usr/include/c++/9/tuple"
-#include "../../../../../../../../usr/include/c++/9/vector"
-#include "../../../../../../../../usr/include/c++/9/string"
-#include "../../../../../../../../usr/include/c++/9/iostream"
-#include "../../../../../../../../usr/include/c++/9/type_traits"
+#include "set"
+#include "unordered_set"
+#include "map"
+#include "list"
+#include "tuple"
+#include "vector"
+#include "string"
+#include "iostream"
+#include "type_traits"
 #include "../topics/DSRGraph.h"
 
 using namespace std;

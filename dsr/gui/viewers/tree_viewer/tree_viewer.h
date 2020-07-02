@@ -48,7 +48,7 @@ namespace DSR {
         const std::string &name = ""
         );
 
-        void add_or_assign_node_SLOT(const std::int32_t id, Node node);
+        void add_or_assign_node_SLOT(const std::int32_t id, CRDT::Node node);
 
         void add_or_assign_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string &type);
 

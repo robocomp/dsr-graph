@@ -6,11 +6,11 @@
 #include <optional>
 #include <filesystem>
 
-#include "../../../../graph-related-classes/topics/DSRGraph.h"
-#include "../../../../graph-related-classes/CRDT.h"
+
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
+#include "../../../../dsr/api/dsr_api.h"
 #include <iostream>
 #include <string>
 
@@ -444,7 +444,7 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
         std::optional<Node> n = G->get_node(100);
         REQUIRE(n.has_value());
         G->update_attrib_by_name(n.value(), "att", 125);
-        REQUIRE(n->attrs()["att"].read_reg().val().dec() == 125);
+        REQUIRE(get<std::int32_t>(n->attrs()["att"].value()) == 125);
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -595,7 +595,6 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
     GIVEN("A new Node")
     {
         Node n;
-        Value v;
         n.id(2222);
         n.type("robot");
         n.agent_id(0);
