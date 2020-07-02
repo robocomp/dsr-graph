@@ -13,6 +13,7 @@
 #include "collisions.h"
 #include <QPolygonF>
 #include <QPointF>
+#include <QGraphicsScene>
 
 #include <cppitertools/chain.hpp>
 #include <cppitertools/range.hpp>
@@ -72,22 +73,22 @@ public:
 //void initialize(const std::shared_ptr<InnerModel> &innerModel_, const std::shared_ptr<InnerViewer> &viewer_,
 //        std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_, OmniRobotPrx omnirobot_proxy_)
 //{
-void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_)
+void initialize(const std::shared_ptr<DSR::DSRGraph> &graph, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_, QGraphicsScene* viewer_2d_)
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
 
     G = graph;
     innerModel = G->get_inner_api();
     configparams = configparams_;
-
+    viewer_2d = viewer_2d_;
     stopRobot();
      //grid can't be initialized if the robot is moving
 
     collisions =  std::make_shared<Collisions>();
 
     collisions->initialize(G, configparams);
-    grid.initialize(collisions);
- //   grid.draw(viewer);
+//    grid.initialize(collisions);
+//    grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
 
@@ -331,10 +332,10 @@ void updateAffordancesPolylines(std::map<float, vector<QPolygonF>> mapCostObject
 
 
 private:
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<Collisions> collisions;
-    std::shared_ptr<CRDT::InnerAPI> innerModel;
-//    std::shared_ptr<InnerViewer> viewer;
+    std::shared_ptr<DSR::InnerAPI> innerModel;
+    QGraphicsScene* viewer_2d;
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> configparams;
 
 //    OmniRobotPrx omnirobot_proxy;
@@ -395,7 +396,7 @@ void updateFreeSpaceMap(bool drawGrid = true)
         grid.modifyCostInGrid(poly_per, 10.0);
 
 
-//    if(drawGrid) grid.draw(viewer);
+    if(drawGrid) grid.draw(viewer_2d);
 
 }
 
