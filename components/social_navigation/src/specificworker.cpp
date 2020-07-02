@@ -56,7 +56,7 @@ void SpecificWorker::initialize(int period)
 	else
 	{
 		// create graph
-		G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
@@ -80,7 +80,9 @@ void SpecificWorker::initialize(int period)
 	    forcesSliderChanged();
     	moveRobot();
 
-		navigation.initialize(G, confParams);
+		DSR::DSRtoGraphicsceneViewer* widget_2d = qobject_cast<DSR::DSRtoGraphicsceneViewer*> (graph_viewer->get_widget(opts::scene));
+
+		navigation.initialize(G, confParams, &widget_2d->scene);
 	
 		this->Period = period;
 //		timer.start(Period);

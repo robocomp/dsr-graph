@@ -19,7 +19,7 @@ public:
                             //   blocked, active, velx,velz,velrot
     using retUpdate = std::tuple <bool,bool,float,float,float>;
 
-    void initialize(const std::shared_ptr<CRDT::InnerAPI> &innerModel_,
+    void initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_,
             std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_)
     {
         qDebug()<<"Controller - "<< __FUNCTION__;
@@ -43,7 +43,7 @@ public:
         {   std::cerr << "CONTROLLER. Out of Range error reading parameters: " << oor.what() << '\n'; }
     }
 
-    void updateInnerModel(const std::shared_ptr<CRDT::InnerAPI> &innerModel_)
+    void updateInnerModel(const std::shared_ptr<DSR::InnerAPI> &innerModel_)
     {
         qDebug()<<"Controller - "<< __FUNCTION__;
 
@@ -140,7 +140,7 @@ public:
 
 
 private:
-    std::shared_ptr<CRDT::InnerAPI> innerModel;
+    std::shared_ptr<DSR::InnerAPI> innerModel;
     QTime time;
     int delay;
     std::vector<float> baseOffsets;
