@@ -116,7 +116,7 @@ void DSRtoGraphicsceneViewer::get_2d_projection(std::string node_name, std::vect
 
 
 void
-DSRtoGraphicsceneViewer::add_or_assign_rect(Node &node, std::string color, std::string texture, int width, int height,
+DSRtoGraphicsceneViewer::add_or_assign_rect(CRDT::Node &node, std::string color, std::string texture, int width, int height,
                                             int depth) {
 
     //Calculate polygon
@@ -155,7 +155,7 @@ DSRtoGraphicsceneViewer::add_or_assign_rect(Node &node, std::string color, std::
 }
 
 
-void DSRtoGraphicsceneViewer::add_or_assign_plane(Node &node) {
+void DSRtoGraphicsceneViewer::add_or_assign_plane(CRDT::Node &node) {
     qDebug() << "********************************";
     qDebug() << __FUNCTION__;
     std::list<int> parent_list = get_parent_list(node.id());
@@ -181,7 +181,7 @@ void DSRtoGraphicsceneViewer::add_or_assign_plane(Node &node) {
 bool DSRtoGraphicsceneViewer::is_drawable(std::list<int> parent_list) {
     bool drawable = true;
     for (std::list<int>::iterator it = parent_list.end(); it != parent_list.begin(); --it) {
-        std::optional <Node> node = G->get_node(*it);
+        std::optional <CRDT::Node> node = G->get_node(*it);
         if (node.has_value()) {
             std::string type = node.value().type();
             auto r = std::find(no_drawable_childs.begin(), no_drawable_childs.end(), type);
@@ -194,7 +194,7 @@ bool DSRtoGraphicsceneViewer::is_drawable(std::list<int> parent_list) {
     return drawable;
 }
 
-bool DSRtoGraphicsceneViewer::check_RT_required_attributes(Node node) {
+bool DSRtoGraphicsceneViewer::check_RT_required_attributes(CRDT::Node node) {
     try {
         std::optional<int> level = G->get_node_level(node);
         std::optional<int> parent = G->get_parent_id(node);
@@ -205,7 +205,7 @@ bool DSRtoGraphicsceneViewer::check_RT_required_attributes(Node node) {
     return false;
 }
 
-void DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node) {
+void DSRtoGraphicsceneViewer::add_or_assign_mesh(CRDT::Node &node) {
     qDebug() << "********************************";
     qDebug() << __FUNCTION__;
     std::list<int> parent_list = get_parent_list(node.id());
@@ -228,7 +228,7 @@ void DSRtoGraphicsceneViewer::add_or_assign_mesh(Node &node) {
 
 }
 
-void DSRtoGraphicsceneViewer::add_or_assign_person(Node &node) {
+void DSRtoGraphicsceneViewer::add_or_assign_person(CRDT::Node &node) {
     qDebug() << "********************************";
     qDebug() << __FUNCTION__;
     std::optional <QVec> pose;
@@ -260,7 +260,7 @@ void DSRtoGraphicsceneViewer::add_or_assign_person(Node &node) {
     }
 }
 
-void DSRtoGraphicsceneViewer::add_or_assign_robot(Node &node) {
+void DSRtoGraphicsceneViewer::add_or_assign_robot(CRDT::Node &node) {
     std::optional <QVec> pose;
     try {
         pose = innermodel->transformS6D("world", node.name());

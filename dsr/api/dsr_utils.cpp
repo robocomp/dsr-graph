@@ -45,11 +45,12 @@ void Utilities::read_from_json_file(const std::string &json_file_path) {
             }
             std::cout << __FILE__ << " " << __FUNCTION__ << ", Node: " << std::to_string(id) << " " << type
                       << std::endl;
-            CRDTNode n;
-            n.type(type);
-            n.id(id);
-            n.agent_id(G->get_agent_id());
-            n.name(name);
+            Node n(id,  type, name, {}, {}, G->get_agent_id());
+
+//            n.type(type);
+//            n.id(id);
+//            n.agent_id(G->get_agent_id());
+//            n.name(name);
             //G->name_map[name] = id;
             //G->id_map[id] = name;
 
@@ -121,10 +122,12 @@ void Utilities::read_from_json_file(const std::string &json_file_path) {
             int dstn = link_obj.value("dst").toInt();
             std::string edgeName = link_obj.value("label").toString().toStdString();
             std::map<string, CRDTAttribute> attrs;
-            Edge edge;
-            edge.from(srcn);
-            edge.to(dstn);
-            edge.type(edgeName);
+
+            Edge edge(srcn, dstn, edgeName, {}, G->get_agent_id());
+//            Edge edge;
+//            edge.from(srcn);
+//            edge.to(dstn);
+//            edge.type(edgeName);
 
             // link atributes
             QVariantMap linkAttributesMap = link_obj.value("linkAttribute").toObject().toVariantMap();
@@ -178,79 +181,95 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
     QJsonArray linksArray;
     QJsonObject symbolsMap;
     for (auto kv : G->getCopy()) {
-        CRDTNode node = kv.second;
+        Node node = kv.second;
         // symbol data
         QJsonObject symbol;
-        symbol["id"] = node.id();
+        symbol["id"] = static_cast<qint64>(node.id());
         symbol["type"] = QString::fromStdString(node.type());
         symbol["name"] = QString::fromStdString(node.name());
         // symbol attribute
         QJsonObject attrsObject;
-        std::map<std::string, mvreg<CRDTAttribute, int>> ordered_map_attr = std::map(node.attrs().begin(),
+        std::map<std::string, Attribute> ordered_map_attr = std::map(node.attrs().begin(),
                                                                                      node.attrs().end());
         for (auto &[key, value]: ordered_map_attr) {
             QJsonObject content;
             QJsonValue val;
-            switch (value.read_reg().val().selected()) {
+            switch (value.value().index()) {
                 case 0:
-                    val = QString::fromStdString(value.read_reg().val().str());
+                    val = QString::fromStdString(get<std::string>(value.value()));
                     break;
                 case 1:
-                    val = value.read_reg().val().dec();
+                    val = get<std::int32_t>(value.value());
                     break;
                 case 2:
-                    val = std::round(static_cast<double>(value.read_reg().val().fl()) * 1000000) / 1000000;
+                    val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
                     break;
                 case 4:
-                    val = value.read_reg().val().bl();
+                    val = get<bool>(value.value());
                     break;
-                case 3:
+                case 3: {
                     QJsonArray array;
-                    for (const float &value : value.read_reg().val().float_vec())
+                    for (const float &value : get<std::vector<float>>(value.value()))
                         array.push_back(value);
                     val = array;
                     break;
+                }
+                case 5: {
+                    QJsonArray array;
+                    for (const byte &value : get<std::vector<byte>>(value.value()))
+                        array.push_back(static_cast<qint64>(value));
+                    val = array;
+                    break;
+                }
             }
-            content["type"] = value.read_reg().val().selected();
+            content["type"] = static_cast<qint64>(value.value().index());
             content["value"] = val;
             attrsObject[QString::fromStdString(key)] = content;
         }
         symbol["attribute"] = attrsObject;
         //link
         QJsonArray nodeLinksArray;
-        std::map<std::pair<int, std::string>, mvreg<CRDTEdge, int>> ordered_map_fano = std::map(node.fano().begin(),
+        std::map<std::pair<int, std::string>, Edge> ordered_map_fano = std::map(node.fano().begin(),
                                                                                                 node.fano().end());
         for (auto &[key, value]: ordered_map_fano) {
             QJsonObject link;
-            link["src"] = value.read_reg().from();
-            link["dst"] = value.read_reg().to();
-            link["label"] = QString::fromStdString(value.read_reg().type());
+            link["src"] = static_cast<qint64>(value.from());
+            link["dst"] = static_cast<qint64>(value.to());
+            link["label"] = QString::fromStdString(value.type());
             // link attribute
             QJsonObject lattrsObject;
-            for (auto &[key, value]: value.read_reg().attrs()) {
+            for (auto &[key, value]: value.attrs()) {
                 QJsonObject attr, content;
                 QJsonValue val;
-                switch (value.read_reg().val().selected()) {
+                switch (value.value().index()) {
                     case 0:
-                        val = QString::fromStdString(value.read_reg().val().str());
+                        val = QString::fromStdString(get<std::string>(value.value()));
                         break;
                     case 1:
-                        val = value.read_reg().val().dec();
+                        val = get<std::int32_t>(value.value());
                         break;
                     case 2:
-                        val = std::round(static_cast<double>(value.read_reg().val().fl()) * 1000000) / 1000000;
+                        val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
                         break;
                     case 4:
-                        val = value.read_reg().val().bl();
+                        val = get<bool>(value.value());
                         break;
-                    case 3:
+                    case 3: {
                         QJsonArray array;
-                        for (const float &value : value.read_reg().val().float_vec())
+                        for (const float &value : get<std::vector<float>>(value.value()))
                             array.push_back(value);
                         val = array;
                         break;
+                    }
+                    case 5: {
+                        QJsonArray array;
+                        for (const byte &value : get<std::vector<byte>>(value.value()))
+                            array.push_back(static_cast<qint64>(value));
+                        val = array;
+                        break;
+                    }
                 }
-                content["type"] = value.read_reg().val().selected();
+                content["type"] = static_cast<qint64>(value.value().index());
                 content["value"] = val;
                 lattrsObject[QString::fromStdString(key)] = content;
             }
@@ -277,49 +296,49 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
 
 void Utilities::print() {
     for (const auto &[_, v] : G->getCopy()) {
-        CRDTNode node = v;
+        Node node = v;
         std::cout << "Node: " << node.id() << std::endl;
         std::cout << "  Type:" << node.type() << std::endl;
         std::cout << "  Name:" << node.name() << std::endl;
         std::cout << "  Agent_id:" << node.agent_id() << std::endl;
         for (auto &[key, val] : node.attrs())
-            std::cout << "      [ " << key << ", " << val.read_reg().type() << ", " << val.read_reg().val() << " ]"
+            std::cout << "      [ " << key << ", " << CRDT::TYPENAMES_UNION[val.value().index()] << ", " << val << " ]"
                       << std::endl;
         for (auto &[key, val] : node.fano()) {
-            std::cout << "          Edge-type->" << val.read_reg().type() << " from:" << val.read_reg().from() << " to:"
-                      << val.read_reg().to() << std::endl;
-            for (auto[k, v] : val.read_reg().attrs())
-                std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->"
-                          << v.read_reg().val() << std::endl;
+            std::cout << "          Edge-type->" << val.type() << " from:" << val.from() << " to:"
+                      << val.to() << std::endl;
+            for (auto[k, v] : val.attrs())
+                std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->"
+                          << v << std::endl;
         }
     }
     std::cout << "------------------------------------------------" << std::endl;
 }
 
-void Utilities::print_edge(const CRDTEdge &edge) {
+void Utilities::print_edge(const Edge &edge) {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "Edge-type->" << edge.type() << " from->" << edge.from() << " to->" << edge.to() << std::endl;
     for (auto[k, v] : edge.attrs())
-        std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->" << v.read_reg().val()
+        std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->" << v
                   << std::endl;
     std::cout << "------------------------------------" << std::endl;
 }
 
-void Utilities::print_node(const CRDTNode &node) {
+void Utilities::print_node(const Node &node) {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "Node-> " << node.id() << std::endl;
     std::cout << "  Type->" << node.type() << std::endl;
     std::cout << "  Name->" << node.name() << std::endl;
     std::cout << "  Agent_id->" << node.agent_id() << std::endl;
     for (auto[key, val] : node.attrs())
-        std::cout << "      Key->" << key << " Type->" << val.read_reg().type() << " Value->" << val.read_reg().val()
+        std::cout << "      Key->" << key << " Type->" << CRDT::TYPENAMES_UNION[val.value().index()] << " Value->" << val
                   << std::endl;
     for (auto[key, val] : node.fano()) {
-        std::cout << "          Edge-type->" << val.read_reg().type() << " from->" << val.read_reg().from() << " to->"
-                  << val.read_reg().to() << std::endl;
-        for (auto[k, v] : val.read_reg().attrs())
-            std::cout << "              Key->" << k << " Type->" << v.read_reg().type() << " Value->"
-                      << v.read_reg().val() << std::endl;
+        std::cout << "          Edge-type->" << val.type() << " from->" << val.from() << " to->"
+                  << val.to() << std::endl;
+        for (auto[k, v] : val.attrs())
+            std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->"
+                      << v << std::endl;
     }
 }
 
@@ -340,7 +359,7 @@ void Utilities::print_RT(const std::int32_t id) {
     std::cout << "-------------- End printing RT tree ------------------" << std::endl;
 }
 
-void Utilities::print_RT(const CRDTNode &node) {
+void Utilities::print_RT(const Node &node) {
     for (auto &edge: G->get_edges_by_type(node, "RT")) {
         auto child = G->get_node(edge.to());
         if (child.has_value()) {

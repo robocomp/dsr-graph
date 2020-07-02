@@ -109,7 +109,7 @@ std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const CRDTNo
 
 
 std::optional<uint32_t> CRDTGraph::insert_node(Node &node) {
-    if (node.id() == -1) return {};
+    if (node.id() == -1u) return {};
     std::optional<IDL::Mvreg> aw;
 
     bool r = false;
@@ -179,7 +179,7 @@ std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::upda
 
 
 bool CRDTGraph::update_node(Node &node) {
-    if (node.id() == -1) return false;
+    if (node.id() == -1u) return false;
     bool r = false;
     std::optional<std::vector<IDL::MvregNodeAttr>> vec_node_attr;
 
@@ -195,9 +195,10 @@ bool CRDTGraph::update_node(Node &node) {
     }
     if (r) {
         if (vec_node_attr.has_value()) {
-            for (auto &v: vec_node_attr.value())
+            for (auto &v: vec_node_attr.value()) {
+                std::cout << "SEND ATTR CHANGE " << v.attr_name() << std::endl;
                 dsrpub_node_attrs.write(&v);
-
+            }
             emit update_node_signal(node.id(), node.type());
         }
     }
@@ -311,9 +312,9 @@ bool CRDTGraph::delete_node(int id) {
 }
 
 
-std::vector<CRDTNode> CRDTGraph::get_nodes_by_type(const std::string &type) {
+std::vector<Node> CRDTGraph::get_nodes_by_type(const std::string &type) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
-    std::vector<CRDTNode> nodes_;
+    std::vector<Node> nodes_;
     if (nodeType.find(type) != nodeType.end()) {
         for (auto id: nodeType[type]) {
             auto n = get_(id);
@@ -676,11 +677,11 @@ bool CRDTGraph::delete_edge(const std::string &from, const std::string &to, cons
 }
 
 
-std::vector<Edge> CRDTGraph::get_edges_by_type(const CRDTNode &node, const std::string &type) {
+std::vector<Edge> CRDTGraph::get_edges_by_type(const Node &node, const std::string &type) {
     std::vector<Edge> edges_;
     for (auto &[key, edge] : node.fano())
         if (key.second == type)
-            edges_.emplace_back(Edge(*edge.read().begin()));
+            edges_.emplace_back(Edge(edge));
     return edges_;
 }
 
@@ -1046,6 +1047,7 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                     ::mvreg<CRDTAttribute, int> new_mv;
                     n.attrs().insert({mvreg.attr_name(), new_mv});
                 }
+                std::cout << "JOINING NODE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
                 n.attrs()[mvreg.attr_name()].join(d);
 
                 //Check if we are inserting or deleting.
@@ -1101,6 +1103,9 @@ void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                 !nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read().empty()) {
                 ok = true;
                 auto &n = nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read_reg();
+
+                std::cout << "JOINING EDGE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
+
                 n.attrs()[mvreg.attr_name()].join(d);
 
                 //Check if we are inserting or deleting.

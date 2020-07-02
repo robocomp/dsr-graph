@@ -58,10 +58,14 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
     if (std::string_view(topicName) == "DSR") {
         // This would be better, but we sent a lots of messages to use it.
         //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
-        Rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
-        Rparam.topic.historyQos.depth = 50; // Adjust this value if we are losing  messages
+
     }
      */
+    Rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
+    Rparam.topic.historyQos.depth = 50; // Adjust this value if we are losing  messages
+
+    Rparam.topic.resourceLimitsQos.max_samples = 200;
+
     m_listener.participant_ID = mp_participant->getGuid();
     m_listener.f = f_;
 

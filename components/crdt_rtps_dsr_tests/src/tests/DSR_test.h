@@ -7,7 +7,7 @@
 
 #include <DSRGetID.h>
 #include <random>
-#include "../../../../graph-related-classes/CRDT.h"
+#include "../../../../dsr/api/dsr_api.h"
 
 static const std::string MARKER = ";";
 

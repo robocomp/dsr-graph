@@ -147,9 +147,9 @@ namespace CRDT {
 
         void print() { utils->print(); };
 
-        void print_edge(const CRDTEdge &edge) { utils->print_edge(edge); };
+        void print_edge(const Edge &edge) { utils->print_edge(edge); };
 
-        void print_node(const CRDTNode &node) { utils->print_node(node); };
+        void print_node(const Node &node) { utils->print_node(node); };
 
         void print_node(int id) { utils->print_node(id); };
 
@@ -181,7 +181,7 @@ namespace CRDT {
 
         bool delete_node(int id);
 
-        std::vector<CRDTNode> get_nodes_by_type(const std::string &type);
+        std::vector<Node> get_nodes_by_type(const std::string &type);
 
         std::optional<std::string> get_name_from_id(std::int32_t id);  // caché
         std::optional<std::uint32_t> get_id_from_name(const std::string &name);  // caché
@@ -276,10 +276,10 @@ namespace CRDT {
 
         std::optional<Edge> get_edge(int from, int to, const std::string &key);
 
-        std::optional<Edge> get_edge(const CRDTNode &n, int to, const std::string &key) {
+        std::optional<Edge> get_edge(const Node &n, int to, const std::string &key) {
             //EdgeKey ek; ek.to(to); ek.type(key);
             return (n.fano().find({to, key}) != n.fano().end()) ? std::make_optional(
-                    *n.fano().find({to, key})->second.read().begin()) : std::nullopt;
+                    n.fano().find({to, key})->second) : std::nullopt;
         };
 
         bool insert_or_assign_edge(const Edge &attrs);
@@ -295,7 +295,7 @@ namespace CRDT {
 
         std::vector<Edge> get_edges_by_type(const std::string &type);
 
-        std::vector<Edge> get_edges_by_type(const CRDTNode &node, const std::string &type);
+        std::vector<Edge> get_edges_by_type(const Node &node, const std::string &type);
 
         std::vector<Edge> get_edges_to_id(int id);
 
@@ -558,9 +558,12 @@ namespace CRDT {
         std::optional<CRDTAttribute> get_attrib_by_name_(const T &n, const std::string &key) {
             auto attrs = n.attrs();
             auto value = attrs.find(key);
-            if (value != attrs.end())
-                return value->second.read_reg();
-            else {
+            if (value != attrs.end()) {
+                if constexpr(std::is_same_v<T, Node> || std::is_same_v<T, Edge>)
+                    return user_attribute_to_crdt(value->second);
+                else
+                    return value->second.read_reg();
+            } else {
                 if constexpr (std::is_same<CRDTNode, T>::value)
                     std::cout << "ERROR: " << __FUNCTION__ << ":" << __LINE__ << " "
                               << "Attribute " << key << " not found in node  -> " << n.id() << std::endl;
@@ -654,7 +657,7 @@ namespace CRDT {
         void update_node_signal(const std::int32_t, const std::string &type); // REMOVE type
 
         void update_attrs_signal(const std::int32_t &id,
-                                 const std::map<string, CRDTAttribute> &attribs); //Signal to show node attribs.
+                                 const std::map<string, Attribute> &attribs); //Signal to show node attribs.
         void update_edge_signal(const std::int32_t from, const std::int32_t to,
                                 const std::string &type);                   // Signal to show edge attribs.
 

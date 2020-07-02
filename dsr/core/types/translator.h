@@ -50,7 +50,7 @@ namespace CRDT {
         for (auto &[k, v] : data.dk().ds())
             ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
         // Join
-        mvreg<CRDTNode, int> aw = mvreg<CRDTNode, int>(data.id());
+        mvreg<CRDTNode, int> aw;
         aw.dk.c = dotcontext_aux;
         aw.dk.set(ds_aux);
         return aw;
@@ -105,7 +105,7 @@ namespace CRDT {
         for (auto &[k, v] : data.dk().ds())
             ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
         // Join
-        mvreg<CRDTAttribute, int> aw = mvreg<CRDTAttribute, int>(data.id());
+        mvreg<CRDTAttribute, int> aw;
         aw.dk.c = dotcontext_aux;
         aw.dk.set(ds_aux);
         return aw;
@@ -159,7 +159,7 @@ namespace CRDT {
         for (auto &[k, v] : data.dk().ds())
             ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
         // Join
-        mvreg<CRDTAttribute, int> aw = mvreg<CRDTAttribute, int>(data.id());
+        mvreg<CRDTAttribute, int> aw;
         aw.dk.c = dotcontext_aux;
         aw.dk.set(ds_aux);
         return aw;
@@ -180,7 +180,7 @@ namespace CRDT {
         for (auto &[k, v] : data.dk().ds())
             ds_aux[pair<int, int>(k.first(), k.second())] = std::move(v);
         // Join
-        mvreg<CRDTEdge, int> aw = mvreg<CRDTEdge, int>(data.id());
+        mvreg<CRDTEdge, int> aw;
         aw.dk.c = dotcontext_aux;
         aw.dk.set(ds_aux);
         return aw;

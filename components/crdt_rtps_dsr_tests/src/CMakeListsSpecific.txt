@@ -2,69 +2,55 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  ../../../graph-related-classes/CRDT.cpp
-    ../../../graph-related-classes/CRDT_types.cpp
-
-  ../../../graph-related-classes/CRDT_graphviewer.cpp
-  ../../../graph-related-classes/CRDT_graphnode.cpp
-  ../../../graph-related-classes/CRDT_graphedge.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-  ../../../graph-related-classes/dsr_utils.cpp
-  ../../../graph-related-classes/inner_api.cpp
+  ../../../dsr/api/dsr_api.cpp
+  ../../../dsr/core/types/crdt_types.cpp
+  ../../../dsr/core/types/user_types.cpp
+  ../../../dsr/core/rtps/dsrpublisher.cpp
+  ../../../dsr/core/rtps/dsrsubscriber.cpp
+  ../../../dsr/core/rtps/dsrparticipant.cpp
+  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/api/dsr_inner_api.cpp
+  ../../../dsr/api/dsr_utils.cpp
+  ../../../dsr/gui/dsr_gui.cpp
+  ../../../dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
+  ../../../dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_viewer.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_node.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_edge.cpp
+  ../../../dsr/gui/viewers/tree_viewer/tree_viewer.cpp
+  ../../../dsr/gui/viewers/_abstract_graphic_view.cpp
+  tests/CRDT_change_attribute.cpp
+  tests/CRDT_concurrent_operations.cpp
+  tests/CRDT_conflict_resolution.cpp
+  tests/CRDT_delayed_start.cpp
   tests/CRDT_insert_remove_edge.cpp
   tests/CRDT_insert_remove_node.cpp
-  tests/CRDT_change_attribute.cpp
-  tests/CRDT_conflict_resolution.cpp
-  tests/CRDT_concurrent_operations.cpp
-  tests/CRDT_delayed_start.cpp
   tests/DSR_test.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
-  ../../../graph-related-classes/inner_api.cpp
- 
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/CRDT_types.h
-  ../../../graph-related-classes/CRDT_graphviewer.h
-  ../../../graph-related-classes/CRDT_graph.h
-  ../../../graph-related-classes/CRDT_graphnode.h
-  ../../../graph-related-classes/CRDT_graphedge.h
-  ../../../graph-related-classes/dsr_utils.h
-  tests/CRDT_insert_remove_edge.h
-  tests/CRDT_insert_remove_node.h
-  tests/CRDT_change_attribute.h
-  tests/CRDT_conflict_resolution.h
-   tests/CRDT_delayed_start.h
-  tests/CRDT_concurrent_operations.h
-  tests/DSR_test.h
-
+  ../../../dsr/api/dsr_api.h
+  ../../../dsr/gui/dsr_gui.h
 )
 
 
 SET ( TEST_SOURCES
-  ../../../graph-related-classes/CRDT.cpp
-    ../../../graph-related-classes/CRDT_types.cpp
+  ../../../dsr/api/dsr_api.cpp
+  ../../../dsr/api/dsr_api.cpp
+  ../../../dsr/core/types/crdt_types.cpp
+  ../../../dsr/core/types/user_types.cpp
+  ../../../dsr/core/rtps/dsrpublisher.cpp
+  ../../../dsr/core/rtps/dsrsubscriber.cpp
+  ../../../dsr/core/rtps/dsrparticipant.cpp
+  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/api/dsr_inner_api.cpp
+  ../../../dsr/api/dsr_utils.cpp
 
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-    ../../../graph-related-classes/dsr_utils.cpp
   tests/CRDT_G_api_test.cpp
 )
 
@@ -72,9 +58,7 @@ SET ( TEST_SOURCES
 
 # Headers set
 SET ( TEST_HEADERS
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/dsr_utils.h
-  ../../../graph-related-classes/CRDT_types.h
+  ../../../dsr/api/dsr_api.h
   tests/CRDT_G_api_test.h
   tests/catch.hpp
 

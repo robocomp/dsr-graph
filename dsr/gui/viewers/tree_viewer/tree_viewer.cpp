@@ -78,9 +78,9 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
         for (auto[key, value] : node->attrs()) {
             QTreeWidgetItem *q_attr = new QTreeWidgetItem(item);
             q_attr->setText(0, QString::fromStdString(key));
-            switch (value.value()._d()) {
+            switch (value.value().index()) {
                 case 0: {
-                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(value.value().str()));
+                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(get<string>(value.value())));
                     ledit->setReadOnly(true);
                     this->setItemWidget(q_attr, 1, ledit);
                 }
@@ -90,7 +90,7 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
                     spin->setReadOnly(true);
                     spin->setMinimum(-10000);
                     spin->setMaximum(10000);
-                    spin->setValue(value.value().dec());
+                    spin->setValue(get<int32_t>(value.value()));
                     this->setItemWidget(q_attr, 1, spin);
 
                 }
@@ -100,7 +100,7 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
                     spin->setReadOnly(true);
                     spin->setMinimum(-10000);
                     spin->setMaximum(10000);
-                    spin->setValue(std::round(static_cast<double>(value.value().fl()) * 1000000) / 1000000);
+                    spin->setValue(std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000);
                     this->setItemWidget(q_attr, 1, spin);
                 }
                     break;
@@ -108,13 +108,13 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
                     QWidget *widget = new QWidget();
                     QHBoxLayout *layout = new QHBoxLayout;
                     widget->setLayout(layout);
-                    if (!value.value().float_vec().empty()) {
-                        for (std::size_t i = 0; i < value.value().float_vec().size(); ++i) {
+                    if (!get<vector<float>>(value.value()).empty()) {
+                        for (std::size_t i = 0; i < get<vector<float>>(value.value()).size(); ++i) {
                             QDoubleSpinBox *spin = new QDoubleSpinBox();
                             spin->setReadOnly(true);
                             spin->setMinimum(-10000);
                             spin->setMaximum(10000);
-                            spin->setValue(value.value().float_vec()[i]);
+                            spin->setValue(get<vector<float>>(value.value())[i]);
                             layout->addWidget(spin);
                         }
                         this->setItemWidget(q_attr, 1, widget);
@@ -126,7 +126,7 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
                     combo->setEnabled(false);
                     combo->addItem("true");
                     combo->addItem("false");
-                    if (value.value().bl())
+                    if (get<bool>(value.value()))
                         combo->setCurrentText("true");
                     else
                         combo->setCurrentText("false");
@@ -150,7 +150,7 @@ void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, const std::string &type, c
 
 }
 
-void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, Node node) {
+void DSRtoTreeViewer::add_or_assign_node_SLOT(int id, CRDT::Node node) {
     auto type = node.type();
     add_or_assign_node_SLOT(id, type, node.name());
 

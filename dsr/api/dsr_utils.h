@@ -7,6 +7,7 @@
 #include "dsr_exceptions.h"
 #include "../core/topics/DSRGraphPubSubTypes.h"
 #include "../core/types/crdt_types.h"
+#include "../core/types/user_types.h"
 
 namespace CRDT {
     class CRDTGraph;
@@ -21,9 +22,9 @@ namespace CRDT {
 
         void print();
 
-        void print_edge(const CRDT::CRDTEdge &edge);
+        void print_edge(const CRDT::Edge &edge);
 
-        void print_node(const CRDT::CRDTNode &node);
+        void print_node(const CRDT::Node &node);
 
         void print_node(int id);
 
@@ -32,7 +33,7 @@ namespace CRDT {
     private:
         CRDT::CRDTGraph *G;
 
-        void print_RT(const CRDT::CRDTNode &node);
+        void print_RT(const CRDT::Node &node);
 
     };
 };

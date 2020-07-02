@@ -3,14 +3,11 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
-//#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 #include <thread>
 #include <chrono>
-
-
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 
 
 #define LAPS 50

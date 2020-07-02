@@ -5,8 +5,8 @@
 #ifndef CRDT_RTPS_DSR_TEST_concurrent_insert_remove_node_H
 #define CRDT_RTPS_DSR_TEST_concurrent_insert_remove_node_H
 
-#include "../../../../graph-related-classes/CRDT.h"
 #include "DSR_test.h"
+#include "../../../../dsr/api/dsr_api.h"
 
 
 class CRDT_concurrent_operations : DSR_test {

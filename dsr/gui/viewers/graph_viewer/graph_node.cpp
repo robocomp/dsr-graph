@@ -198,7 +198,7 @@ void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         auto g = dsr_to_graph_viewer->getGraph();
         std::cout << __FILE__ << ":" << __FUNCTION__ << " node id in graphnode: " << id_in_graph << std::endl;
-        std::optional <Node> n = g->get_node(id_in_graph);
+        std::optional <CRDT::Node> n = g->get_node(id_in_graph);
         if (n.has_value()) {
 //            qDebug()<<"ScenePos X"<<(float) event->scenePos().x()<<" Width "<<(this->rect())<<" this "<<this->pos().x();
 //            qDebug()<<"ScenePos Y"<<(float) event->scenePos().y()<<" Height "<<(this->rect())<<" this "<<this->pos().y();

@@ -100,7 +100,7 @@ void DSRtoOSGViewer::initializeGL() {
 }
 
 // We need to go down the tree breadth first
-void DSRtoOSGViewer::traverse_RT_tree(const Node &node) {
+void DSRtoOSGViewer::traverse_RT_tree(const CRDT::Node &node) {
     for (auto &edge: G->get_edges_by_type(node, "RT")) {
         std::cout << __FUNCTION__ << " edges " << edge.from() << " " << edge.to() << " " << edge.type() << std::endl;
         auto child = G->get_node(edge.to());
@@ -116,7 +116,7 @@ void DSRtoOSGViewer::traverse_RT_tree(const Node &node) {
 osg::ref_ptr <osg::Group> DSRtoOSGViewer::createGraph() {
     qDebug() << __FUNCTION__ << "Reading graph in OSG Viewer";
     try {
-        std::optional <Node> g_root = G->get_node_root().value();  //HAS TO BE TRANSFORM
+        std::optional <CRDT::Node> g_root = G->get_node_root().value();  //HAS TO BE TRANSFORM
         root = new osg::Group();
         osg_map.insert_or_assign(std::make_tuple(g_root.value().id(), g_root.value().id()), root);
 
@@ -166,7 +166,7 @@ void DSRtoOSGViewer::setMainCamera(osgGA::TrackballManipulator *manipulator, Cam
 // To insert a node its parent has to be a transform
 // Transforms are created form RT edges.
 
-void DSRtoOSGViewer::add_or_assign_node_slot(const Node &node) {
+void DSRtoOSGViewer::add_or_assign_node_slot(const CRDT::Node &node) {
     std::cout << __FUNCTION__ << " node " << node.id() << " " << std::endl;
     try {
         if (node.id() == G->get_node_root().value().id())
@@ -194,7 +194,7 @@ void DSRtoOSGViewer::add_or_assign_node_slot(const Node &node) {
     }
 }
 
-void DSRtoOSGViewer::add_or_assign_edge_slot(const Node &from, const Node &to) {
+void DSRtoOSGViewer::add_or_assign_edge_slot(const CRDT::Node &from, const CRDT::Node &to) {
     std::cout << __FUNCTION__ << "from " << from.id() << " to " << to.id() << std::endl;
     auto edge = G->get_edge(from.id(), to.id(), "RT");
     if (edge.has_value()) {
@@ -225,7 +225,7 @@ void DSRtoOSGViewer::add_or_assign_edge_slot(const Node &from, const Node &to) {
 /// Node modifications
 ////////////////////////////////////////////////////////////////
 
-void DSRtoOSGViewer::add_or_assign_transform(const Node &node, const Node &parent) {
+void DSRtoOSGViewer::add_or_assign_transform(const CRDT::Node &node, const CRDT::Node &parent) {
     std::cout << __FUNCTION__ << "node " << node.id() << "parent " << parent.id() << std::endl;
 
     if (auto res = osg_map.find(std::make_tuple(parent.id(), node.id())); res != osg_map.end()) {
@@ -241,7 +241,7 @@ void DSRtoOSGViewer::add_or_assign_transform(const Node &node, const Node &paren
                 "Transform: OSG parent not found for " + parent.name() + "-" + std::to_string(parent.id()));
 }
 
-void DSRtoOSGViewer::add_or_assign_box(const Node &node, const Node &parent) {
+void DSRtoOSGViewer::add_or_assign_box(const CRDT::Node &node, const CRDT::Node &parent) {
     std::cout << __FUNCTION__ << ": node " << node.name() << "-" << node.id() << " Parent: " << parent.id()
               << std::endl;
     try {
@@ -325,7 +325,7 @@ void DSRtoOSGViewer::add_or_assign_box(const Node &node, const Node &parent) {
     }
 }
 
-void DSRtoOSGViewer::add_or_assign_mesh(const Node &node, const Node &parent) {
+void DSRtoOSGViewer::add_or_assign_mesh(const CRDT::Node &node, const CRDT::Node &parent) {
     std::cout << __FUNCTION__ << "node " << node.id() << parent.id() << std::endl;
     auto color = G->get_attrib_by_name<std::string>(node, "color");
     if (color.has_value()) std::cout << color.value() << std::endl;

@@ -99,7 +99,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type) 
 
     auto name_op = G->get_name_from_id(id);
     auto name = name_op.value_or("No_name");
-    std::optional <Node> n = G->get_node(id);
+    std::optional <CRDT::Node> n = G->get_node(id);
     if (n.has_value()) {
         if (gmap.count(id) == 0)    // if node does not exist, create it
         {
@@ -184,7 +184,7 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type) 
         }
 
         emit
-        G->update_attrs_signal(id, n.value().attrs());
+        G->update_attrs_signal(id,map<string, CRDT::Attribute>(n.value().attrs().begin(), n.value().attrs().end()));
     }
 }
 
