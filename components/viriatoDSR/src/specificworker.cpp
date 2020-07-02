@@ -53,7 +53,7 @@ void SpecificWorker::initialize(int period)
 		this->startup_check();
 	else
 	{
-		G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
@@ -84,8 +84,8 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 	auto node = G->get_node("laser");
 	if (node.has_value())
 	{
-		G->add_or_modify(node.value(), "dists", dists);
-		G->add_or_modify(node.value(), "angles", angles);
+		G->add_or_modify_attrib_local(node.value(), "dists", dists);
+		G->add_or_modify_attrib_local(node.value(), "angles", angles);
 		G->update_node(node.value());
 	}
 }

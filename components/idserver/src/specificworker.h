@@ -41,7 +41,7 @@ public:
 	void initialize();
     
 	 // DSR
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
     std::string agent_name;
 
 	//Interface DSRGetID
