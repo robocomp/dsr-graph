@@ -45,7 +45,7 @@ void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
 
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     innermodel = G->get_inner_api();
 
     // GraphViewer creation
@@ -212,12 +212,13 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     node.type(type);
     node.agent_id(agent_id);
     node.name(name);
-    G->add_or_modify(node, "pos_x", 100.0);
-    G->add_or_modify(node, "pos_y", 100.0);
-    G->add_or_modify(node, "name", name);
-    G->add_or_modify(node, "color", std::string("GoldenRod"));
-    G->add_or_modify(node, "parent", G->get_node("world").value().id());
-    G->add_or_modify(node, "level", G->get_node_level(G->get_node_root().value()).value() + 1);
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
+    G->add_or_modify_attrib_local(node, "pos_y", 100.0);
+    G->add_or_modify_attrib_local(node, "name", name);
+    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    G->add_or_modify_attrib_local(node, "path", std::string("/home/robocomp/robocomp/"));
+    G->add_or_modify_attrib_local(node, "parent", G->get_node("world").value().id());
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node_root().value()).value() + 1);
     
     std::optional<int> new_id = G->insert_node(node);
 
