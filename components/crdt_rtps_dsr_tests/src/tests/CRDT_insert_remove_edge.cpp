@@ -24,8 +24,8 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
             //get two ids
             edge.from(getID());
             edge.to(getID());
-            G->add_attrib(edge, "name", std::string("fucking_plane"));
-            G->add_attrib(edge, "color", std::string("SteelBlue"));
+            G->add_attrib_local(edge, "name", std::string("fucking_plane"));
+            G->add_attrib_local(edge, "color", std::string("SteelBlue"));
 
             r = G->insert_or_assign_edge(edge);
             if (r) {
@@ -61,11 +61,11 @@ void CRDT_insert_remove_edge::run_test()
             node.id( id );
             node.agent_id(0);
             node.name("plane" + std::to_string(id));
-            G->add_attrib(node, "name", std::string("fucking_plane"));
-            G->add_attrib(node, "color", std::string("SteelBlue"));
-            G->add_attrib(node, "pos_x", rnd_float());
-            G->add_attrib(node, "pos_y", rnd_float());
-            G->add_attrib(node, "parent", 100);
+            G->add_attrib_local(node, "name", std::string("fucking_plane"));
+            G->add_attrib_local(node, "color", std::string("SteelBlue"));
+            G->add_attrib_local(node, "pos_x", rnd_float());
+            G->add_attrib_local(node, "pos_y", rnd_float());
+            G->add_attrib_local(node, "parent", 100);
 
             // insert node
             auto r = G->insert_node(node);

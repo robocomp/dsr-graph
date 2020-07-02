@@ -33,13 +33,13 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
             ab.type(STRING);
             node.value().attrs()["testattrib"] = ab;
             node->agent_id(agent_id);
-            G->add_attrib(node.value(), "pos_x", rnd_float());
-            G->add_attrib(node.value(), "pos_y", rnd_float());
+            G->add_attrib_local(node.value(), "pos_x", rnd_float());
+            G->add_attrib_local(node.value(), "pos_y", rnd_float());
         }
         else {
             at->second.value().str(str);
-            G->modify_attrib(node.value(), "pos_x", rnd_float());
-            G->modify_attrib(node.value(), "pos_y", rnd_float());
+            G->modify_attrib_local(node.value(), "pos_x", rnd_float());
+            G->modify_attrib_local(node.value(), "pos_y", rnd_float());
         }
 
         bool r = G->update_node(node.value());

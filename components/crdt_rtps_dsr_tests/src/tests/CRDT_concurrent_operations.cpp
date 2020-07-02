@@ -30,11 +30,11 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 Node node; node.type("n"); node.id(id);
                 node.agent_id(agent_id);
                 node.name("plane" + std::to_string(id));
-                G->add_attrib(node, "name", std::string("fucking_plane"));
-                G->add_attrib(node, "color", std::string("SteelBlue"));
-                G->add_attrib(node, "pos_x", rnd_float());
-                G->add_attrib(node, "pos_y", rnd_float());
-                G->add_attrib(node, "parent", 100);
+                G->add_attrib_local(node, "name", std::string("fucking_plane"));
+                G->add_attrib_local(node, "color", std::string("SteelBlue"));
+                G->add_attrib_local(node, "pos_x", rnd_float());
+                G->add_attrib_local(node, "pos_y", rnd_float());
+                G->add_attrib_local(node, "parent", 100);
 
                 auto res = G->insert_node(node);
                 if (res.has_value()) {
@@ -65,8 +65,8 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 //get two ids
                 edge.from(getID());
                 edge.to(getID());
-                G->add_attrib(edge, "name", std::string("fucking_plane"));
-                G->add_attrib(edge, "color", std::string("SteelBlue"));
+                G->add_attrib_local(edge, "name", std::string("fucking_plane"));
+                G->add_attrib_local(edge, "color", std::string("SteelBlue"));
 
                 r = G->insert_or_assign_edge(edge);
                 if (r) {
@@ -110,13 +110,13 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
                 Val v; v.str(str);
                 Attrib ab; ab.value(v); ab.type(STRING);
                 node.value().attrs()["testattrib"] = ab;
-                G->add_attrib(node.value(), "pos_x", rnd_float());
-                G->add_attrib(node.value(), "pos_y", rnd_float());
+                G->add_attrib_local(node.value(), "pos_x", rnd_float());
+                G->add_attrib_local(node.value(), "pos_y", rnd_float());
             }
             else {
                 at->second.value().str(str);
-                G->modify_attrib(node.value(), "pos_x", rnd_float());
-                G->modify_attrib(node.value(), "pos_y", rnd_float());
+                G->modify_attrib_local(node.value(), "pos_x", rnd_float());
+                G->modify_attrib_local(node.value(), "pos_y", rnd_float());
             }
 
             node->agent_id(agent_id);

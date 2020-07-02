@@ -43,7 +43,7 @@ public:
 	void OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state);
 
 	// DSR
-    std::shared_ptr<CRDT::CRDTGraph> getGCRDT() const {return G;};
+    std::shared_ptr<DSR::DSRGraph> getGDSR() const {return G;};
 
 public slots:
 	void compute();
@@ -52,7 +52,7 @@ public slots:
 private:
 	bool startup_check_flag;
 	// DSR
-	std::shared_ptr<CRDT::CRDTGraph> G;
+	std::shared_ptr<DSR::DSRGraph> G;
 
 	//params
 	std::string agent_name;
