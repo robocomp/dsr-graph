@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
     // GraphViewer creation
     using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg);
     
     this->Period = 100;
     timer.start(Period);
@@ -69,7 +69,7 @@ void SpecificWorker::compute()
 
 void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData people)
 {
-    qDebug()<<"PROCESS PEOPLEDATA";
+    //qDebug()<<"PROCESS PEOPLEDATA";
     std::vector<float> zeros{0.0,0.0,0.0};
     std::optional<Node> world_n = G->get_node("world");
     if(not world_n.has_value())
@@ -86,11 +86,11 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
         std::optional<Node> person_n = G->get_node(G_id);
         if(person_n.has_value()) //update edges
         {
-            qDebug()<<"update person:"<<person_n->id();
+            //qDebug()<<"update person:"<<person_n->id();
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
-            std::cout << "Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
+            //std::cout << "Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
 /*            for(const auto &[name, key] : person.joints) //update joints edge values
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
@@ -120,7 +120,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         }
         else //create nodes
         {
-            qDebug()<<"Person does not exist => Creation";
+            //qDebug()<<"Person does not exist => Creation";
             person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
                 return;
@@ -149,7 +149,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         //update timestamp
         people_last_seen[person_n.value().id()] = std::chrono::system_clock::now();
     }
-    qDebug()<<"PROCESS PEOPLEDATA END";
+    //qDebug()<<"PROCESS PEOPLEDATA END";
 }
 
 
@@ -188,7 +188,7 @@ void SpecificWorker::check_unseen_people()
 //SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
 void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
 {
-    qDebug()<<"received RoboCompHumanToDSRPub::PeopleData "<<people.peoplelist.size();
+    qDebug() << "received RoboCompHumanToDSRPub::PeopleData " << people.peoplelist.size();
     people_data_buffer.put(std::move(people));
 }
 /*
@@ -216,15 +216,18 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     G->add_or_modify(node, "pos_y", 100.0);
     G->add_or_modify(node, "name", name);
     G->add_or_modify(node, "color", std::string("GoldenRod"));
+    G->add_or_modify(node, "parent", G->get_node("world").value().id());
+    G->add_or_modify(node, "level", G->get_node_level(G->get_node_root().value()).value() + 1);
+    
     std::optional<int> new_id = G->insert_node(node);
 
     if(new_id.has_value()) {
-        qDebug()<<"Create node: ID "<<new_id.value();
+        qDebug() << __FUNCTION__ << "Create node: ID " << new_id.value();
         //We have to keep an equivalence between detector and graph ids.
         G_person_id[person_id] = new_id.value();
         return node;
     }
     else
-        qDebug()<<"Error on node "<<QString::fromStdString(node.name())<<"creation";
+        qDebug() << __FUNCTION__ << "Error on node "<<QString::fromStdString(node.name())<<"creation";
     return {};
 }
