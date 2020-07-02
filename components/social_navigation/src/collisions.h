@@ -123,6 +123,8 @@ class CalculateTriangles : public osg::NodeVisitor
 		osg::Matrix transformMatrix;
 };
 
+ //TODO: update objects if node parameters values changed
+ //Also update on new/delete/changed nodes
 class Collisions {
 
 public:
@@ -130,15 +132,15 @@ public:
     std::vector<std::string> restNodes;
     std::set<std::string> excludedNodes;
     QRectF outerRegion;
+    std::string robot_name;
 
-    void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) {
-
-
+    void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_) 
+    {
         qDebug()<<"Collisions - " <<__FUNCTION__;
         G = graph_;
         innerModel = G->get_inner_api();
 
-//qDebug()<<"collide"<<collide("floor_plane", "tableA");
+//qDebug()<<"collide"<<collide("viriato_mesh", "tableA_tabletop");
 //exit(0);
         /// Processing configuration parameters
         try
@@ -147,6 +149,7 @@ public:
             outerRegion.setRight(std::stof(params_->at("OuterRegionRight").value));
             outerRegion.setBottom(std::stof(params_->at("OuterRegionBottom").value));
             outerRegion.setTop(std::stof(params_->at("OuterRegionTop").value));
+            robot_name = params_->at("NavigationAgent.RobotName").value;
         }
         catch(const std::exception &e)
         {
@@ -168,14 +171,19 @@ public:
 
         // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
         robotNodes.clear(); restNodes.clear();
-//        recursiveIncludeMeshes(innerModel->getRoot(), "robot", false, robotNodes, restNodes, excludedNodes);
+        recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
+//std::cout<<"lists"<<std::endl;
+//std::cout<<"robot"<<robotNodes<<std::endl;
+//std::cout<<"rest"<<restNodes<<std::endl;
         qsrand( QTime::currentTime().msec() );
-
     }
 
-    bool checkRobotValidStateAtTargetFast(const QVec &targetPos, const QVec &targetRot)    
+    bool checkRobotValidStateAtTargetFast(const std::vector<float> &targetPos, const std::vector<float> &targetRot)    
     {
     //First we move the robot in our copy of innermodel to its current coordinates
+        std::optional<Edge> edge = G->get_edge("world", robot_name, "RT");
+        G->modify_attrib_local(edge.value(), "translation", targetPos);
+        G->modify_attrib_local(edge.value(), "rotation_euler_xyz", targetRot);
 
 //          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
 
@@ -196,6 +204,7 @@ public:
                 catch(QString s) {qDebug()<< __FUNCTION__ << s;}
                 if (collision)
                 {
+                    std::cout<<"COLLISION"<<in<<" "<<out<<" pos "<<targetPos<<std::endl;
                     return false;
                 }
             }
@@ -203,47 +212,37 @@ public:
         return true;
     }
 
-/*
-    void recursiveIncludeMeshes(InnerModelNode *node, QString robotId, bool inside, std::vector<QString> &in, std::vector<QString> &out, std::set<QString> &excluded) {
-
-        if (node->id == robotId)
+    void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded)
+    {
+        if (node.name() == robot_name)
         {
             inside = true;
         }
-
-        InnerModelMesh *mesh;
-        InnerModelPlane *plane;
-        InnerModelTransform *transformation;
-
-        if ((transformation = dynamic_cast<InnerModelTransform *>(node)))
+        if (node.type() == "mesh" or node.type() == "plane")
         {
-            for (int i=0; i<node->children.size(); i++)
-            {
-                recursiveIncludeMeshes(node->children[i], robotId, inside, in, out, excluded);
-
-            }
-
-        }
-
-        else if ((mesh = dynamic_cast<InnerModelMesh *>(node)) or (plane = dynamic_cast<InnerModelPlane *>(node)))
-        {
-            if( std::find(excluded.begin(), excluded.end(), node->id) == excluded.end() )
+            if( std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end() )
             {
                 if (inside)
                 {
-                    in.push_back(node->id);
+                    in.push_back(node.name());
                 }
                 else
-                if(mesh or plane)
-                    out.push_back(node->id);
+                {
+                    out.push_back(node.name());
+                }
             }
         }
-
+        
+        for(auto &edge: G->get_node_edges_by_type(node, "RT"))
+        {
+            auto child = G->get_node(edge.to());
+            recursiveIncludeMeshes(child.value(), robot_name, inside, in, out, excluded);
+        }
     }
-*/
+
     bool collide(const std::string &node_a_name, const std::string &node_b_name)
     {
-        std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
+//std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
         
         QMat r1q = innerModel->getTransformationMatrixS("world", node_a_name).value();
         fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
@@ -254,7 +253,6 @@ public:
         fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
         fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
         
-
         fcl::CollisionRequest request;
         fcl::CollisionResult result;
 
@@ -277,7 +275,6 @@ public:
         }
         
     }
-    //TODO: update objects if node parameters values changed
 
     //return collison object, creates it if does not exist
     fcl::CollisionObject* get_collision_object(std::string node_name)
@@ -323,7 +320,7 @@ public:
             std::optional<Node> parent = G->get_parent_node(node);
             if(not parent.has_value())
                 return collision_object;
-            std::optional<QVec> pose = innerModel->transformS6D(parent.value().name(), node.name());
+            std::optional<QVec> pose = innerModel->transformS6D(node.name(), parent.value().name());
 		    RTMat rtm(pose.value().rx(), pose.value().ry(), pose.value().rz(), pose.value().x(), pose.value().y(), pose.value().z());
             // Transform each of the read vertices
             std::optional<int> scalex = G->get_attrib_by_name<int>(node, "scalex");
@@ -368,7 +365,7 @@ public:
         std::optional<Node> parent = G->get_parent_node(node);
         if(not parent.has_value())
             return collision_object;
-        std::optional<QVec> pose = innerModel->transformS6D(parent.value().name(), node.name());
+        std::optional<QVec> pose = innerModel->transformS6D(node.name(), parent.value().name());
         osg::Matrix r;
         r.makeRotate(osg::Vec3(0, 0, 1), osg::Vec3(pose.value().rx(), pose.value().ry(), -pose.value().rz()));
         QMat qmatmat(4,4);
@@ -414,8 +411,8 @@ public:
 
 private:
 
-    std::shared_ptr<CRDT::InnerAPI> innerModel;
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::InnerAPI> innerModel;
+    std::shared_ptr<DSR::DSRGraph> G;
 
     std::map<std::string, fcl::CollisionObject*> collision_objects;
 
