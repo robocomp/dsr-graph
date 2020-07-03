@@ -87,8 +87,8 @@ void initialize(const std::shared_ptr<DSR::DSRGraph> &graph, std::shared_ptr< Ro
     collisions =  std::make_shared<Collisions>();
 
     collisions->initialize(G, configparams);
-//    grid.initialize(collisions);
-//    grid.draw(viewer_2d);
+    grid.initialize(collisions);
+    grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
 
@@ -198,7 +198,7 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
  //       if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
     }
 
- //   drawRoad();
+    drawRoad();
 
 
 };
@@ -964,20 +964,65 @@ QPointF getRobotNose()
     return (robot + QPointF(250*sin(currentRobotPose.ry()),250*cos(currentRobotPose.ry())));
 
 }
-
+std::vector<QGraphicsLineItem *> scene_road_points;
 void drawRoad()
 {
 //        qDebug()<<"Navigation - "<< __FUNCTION__;
-/*
+
     ///////////////////////
     // Preconditions
     ///////////////////////
     if (pathPoints.size() == 0)
         return;
 
+    //clear previous points
+    for (QGraphicsLineItem* item : scene_road_points)
+    {
+        viewer_2d->removeItem((QGraphicsItem*)item);
+    }
+    scene_road_points.clear();    
 
-    try	{ viewer->removeNode("points");} catch(const QString &s){	qDebug() <<"drawRoad" <<s; };
-    try	{ viewer->addTransform_ignoreExisting("points","world");} catch(const QString &s){qDebug()<<"drawRoad" << s; };
+    ///////////////////
+    //Draw all points
+    //////////////////
+    QGraphicsLineItem *line;
+    std::string color;
+    for (unsigned int i = 1; i < pathPoints.size(); i++)
+    {
+        QPointF &w = pathPoints[i];
+        QPointF &wAnt = pathPoints[i - 1];
+        if (w == wAnt) //avoid calculations on equal points
+            continue;
+//TODO: check wich line should be painted
+        QLine2D l(QVec::vec2(wAnt.x(),wAnt.y()), QVec::vec2(w.x(),w.y()));
+        QLine2D lp = l.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
+        QVec normal = lp.getNormalForOSGLineDraw();  //3D vector
+
+        if(i == 1 or i == pathPoints.size()-1)
+        {
+            color = "#FF0000"; //Red
+        }
+        else
+        {
+            if (isVisible(w))
+                color = "#00FFF0";
+            else
+                color = "#A200FF";
+        }
+        
+        line = viewer_2d->addLine(QLineF(w, wAnt), QPen(QString::fromStdString(color)));
+        scene_road_points.push_back(line);
+    }
+}
+/*void drawRoad()
+{
+//        qDebug()<<"Navigation - "<< __FUNCTION__;
+
+    ///////////////////////
+    // Preconditions
+    ///////////////////////
+    if (pathPoints.size() == 0)
+        return;
 
     try
     {
@@ -1015,8 +1060,8 @@ void drawRoad()
 
     }
     catch(const QString &s){qDebug()<<"drawRoad" << s;}
-//        qDebug()<<"END "<<__FUNCTION__;*/
-}
+//        qDebug()<<"END "<<__FUNCTION__;
+}*/
 
 
 
