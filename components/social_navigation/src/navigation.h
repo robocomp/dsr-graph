@@ -13,6 +13,7 @@
 #include "collisions.h"
 #include <QPolygonF>
 #include <QPointF>
+#include <QGraphicsScene>
 
 #include <cppitertools/chain.hpp>
 #include <cppitertools/range.hpp>
@@ -72,14 +73,14 @@ public:
 //void initialize(const std::shared_ptr<InnerModel> &innerModel_, const std::shared_ptr<InnerViewer> &viewer_,
 //        std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_, OmniRobotPrx omnirobot_proxy_)
 //{
-void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_)
+void initialize(const std::shared_ptr<DSR::DSRGraph> &graph, std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_, QGraphicsScene* viewer_2d_)
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
 
     G = graph;
     innerModel = G->get_inner_api();
     configparams = configparams_;
-
+    viewer_2d = viewer_2d_;
     stopRobot();
      //grid can't be initialized if the robot is moving
 
@@ -87,7 +88,7 @@ void initialize(const std::shared_ptr<CRDT::CRDTGraph> &graph, std::shared_ptr< 
 
     collisions->initialize(G, configparams);
     grid.initialize(collisions);
- //   grid.draw(viewer);
+    grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
 
@@ -197,7 +198,7 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
  //       if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
     }
 
- //   drawRoad();
+    drawRoad();
 
 
 };
@@ -331,10 +332,10 @@ void updateAffordancesPolylines(std::map<float, vector<QPolygonF>> mapCostObject
 
 
 private:
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<Collisions> collisions;
-    std::shared_ptr<CRDT::InnerAPI> innerModel;
-//    std::shared_ptr<InnerViewer> viewer;
+    std::shared_ptr<DSR::InnerAPI> innerModel;
+    QGraphicsScene* viewer_2d;
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> configparams;
 
 //    OmniRobotPrx omnirobot_proxy;
@@ -395,7 +396,7 @@ void updateFreeSpaceMap(bool drawGrid = true)
         grid.modifyCostInGrid(poly_per, 10.0);
 
 
-//    if(drawGrid) grid.draw(viewer);
+    if(drawGrid) grid.draw(viewer_2d);
 
 }
 
@@ -963,20 +964,65 @@ QPointF getRobotNose()
     return (robot + QPointF(250*sin(currentRobotPose.ry()),250*cos(currentRobotPose.ry())));
 
 }
-
+std::vector<QGraphicsLineItem *> scene_road_points;
 void drawRoad()
 {
 //        qDebug()<<"Navigation - "<< __FUNCTION__;
-/*
+
     ///////////////////////
     // Preconditions
     ///////////////////////
     if (pathPoints.size() == 0)
         return;
 
+    //clear previous points
+    for (QGraphicsLineItem* item : scene_road_points)
+    {
+        viewer_2d->removeItem((QGraphicsItem*)item);
+    }
+    scene_road_points.clear();    
 
-    try	{ viewer->removeNode("points");} catch(const QString &s){	qDebug() <<"drawRoad" <<s; };
-    try	{ viewer->addTransform_ignoreExisting("points","world");} catch(const QString &s){qDebug()<<"drawRoad" << s; };
+    ///////////////////
+    //Draw all points
+    //////////////////
+    QGraphicsLineItem *line;
+    std::string color;
+    for (unsigned int i = 1; i < pathPoints.size(); i++)
+    {
+        QPointF &w = pathPoints[i];
+        QPointF &wAnt = pathPoints[i - 1];
+        if (w == wAnt) //avoid calculations on equal points
+            continue;
+//TODO: check wich line should be painted
+        QLine2D l(QVec::vec2(wAnt.x(),wAnt.y()), QVec::vec2(w.x(),w.y()));
+        QLine2D lp = l.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
+        QVec normal = lp.getNormalForOSGLineDraw();  //3D vector
+
+        if(i == 1 or i == pathPoints.size()-1)
+        {
+            color = "#FF0000"; //Red
+        }
+        else
+        {
+            if (isVisible(w))
+                color = "#00FFF0";
+            else
+                color = "#A200FF";
+        }
+        
+        line = viewer_2d->addLine(QLineF(w, wAnt), QPen(QString::fromStdString(color)));
+        scene_road_points.push_back(line);
+    }
+}
+/*void drawRoad()
+{
+//        qDebug()<<"Navigation - "<< __FUNCTION__;
+
+    ///////////////////////
+    // Preconditions
+    ///////////////////////
+    if (pathPoints.size() == 0)
+        return;
 
     try
     {
@@ -1014,8 +1060,8 @@ void drawRoad()
 
     }
     catch(const QString &s){qDebug()<<"drawRoad" << s;}
-//        qDebug()<<"END "<<__FUNCTION__;*/
-}
+//        qDebug()<<"END "<<__FUNCTION__;
+}*/
 
 
 

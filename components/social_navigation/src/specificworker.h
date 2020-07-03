@@ -36,7 +36,7 @@
 
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
-
+#include "dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h"
 
 #include <localPerson.h>
 #include <cppitertools/zip.hpp>
@@ -76,9 +76,9 @@ public slots:
 
 
 private:
-	std::shared_ptr<CRDT::InnerAPI> innermodel;
+	std::shared_ptr<DSR::InnerAPI> innermodel;
 	// DSR graph
-	std::shared_ptr<CRDT::CRDTGraph> G;
+	std::shared_ptr<DSR::DSRGraph> G;
 
 	//DSR params
 	std::string agent_name;
