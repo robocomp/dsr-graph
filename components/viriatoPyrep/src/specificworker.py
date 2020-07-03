@@ -134,7 +134,6 @@ class SpecificWorker(GenericWorker):
                     person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, rot[2], {})
                     people.append(person)
                 try:
-                    
                     people_data.peoplelist = people
                     self.humantodsrpub_proxy.newPeopleData(people_data)
                 except Ice.Exception as e:
@@ -170,7 +169,7 @@ class SpecificWorker(GenericWorker):
                 #     vels = self.omnirobot_queue.get()
                 #     self.robot.set_base_angular_velocites(vels)
 
-                time.sleep(0.001)
+                time.sleep(0.08)
                 #print(time.time()-start)
             except KeyboardInterrupt:
                 break
