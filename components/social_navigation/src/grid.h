@@ -453,6 +453,47 @@ public:
 		return neigh;
 	}
 
+	std::vector<QGraphicsRectItem *> scene_grid_points;
+	void draw(QGraphicsScene* scene)
+	{
+		//clear previous points
+		for (QGraphicsRectItem* item : scene_grid_points)
+		{
+			scene->removeItem((QGraphicsItem*)item);
+		}
+		scene_grid_points.clear();
+		//create new representation
+		QGraphicsRectItem* aux;
+		std::string color;
+		for( const auto &[key,value] : fmap)
+		{
+			if(value.free)
+			{
+				if (value.cost == 2.0) //affordance spaces
+					color = "#FFFF00";
+				else if (value.cost == 3.0) //lowvisited spaces
+					color = "#FFBF00";
+				else if (value.cost == 4.0) //mediumvisited spaces
+					color = "#FF8000";
+				else if (value.cost == 5.0) //highVisited spaces
+					color = "#FF4000";
+				else if (value.cost == 8.0) //zona social
+					color = "#00BFFF";
+				else if (value.cost == 10.0) //zona personal
+					color = "#BF00FF";
+				else
+					color = "#E6E6E6";
+			}
+			else
+				color = "#B40404";
+
+			aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
+			aux->setZValue(2000);
+			scene_grid_points.push_back(aux);
+        }
+	}
+
+
 /*    void draw(std::shared_ptr<InnerViewer> viewer)
     {
         qDebug()<<"Grid - " <<__FUNCTION__;

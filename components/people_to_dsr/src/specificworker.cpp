@@ -216,9 +216,10 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     G->add_or_modify_attrib_local(node, "pos_y", 100.0);
     G->add_or_modify_attrib_local(node, "name", name);
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    G->add_or_modify_attrib_local(node, "path", std::string("/home/robocomp/robocomp/"));
     G->add_or_modify_attrib_local(node, "parent", G->get_node("world").value().id());
-    auto root_node = G->get_node_root().value();
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(root_node).value() + 1);
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node_root().value()).value() + 1);
+    
     std::optional<int> new_id = G->insert_node(node);
 
     if(new_id.has_value()) {
