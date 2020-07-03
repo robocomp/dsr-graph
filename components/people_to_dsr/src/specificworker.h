@@ -97,10 +97,16 @@ public:
     void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);    
 
 private: 
-//    int get_new_node_id();
-    std::optional<Node> create_node(std::string type, std::string name, int person_id,  int parent_idz);
+    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  int parent_idz);
+    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, int parent_id);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
     void check_unseen_people();
+
+    const std::string person_path = "/home/robocomp/robocomp/components/robocomp-viriato/files/osgModels/";
+    const std::string person1_path = person_path + "human04.3ds";
+    const std::string person2_path = person_path + "human02.3ds";
+    const std::string abuelito_path = "/home/pbustos/robocomp/components/robocomp-viriato/files/osgModels/abuelito.ive";
+    
 
 public slots:
 	void compute();

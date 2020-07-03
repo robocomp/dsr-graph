@@ -79,18 +79,17 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
     {
         int G_id = -1;
         //We have to keep an equivalence between detector and graph ids.
-        if (G_person_id.find(person.id) != G_person_id.end()) {
+        if (G_person_id.find(person.id) != G_person_id.end()) 
             G_id = G_person_id[person.id];
-        }
         std::string person_name = "person [" + std::to_string(person.id) + "]";
         std::optional<Node> person_n = G->get_node(G_id);
         if(person_n.has_value()) //update edges
         {
-            //qDebug()<<"update person:"<<person_n->id();
+            qDebug() << __FUNCTION__ << " update person:" << person_n->id();
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
-            //std::cout << "Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
+            std::cout << __FUNCTION__  << " Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
 /*            for(const auto &[name, key] : person.joints) //update joints edge values
             {
                 std::string node_name = name + " [" + std::to_string(person.id) + "]";
@@ -120,11 +119,16 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         }
         else //create nodes
         {
-            //qDebug()<<"Person does not exist => Creation";
+            //qDebug() << __FUNCTION__ << "Person does not exist => Creation";
             person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
-                return;
+                std::terminate();
+             std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
+            if (not person_n_mesh.has_value()) 
+                std::terminate();
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
+            G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{0.0, 0.0, 0.0});
+            
             //create joints nodes
 /*            for(std::string name : COCO_IDS)
             {
@@ -151,7 +155,6 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
     }
     //qDebug()<<"PROCESS PEOPLEDATA END";
 }
-
 
 void SpecificWorker::check_unseen_people()
 {
@@ -183,31 +186,8 @@ void SpecificWorker::check_unseen_people()
 	}
 }
 
-
-
-//SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
-void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
+std::optional<Node> SpecificWorker::create_node(const std::string &type, const std::string &name, int person_id,  int parent_id)
 {
-    qDebug() << "received RoboCompHumanToDSRPub::PeopleData " << people.peoplelist.size();
-    people_data_buffer.put(std::move(people));
-}
-/*
-int SpecificWorker::get_new_node_id()
-{
-    int new_id = -1;
-    try{
-        new_id = dsrgetid_proxy->getID();    
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << "Error asking for new node id " << e.what() << '\n';
-    }
-    return new_id;
-}*/
-
-std::optional<Node> SpecificWorker::create_node(std::string type, std::string name, int person_id,  int parent_id)
-{
-
     Node node;
     node.type(type);
     node.agent_id(agent_id);
@@ -216,19 +196,72 @@ std::optional<Node> SpecificWorker::create_node(std::string type, std::string na
     G->add_or_modify_attrib_local(node, "pos_y", 100.0);
     G->add_or_modify_attrib_local(node, "name", name);
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
-    G->add_or_modify_attrib_local(node, "path", std::string("/home/robocomp/robocomp/"));
-    G->add_or_modify_attrib_local(node, "parent", G->get_node("world").value().id());
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node_root().value()).value() + 1);
-    
-    std::optional<int> new_id = G->insert_node(node);
-
-    if(new_id.has_value()) {
-        qDebug() << __FUNCTION__ << "Create node: ID " << new_id.value();
-        //We have to keep an equivalence between detector and graph ids.
-        G_person_id[person_id] = new_id.value();
-        return node;
+    G->add_or_modify_attrib_local(node, "parent", parent_id);
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    //G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
+    try
+    {
+        std::optional<int> new_id = G->insert_node(node);
+        if(new_id.has_value()) 
+        {
+            qDebug() << __FUNCTION__ << "Create node: ID " << new_id.value();
+            //We have to keep an equivalence between detector and graph ids.
+            G_person_id[person_id] = new_id.value();
+            return node;
+        }
+        else
+        {
+            qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
+            return {};
+        }
     }
-    else
-        qDebug() << __FUNCTION__ << "Error on node "<<QString::fromStdString(node.name())<<"creation";
-    return {};
+    catch(const std::exception& e)
+    {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+        std::terminate();
+    }
 }
+
+std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, const std::string &path, int parent_id)
+{
+    Node node;
+    node.type("mesh");
+    node.name(name + "_mesh");
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
+    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
+    G->add_or_modify_attrib_local(node, "name", name + "_mesh");
+    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    G->add_or_modify_attrib_local(node, "path", path);
+    G->add_or_modify_attrib_local(node, "scalex", 1);
+    G->add_or_modify_attrib_local(node, "scaley", 1);
+    G->add_or_modify_attrib_local(node, "scalez", 1);
+    G->add_or_modify_attrib_local(node, "parent", parent_id);
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    try
+    {     
+        std::optional<int> new_id = G->insert_node(node);
+        if(new_id.has_value())
+            return node;
+        else 
+        {
+            qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
+            return {};
+        }
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+        std::terminate();
+    }
+}
+
+/////////////////////////////////////////////////////////////////////
+// SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
+////////////////////////////////////////////////////////////////////
+
+void SpecificWorker::HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people)
+{
+    qDebug() << "received RoboCompHumanToDSRPub::PeopleData " << people.peoplelist.size();
+    people_data_buffer.put(std::move(people));
+}
+
