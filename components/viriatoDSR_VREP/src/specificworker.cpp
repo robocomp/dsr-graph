@@ -179,8 +179,8 @@ void SpecificWorker::compute()
 			auto node = G->get_node(202);
 			if (node.has_value())
 			{
-				G->modify_attrib(node.value(), "dists", dists);
-				G->modify_attrib(node.value(), "angles", angles);
+				G->modify_attrib_local(node.value(), "dists", dists);
+				G->modify_attrib_local(node.value(), "angles", angles);
 				G->update_node(node.value());
 			}
 		}

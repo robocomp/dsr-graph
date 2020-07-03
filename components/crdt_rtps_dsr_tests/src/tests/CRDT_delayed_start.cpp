@@ -26,11 +26,11 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
             node.id( id );
             node.agent_id(0);
             node.name("plane" + std::to_string(id));
-            G->add_attrib(node, "name", std::string("fucking_plane"));
-            G->add_attrib(node, "color", std::string("SteelBlue"));
-            G->add_attrib(node, "pos_x", rnd_float());
-            G->add_attrib(node, "pos_y", rnd_float());
-            G->add_attrib(node, "parent", 100);
+            G->add_attrib_local(node, "name", std::string("fucking_plane"));
+            G->add_attrib_local(node, "color", std::string("SteelBlue"));
+            G->add_attrib_local(node, "pos_x", rnd_float());
+            G->add_attrib_local(node, "pos_y", rnd_float());
+            G->add_attrib_local(node, "parent", 100);
 
             //node.attrs(attrs);
 

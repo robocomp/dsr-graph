@@ -465,7 +465,6 @@ public:
 		//create new representation
 		QGraphicsRectItem* aux;
 		std::string color;
-fmap.emplace(Key(300, 300), T{100, false, false, 1.f});		
 		for( const auto &[key,value] : fmap)
 		{
 			if(value.free)
@@ -488,10 +487,7 @@ fmap.emplace(Key(300, 300), T{100, false, false, 1.f});
 			else
 				color = "#B40404";
 
-			//aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
-			qDebug()<<"antes";
-			aux = scene->addRect(1000, 1000, 500, 500, QPen(QString::fromStdString("yellow")), QBrush(QColor(QString::fromStdString("yellow"))));
-			qDebug()<<"despues";
+			aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
 			aux->setZValue(2000);
 			scene_grid_points.push_back(aux);
         }
