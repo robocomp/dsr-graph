@@ -58,7 +58,7 @@ void SpecificWorker::initialize(int period)
 
 		// Graph viewer
 		using opts = DSR::GraphViewer::view;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg);
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         timer.start(100);
     }
@@ -67,9 +67,29 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 	if(auto ldata = laser_buffer.get(); ldata.has_value())
-		update_laser(ldata.value());
+	 	update_laser(ldata.value());
 	if(auto bState = omnirobot_buffer.get(); bState.has_value())
 		update_omirobot(bState.value());
+	if(auto rgb = rgb_buffer.get(); rgb.has_value())
+		update_rgb(rgb.value());
+}
+
+void SpecificWorker::update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb)
+{
+	qDebug() << __FUNCTION__; 
+	auto node = G->get_node("Viriato_head_camera_front_sensor");
+	if (node.has_value())
+	{
+		G->add_or_modify_attrib_local(node.value(), "rgb", rgb.image);
+		G->add_or_modify_attrib_local(node.value(), "width", rgb.width);
+		G->add_or_modify_attrib_local(node.value(), "height", rgb.height);
+		G->add_or_modify_attrib_local(node.value(), "depth", rgb.depth);
+		G->add_or_modify_attrib_local(node.value(), "cameraID", rgb.cameraID);
+		G->add_or_modify_attrib_local(node.value(), "focalx", rgb.focalx);
+		G->add_or_modify_attrib_local(node.value(), "focaly", rgb.focaly);
+		G->add_or_modify_attrib_local(node.value(), "alivetime", rgb.alivetime);		
+		G->update_node(node.value());
+	}
 }
 
 void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
@@ -131,6 +151,7 @@ int SpecificWorker::startup_check()
 //SUBSCRIPTION to pushRGBD method from CameraRGBDSimplePub interface
 void SpecificWorker::CameraRGBDSimplePub_pushRGBD(RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep)
 {
+	qDebug() << __FUNCTION__;
 	rgb_buffer.put(std::move(im));
 	depth_buffer.put(std::move(dep));	
 }

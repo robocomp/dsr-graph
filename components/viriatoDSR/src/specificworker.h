@@ -73,6 +73,7 @@ private:
 	
 	void update_laser(const RoboCompLaser::TLaserData& ldata);
 	void update_omirobot(const RoboCompGenericBase::TBaseState& bState);
+	void update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb);
 	bool areDifferent(float a, float b, float epsilon);
 
 };

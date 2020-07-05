@@ -93,7 +93,7 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
     params["agent_id"] = aux;
     configGetString( "","read_dsr", aux.value,"true");
     params["read_dsr"] = aux;
-    configGetString( "","dsr_input_file", aux.value, "");
+    configGetString( "","dsr_input_file", aux.value, "none");
     params["dsr_input_file"] = aux;
 
 }

@@ -7,11 +7,12 @@ OmniRobotPubTopic.Endpoints=tcp -p 11113
 
 agent_id = 10
 agent_name = viriato
-dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
+#dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
 
+Ice.MessageSizeMax=20004800
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0
