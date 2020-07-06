@@ -954,12 +954,20 @@
                     "width": {
                         "type": 1,
                         "value": 640
+                    },
+                    "rgb": {
+                        "type": 5,
+                        "value": []
+                    },
+                    "depth": {
+                        "type": 5,
+                        "value": []
                     }
                 },
                 "id": 108,
                 "links": [
                 ],
-                "name": "rgbd",
+                "name": "Viriato_head_camera_front_sensor",
                 "type": "rgbd"
             },
             "109": {
