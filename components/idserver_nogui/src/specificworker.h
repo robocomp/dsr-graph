@@ -27,8 +27,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "../../../dsr/api/dsr_api.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -51,7 +50,7 @@ public slots:
 	void initialize(int period);
 
 private:
-	int node_id = -9999;
+	uint32_t node_id = 0;
 
 	//params
 	int agent_id;
@@ -61,9 +60,6 @@ private:
 	bool dsr_write_to_file;
 
 	void get_max_id_from_G();
-
-	QGraphicsScene scene;
-	QGraphicsView gv;
 
 };
 

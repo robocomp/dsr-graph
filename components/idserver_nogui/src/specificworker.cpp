@@ -57,8 +57,9 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 
 	// create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "/home/juancarlos/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json"/*dsr_input_file*/); // Init nodes
+    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, /*"/home/juancarlos/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json"*/dsr_input_file); // Init nodes
 
+    /*
     //INSERTAR NODO
     CRDT::Node node;
     node.type("n");
@@ -119,7 +120,7 @@ void SpecificWorker::initialize(int period)
 
 
 
-
+    */
 
 	// Compute max Id in G
     get_max_id_from_G();
