@@ -149,7 +149,7 @@ public:
             outerRegion.setRight(std::stof(params_->at("OuterRegionRight").value));
             outerRegion.setBottom(std::stof(params_->at("OuterRegionBottom").value));
             outerRegion.setTop(std::stof(params_->at("OuterRegionTop").value));
-            robot_name = params_->at("NavigationAgent.RobotName").value;
+            robot_name = params_->at("RobotName").value;
         }
         catch(const std::exception &e)
         {

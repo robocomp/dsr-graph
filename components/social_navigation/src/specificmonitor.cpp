@@ -100,7 +100,7 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 
 	
 	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
-	params["NavigationAgent.RobotName"] = aux;
+	params["RobotName"] = aux;
 
 	configGetString( "NavigationAgent","MaxZSpeed", aux.value,"600");
 	params["MaxZSpeed"] = aux;

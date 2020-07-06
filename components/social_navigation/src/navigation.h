@@ -91,7 +91,6 @@ void initialize(const std::shared_ptr<DSR::DSRGraph> &graph, std::shared_ptr< Ro
     grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
-
     robotXWidth = std::stof(configparams->at("RobotXWidth").value);
     robotZLong = std::stof(configparams->at("RobotZLong").value);
     robotBottomLeft     = QVec::vec3( - robotXWidth / 2 - 100, 0, - robotZLong / 2 - 100);
@@ -127,16 +126,15 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
     totalPersons = totalPersons_;
     RoboCompLaser::TLaserData laserData;
     laserData = computeLaser(laserData_);
-//TODO:
-//    currentRobotPose = innerModel->transformS6D("world","robot");
+
+    currentRobotPose = innerModel->transformS6D("world", configparams->at("RobotName").value).value();
+
 //    qDebug()<< "Updated Robot pose " << reloj.restart();
 
     updateLaserPolygon(laserData);
     currentRobotPolygon = getRobotPolygon();
 
-
     currentRobotNose = getRobotNose();
-
 
     if(needsReplaning)
     {
@@ -192,14 +190,17 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
 
         if(robotAutoMov) newRandomTarget();
     }
-
+qDebug()<<__LINE__;
     if (!blocked and active)
     {
  //       if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
+        //auto desired_z_speed = G->get_attrib_by_name<float>(base.value(), "advance_speed");
+        //auto desired_x_speed = G->get_attrib_by_name<float>(base.value(), "side_speed");
+        //auto desired_rot_speed = G->get_attrib_by_name<float>(base.value(), "rotation_speed");
     }
-
+qDebug()<<__LINE__;
     drawRoad();
-
+qDebug()<<__LINE__;
 
 };
 
@@ -292,9 +293,7 @@ void newRandomTarget()
 
 void newTarget(QPointF newT)
 {
-
-    qDebug()<<"Navigation - "<< __FUNCTION__
-    <<"New Target arrived "<< newT;
+    qDebug()<<"Navigation - "<< __FUNCTION__<<"New Target arrived "<< newT;
 
     if(stopMovingRobot){
         stopRobot();
@@ -310,7 +309,8 @@ void newTarget(QPointF newT)
     this->current_target.unlock();
 }
 
-void updatePersonalPolylines(vector<QPolygonF> intimateSpaces_, vector<QPolygonF> personalSpaces_, vector<QPolygonF> socialSpaces_){
+void updatePersonalPolylines(vector<QPolygonF> intimateSpaces_, vector<QPolygonF> personalSpaces_, vector<QPolygonF> socialSpaces_)
+{
     intimateSpaces = intimateSpaces_;
     personalSpaces = personalSpaces_;
     socialSpaces = socialSpaces_;
@@ -404,11 +404,11 @@ void updateFreeSpaceMap(bool drawGrid = true)
 RoboCompLaser::TLaserData computeLaser(RoboCompLaser::TLaserData laserData)
 {
 //        qDebug()<<"Navigation - "<< __FUNCTION__;
-
+    RoboCompLaser::TLaserData laserCombined;
 //TODO
 /*    auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
 
-    RoboCompLaser::TLaserData laserCombined;
+    
     laserCombined = laserData;
 
 
@@ -463,9 +463,9 @@ RoboCompLaser::TLaserData computeLaser(RoboCompLaser::TLaserData laserData)
             }
         }
     }
-
-    return laserCombined;
 */
+    return laserCombined;
+
 }
 
 //CONTROLLER METHODS
@@ -897,10 +897,10 @@ QPolygonF getRobotPolygon()
 
     QPolygonF robotP;
 
-    auto bLWorld = innerModel->transform ("world", robotBottomLeft ,"base_mesh");
-    auto bRWorld = innerModel->transform ("world", robotBottomRight ,"base_mesh");
-    auto tRWorld = innerModel->transform ("world", robotTopRight ,"base_mesh");
-    auto tLWorld = innerModel->transform ("world", robotTopLeft ,"base_mesh");
+    auto bLWorld = innerModel->transformS("world", robotBottomLeft, configparams->at("RobotName").value);
+    auto bRWorld = innerModel->transformS("world", robotBottomRight, configparams->at("RobotName").value);
+    auto tRWorld = innerModel->transformS("world", robotTopRight, configparams->at("RobotName").value);
+    auto tLWorld = innerModel->transformS("world", robotTopLeft, configparams->at("RobotName").value);
 
 
     robotP << QPointF(bLWorld.value().x(),bLWorld.value().z());
@@ -908,6 +908,7 @@ QPolygonF getRobotPolygon()
     robotP << QPointF(tRWorld.value().x(),tRWorld.value().z());
     robotP << QPointF(tLWorld.value().x(),tLWorld.value().z());
 
+//TODO: review use
     FILE *fd = fopen("robot.txt", "w");
     for (const auto &r: robotP)
     {
