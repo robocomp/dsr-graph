@@ -1,0 +1,12 @@
+<AGMModel>
+    <symbol id="1" type="world">
+        <attribute key="imType" value="transform" />
+        <attribute key="imName" value="world" />
+        <attribute key="OuterRegionLeft" value="-2000" />
+        <attribute key="OuterRegionRight" value="7500" />
+        <attribute key="OuterRegionBottom" value="-4250" />
+        <attribute key="OuterRegionTop" value="4250" />
+        <attribute key="parent" value="0" />
+        <attribute key="level" value="0" />
+    </symbol>
+</AGMModel>
