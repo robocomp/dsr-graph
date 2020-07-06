@@ -26,9 +26,9 @@ namespace CRDT {
 
         void print_node(const CRDT::Node &node);
 
-        void print_node(int id);
+        void print_node(uint32_t id);
 
-        void print_RT(std::int32_t root);
+        void print_RT(uint32_t root);
 
     private:
         CRDT::CRDTGraph *G;

@@ -10,6 +10,7 @@ using namespace DSR;
 
 DSRtoTreeViewer::DSRtoTreeViewer(std::shared_ptr <CRDT::CRDTGraph> G_, QWidget *parent) : QTreeWidget(parent) {
     qRegisterMetaType<std::int32_t>("std::int32_t");
+    qRegisterMetaType<std::uint32_t>("std::uint32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
     this->setMinimumSize(400, 400);

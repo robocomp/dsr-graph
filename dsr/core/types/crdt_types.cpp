@@ -103,25 +103,25 @@ namespace CRDT {
                 ("BOOL is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    void CRDTValue::byte_vec(const std::vector<byte> &_float_vec) {
+    void CRDTValue::byte_vec(const std::vector<uint8_t> &_float_vec) {
         val = _float_vec;
     }
 
-    void CRDTValue::byte_vec(std::vector<byte> &&_float_vec) {
+    void CRDTValue::byte_vec(std::vector<uint8_t> &&_float_vec) {
         val = std::move(_float_vec);
     }
 
-    [[nodiscard]] const std::vector<byte> &CRDTValue::byte_vec() const {
-        if (auto pval = std::get_if<vector<byte>>(&val)) {
+    [[nodiscard]] const std::vector<uint8_t> &CRDTValue::byte_vec() const {
+        if (auto pval = std::get_if<vector<uint8_t>>(&val)) {
             return *pval;
         }
         throw std::runtime_error(
                 ("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    std::vector<byte> &CRDTValue::byte_vec() {
+    std::vector<uint8_t> &CRDTValue::byte_vec() {
 
-        if (auto pval = std::get_if<vector<byte >>(&val)) {
+        if (auto pval = std::get_if<vector<uint8_t >>(&val)) {
             return *pval;
         }
         throw std::runtime_error(
@@ -148,12 +148,7 @@ namespace CRDT {
                 value.bl(std::get<bool>(val));
                 break;
             case 5:
-                value.byte_vec(
-                        std::vector<uint8_t>(
-                                reinterpret_cast<uint8_t *>(std::get<std::vector<byte>>(val).data()),
-                                reinterpret_cast<uint8_t *>(std::get<std::vector<byte>>(val).data()) +
-                                std::get<std::vector<byte>>(val).size())
-                );
+                value.byte_vec(std::get<std::vector<uint8_t>>(val));
                 break;
             default:
                 throw std::runtime_error(
@@ -165,12 +160,12 @@ namespace CRDT {
     }
 
 
-    void CRDTAttribute::type(int32_t _type) {
+    void CRDTAttribute::type(uint32_t _type) {
         m_type = _type;
     }
 
 
-    [[nodiscard]] int32_t CRDTAttribute::type() const {
+    [[nodiscard]] uint32_t CRDTAttribute::type() const {
         return m_type;
     }
 
@@ -200,11 +195,11 @@ namespace CRDT {
         return m_Value;
     }
 
-    void CRDTAttribute::agent_id(int32_t _agent_id) {
+    void CRDTAttribute::agent_id(uint32_t _agent_id) {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] int32_t CRDTAttribute::agent_id() const {
+    [[nodiscard]] uint32_t CRDTAttribute::agent_id() const {
         return m_agent_id;
     }
 
@@ -218,7 +213,7 @@ namespace CRDT {
     }
 
 
-    CRDTEdge &CRDTEdge::operator=(IDL::Edge &&x) {
+    CRDTEdge &CRDTEdge::operator=(IDL::IDLEdge &&x) {
 
         m_to = x.to();
         m_type = std::move(x.type());
@@ -234,11 +229,11 @@ namespace CRDT {
     }
 
 
-    void CRDTEdge::to(int32_t _to) {
+    void CRDTEdge::to(uint32_t _to) {
         m_to = _to;
     }
 
-    [[nodiscard]] int32_t CRDTEdge::to() const {
+    [[nodiscard]] uint32_t CRDTEdge::to() const {
         return m_to;
     }
 
@@ -259,41 +254,41 @@ namespace CRDT {
         return m_type;
     }
 
-    void CRDTEdge::from(int32_t _from) {
+    void CRDTEdge::from(uint32_t _from) {
         m_from = _from;
     }
 
-    [[nodiscard]] int32_t CRDTEdge::from() const {
+    [[nodiscard]] uint32_t CRDTEdge::from() const {
         return m_from;
     }
 
-    void CRDTEdge::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &_attrs) {
+    void CRDTEdge::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
         m_attrs = _attrs;
     }
 
-    void CRDTEdge::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &&_attrs) {
+    void CRDTEdge::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
         m_attrs = std::move(_attrs);
     }
 
-    const std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &CRDTEdge::attrs() const {
+    const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() const {
         return m_attrs;
     }
 
 
-    std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &CRDTEdge::attrs() {
+    std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() {
         return m_attrs;
     }
 
-    void CRDTEdge::agent_id(int32_t _agent_id) {
+    void CRDTEdge::agent_id(uint32_t _agent_id) {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] int32_t CRDTEdge::agent_id() const {
+    [[nodiscard]] uint32_t CRDTEdge::agent_id() const {
         return m_agent_id;
     }
 
-    [[nodiscard]] IDL::Edge CRDTEdge::toIDLEdge(int id) {
-        IDL::Edge edge;
+    [[nodiscard]] IDL::IDLEdge CRDTEdge::toIDLEdge(uint32_t id) {
+        IDL::IDLEdge edge;
         edge.from(m_from);
         edge.to(m_to);
         edge.type(m_type);
@@ -332,7 +327,7 @@ namespace CRDT {
     }
 
 
-    CRDTNode::CRDTNode(IDL::Node &&x) {
+    CRDTNode::CRDTNode(IDL::IDLNode &&x) {
         m_type = std::move(x.type());
         m_name = std::move(x.name());
         m_id = x.id();
@@ -377,59 +372,59 @@ namespace CRDT {
         return m_name;
     }
 
-    void CRDTNode::id(int32_t _id) {
+    void CRDTNode::id(uint32_t _id) {
         m_id = _id;
     }
 
-    [[nodiscard]] int32_t CRDTNode::id() const {
+    [[nodiscard]] uint32_t CRDTNode::id() const {
         return m_id;
     }
 
-    void CRDTNode::agent_id(int32_t _agent_id) {
+    void CRDTNode::agent_id(uint32_t _agent_id) {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] int32_t CRDTNode::agent_id() const {
+    [[nodiscard]] uint32_t CRDTNode::agent_id() const {
         return m_agent_id;
     }
 
-    void CRDTNode::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &_attrs) {
+    void CRDTNode::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
         m_attrs = _attrs;
     }
 
-    void CRDTNode::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &&_attrs) {
+    void CRDTNode::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
         m_attrs = std::move(_attrs);
     }
 
 
-    std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &CRDTNode::attrs() &{
+    std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() &{
         return m_attrs;
     }
 
-    const std::unordered_map<std::string, mvreg<CRDTAttribute, int>> &CRDTNode::attrs() const &{
+    const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() const &{
         return m_attrs;
     }
 
     void
-    CRDTNode::fano(const std::unordered_map<std::pair<int32_t, std::string>, mvreg<CRDTEdge, int>, pair_hash> &_fano) {
+    CRDTNode::fano(const std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &_fano) {
         m_fano = _fano;
     }
 
-    void CRDTNode::fano(std::unordered_map<std::pair<int32_t, std::string>, mvreg<CRDTEdge, int>, pair_hash> &&_fano) {
+    void CRDTNode::fano(std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &&_fano) {
         m_fano = std::move(_fano);
     }
 
-    std::unordered_map<std::pair<int32_t, std::string>, mvreg<CRDTEdge, int>, pair_hash> &CRDTNode::fano() {
+    std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &CRDTNode::fano() {
         return m_fano;
     }
 
-    const std::unordered_map<std::pair<int32_t, std::string>, mvreg<CRDTEdge, int>, pair_hash> &CRDTNode::fano() const {
+    const std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &CRDTNode::fano() const {
         return m_fano;
     }
 
 
-    [[nodiscard]] IDL::Node CRDTNode::toIDLNode(int id) {
-        IDL::Node node;
+    [[nodiscard]] IDL::IDLNode CRDTNode::toIDLNode(uint32_t id) {
+        IDL::IDLNode node;
         node.id(m_id);
         node.name(m_name);
         node.type(m_type);

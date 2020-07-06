@@ -92,7 +92,7 @@ namespace CRDT {
 
     Node::Node(uint32_t mId, const string &mType, const string &mName,
                const unordered_map<std::string, Attribute> &mAttrs,
-               const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &mFano, uint32_t mAgentId)
+               const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano, uint32_t mAgentId)
             : m_id(
             mId), m_type(mType), m_name(mName), m_attrs{mAttrs}, m_fano{mFano}, m_agent_id(mAgentId) {}
 
@@ -124,11 +124,11 @@ namespace CRDT {
         return m_attrs;
     }
 
-    const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &Node::fano() const {
+    const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &Node::fano() const {
         return m_fano;
     }
 
-     unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &Node::fano()  {
+     unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &Node::fano()  {
         return m_fano;
     }
 
@@ -152,7 +152,7 @@ namespace CRDT {
         m_attrs = mAttrs;
     }
 
-    void Node::fano(const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &mFano) {
+    void Node::fano(const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano) {
         m_fano = mFano;
     }
 
