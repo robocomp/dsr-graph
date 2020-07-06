@@ -68,7 +68,7 @@ private:
 
     std::vector<int> created_nodos;
     std::vector<std::pair<int, int>> created_edges;
-    std::mutex mut;
+    std::shared_mutex mut;
 
 };
 

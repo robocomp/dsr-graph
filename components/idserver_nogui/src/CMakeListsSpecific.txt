@@ -3,37 +3,27 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  ../../../graph-related-classes/CRDT.cpp
-  ../../../graph-related-classes/CRDT_graphviewer.cpp
-  ../../../graph-related-classes/CRDT_graphnode.cpp
-  ../../../graph-related-classes/CRDT_graphedge.cpp
-  ../../../graph-related-classes/fast_rtps/dsrpublisher.cpp
-  ../../../graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  ../../../graph-related-classes/fast_rtps/dsrparticipant.cpp
-  ../../../graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  ../../../graph-related-classes/topics/DSRGraph.cxx
-  ../../../graph-related-classes/inner_api.cpp
-  ../../../graph-related-classes/dsr_utils.cpp
-  ../../../graph-related-classes/dsr_to_graphicscene_viewer.cpp
-  ../../../graph-related-classes/dsr_to_osg_viewer.cpp
-  ../../../graph-related-classes/dsr_to_graph_viewer.cpp
-  ../../../graph-related-classes/dsr_to_tree_viewer.cpp
+  ../../../dsr/api/dsr_api.cpp
+  ../../../dsr/core/types/crdt_types.cpp
+  ../../../dsr/core/types/user_types.cpp
+  ../../../dsr/core/rtps/dsrpublisher.cpp
+  ../../../dsr/core/rtps/dsrsubscriber.cpp
+  ../../../dsr/core/rtps/dsrparticipant.cpp
+  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/api/dsr_inner_api.cpp
+  ../../../dsr/api/dsr_utils.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../../graph-related-classes/CRDT.h
-  ../../../graph-related-classes/CRDT_graphviewer.h
-  ../../../graph-related-classes/CRDT_graph.h
-  ../../../graph-related-classes/CRDT_graphnode.h
-  ../../../graph-related-classes/CRDT_graphedge.h
-  
+  ../../../dsr/api/dsr_api.h
 )
 
 set(CMAKE_CXX_STANDARD 17)
-add_definitions(-g  -fmax-errors=1 -std=c++2a )
+add_definitions(-g  -fmax-errors=1 -std=c++2a  )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 SET(SPECIFIC_LIBS  fastcdr fastrtps osgDB)
 

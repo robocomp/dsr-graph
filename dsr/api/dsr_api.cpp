@@ -944,6 +944,9 @@ void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg) {
         if (ok) {
             if (signal) {
                 emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
+                for (auto &[k,v] : nodes[mvreg.id()].read().begin()->fano()) {
+                    emit update_edge_signal(mvreg.id(), k.first, k.second);
+                }
             } else {
                 emit del_node_signal(mvreg.id());
             }
@@ -1080,9 +1083,7 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
         }
 
         if (ok) {
-            if (signal) {
-                emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
-            }
+            emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
         }
 
     } catch (const std::exception &e) {
@@ -1138,9 +1139,7 @@ void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
         }
 
         if (ok) {
-            if (signal) {
-                emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
-            }
+            emit update_edge_signal(mvreg.id(),  mvreg.from(), mvreg.type());
         }
 
     } catch (const std::exception &e) {
@@ -1210,25 +1209,14 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph) {
             if (nd.attrs() != nodes[id].read().begin()->attrs()) {
                 emit update_node_signal(id, nodes[id].read().begin()->type());
             } else if (nd != *nodes[id].read().begin()) {
-                std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> diff_remove;
-                if (!nodes[id].read().begin()->fano().empty()) {
-                    std::set_difference(nd.fano().begin(), nd.fano().end(),
-                                        nodes[id].read().begin()->fano().begin(),
-                                        nodes[id].read().begin()->fano().end(),
-                                        std::inserter(diff_remove, diff_remove.begin()));
+                auto iter =  nodes[id].read().begin()->fano();
+                for (const auto &[k,v] : nd.fano()) {
+                    if (iter.find(k) == iter.end())
+                            emit del_edge_signal(id, k.first, k.second);
                 }
-                std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> diff_insert;
-                if (!nd.fano().empty()) {
-                    std::set_difference(nodes[id].read().begin()->fano().begin(),
-                                        nodes[id].read().begin()->fano().end(),
-                                        nd.fano().begin(), nd.fano().end(),
-                                        std::inserter(diff_insert, diff_insert.begin()));
-                }
-                for (const auto &[k, v] : diff_remove)
-                        emit del_edge_signal(id, k.first, k.second);
-
-                for (const auto &[k, v] : diff_insert) {
-                    emit update_edge_signal(id, k.first, k.second);
+                for (const auto &[k,v] : iter) {
+                    if (nd.fano().find(k) == nd.fano().end() or nd.fano()[k] != v)
+                            emit update_edge_signal(id, k.first, k.second);
                 }
             }
         } else {
