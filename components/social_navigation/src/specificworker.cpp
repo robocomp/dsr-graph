@@ -85,7 +85,7 @@ void SpecificWorker::initialize(int period)
 		navigation.initialize(G, confParams, &widget_2d->scene);
 	
 		this->Period = period;
-//		timer.start(Period);
+		timer.start(Period);
 	}
 }
 
@@ -116,15 +116,9 @@ void SpecificWorker::compute()
 
 	navigation.update(totalPersons, laserData, needsReplaning);
 
-//    static QTime reloj = QTime::currentTime();
-
-//    viewer->run();
-//    qDebug()<< "viewer " << reloj.restart();
-
-
 	if (navigation.isCurrentTargetActive())
 		checkHumanBlock();
-	
+
 	
 }
 
