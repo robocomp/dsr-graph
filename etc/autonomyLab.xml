@@ -1,45 +1,117 @@
 <innerModel>
-<transform id="world">
-    <transform id="building_center" tx="1700" tz="3500" ry="1.57" >
-		<!-- FLOOR -->
-		<plane id="floor_plane" px="2500" py="-10" ny="1" size="10000,9500,10" texture="#eebb77" />
+    <transform id="world">
+
+        <transform id="building_center" tx="1700" tz="3500" ry="1.57" >
+            <!-- FLOOR -->
+            <plane id="floor_plane" px="2500" py="-10" ny="1" size="10000,9500,10" texture="/home/robocomp/robocomp/files/osgModels/textures/wood.jpg" />
+
+            <!-- WALL BETWEEN ROOMS -->
+            <plane id="wall0" px="4418" py="950" pz="245" nx="222" nz="40.510742" size="240,1900,9"  texture="#FFFF00" collide="1"/>
+            <plane id="wall1" px="2160" py="950" pz="29" nx="-340" nz="-40" size="209,1900,9"  texture="#000088" collide="1"/>
 
 
-		<!-- WALL BETWEEN ROOMS -->
-		<plane id="muro6" px="4418" py="950" pz="245" nx="222" nz="40.510742" size="240,1900,9"  texture="#FFFF00" />
-		<plane id="muro22" px="2160" py="950" pz="29" nx="-340" nz="-40" size="209,1900,9"  texture="#000088" />
+            <!-- ROOM A -->
+            <transform id="room_3">
+                <transform id="room_3_walls">
+                    <plane id="wall2" px="-92" py="950" pz="2067" nx="-3993" nz="-112" size="3994,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall3" px="3235" py="950" pz="4201" nx="-275" nz="6766" size="6772,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall4" px="6695" py="950" pz="2831" nx="3014" nz="153" size="3018,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall5" px="6387" py="950" pz="1288" nx="73" nz="-769" size="773,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall6" px="6029" py="950" pz="854" nx="795" nz="53" size="796,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall7" px="5226" py="950" pz="412" nx="91" nz="-1658" size="1660,1900,9"  texture="#880000" collide="1"/>
+                    <plane id="wall8" px="1061" py="950" pz="101" nx="61" nz="-2159" size="2190,1900,9"  texture="#880000" collide="1"/>
+                </transform> <!--WALLS-->
+                <transform id="room_3_furniture">
+                    <!-- TABLE A -->
+                    <transform id="tableA" tx="1274" tz="3200" ty="0" ry="-0.05" >
+                        <mesh id="tableA_tabletop" ty="760" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1820" collide="1" />
+                        <plane id="tableA_side_panel" px="6" py="377" pz="-900" nx="-15.019531" nz="1148.601075" size="800,754,9"  texture="#118899" collide="1"/>
+                        <plane id="tableA_front_panel" px="150" py="377" pz="10" nx="-1833" nz="-68" size="1810,754,9"  texture="#118899" collide="1"/>
+                    </transform>
 
+                    <!-- TABLE B -->
+                    <transform id="tableB" tx="3250" tz="3770" ty="0"  ry="-0.05" >
+                        <mesh id="tableB_tabletop" ty="740" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="1200,20,800" collide="1" />
+                        <mesh id="tableB_fl_leg" tx="-520" ty="370" tz="-310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+                        <mesh id="tableB_rl_leg" tx="-520" ty="370" tz="310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+                        <mesh id="tableB_fr_leg" tx="520" ty="370" tz="-310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+                        <mesh id="tableB_rr_leg" tx="520" ty="370" tz="310" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370"  collide="1"/>
+                    </transform>
 
-        <!-- ROOM A -->
-		<transform id="room_3">
-			<plane id="muro0" px="-92" py="950" pz="2067" nx="-3993" nz="-112" size="3994,1900,9"  texture="#880000" />
-			<plane id="muro1" px="3235" py="950" pz="4201" nx="-275" nz="6766" size="6772,1900,9"  texture="#880000" />
-			<plane id="muro2" px="6695" py="950" pz="2831" nx="3014" nz="153" size="3018,1900,9"  texture="#880000" />
-			<plane id="muro3" px="6387" py="950" pz="1288" nx="73" nz="-769" size="773,1900,9"  texture="#880000" />
-			<plane id="muro4" px="6029" py="950" pz="854" nx="795" nz="53" size="796,1900,9"  texture="#880000" />
-			<plane id="muro5" px="5226" py="950" pz="412" nx="91" nz="-1658" size="1660,1900,9"  texture="#880000" />
-			<plane id="muro23" px="1061" py="950" pz="101" nx="61" nz="-2159" size="2190,1900,9"  texture="#880000" />
-        </transform><!--ROOM A-->
+                    <!-- TABLE C -->
+                    <transform id="tableC" tx="4880" tz="3320" ty="0" ry="-0.05" >
+                        <mesh id="tableC_tabletop" ty="760" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1820" collide="1" />
+                        <plane id="tableC_front_panel" px="-240" py="380" pz="-6" nx="1832" nz="120" size="1820,760,9"  texture="#998811" collide="1"/>
+                        <plane id="tableC_side_panel" px="0" py="380" pz="-910" nx="-1" nz="800" size="789,760,9"  texture="#998811" collide="1"/>
+                    </transform>
+                    
+                    <!-- TABLE E -->
+                    <transform id="tableE" tx="5300" tz="825"  ry="1.51" >
+                        <mesh id="tableE_countertop" ty="740" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="800,20,1320" collide="1" />
+                        <mesh id="tableE_fl_leg" tx="-375" ty="370" tz="585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+                        <mesh id="tableE_rl_leg" tx="-375" ty="370" tz="-585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+                        <mesh id="tableE_fr_leg" tx="375" ty="370" tz="585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>
+                        <mesh id="tableE_rr_leg" tx="375" ty="370" tz="-585" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="25,25,370" rx="1.570799947" collide="1"/>                
+                    </transform>
+                </transform> <!--FURNITURE-->
+            </transform> <!--ROOM A-->
 
+            <!-- ROOM B -->
+            <transform id="room_5">
+                <transform id="room_5_walls">
+                    <plane id="wall9" px="4593" py="950" pz="106" nx="43" nz="310" size="313,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall10" px="4744" py="950" pz="-70" nx="309" nz="-9" size="309,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall11" px="5409" py="950" pz="-223" nx="-3" nz="1337" size="1338,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall12" px="6088" py="950" pz="-598" nx="754" nz="21" size="754,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall13" px="6502" py="950" pz="-981" nx="12" nz="806" size="806,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall14" px="6895" py="950" pz="-2179" nx="2384" nz="-19" size="2384,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall15" px="5405" py="950" pz="-3447" nx="152" nz="-2963" size="2967,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall16" px="3929" py="950" pz="-3720" nx="394" nz="11" size="394,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall17" px="3729" py="950" pz="-3931" nx="29" nz="-411" size="412,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall18" px="1870" py="950" pz="-4100" nx="-165" nz="3442" size="3350,1900"  texture="#008800" collide="1"/>
+                    <plane id="wall19" px="97" py="950" pz="-2930" nx="2484" nz="187" size="2530,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall20" px="-1010" py="950" pz="-1740" nx="126" nz="-2040" size="2010,1900"  texture="#008800" collide="1"/>
+                    <plane id="wall21" px="-2030" py="950" pz="-1000" nx="-1542" nz="-43" size="1610,1900,9"  texture="#008800" collide="1"/>
+                    <plane id="wall22" px="64" py="950" pz="-141" nx="-136" nz="4232" size="4234,1900,9"  texture="#008800" collide="1"/>
+                </transform> <!--WALLS--> 
+                <transform id="room_5_furniture">
+                    <!-- TABLE D -->
+                    <transform id="tableD" tx="4000" tz="-1767" ty="0" >
+                            <mesh id="tableD_tabletop" ty="730" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="600,600,20" collide="1"/>
+                            <mesh id="tableD_mesh2" ty="365" rx="1.570799947" file="/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds" scale="600,600,360" collide="1"/>
+                    </transform>
+                    
+                    <!-- TABLE F -->
+                    <transform id="tableF" tx="450" tz="-2920" ty="0" ry="-0.092" >
+                        <mesh id="tableF_countertop" ty="890" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="650,20,2500" collide="1" />
+                        <plane id="tableF_side_panel" px="-10" py="445" pz="1230" nx="1" nz="-668" size="650,890,9"  texture="#008888" collide="1"/>
+                        <plane id="tableF_front_panel" px="300" py="445" pz="-20" nx="-1830" nz="-1" size="2490,890,9"  texture="#008888" collide="1"/>
+                    </transform>
+                    
+                    <!-- TABLE G -->
+                    <transform id="tableG" tx="1880" tz="-3750" ry="-0.055" >
+                        <mesh id="tableG_countertop" ty="890" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="2110,20,650" collide="1" />
+                        <plane id="tableG_front" px="0" py="445" pz="313" nx="1" nz="-2637" size="2110,890,9"  texture="#888800" collide="1"/>
+                    </transform>
+                    
+                    <!-- FRIDGE -->
+                    <mesh id="fridge_mesh" tx="3210" tz="-3720" ty="925" ry="-0.075" file="/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds" scale="600,1850,600" collide="1" />
+                </transform> <!--FURNITURE-->
 
-        <!-- ROOM B -->
-		<transform id="room_5">
-			<plane id="muro7" px="4593" py="950" pz="106" nx="43" nz="310" size="313,1900,9"  texture="#008800" />
-			<plane id="muro8" px="4744" py="950" pz="-70" nx="309" nz="-9" size="309,1900,9"  texture="#008800" />
-			<plane id="muro9" px="5409" py="950" pz="-223" nx="-3" nz="1337" size="1338,1900,9"  texture="#008800" />
-			<plane id="muro10" px="6088" py="950" pz="-598" nx="754" nz="21" size="754,1900,9"  texture="#008800" />
-			<plane id="muro11" px="6502" py="950" pz="-981" nx="12" nz="806" size="806,1900,9"  texture="#008800" />
-			<plane id="muro12" px="6895" py="950" pz="-2179" nx="2384" nz="-19" size="2384,1900,9"  texture="#008800" />
-			<plane id="muro13" px="5405" py="950" pz="-3447" nx="152" nz="-2963" size="2967,1900,9"  texture="#008800" />
-			<plane id="muro14" px="3929" py="950" pz="-3720" nx="394" nz="11" size="394,1900,9"  texture="#008800" />
-			<plane id="muro15" px="3729" py="950" pz="-3931" nx="29" nz="-411" size="412,1900,9"  texture="#008800" />
-			<plane id="1muro1" px="1870" py="950" pz="-4100" nx="-165" nz="3442" size="3350,1900"  texture="#008800" />
-			<plane id="1muro0" px="97" py="950" pz="-2930" nx="2484" nz="187" size="2530,1900,9"  texture="#008800" />
-			<plane id="1muro4" px="-1010" py="950" pz="-1740" nx="126" nz="-2040" size="2010,1900"  texture="#008800" />
-			<plane id="muro20" px="-2030" py="950" pz="-1000" nx="-1542" nz="-43" size="1610,1900,9"  texture="#008800" />
-			<plane id="muro21" px="64" py="950" pz="-141" nx="-136" nz="4232" size="4234,1900,9"  texture="#008800" />
-        </transform><!--ROOM B-->
+                <transform id="room_5_sensors">
+                    <transform id="world_camera_1" tx="-635.148" ty="2031.21" tz="-3666.57" rx="0.490823" ry="0.133404" rz="-0.0619093" >
+                        <rgbd id="rgbd_1" focal="617" width="640" height="480" port="11096" noise="0.00" ifconfig="40000,50000" />
+                    </transform>		 
+                    <transform id="world_camera_2" tx="-2204.65" ty="2575.88" tz="36.2064" rx="1.69468" ry="0.94791" rz="-1.64303" >
+                        <rgbd id="rgbd_2" focal="617" width="640" height="480" port="11097" noise="0.00" ifconfig="40000,50000" />
+                    </transform>		 
+                    <transform id="world_camera_3"  tx="-382.144" ty="1961.01" tz="2940.3" rx="-0.361686" ry="3.21799" rz="-0.0239584">
+                        <rgbd id="rgbd_3" focal="617" width="640" height="480" port="11098" noise="0.00" ifconfig="40000,50000" />
+                    </transform>    
+                </transform> <!--SENSORS-->
+                
+            </transform><!--ROOM B-->
 
-    </transform><!--BUILDING --> 
-</transform>
+        </transform> <!--building_center-->
+    </transform> <!--WOLRD-->
 </innerModel>

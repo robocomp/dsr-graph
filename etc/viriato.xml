@@ -1,0 +1,20 @@
+﻿<innerModel>
+
+    <omnirobot id="omnirobot" tx="2500" ty="0" tz="2500"  port="12238" >
+        <mesh id="viriato_mesh" scale="1,1,1" ty="200" rx="1.57" rz="-1.57" file="/home/robocomp/robocomp/components/dsr-graph/etc/viriato_base_concept_3/viriato_mesh.ive"  collide="1" />
+        
+        <!-- laser position -->
+        <transform id="laser_pose" ty="400" >
+            <laser id="laser" measures="100" min="100" max="30000" angle="4.2" port="10003" />
+            <mesh id="laser1" scale="1,1,1" tx="100" tz="100" file="/home/robocomp/robocomp/files/osgModels/basics/cube.3ds" collide="0" />
+            <mesh id="laser2" scale="1,1,1" tx="-100" tz="-100" file="/home/robocomp/robocomp/files/osgModels/basics/cube.3ds" collide="0" />
+        </transform>
+    
+        <!-- camera position -->
+        <transform id="camera_pose" ty="1500" tz="200" ry="1.57"  >
+            <rgbd id="Viriato_head_camera_front_sensor" focal="480" width="640" height="480" port="10096" noise="0.00" ifconfig="40000,50000" />
+        </transform>
+        
+    </omnirobot>
+   
+</innerModel>
