@@ -50,6 +50,7 @@ GraphViewer::GraphViewer(QMainWindow *widget, std::shared_ptr <CRDT::CRDTGraph> 
         : QObject() {
     G = G_;
     qRegisterMetaType<std::int32_t>("std::int32_t");
+    qRegisterMetaType<std::uint32_t>("std::uint32_t");
     qRegisterMetaType<std::string>("std::string");
     QRect availableGeometry(QApplication::desktop()->availableGeometry());
     this->window = widget;

@@ -1267,7 +1267,7 @@ public:
     dotkernel<V, K> dk; // Dot kernel
 
     mvreg() {
-        if constexpr(std::is_same<int, K>::value) { id = 0; };
+        if constexpr(std::is_same<uint32_t, K>::value) { id = 0; };
     } // Only for deltas and those should not be mutated
     mvreg(K k) : id(k) {} // Mutable replicas need a unique id
     mvreg(K k, dotcontext<K> &jointc) : id(k), dk(jointc) {}

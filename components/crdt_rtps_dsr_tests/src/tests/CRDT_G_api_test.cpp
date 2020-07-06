@@ -401,12 +401,12 @@ TEST_CASE("Maps operations", "[UTILS]") {
     }
 */
     SECTION("Get edges from a node that does not exist") {
-        std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> ve = G->get_edges(45550);
+        std::optional<std::unordered_map<std::pair<uint32_t , std::string>, Edge,pair_hash>> ve = G->get_edges(45550);
         REQUIRE(!ve.has_value());
     }
 
     SECTION("Get edges from a node that has no edges") {
-        std::optional<std::unordered_map<std::pair<int, std::string>, Edge,pair_hash>> ve = G->get_edges(118);
+        std::optional<std::unordered_map<std::pair<uint32_t, std::string>, Edge,pair_hash>> ve = G->get_edges(118);
         REQUIRE(ve.has_value());
         REQUIRE(ve->empty());
     }

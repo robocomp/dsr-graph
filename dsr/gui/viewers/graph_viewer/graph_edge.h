@@ -37,6 +37,7 @@ public:
               const std::string &label_) :
             graph(graph_), from(from_), to(to_), label(label_) {
         qRegisterMetaType<CRDT::IDType>("DSR::IDType");
+
 //      qRegisterMetaType<CRDT::AttribsMap>("DSR::Attribs");
 
         std::optional <CRDT::Node> n = graph->get_node(from);

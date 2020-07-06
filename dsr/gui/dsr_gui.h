@@ -91,6 +91,7 @@ namespace DSR {
 }
 
 Q_DECLARE_METATYPE(std::int32_t);
+Q_DECLARE_METATYPE(std::uint32_t);
 Q_DECLARE_METATYPE(std::string);
 //Q_DECLARE_METATYPE(CRDT::AttribsMap);
 

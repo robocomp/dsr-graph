@@ -216,7 +216,7 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
                 }
                 case 5: {
                     QJsonArray array;
-                    for (const byte &value : get<std::vector<byte>>(value.value()))
+                    for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
                         array.push_back(static_cast<qint64>(value));
                     val = array;
                     break;
@@ -229,7 +229,7 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
         symbol["attribute"] = attrsObject;
         //link
         QJsonArray nodeLinksArray;
-        std::map<std::pair<int, std::string>, Edge> ordered_map_fano = std::map(node.fano().begin(),
+        std::map<std::pair<uint32_t, std::string>, Edge> ordered_map_fano = std::map(node.fano().begin(),
                                                                                                 node.fano().end());
         for (auto &[key, value]: ordered_map_fano) {
             QJsonObject link;
@@ -263,7 +263,7 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
                     }
                     case 5: {
                         QJsonArray array;
-                        for (const byte &value : get<std::vector<byte>>(value.value()))
+                        for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
                             array.push_back(static_cast<qint64>(value));
                         val = array;
                         break;
@@ -342,13 +342,13 @@ void Utilities::print_node(const Node &node) {
     }
 }
 
-void Utilities::print_node(const std::int32_t id) {
+void Utilities::print_node(uint32_t id) {
     auto node = G->get_node(id);
     if (node.has_value())
         print_node(node.value());
 }
 
-void Utilities::print_RT(const std::int32_t id) {
+void Utilities::print_RT(uint32_t id) {
     std::cout << "-------------- Printing RT tree ------------------" << std::endl;
     auto node = G->get_node(id);
     if (node.has_value()) {

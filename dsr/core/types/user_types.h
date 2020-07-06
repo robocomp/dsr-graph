@@ -70,8 +70,8 @@ namespace CRDT {
                     break;
                 case 5:
                     os << " byte_vec: [ ";
-                    for (const auto &k: get<vector<byte>>(type.m_value))
-                        os << static_cast<uint8_t >(k) << ", ";
+                    for (const auto &k: get<vector<uint8_t>>(type.m_value))
+                        os << k << ", ";
                     os << "] ";
                     break;
                 default:
@@ -228,7 +228,7 @@ namespace CRDT {
 
         Node(uint32_t mId, const string &mType, const string &mName,
                  const unordered_map<std::string, Attribute> &mAttrs,
-                 const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &mFano, uint32_t mAgentId);
+                 const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano, uint32_t mAgentId);
 
         Node (const CRDTNode& node) {
             m_agent_id = node.agent_id();
@@ -274,9 +274,9 @@ namespace CRDT {
 
         unordered_map<std::string, Attribute> &attrs();
 
-        const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &fano() const;
+        const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &fano() const;
 
-        unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &fano();
+        unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &fano();
 
         uint32_t agent_id() const;
 
@@ -288,7 +288,7 @@ namespace CRDT {
 
         void attrs(const unordered_map<std::string, Attribute> &mAttrs);
 
-        void fano(const unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> &mFano);
+        void fano(const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano);
 
         void agent_id(uint32_t mAgentId);
 
@@ -337,7 +337,7 @@ namespace CRDT {
         std::string m_type;
         std::string m_name;
         std::unordered_map<std::string, Attribute> m_attrs;
-        std::unordered_map<std::pair<int32_t, std::string>, Edge, pair_hash> m_fano;
+        std::unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> m_fano;
         uint32_t m_agent_id;
     };
 

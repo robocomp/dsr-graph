@@ -12,6 +12,7 @@ using namespace DSR;
 DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr <CRDT::CRDTGraph> G_, QWidget *parent) : AbstractGraphicViewer(
         parent) {
     qRegisterMetaType<std::int32_t>("std::int32_t");
+    qRegisterMetaType<std::uint32_t>("std::uint32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
     own = shared_ptr<DSRtoGraphViewer>(this);
