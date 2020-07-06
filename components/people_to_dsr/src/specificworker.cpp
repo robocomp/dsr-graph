@@ -123,11 +123,11 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
             person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
                 std::terminate();
-             std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
-            if (not person_n_mesh.has_value()) 
-                std::terminate();
+            // std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
+            // if (not person_n_mesh.has_value()) 
+            //     std::terminate();
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
-            G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{0.0, 0.0, 0.0});
+            //G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{0.0, 0.0, 0.0});
             
             //create joints nodes
 /*            for(std::string name : COCO_IDS)
