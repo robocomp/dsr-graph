@@ -120,14 +120,15 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         else //create nodes
         {
             //qDebug() << __FUNCTION__ << "Person does not exist => Creation";
+       
             person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
                 std::terminate();
-            // std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
-            // if (not person_n_mesh.has_value()) 
-            //     std::terminate();
+            std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
+            if (not person_n_mesh.has_value()) 
+                std::terminate();
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
-            //G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{0.0, 0.0, 0.0});
+            G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{1.5796,0.0, 0.0});
             
             //create joints nodes
 /*            for(std::string name : COCO_IDS)
@@ -232,9 +233,9 @@ std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, co
     G->add_or_modify_attrib_local(node, "name", name + "_mesh");
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
     G->add_or_modify_attrib_local(node, "path", path);
-    G->add_or_modify_attrib_local(node, "scalex", 1);
-    G->add_or_modify_attrib_local(node, "scaley", 1);
-    G->add_or_modify_attrib_local(node, "scalez", 1);
+    G->add_or_modify_attrib_local(node, "scalex", 900);
+    G->add_or_modify_attrib_local(node, "scaley", 900);
+    G->add_or_modify_attrib_local(node, "scalez", 900);
     G->add_or_modify_attrib_local(node, "parent", parent_id);
     G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
     try
