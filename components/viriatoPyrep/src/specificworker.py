@@ -124,6 +124,11 @@ class SpecificWorker(GenericWorker):
                 cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
                 cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
             
+                try:
+                    self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
+                except Ice.Exception as e:
+                    print(e)
+
                 # get People position
                 people_data = RoboCompHumanToDSRPub.PeopleData()
                 people_data.timestamp = time.time()
