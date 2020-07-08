@@ -405,14 +405,12 @@ RoboCompLaser::TLaserData computeLaser(RoboCompLaser::TLaserData laserData)
 {
 //        qDebug()<<"Navigation - "<< __FUNCTION__;
     RoboCompLaser::TLaserData laserCombined;
-//TODO
-/*    auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
 
-    
+
     laserCombined = laserData;
 
-
-    for (const auto &polyline : iter::chain(intimateSpaces,affordancesBlocked))
+//TODO: recalculate laser on person polyline
+/*    for (const auto &polyline : iter::chain(intimateSpaces,affordancesBlocked))
     {
         float min = std::numeric_limits<float>::max();
         float max = std::numeric_limits<float>::min();
@@ -929,30 +927,33 @@ void updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
 
     laser_poly.clear(); //stores the points of the laser in lasers refrence system
     laser_cart.clear();
- /*   auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
+
 
     for (const auto &l : lData)
     {
         //convert laser polar coordinates to cartesian
-        QVec laserc = lasernode->laserTo(QString("laser"),l.dist, l.angle);
-        QVec laserWord = lasernode->laserTo(QString("world"),l.dist, l.angle);
-//        QVec laserWorld = innerModel->transform("world",QVec::vec3(laserc.x(),0,laserc.y()),"laser");
+//        QVec laserc = lasernode->laserTo(QString("laser"),l.dist, l.angle);
+        QVec p(3);
+        p(0) = l.dist * sin(l.angle);
+        p(1) = 0;
+        p(2) = l.dist * cos(l.angle);
+        QVec laserc = p;//innerModel->transform("laser", p, "laser");
+
+//        QVec laserWorld = lasernode->laserTo(QString("world"),l.dist, l.angle);
+        QVec laserWorld = innerModel->transform("world", p, "laser").value();
 
         laser_poly << QPointF(laserc.x(),laserc.z());
-
-        laser_cart.push_back(QPointF(laserWord.x(),laserWord.z()));
-
+        laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.z()));
     }
-
 
     FILE *fd = fopen("laserPoly.txt", "w");
     for (const auto &lp : laser_poly)
     {
-        QVec p = innerModel->transform("world",QVec::vec3(lp.x(),0,lp.y()),"laser");
+        QVec p = innerModel->transform("world",QVec::vec3(lp.x(),0,lp.y()),"laser").value();
         fprintf(fd, "%d %d\n", (int)p.x(), (int)p.z());
     }
     fclose(fd);
-*/
+
 
 }
 
@@ -994,7 +995,7 @@ void drawRoad()
         QPointF &wAnt = pathPoints[i - 1];
         if (w == wAnt) //avoid calculations on equal points
             continue;
-//TODO: check wich line should be painted
+//TODO: check which line should be painted
         QLine2D l(QVec::vec2(wAnt.x(),wAnt.y()), QVec::vec2(w.x(),w.y()));
         QLine2D lp = l.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
         QVec normal = lp.getNormalForOSGLineDraw();  //3D vector
