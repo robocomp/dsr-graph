@@ -3,37 +3,33 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrpublisher.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrsubscriber.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/fast_rtps/dsrparticipant.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraphPubSubTypes.cxx
-  $ENV{ROBOCOMP}/classes/graph-related-classes/topics/DSRGraph.cxx
-  $ENV{ROBOCOMP}/classes/graph-related-classes/inner_api.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/dsr_utils.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/osg_viewer/dsr_to_osg_viewer.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/scene_viewer/dsr_to_graphicscene_viewer.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/graph_viewer/dsr_to_graph_viewer.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/tree_viewer/dsr_to_tree_viewer.cpp
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/_abstract_graphic_view.cpp
-
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/topics/DSRGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/dsr/core/topics/DSRGraph.cxx
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_node.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.h
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.h
-  $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.h
-  $ENV{ROBOCOMP}/classes/graph-related-classes/viewers/_abstract_graphic_view.h
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
+  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
 
 )
-
+INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-g  -fmax-errors=1 -std=c++2a )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
