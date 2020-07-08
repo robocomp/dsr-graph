@@ -143,21 +143,28 @@ public:
 //qDebug()<<"collide"<<collide("viriato_mesh", "tableA_tabletop");
 //exit(0);
         /// Processing configuration parameters
-        try
+ /*       try
         {
             outerRegion.setLeft(std::stof(params_->at("OuterRegionLeft").value));
             outerRegion.setRight(std::stof(params_->at("OuterRegionRight").value));
             outerRegion.setBottom(std::stof(params_->at("OuterRegionBottom").value));
             outerRegion.setTop(std::stof(params_->at("OuterRegionTop").value));
-            robot_name = params_->at("RobotName").value;
         }
         catch(const std::exception &e)
         {
             std::cout << "Exception " << e.what() << " Collisions::initialize(). OuterRegion parameters not found in config file" << std::endl;
             //robocomp::exception ex("OuterRegion parameters not found in config file");
             throw e;
+        }*/
+        //read from World (DSR node)
+        std::optional<Node> world_node = G->get_node("world");
+        if(world_node.has_value()) {
+            outerRegion.setLeft(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionLeft").value());
+            outerRegion.setRight(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionRight").value());
+            outerRegion.setBottom(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionBottom").value());
+            outerRegion.setTop(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionTop").value());
         }
-
+        robot_name = params_->at("RobotName").value;
         if(outerRegion.isNull())
         {
             qDebug()<<"[ERROR] OUTER REGION IS NULL";
@@ -184,7 +191,6 @@ public:
         std::optional<Edge> edge = G->get_edge("world", robot_name, "RT");
         G->modify_attrib_local(edge.value(), "translation", targetPos);
         G->modify_attrib_local(edge.value(), "rotation_euler_xyz", targetRot);
-
 //          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
 
         ///////////////////////
@@ -204,7 +210,7 @@ public:
                 catch(QString s) {qDebug()<< __FUNCTION__ << s;}
                 if (collision)
                 {
-                    std::cout<<"COLLISION"<<in<<" "<<out<<" pos "<<targetPos<<std::endl;
+                    std::cout<<"COLLISION: "<<in<<" to "<<out<<" pos: ("<<targetPos[0]<<","<<targetPos[1]<<","<<targetPos[2]<<")"<<std::endl;
                     return false;
                 }
             }

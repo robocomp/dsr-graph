@@ -157,6 +157,7 @@ public:
 
 	    uint count = 0;
 		dim.TILE_SIZE = int(TILE_SIZE_);
+
 		dim.HMIN = std::min(collisions_->outerRegion.left(), collisions_->outerRegion.right());
 		dim.WIDTH = std::max(collisions_->outerRegion.left(), collisions_->outerRegion.right()) - dim.HMIN;
 		dim.VMIN = std::min(collisions_->outerRegion.top(), collisions_->outerRegion.bottom());
