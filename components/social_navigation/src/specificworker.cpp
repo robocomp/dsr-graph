@@ -258,11 +258,25 @@ void SpecificWorker::checkHumanBlock()
 
 RoboCompLaser::TLaserData  SpecificWorker::updateLaser()
 {
-//	qDebug()<<__FUNCTION__;
-
+	qDebug()<<__FUNCTION__<<"reading from DSR laser node";
 	RoboCompLaser::TLaserData laserData;
-/*TODO
-    try
+
+	//TODO: Change on next version: not using RoboCompLaser::TLaserData
+	//Converting graph laser data to RoboCompLaser
+	auto laser_node = G->get_node("laser");
+	if(laser_node.has_value()) {
+        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
+        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
+        if (lAngles.has_value() and lDists.has_value()) {
+            for (int i =0;i < lAngles.value().size();i++){
+                RoboCompLaser::TData data;
+                data.angle = lAngles.value()[i];
+                data.dist = lDists.value()[i];
+                laserData.push_back(data);
+            }
+        }
+    }
+/*    try
     {
 		laserData  = laser_proxy->getLaserData();
     }
