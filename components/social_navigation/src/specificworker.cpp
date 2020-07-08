@@ -268,7 +268,7 @@ RoboCompLaser::TLaserData  SpecificWorker::updateLaser()
         const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
         const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
         if (lAngles.has_value() and lDists.has_value()) {
-            for (int i =0;i < lAngles.value().size();i++){
+            for (unsigned int i =0;i < lAngles.value().size();i++){
                 RoboCompLaser::TData data;
                 data.angle = lAngles.value()[i];
                 data.dist = lDists.value()[i];

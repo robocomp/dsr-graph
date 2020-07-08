@@ -190,24 +190,38 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
 
         if(robotAutoMov) newRandomTarget();
     }
-qDebug()<<__LINE__;
+
     if (!blocked and active)
     {
- //       if(moveRobot) omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
-        //auto desired_z_speed = G->get_attrib_by_name<float>(base.value(), "advance_speed");
-        //auto desired_x_speed = G->get_attrib_by_name<float>(base.value(), "side_speed");
-        //auto desired_rot_speed = G->get_attrib_by_name<float>(base.value(), "rotation_speed");
+        if(moveRobot){
+            auto omnirobot_node = G->get_node(configparams->at("RobotName").value);
+            if (omnirobot_node.has_value())
+            {
+                G->add_or_modify_attrib_local(omnirobot_node.value(), "advance_speed", zVel);
+                G->add_or_modify_attrib_local(omnirobot_node.value(), "side_speed", xVel);
+                G->add_or_modify_attrib_local(omnirobot_node.value(), "rotation_speed", rotVel);
+                G->update_node(omnirobot_node.value());
+            }
+        }
+//        omnirobot_proxy->setSpeedBase(xVel,zVel,rotVel);
     }
-qDebug()<<__LINE__;
     drawRoad();
-qDebug()<<__LINE__;
+
 
 };
 
 void stopRobot()
 {
+    auto omnirobot_node = G->get_node(configparams->at("RobotName").value);
+    if (omnirobot_node.has_value())
+    {
+        G->add_or_modify_attrib_local(omnirobot_node.value(), "advance_speed", 0.0);
+        G->add_or_modify_attrib_local(omnirobot_node.value(), "side_speed", 0.0);
+        G->add_or_modify_attrib_local(omnirobot_node.value(), "rotation_speed", 0.0);
+        G->update_node(omnirobot_node.value());
+    }
     qDebug()<<"Navigation - "<< __FUNCTION__;
-//TODO
+
 //    omnirobot_proxy->setSpeedBase(0,0,0);
 }
 
