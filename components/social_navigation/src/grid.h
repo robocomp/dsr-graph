@@ -25,6 +25,7 @@
 #include <cppitertools/range.hpp>
 #include <limits>
 #include <collisions.h>
+#include <QGraphicsRectItem>
 using namespace std;
 
 #define TILE_SIZE_ 250
@@ -463,7 +464,6 @@ public:
 		}
 		scene_grid_points.clear();
 		//create new representation
-		QGraphicsRectItem* aux;
 		std::string color;
 		for( const auto &[key,value] : fmap)
 		{
@@ -487,7 +487,7 @@ public:
 			else
 				color = "#B40404";
 
-			aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
+            QGraphicsRectItem* aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
 			aux->setZValue(2000);
 			scene_grid_points.push_back(aux);
         }
