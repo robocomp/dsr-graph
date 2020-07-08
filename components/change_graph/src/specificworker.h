@@ -32,15 +32,15 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <genericworker.h>
-#include "graph-related-classes/CRDT.h"
-#include "graph-related-classes/CRDT_graphviewer.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 
 	public:
-		std::shared_ptr<CRDT::CRDTGraph> G;
+		std::shared_ptr<DSR::DSRGraph> G;
 		std::string agent_name;
 
 	private:
