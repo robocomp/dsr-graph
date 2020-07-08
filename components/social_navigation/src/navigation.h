@@ -14,7 +14,7 @@
 #include <QPolygonF>
 #include <QPointF>
 #include <QGraphicsScene>
-
+#include <QGraphicsLineItem>
 #include <cppitertools/chain.hpp>
 #include <cppitertools/range.hpp>
 #include <cppitertools/sliding_window.hpp>
@@ -194,7 +194,7 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
     if (!blocked and active)
     {
         if(moveRobot){
-            auto omnirobot_node = G->get_node(configparams->at("RobotName").value);
+            std::optional<Node> omnirobot_node = G->get_node(configparams->at("RobotName").value);
             if (omnirobot_node.has_value())
             {
                 G->add_or_modify_attrib_local(omnirobot_node.value(), "advance_speed", zVel);
@@ -212,7 +212,7 @@ void update(localPersonsVec totalPersons_, const RoboCompLaser::TLaserData &lase
 
 void stopRobot()
 {
-    auto omnirobot_node = G->get_node(configparams->at("RobotName").value);
+    std::optional<Node> omnirobot_node = G->get_node(configparams->at("RobotName").value);
     if (omnirobot_node.has_value())
     {
         G->add_or_modify_attrib_local(omnirobot_node.value(), "advance_speed", 0.0);
@@ -983,7 +983,7 @@ QPointF getRobotNose()
 std::vector<QGraphicsLineItem *> scene_road_points;
 void drawRoad()
 {
-//        qDebug()<<"Navigation - "<< __FUNCTION__;
+        qDebug()<<"Navigation - "<< __FUNCTION__;
 
     ///////////////////////
     // Preconditions
@@ -1027,6 +1027,7 @@ void drawRoad()
         }
         
         line = viewer_2d->addLine(QLineF(w, wAnt), QPen(QString::fromStdString(color)));
+        line->setZValue(2000);
         scene_road_points.push_back(line);
     }
 }
