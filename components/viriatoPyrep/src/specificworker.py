@@ -102,7 +102,7 @@ class SpecificWorker(GenericWorker):
        
         self.people = {}
         for i in range(1,5):
-            name = "Bill#" + str(i)
+            name = "Bill_base#" + str(i)
             if Dummy.exists(name):
                 self.people["name"] = Dummy(name)
         #print (self.people)
@@ -136,7 +136,7 @@ class SpecificWorker(GenericWorker):
                 for name, handle in self.people.items():
                     pos = handle.get_position()
                     rot = handle.get_orientation()
-                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, rot[2], {})
+                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
                     people.append(person)
                 try:
                     people_data.peoplelist = people
@@ -163,8 +163,8 @@ class SpecificWorker(GenericWorker):
                 # Get and publish robot pose
                 pose = self.robot.get_2d_pose()
                 try:
-                    self.bState = RoboCompGenericBase.TBaseState(x=-pose[0]*1000, z=-pose[1]*1000, alpha=-pose[2])
-                    #print("Base pose", self.bState.x,self.bState.z, self.bState.alpha)
+                    self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000, z=pose[0]*1000, alpha=-pose[2]+1.5707963)
+                    
                     self.omnirobotpub_proxy.pushBaseState(self.bState)
                 except Ice.Exception as e:
                     print(e)
