@@ -102,7 +102,7 @@ class SpecificWorker(GenericWorker):
        
         self.people = {}
         for i in range(1,5):
-            name = "Bill_base#" + str(i)
+            name = "Bill#" + str(i)
             if Dummy.exists(name):
                 self.people["name"] = Dummy(name)
         #print (self.people)
