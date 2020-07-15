@@ -22,7 +22,7 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx, startup_check) {
 }
 
 /**
@@ -49,7 +49,7 @@ void SpecificWorker::initialize(int period)
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 
      
     // Graph viewer
@@ -96,6 +96,8 @@ void SpecificWorker::initialize(int period)
     connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
     connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
     connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
+    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
+    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
 }
 
 
@@ -110,13 +112,14 @@ void SpecificWorker::change_node_slot(int id)
 {
     qDebug()<<id;
     Node node = node_cb->itemData(id).value<Node>();
-
+    node_id_label->setText("("+QString::number(node.id())+":"+QString::fromStdString(node.type())+")");
     fill_table(node_attrib_tw, node.attrs());
 }
 
 void SpecificWorker::change_edge_slot(int id)
 {
     Edge edge = edge_cb->itemData(id).value<Edge>();
+    edge_id_label->setText("("+QString::number(edge.from())+"-"+QString::number(edge.to())+":"+QString::fromStdString(edge.type())+")");
     fill_table(edge_attrib_tw, edge.attrs());
 }
 
@@ -303,4 +306,44 @@ void SpecificWorker::delete_node_slot()
     {
         qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";    
     }
+}
+
+
+void SpecificWorker::new_node_slot()
+{
+    Node node;
+    node.type(this->node_type_cb->currentText().toStdString());
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
+    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
+    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    try
+    {     
+        G->insert_node(node);
+        //Add node to combobox
+        QVariant data;
+        data.setValue(node);
+        this->node_cb->addItem(QString::fromStdString(node.name()), data);
+        this->node_cb->setCurrentIndex(this->node_cb->count()-1);
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+    }
+}
+
+void SpecificWorker::new_node_attrib_slot()
+{
+
+    
+}
+
+void SpecificWorker::new_edge_slot()
+{
+    
+}
+
+void SpecificWorker::new_edge_attrib_slot()
+{
+
+    
 }

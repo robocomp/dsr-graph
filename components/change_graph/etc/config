@@ -1,5 +1,7 @@
 CommonBehavior.Endpoints=tcp -p 10020
 
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0

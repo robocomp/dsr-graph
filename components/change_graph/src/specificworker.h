@@ -44,6 +44,7 @@ Q_OBJECT
 		std::string agent_name;
 
 	private:
+		bool startup_check_flag;
 		int agent_id;
 		std::string dsr_input_file;
 		std::string dsr_output_file;
@@ -53,7 +54,7 @@ Q_OBJECT
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
 
 	public:
-		SpecificWorker(TuplePrx tprx);
+		SpecificWorker(TuplePrx tprx, bool startup_check);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
 
@@ -66,6 +67,10 @@ Q_OBJECT
 		void change_edge_slot(int id);
 		void delete_edge_slot();
 		void save_edge_slot();
+        void new_edge_slot();
+        void new_node_slot();
+        void new_node_attrib_slot();
+        void new_edge_attrib_slot();
 
 	private:
 		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);

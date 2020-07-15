@@ -20,9 +20,10 @@
 /**
 * \brief Default constructor
 */
-GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
+GenericWorker::GenericWorker(TuplePrx tprx, bool startup_check) : Ui_guiDlg()
 {
 
+	dsrgetid_proxy = std::get<0>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
