@@ -83,12 +83,12 @@ void SpecificWorker::initialize(int period)
     node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
     node_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     node_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-
+    node_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows); 
 
     edge_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
     edge_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-
+    edge_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows); 
 
     connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
     connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
@@ -98,6 +98,7 @@ void SpecificWorker::initialize(int period)
     connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
     connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
     connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
+    connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
 }
 
 
@@ -110,7 +111,6 @@ void SpecificWorker::compute()
 
 void SpecificWorker::change_node_slot(int id)
 {
-    qDebug()<<id;
     Node node = node_cb->itemData(id).value<Node>();
     node_id_label->setText("("+QString::number(node.id())+":"+QString::fromStdString(node.type())+")");
     fill_table(node_attrib_tw, node.attrs());
@@ -130,7 +130,9 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
     for(auto [key, value] : attribs)
     {
         table_widget->insertRow( table_widget->rowCount() );
-        table_widget->setItem(table_widget->rowCount()-1, 0, new QTableWidgetItem(QString::fromStdString(key)));
+        QTableWidgetItem *item =new QTableWidgetItem(QString::fromStdString(key));
+        item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        table_widget->setItem(table_widget->rowCount()-1, 0, item);
         switch (value.value()._d())
         {
             case 0:
@@ -311,8 +313,16 @@ void SpecificWorker::delete_node_slot()
 
 void SpecificWorker::new_node_slot()
 {
+    //get node type
+    bool ok;
+    QStringList items;
+    items << tr("plane") << tr("transform") << tr("mesh") << tr("person")<< tr("omnirobot")<< tr("rgbd");
+    QString node_type = QInputDialog::getItem(this, tr("New node"), tr("Attrib name:"), items, 0, false, &ok);
+    if(not ok or node_type.isEmpty())
+        return;
+    
     Node node;
-    node.type(this->node_type_cb->currentText().toStdString());
+    node.type(node_type.toStdString());
     G->add_or_modify_attrib_local(node, "pos_x", 100.0);
     G->add_or_modify_attrib_local(node, "pos_y", 130.0);
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
@@ -333,8 +343,28 @@ void SpecificWorker::new_node_slot()
 
 void SpecificWorker::new_node_attrib_slot()
 {
-
+    bool ok1, ok2;
+    QString attrib_name = QInputDialog::getText(this, tr("New node attrib"),
+                                         tr("Attrib name:"), QLineEdit::Normal,
+                                         "name", &ok1);
+    QStringList items;
+    items << tr("int") << tr("float") << tr("string") << tr("bool");
+    QString attrib_type = QInputDialog::getItem(this, tr("New node attrib"), tr("Attrib type:"), items, 0, false, &ok2);
     
+    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
+        return;
+    
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    if(attrib_type == "int")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
+    else if(attrib_type == "float")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0);
+    else if(attrib_type == "bool")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
+    else if(attrib_type == "string")        
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
+        
+    fill_table(node_attrib_tw, node.attrs());    
 }
 
 void SpecificWorker::new_edge_slot()

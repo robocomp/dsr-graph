@@ -64,14 +64,14 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="new_attrib_pb">
+         <widget class="QPushButton" name="new_node_attrib_pb">
           <property name="text">
            <string>New attrib</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="del_attrib_pb">
+         <widget class="QPushButton" name="del_node_attrib_pb">
           <property name="text">
            <string>Del Atrrib</string>
           </property>
@@ -93,45 +93,6 @@
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QComboBox" name="node_type_cb">
-          <item>
-           <property name="text">
-            <string>mesh</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>laser</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>rgbd</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>transform</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>plane</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>person</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>omnirobot</string>
-           </property>
-          </item>
-         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="new_node_pb">

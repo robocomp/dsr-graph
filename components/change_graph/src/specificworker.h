@@ -28,12 +28,14 @@
 #define SPECIFICWORKER_H
 
 #include <QLineEdit>
+#include <QInputDialog>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -80,4 +82,5 @@ Q_OBJECT
 };
 Q_DECLARE_METATYPE(Node);
 Q_DECLARE_METATYPE(Edge);
+
 #endif
