@@ -25,8 +25,9 @@ etc/insert_remove_*
 **/out.perf
 **/*.svg
 **/profile/
-*.ice
-*.OLD
+**/*.ice
+**/*.OLD
+**/*.txt
 etc/*
 test/__pycache__/
 components/crdt_rtps_dsr_tests/test_result.txt
