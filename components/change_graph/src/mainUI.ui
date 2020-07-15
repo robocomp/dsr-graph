@@ -27,6 +27,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="node_id_label">
+          <property name="text">
+           <string>(ID, type)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QComboBox" name="node_cb"/>
         </item>
        </layout>
@@ -42,6 +49,37 @@
        <widget class="QTableWidget" name="node_attrib_tw"/>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="new_attrib_pb">
+          <property name="text">
+           <string>New attrib</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="del_attrib_pb">
+          <property name="text">
+           <string>Del Atrrib</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <spacer name="horizontalSpacer">
@@ -55,6 +93,52 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QComboBox" name="node_type_cb">
+          <item>
+           <property name="text">
+            <string>mesh</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>laser</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rgbd</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>transform</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>plane</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>person</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>omnirobot</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="new_node_pb">
+          <property name="text">
+           <string>New Node</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="del_node_pb">
@@ -82,6 +166,13 @@
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Edge</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="edge_id_label">
+          <property name="text">
+           <string>(ID, type)</string>
           </property>
          </widget>
         </item>
@@ -114,6 +205,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="new_edge_pb">
+          <property name="text">
+           <string>New Edge</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="del_edge_pb">
