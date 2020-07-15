@@ -18,7 +18,8 @@ using namespace CRDT;
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_file) : agent_id(id), agent_name(name) {
+CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) {
+    dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);
     utils = std::make_unique<Utilities>(this);
@@ -48,9 +49,9 @@ CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_f
             qFatal("Aborting program. Cannot continue without intial file");
         }
         start_fullgraph_server_thread();
-        start_subscription_threads(false);
+        start_subscription_threads(true);
     } else {
-        start_subscription_threads(false);     // regular subscription to deltas
+        start_subscription_threads(true);     // regular subscription to deltas
         bool res = start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
         if (res == false) {
             eprosima::fastrtps::Domain::removeParticipant(
@@ -117,7 +118,19 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node &node) {
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name()) == name_map.end()) {
-            //TODO: Poner id con el proxy y generar el nombre
+            try{
+                if (dsr_getid_proxy != nullptr)
+                {
+                    //int new_node_id = dsr_getid_proxy->getID();
+                    //node.id(new_node_id);
+                    //node.name(node.type() + "_" + std::to_string(new_node_id));
+                }
+            }
+            catch(const std::exception& e)
+            {
+                throw std::runtime_error((std::string("Cannot get new id from idserver, check config file ")
+                                          + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+            }
 
             std::tie(r, aw) = insert_node_(user_node_to_crdt(std::move(node)));
         } else
@@ -1040,7 +1053,7 @@ void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
 void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
     try {
-        bool signal = false, ok = false;
+        bool ok = false;
         auto d = translateNodeAttrMvIDLtoCRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -1061,7 +1074,6 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                     //Update maps
                     update_maps_node_insert(mvreg.id(), n);
                 } else { //Insert
-                    signal = true;
                     //Update maps
                     update_maps_node_insert(mvreg.id(), n);
                 }
@@ -1097,7 +1109,7 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
 void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
     try {
-        bool signal = false, ok = false;
+        bool  ok = false;
         auto d = translateEdgeAttrMvIDLtoCRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
@@ -1117,7 +1129,6 @@ void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                     //Update maps
                     update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
                 } else { //Insert
-                    signal = true;
                     //Update maps
                     update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
                 }

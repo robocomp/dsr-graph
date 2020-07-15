@@ -22,6 +22,9 @@
 #include <optional>
 #include <type_traits>
 
+#include <DSRGetID.h>
+
+
 #include "../core/crdt/delta-crdts.cc"
 #include "../core/rtps/dsrparticipant.h"
 #include "../core/rtps/dsrpublisher.h"
@@ -112,7 +115,7 @@ namespace CRDT {
     public:
         size_t size();
 
-        CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string());
+        CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_ = nullptr);
 
         ~CRDTGraph();
 
@@ -497,6 +500,7 @@ namespace CRDT {
         std::string agent_name;
         std::unique_ptr<Utilities> utils;
 
+        RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy; // proxy to obtain unique node ids
 
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
