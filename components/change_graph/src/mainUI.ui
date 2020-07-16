@@ -153,6 +153,37 @@
        <widget class="QTableWidget" name="edge_attrib_tw"/>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="new_edge_attrib_pb">
+          <property name="text">
+           <string>New attrib</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="del_edge_attrib_pb">
+          <property name="text">
+           <string>Del attrib</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <spacer name="horizontalSpacer_2">
