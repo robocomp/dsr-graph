@@ -50,7 +50,7 @@ void SpecificWorker::initialize(int period)
 
     // GraphViewer creation
     using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg,  opts::graph);
     
     this->Period = 100;
     timer.start(Period);
