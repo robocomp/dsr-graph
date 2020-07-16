@@ -24,7 +24,7 @@
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 {
-
+	QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -32,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
+	qDebug() << "Destroying SpecificWorker" ;
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
@@ -52,16 +52,16 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
+	qDebug() << "Initialize worker" ;
 
 	// create graph
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
-	G->print();
+//	G->print();
 	//G->print_RT(G->get_node_root().value().id());
 
 	// Graph viewer
 	using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree|opts::osg);
 //	mainLayout.addWidget(graph_viewer.get());
 //	window.setLayout(&mainLayout);
 //	setCentralWidget(&window);
@@ -78,7 +78,7 @@ void SpecificWorker::initialize(int period)
 
 	// Compute max Id in G
     get_max_id_from_G();
-	std::cout<< __FUNCTION__ << ": Graph loaded" << std::endl;  
+	qDebug()<< __FUNCTION__ << ": Graph loaded" ;
 	if(dsr_write_to_file)
 		timer.start(Period);
 	
