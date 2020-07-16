@@ -367,11 +367,43 @@ void SpecificWorker::new_node_attrib_slot()
     fill_table(node_attrib_tw, node.attrs());    
 }
 
-void SpecificWorker::new_edge_slot()
-{
-    
-}
+void SpecificWorker::new_edge_slot() {
+    bool ok1, ok2, ok3;
+    int from = QInputDialog::getInt(this, tr("New edge"), "From  node id:", 0, 1, 50000, 1, &ok1);
+    int to = QInputDialog::getInt(this, tr("New edge"), "To  node id:", 0, 1, 50000, 1, &ok2);
+    QStringList items;
+    items << tr("RT");
+    QString edge_type = QInputDialog::getItem(this, tr("New edge"), tr("Edge type:"), items, 0, false, &ok3);
 
+    if (not ok1 or not ok2 or not ok3 or edge_type.isEmpty())
+        return;
+
+    std::optional<Node> from_node = G->get_node(from);
+    std::optional<Node> to_node = G->get_node(to);
+    if (from_node.has_value() and to_node.has_value()) {
+        try {
+            std::vector<float> trans{0.f, 0.f, 0.f};
+            std::vector<float> rot{0, 0.f, 0};
+            G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+
+            //Add node to combobox
+            std::optional<Edge> edge = G->get_edge_RT(from_node.value(), to);
+            QVariant data;
+            data.setValue(edge.value());
+            QString from_name = QString::fromStdString(from_node.value().name());
+            QString to_name = QString::fromStdString(to_node.value().name());
+            QString name = from_name + "_" + to_name + "_" + QString::fromStdString(edge.value().type());
+            this->edge_cb->addItem(name, data);
+            this->edge_cb->setCurrentIndex(this->edge_cb->count()-1);
+        }
+        catch (const std::exception &e) {
+            std::cout << __FUNCTION__ << e.what() << std::endl;
+        }
+    }
+    else{
+        qDebug()<<"Selected node from or to does not exist";
+    }
+}
 void SpecificWorker::new_edge_attrib_slot()
 {
 
