@@ -99,6 +99,9 @@ void SpecificWorker::initialize(int period)
     connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
     connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
     connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
+    connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
+    connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
+    connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
 }
 
 
@@ -406,6 +409,34 @@ void SpecificWorker::new_edge_slot() {
 }
 void SpecificWorker::new_edge_attrib_slot()
 {
+    bool ok1, ok2;
+    QString attrib_name = QInputDialog::getText(this, tr("New edge attrib"),
+                                                tr("Attrib name:"), QLineEdit::Normal,
+                                                "name", &ok1);
+    QStringList items;
+    items << tr("int") << tr("float") << tr("string") << tr("bool") <<tr("vector");
+    QString attrib_type = QInputDialog::getItem(this, tr("New edge attrib"), tr("Attrib type:"), items, 0, false, &ok2);
 
-    
+    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
+        return;
+
+    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    if(attrib_type == "int")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
+    else if(attrib_type == "float")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0);
+    else if(attrib_type == "bool")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
+    else if(attrib_type == "string")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
+    else if(attrib_type == "vector") {
+        std::vector<float> zeros{0.f,0.f,0.f};
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
+    }
+    fill_table(edge_attrib_tw, edge.attrs());
+}
+void SpecificWorker::del_node_attrib_slot() {
+}
+
+void SpecificWorker::del_edge_attrib_slot() {
 }

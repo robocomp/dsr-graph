@@ -73,6 +73,8 @@ Q_OBJECT
         void new_node_slot();
         void new_node_attrib_slot();
         void new_edge_attrib_slot();
+        void del_node_attrib_slot();
+        void del_edge_attrib_slot();
 
 	private:
 		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);
