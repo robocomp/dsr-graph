@@ -96,6 +96,15 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
     configGetString( "","dsr_input_file", aux.value, "none");
     params["dsr_input_file"] = aux;
 
+	configGetString( "","tree_view", aux.value, "none");
+	params["tree_view"] = aux;
+	configGetString( "","graph_view", aux.value, "none");
+	params["graph_view"] = aux;
+	configGetString( "","2d_view", aux.value, "none");
+	params["2d_view"] = aux;
+	configGetString( "","3d_view", aux.value, "none");
+	params["3d_view"] = aux;
+
 }
 
 //Check parameters and transform them to worker structure
