@@ -114,8 +114,7 @@ namespace DSR {
     class DSRGraph : public QObject {
     Q_OBJECT
     private:
-        std::function<std::optional<int>(const Node&)> insert_node_read_file = [&] (const Node& node) -> std::optional<int> {
-            if (node.id() == -1) return {};
+        std::function<std::optional<uint8_t>(const Node&)> insert_node_read_file = [&] (const Node& node) -> std::optional<int> {
             bool r = false;
             {
                 std::unique_lock<std::shared_mutex> lock(_mutex);

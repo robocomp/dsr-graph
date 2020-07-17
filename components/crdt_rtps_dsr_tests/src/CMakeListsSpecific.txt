@@ -8,8 +8,8 @@ SET ( SOURCES
   ../../../dsr/core/rtps/dsrpublisher.cpp
   ../../../dsr/core/rtps/dsrsubscriber.cpp
   ../../../dsr/core/rtps/dsrparticipant.cpp
-  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
-  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/core/topics/IDLGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/IDLGraph.cxx
   ../../../dsr/api/dsr_inner_api.cpp
   ../../../dsr/api/dsr_utils.cpp
   ../../../dsr/gui/dsr_gui.cpp
@@ -50,7 +50,6 @@ SET ( TEST_SOURCES
   ../../../dsr/core/topics/DSRGraph.cxx
   ../../../dsr/api/dsr_inner_api.cpp
   ../../../dsr/api/dsr_utils.cpp
-
   tests/CRDT_G_api_test.cpp
 )
 
@@ -61,7 +60,6 @@ SET ( TEST_HEADERS
   ../../../dsr/api/dsr_api.h
   tests/CRDT_G_api_test.h
   tests/catch.hpp
-
 )
 
 find_package(LibXml2 REQUIRED)

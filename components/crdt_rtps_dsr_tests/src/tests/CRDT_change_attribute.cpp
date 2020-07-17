@@ -9,7 +9,7 @@
 #include <random>
 #include <fstream>
 
-void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     std::string result;
     static int it = 0;
@@ -27,7 +27,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
         // request node
         auto nid = keys.at(rnd(mt));
         if(nid<0) continue;
-        std::optional<CRDT::Node> node = G->get_node(nid);
+        std::optional<DSR::Node> node = G->get_node(nid);
         if (!node.has_value())
         {
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
@@ -35,11 +35,11 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
 
         std::string str = std::to_string(agent_id) + "-" + std::to_string(i) + "_" + std::to_string(it);
 
-        CRDT::Attribute ab (str, 0, agent_id);
+        DSR::Attribute ab (str, 0, agent_id);
         node.value().attrs()["testattrib"] = ab;
 
-        G->add_attrib(node.value(), "pos_x", rnd_float()); //modify?
-        G->add_attrib(node.value(), "pos_y", rnd_float());
+        G->add_attrib_local(node.value(), "pos_x", rnd_float()); //modify?
+        G->add_attrib_local(node.value(), "pos_y", rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {

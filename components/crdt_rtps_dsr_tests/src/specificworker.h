@@ -22,7 +22,7 @@ class SpecificWorker : public GenericWorker
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
 
         std::string agent_name;
-        std::shared_ptr<CRDT::CRDTGraph> G;
+        std::shared_ptr<DSR::DSRGraph> G;
 
     public slots:
 		void autokill();

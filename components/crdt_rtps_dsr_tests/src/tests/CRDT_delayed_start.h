@@ -11,7 +11,7 @@
 class CRDT_delayed_start : DSR_test {
 public:
     CRDT_delayed_start () {};
-    CRDT_delayed_start(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_, const std::string& output_result_ ,int num_ops_, int agent_id_)
+    CRDT_delayed_start(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ ,int num_ops_, int agent_id_)
         : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_), agent_id(agent_id_) {times.resize(num_ops);};
 
     CRDT_delayed_start& operator=(CRDT_delayed_start&& t) {
@@ -36,7 +36,7 @@ private:
     int num_ops;
     int agent_id;
 
-    void create_or_remove_nodes(int i, const shared_ptr<CRDT::CRDTGraph>& G);
+    void create_or_remove_nodes(int i, const shared_ptr<DSR::DSRGraph>& G);
     int delay = 5; //ms
 
 

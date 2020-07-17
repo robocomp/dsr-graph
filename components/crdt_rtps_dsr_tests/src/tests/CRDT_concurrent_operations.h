@@ -12,7 +12,7 @@
 class CRDT_concurrent_operations : DSR_test {
 public:
     CRDT_concurrent_operations () {};
-    CRDT_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_, int num_threads_, int agent_id_)
+    CRDT_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_, int num_threads_, int agent_id_)
         : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_), num_threads(num_threads_), agent_id(agent_id_) {times.resize(num_ops*num_threads); };
 
     CRDT_concurrent_operations& operator=(CRDT_concurrent_operations&& t) {
@@ -39,7 +39,7 @@ private:
     int num_threads;
     int agent_id;
     std::vector<std::thread> threads;
-    void concurrent_ops(int i, int no, const shared_ptr<CRDT::CRDTGraph>& G);
+    void concurrent_ops(int i, int no, const shared_ptr<DSR::DSRGraph>& G);
     int delay = 5; //ms
 
     double mean, ops_second;

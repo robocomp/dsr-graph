@@ -11,7 +11,7 @@
 class CRDT_insert_remove_node : DSR_test {
 public:
     CRDT_insert_remove_node () {};
-    CRDT_insert_remove_node(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_)
+    CRDT_insert_remove_node(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_)
         : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_) {times.resize(num_ops);};
 
     CRDT_insert_remove_node& operator=(CRDT_insert_remove_node&& t) {
@@ -35,7 +35,7 @@ private:
     int num_ops;
 
 
-    void create_or_remove_nodes(int i, const shared_ptr<CRDT::CRDTGraph>& G);
+    void create_or_remove_nodes(int i, const shared_ptr<DSR::DSRGraph>& G);
     int delay = 5; //ms
 
     double mean, ops_second;

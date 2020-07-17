@@ -8,7 +8,7 @@
 #include <thread>
 #include <fstream>
 
-void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<CRDT::CRDTGraph>& G)
+void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
 {
     int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
@@ -26,14 +26,14 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             {
                 // create node
                 auto id = newID();
-                CRDT::Node node; node.type("n"); node.id(id);
+                DSR::Node node; node.type("n"); node.id(id);
                 node.agent_id(agent_id);
                 node.name("plane" + std::to_string(id));
-                G->add_attrib(node, "name", std::string("fucking_plane"));
-                G->add_attrib(node, "color", std::string("SteelBlue"));
-                G->add_attrib(node, "pos_x", rnd_float());
-                G->add_attrib(node, "pos_y", rnd_float());
-                G->add_attrib(node, "parent", 100);
+                G->add_attrib_local(node, "name", std::string("fucking_plane"));
+                G->add_attrib_local(node, "color", std::string("SteelBlue"));
+                G->add_attrib_local(node, "pos_x", rnd_float());
+                G->add_attrib_local(node, "pos_y", rnd_float());
+                G->add_attrib_local(node, "parent", 100);
 
                 auto res = G->insert_node(node);
                 if (res.has_value()) {
@@ -59,13 +59,13 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
         {
             if(rnd_selector() == 0)
             {
-                CRDT::Edge edge;
+                DSR::Edge edge;
                 edge.type("Edge");
                 //get two ids
                 edge.from(getID());
                 edge.to(getID());
-                G->add_attrib(edge, "name", std::string("fucking_plane"));
-                G->add_attrib(edge, "color", std::string("SteelBlue"));
+                G->add_attrib_local(edge, "name", std::string("fucking_plane"));
+                G->add_attrib_local(edge, "color", std::string("SteelBlue"));
 
                 r = G->insert_or_assign_edge(edge);
                 if (r) {
@@ -92,7 +92,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             auto nid = keys.at(rnd(mt));
             //qDebug() << __FUNCTION__ << nid;
             if(nid<0) continue;
-            std::optional<CRDT::Node> node = G->get_node(nid);
+            std::optional<DSR::Node> node = G->get_node(nid);
             if (!node.has_value())
             {
                 qDebug() << "ERROR OBTENIENDO EL NODO";
@@ -104,11 +104,11 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
 
             std::string str = std::to_string(agent_id) + "_" + std::to_string(i) + "_" + std::to_string(it);
 
-            CRDT::Attribute ab (str, 0, agent_id);
+            DSR::Attribute ab (str, 0, agent_id);
             node.value().attrs()["testattrib"] = ab;
 
-            G->modify_attrib(node.value(), "pos_x", rnd_float());
-            G->modify_attrib(node.value(), "pos_y", rnd_float());
+            G->modify_attrib_local(node.value(), "pos_x", rnd_float());
+            G->modify_attrib_local(node.value(), "pos_y", rnd_float());
             node->agent_id(agent_id);
             r = G->update_node(node.value());
 
