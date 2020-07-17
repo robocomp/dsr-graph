@@ -69,14 +69,21 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     //G->print();
 
     // Graph viewer
     using opts = DSR::GraphViewer::view;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, 0/*,opts::scene|opts::graph|opts::tree|opts::osg*/);
-    setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
-
+    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G,opts::scene|opts::graph|opts::tree|opts::osg, opts::graph);
+    setWindowTitle(QString::fromStdString(agent_name));
+    connect(actionSave, &QAction::triggered,  [this]()
+    {
+        auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc",
+                                                      tr("JSON Files (*.json)"), nullptr,
+                                                      QFileDialog::Option::DontUseNativeDialog);
+        G->write_to_json_file(file_name.toStdString());
+        qDebug() << __FUNCTION__ << "Written";
+    });
 
 
     // qDebug() << __FUNCTION__ << "Graph Viewer started";

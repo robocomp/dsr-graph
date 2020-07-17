@@ -7,7 +7,6 @@
 #include <filesystem>
 
 
-
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 #include "../../../../dsr/api/dsr_api.h"
@@ -23,18 +22,18 @@ class Graph {
             return instance;
         }
 
-        shared_ptr<CRDT::CRDTGraph> get_G() { return G;}
+        shared_ptr<DSR::DSRGraph> get_G() { return G;}
     private:
         Graph () {
-            G = make_shared<CRDT::CRDTGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
+            G = make_shared<DSR::DSRGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
         }
 
-        std::shared_ptr<CRDT::CRDTGraph> G;
+        std::shared_ptr<DSR::DSRGraph> G;
 };
 
 TEST_CASE("Node operations", "[NODE]") {
 
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Get a node that does not exists by id") {
         G->reset();
@@ -162,7 +161,7 @@ TEST_CASE("Node operations", "[NODE]") {
 
 TEST_CASE("Edge operations", "[EDGE]") {
 
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Get an edge that does not exists by id") {
 
@@ -263,7 +262,7 @@ TEST_CASE("Edge operations", "[EDGE]") {
 
 TEST_CASE("File operations", "[FILE]") {
 
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
     CRDT::Utilities u (G.get());
 
     const std::string empty_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json";
@@ -328,7 +327,7 @@ TEST_CASE("File operations", "[FILE]") {
 
 
 TEST_CASE("Maps operations", "[UTILS]") {
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Get id from a name") {
         Node n;
@@ -414,7 +413,7 @@ TEST_CASE("Maps operations", "[UTILS]") {
 }
 
 TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Insert attribute by name (node) and insert") {
         std::optional<Node> n = G->get_node(100);
@@ -485,7 +484,7 @@ TEST_CASE("Attributes operations", "[ATTRIBUTES]") {
 
 
 TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Insert a string attribute") {
         std::optional<Node> n = G->get_node(100);
@@ -590,7 +589,7 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
 
 //Scenarios
 SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     GIVEN("A new Node")
     {
@@ -695,7 +694,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
 /*
 TEST_CASE("Join operations", "[JOIN]") {
 
-    std::shared_ptr<CRDT::CRDTGraph> G = Graph::get().get_G();
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Join full graph") {}
     SECTION("Join empty full graph") {}
