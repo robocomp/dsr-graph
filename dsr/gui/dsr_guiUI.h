@@ -24,7 +24,8 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_graphDlg {
+class Ui_graphDlg
+{
 public:
     QVBoxLayout *verticalLayout;
     QSplitter *splitter;
@@ -39,7 +40,8 @@ public:
     QHBoxLayout *horizontalLayout_4;
     QGraphicsView *graphicsView_2D;
 
-    void setupUi(QWidget *graphDlg) {
+    void setupUi(QWidget *graphDlg)
+    {
         if (graphDlg->objectName().isEmpty())
             graphDlg->setObjectName(QStringLiteral("graphDlg"));
         graphDlg->resize(1055, 712);
@@ -99,7 +101,8 @@ public:
         QMetaObject::connectSlotsByName(graphDlg);
     } // setupUi
 
-    void retranslateUi(QWidget *graphDlg) {
+    void retranslateUi(QWidget *graphDlg)
+    {
         graphDlg->setWindowTitle(QApplication::translate("graphDlg", "DSRGraph", Q_NULLPTR));
         tabWidget->setTabText(tabWidget->indexOf(tab_1), QApplication::translate("graphDlg", "graph", Q_NULLPTR));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("graphDlg", "3d", Q_NULLPTR));
@@ -109,8 +112,7 @@ public:
 };
 
 namespace Ui {
-    class graphDlg : public Ui_graphDlg {
-    };
+    class graphDlg: public Ui_graphDlg {};
 } // namespace Ui
 
 QT_END_NAMESPACE

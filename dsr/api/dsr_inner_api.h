@@ -2,17 +2,17 @@
 #define INNER_API
 
 #include <qmat/QMatAll>
-#include "../core/topics/DSRGraphPubSubTypes.h"
+#include "../core/topics/IDLGraphPubSubTypes.h"
 
-namespace CRDT {
-    class CRDTGraph;
+namespace DSR {
+    class DSRGraph;
 
     class VEdge;
 
     class InnerAPI {
         using Lists = std::tuple<std::list<RMat::RTMat>, std::list<RMat::RTMat> >;
     public:
-        InnerAPI(CRDTGraph *G_);
+        InnerAPI(DSRGraph *G_);
 
         /////////////////////////////////////////////////
         /// Kinematic transformation methods
@@ -64,7 +64,7 @@ namespace CRDT {
         void updateRotationValues(QString transformId, float rx, float ry, float rz, QString parentId = "");
 
     private:
-        CRDT::CRDTGraph *G;
+        DSR::DSRGraph *G;
 
         std::optional<InnerAPI::Lists> setLists(const std::string &origId, const std::string &destId);
 

@@ -11,14 +11,14 @@
 #include <fastrtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/Domain.h>
 
-using namespace CRDT;
+using namespace DSR;
 
 
 /////////////////////////////////////////////////
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) {
+DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) {
     dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);
@@ -41,10 +41,10 @@ CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_f
     // RTPS Initialize comms threads
     if (dsr_input_file != std::string()) {
         try {
-            utils->read_from_json_file(dsr_input_file);
+            utils->read_from_json_file(dsr_input_file, insert_node_read_file);
             qDebug() << __FUNCTION__ << "Warning, graph read from file " << QString::fromStdString(dsr_input_file);
         }
-        catch (const CRDT::DSRException &e) {
+        catch (const DSR::DSRException &e) {
             std::cout << e.what() << '\n';
             qFatal("Aborting program. Cannot continue without intial file");
         }
@@ -56,14 +56,14 @@ CRDTGraph::CRDTGraph(int root, std::string name, int id, std::string dsr_input_f
         if (res == false) {
             eprosima::fastrtps::Domain::removeParticipant(
                     participant_handle); // Remove a Participant and all associated publishers and subscribers.
-            qFatal("CRDTGraph aborting: could not get DSR from the network after timeout");  //JC ¿se pueden limpiar aquí cosas antes de salir?
+            qFatal("DSRGraph aborting: could not get DSR from the network after timeout");  //JC ¿se pueden limpiar aquí cosas antes de salir?
 
         }
     }
     qDebug() << __FUNCTION__ << "Constructor finished OK";
 }
 
-CRDTGraph::~CRDTGraph() {
+DSRGraph::~DSRGraph() {
     qDebug() << "Removing rtps participant";
     eprosima::fastrtps::Domain::removeParticipant(
             dsrparticipant.getParticipant()); // Remove a Participant and all associated publishers and subscribers.
@@ -78,7 +78,7 @@ CRDTGraph::~CRDTGraph() {
 /// NODE METHODS
 /////////////////////////////////////
 
-std::optional<CRDT::Node> CRDTGraph::get_node(const std::string &name) {
+std::optional<DSR::Node> DSRGraph::get_node(const std::string &name) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     if (name.empty()) return {};
     int id = get_id_from_name(name).value_or(-1);
@@ -87,7 +87,7 @@ std::optional<CRDT::Node> CRDTGraph::get_node(const std::string &name) {
     return {};
 }
 
-std::optional<CRDT::Node> CRDTGraph::get_node(int id) {
+std::optional<DSR::Node> DSRGraph::get_node(int id) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<CRDTNode> n = get_(id);
     if (n.has_value()) return Node(n.value());
@@ -95,7 +95,7 @@ std::optional<CRDT::Node> CRDTGraph::get_node(int id) {
 }
 
 
-std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const CRDTNode &node) {
+std::tuple<bool, std::optional<IDL::Mvreg>> DSRGraph::insert_node_(const CRDTNode &node) {
     if (deleted.find(node.id()) == deleted.end()) {
         if (!nodes[node.id()].read().empty() and *nodes[node.id()].read().begin() == node) {
             return {true, {}};
@@ -110,7 +110,7 @@ std::tuple<bool, std::optional<IDL::Mvreg>> CRDTGraph::insert_node_(const CRDTNo
 }
 
 
-std::optional<uint32_t> CRDTGraph::insert_node(Node &node) {
+std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
     if (node.id() == -1u) return {};
     std::optional<IDL::Mvreg> aw;
 
@@ -151,7 +151,7 @@ std::optional<uint32_t> CRDTGraph::insert_node(Node &node) {
 }
 
 
-std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::update_node_(const CRDTNode &node) {
+std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> DSRGraph::update_node_(const CRDTNode &node) {
 
     if (deleted.find(node.id()) == deleted.end()) {
         if (!nodes[node.id()].read().empty()) {
@@ -192,7 +192,7 @@ std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> CRDTGraph::upda
 }
 
 
-bool CRDTGraph::update_node(Node &node) {
+bool DSRGraph::update_node(Node &node) {
     if (node.id() == -1u) return false;
     bool r = false;
     std::optional<std::vector<IDL::MvregNodeAttr>> vec_node_attr;
@@ -221,7 +221,7 @@ bool CRDTGraph::update_node(Node &node) {
 
 
 std::tuple<bool, vector<tuple<uint32_t, uint32_t, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>>
-CRDTGraph::delete_node_(uint32_t id) {
+DSRGraph::delete_node_(uint32_t id) {
 
     vector<tuple<uint32_t, uint32_t, std::string>> edges_;
     vector<IDL::MvregEdge> aw;
@@ -262,7 +262,7 @@ CRDTGraph::delete_node_(uint32_t id) {
 
 }
 
-bool CRDTGraph::delete_node(const std::string &name) {
+bool DSRGraph::delete_node(const std::string &name) {
 
     bool result = false;
     vector<tuple<uint32_t, uint32_t, std::string>> edges_;
@@ -296,7 +296,7 @@ bool CRDTGraph::delete_node(const std::string &name) {
 
 }
 
-bool CRDTGraph::delete_node(uint32_t id) {
+bool DSRGraph::delete_node(uint32_t id) {
 
     bool result;
     vector<tuple<uint32_t, uint32_t, std::string>> edges_;
@@ -326,7 +326,7 @@ bool CRDTGraph::delete_node(uint32_t id) {
 }
 
 
-std::vector<CRDT::Node> CRDTGraph::get_nodes_by_type(const std::string &type) {
+std::vector<DSR::Node> DSRGraph::get_nodes_by_type(const std::string &type) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::vector<Node> nodes_;
     if (nodeType.find(type) != nodeType.end()) {
@@ -342,7 +342,7 @@ std::vector<CRDT::Node> CRDTGraph::get_nodes_by_type(const std::string &type) {
 //////////////////////////////////////////////////////////////////////////////////
 // EDGE METHODS
 //////////////////////////////////////////////////////////////////////////////////
-std::optional<CRDTEdge> CRDTGraph::get_edge_(uint32_t from, uint32_t to, const std::string &key) {
+std::optional<CRDTEdge> DSRGraph::get_edge_(uint32_t from, uint32_t to, const std::string &key) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     if (in(from) && in(to)) {
         auto n = get_(from);
@@ -361,7 +361,7 @@ std::optional<CRDTEdge> CRDTGraph::get_edge_(uint32_t from, uint32_t to, const s
     return {};
 }
 
-std::optional<CRDT::Edge> CRDTGraph::get_edge(const std::string &from, const std::string &to, const std::string &key) {
+std::optional<DSR::Edge> DSRGraph::get_edge(const std::string &from, const std::string &to, const std::string &key) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<uint32_t> id_from = get_id_from_name(from);
     std::optional<uint32_t> id_to = get_id_from_name(to);
@@ -372,7 +372,7 @@ std::optional<CRDT::Edge> CRDTGraph::get_edge(const std::string &from, const std
     return {};
 }
 
-std::optional<CRDT::Edge> CRDTGraph::get_edge(uint32_t from, uint32_t to, const std::string &key) {
+std::optional<DSR::Edge> DSRGraph::get_edge(uint32_t from, uint32_t to, const std::string &key) {
     auto edge_opt = get_edge_(from, to, key);
     if (edge_opt.has_value()) return Edge(edge_opt.value());
     return {};
@@ -380,7 +380,7 @@ std::optional<CRDT::Edge> CRDTGraph::get_edge(uint32_t from, uint32_t to, const 
 
 
 std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>>
-CRDTGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to) {
+DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to) {
 
     std::optional<IDL::MvregEdge> delta_edge;
     std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
@@ -422,7 +422,7 @@ CRDTGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t
 }
 
 
-bool CRDTGraph::insert_or_assign_edge(const Edge &attrs) {
+bool DSRGraph::insert_or_assign_edge(const Edge &attrs) {
     bool r = false;
     std::optional<IDL::MvregEdge> delta_edge;
     std::optional<std::vector<IDL::MvregEdgeAttr>> delta_attrs;
@@ -455,7 +455,7 @@ bool CRDTGraph::insert_or_assign_edge(const Edge &attrs) {
 }
 
 
-void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float> &&trans, std::vector<float> &&rot_euler) {
+void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float> &&trans, std::vector<float> &&rot_euler) {
 
     bool r1 = false;
     bool r2 = false;
@@ -491,10 +491,10 @@ void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float
             e.attrs()["translation"].write(tr);
 
             to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
-            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
-            bool res2 = modify_attrib(to_n.value(), "level", get_node_level(n).value() + 1);
-            if (!res2) (void) add_attrib(to_n.value(), "level", get_node_level(n).value() + 1);
+            bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
+            if (!res2) (void) add_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
 
             //Check if RT edge exist.
             if (n.fano().find({to, "RT"}) == n.fano().end()) {
@@ -545,8 +545,8 @@ void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float
 
 }
 
-void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans,
-                                         const std::vector<float> &rot_euler) {
+void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans,
+                                        const std::vector<float> &rot_euler) {
 
     bool r1 = false;
     bool r2 = false;
@@ -583,10 +583,10 @@ void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector
 
 
             to_n = get_(to).value();
-            bool res1 = modify_attrib(to_n.value(), "parent", n.id());
-            if (!res1) (void) add_attrib(to_n.value(), "parent", n.id());
-            bool res2 = modify_attrib(to_n.value(), "level", get_node_level(n).value() + 1);
-            if (!res2) (void) add_attrib(to_n.value(), "level", get_node_level(n).value() + 1);
+            bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
+            if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+            bool res2 = modify_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
+            if (!res2) (void) add_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
 
             //Check if RT edge exist.
             if (n.fano().find({to, "RT"}) == n.fano().end()) {
@@ -637,7 +637,7 @@ void CRDTGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector
 }
 
 
-std::optional<IDL::MvregEdge> CRDTGraph::delete_edge_(uint32_t from, uint32_t to, const std::string &key) {
+std::optional<IDL::MvregEdge> DSRGraph::delete_edge_(uint32_t from, uint32_t to, const std::string &key) {
     if (!nodes[from].read().empty()) {
         auto &node = nodes[from].read_reg();
         if (node.fano().find({to, key}) != node.fano().end()) {
@@ -651,7 +651,7 @@ std::optional<IDL::MvregEdge> CRDTGraph::delete_edge_(uint32_t from, uint32_t to
     return {};
 }
 
-bool CRDTGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) {
+bool DSRGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) {
 
     std::optional<IDL::MvregEdge> delta;
     {
@@ -668,7 +668,7 @@ bool CRDTGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) 
 
 }
 
-bool CRDTGraph::delete_edge(const std::string &from, const std::string &to, const std::string &key) {
+bool DSRGraph::delete_edge(const std::string &from, const std::string &to, const std::string &key) {
 
     std::optional<int> id_from = {};
     std::optional<int> id_to = {};
@@ -692,7 +692,7 @@ bool CRDTGraph::delete_edge(const std::string &from, const std::string &to, cons
 }
 
 
-std::vector<CRDT::Edge> CRDTGraph::get_edges_by_type(const Node &node, const std::string &type) {
+std::vector<DSR::Edge> DSRGraph::get_node_edges_by_type(const Node &node, const std::string &type) {
     std::vector<Edge> edges_;
     for (auto &[key, edge] : node.fano())
         if (key.second == type)
@@ -700,7 +700,7 @@ std::vector<CRDT::Edge> CRDTGraph::get_edges_by_type(const Node &node, const std
     return edges_;
 }
 
-std::vector<CRDT::Edge> CRDTGraph::get_edges_by_type(const std::string &type) {
+std::vector<DSR::Edge> DSRGraph::get_edges_by_type(const std::string &type) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::vector<Edge> edges_;
     if (edgeType.find(type) != edgeType.end()) {
@@ -713,7 +713,7 @@ std::vector<CRDT::Edge> CRDTGraph::get_edges_by_type(const std::string &type) {
     return edges_;
 }
 
-std::vector<CRDT::Edge> CRDTGraph::get_edges_to_id(uint32_t id) {
+std::vector<DSR::Edge> DSRGraph::get_edges_to_id(uint32_t id) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::vector<Edge> edges_;
     for (const auto &[key, types] : edges) {
@@ -729,7 +729,7 @@ std::vector<CRDT::Edge> CRDTGraph::get_edges_to_id(uint32_t id) {
     return edges_;
 }
 
-std::optional<std::unordered_map<std::pair<uint32_t, std::string>, CRDT::Edge, pair_hash>> CRDTGraph::get_edges(uint32_t id) {
+std::optional<std::unordered_map<std::pair<uint32_t, std::string>, DSR::Edge, pair_hash>> DSRGraph::get_edges(uint32_t id) {
     std::unordered_map<std::pair<uint32_t, std::string>, CRDTEdge, pair_hash> pa;
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<Node> n = get_node(id);
@@ -740,7 +740,7 @@ std::optional<std::unordered_map<std::pair<uint32_t, std::string>, CRDT::Edge, p
 
 };
 
-CRDT::Edge CRDTGraph::get_edge_RT(const Node &n, uint32_t to) {
+DSR::Edge DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
     auto edges = n.fano();
     auto res = edges.find({to, "RT"});
     if (res != edges.end())
@@ -751,7 +751,7 @@ CRDT::Edge CRDTGraph::get_edge_RT(const Node &n, uint32_t to) {
                                  std::to_string(__LINE__));
 }
 
-RTMat CRDTGraph::get_edge_RT_as_RTMat(const Edge &edge) {
+RTMat DSRGraph::get_edge_RT_as_RTMat(const Edge &edge) {
     auto r = get_attrib_by_name<std::vector<float>>(edge, "rotation_euler_xyz");
     auto t = get_attrib_by_name<std::vector<float>>(edge, "translation");
     if (r.has_value() and t.has_value())
@@ -763,7 +763,7 @@ RTMat CRDTGraph::get_edge_RT_as_RTMat(const Edge &edge) {
 
 }
 
-RTMat CRDTGraph::get_edge_RT_as_RTMat(Edge &&edge) {
+RTMat DSRGraph::get_edge_RT_as_RTMat(Edge &&edge) {
     auto r = get_attrib_by_name<std::vector<float>>(edge, "rotation_euler_xyz");
     auto t = get_attrib_by_name<std::vector<float>>(edge, "translation");
     if (r.has_value() and t.has_value())
@@ -779,7 +779,7 @@ RTMat CRDTGraph::get_edge_RT_as_RTMat(Edge &&edge) {
 ///// Utils
 /////////////////////////////////////////////////
 
-std::map<uint32_t, CRDT::Node> CRDTGraph::getCopy() const {
+std::map<uint32_t, DSR::Node> DSRGraph::getCopy() const {
     std::map<uint32_t, Node> mymap;
     std::shared_lock<std::shared_mutex> lock(_mutex);
     for (auto &[key, val] : nodes.getMap())
@@ -788,7 +788,7 @@ std::map<uint32_t, CRDT::Node> CRDTGraph::getCopy() const {
     return mymap;
 }
 
-std::vector<uint32_t> CRDTGraph::getKeys() const {
+std::vector<uint32_t> DSRGraph::getKeys() const {
     std::vector<uint32_t> keys;
     std::shared_lock<std::shared_mutex> lock(_mutex);
 
@@ -803,12 +803,12 @@ std::vector<uint32_t> CRDTGraph::getKeys() const {
 /////  CORE
 //////////////////////////////////////////////////////////////////////////////
 
-std::optional<CRDTNode> CRDTGraph::get(uint32_t id) {
+std::optional<CRDTNode> DSRGraph::get(uint32_t id) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     return get_(id);
 }
 
-std::optional<CRDTNode> CRDTGraph::get_(uint32_t id) {
+std::optional<CRDTNode> DSRGraph::get_(uint32_t id) {
 
     if (in(id)) {
         if (!nodes[id].read().empty()) {
@@ -818,15 +818,15 @@ std::optional<CRDTNode> CRDTGraph::get_(uint32_t id) {
     return {};
 }
 
-std::optional<std::int32_t> CRDTGraph::get_node_level(Node &n) {
+std::optional<std::int32_t> DSRGraph::get_node_level(Node &n) {
     return get_attrib_by_name<std::int32_t>(n, "level");
 }
 
-std::optional<std::uint32_t> CRDTGraph::get_parent_id(const Node &n) {
+std::optional<std::uint32_t> DSRGraph::get_parent_id(const Node &n) {
     return get_attrib_by_name<std::int32_t>(n, "parent");
 }
 
-std::optional<CRDT::Node> CRDTGraph::get_parent_node(const Node &n) {
+std::optional<DSR::Node> DSRGraph::get_parent_node(const Node &n) {
     auto p = get_attrib_by_name<std::int32_t>(n, "parent");
     if (p.has_value()) {
         std::shared_lock<std::shared_mutex> lock(_mutex);
@@ -836,11 +836,11 @@ std::optional<CRDT::Node> CRDTGraph::get_parent_node(const Node &n) {
 }
 
 
-std::string CRDTGraph::get_node_type(Node &n) {
+std::string DSRGraph::get_node_type(Node &n) {
     return n.type();
 }
 
-inline void CRDTGraph::update_maps_node_delete(uint32_t id, const CRDTNode &n) {
+inline void DSRGraph::update_maps_node_delete(uint32_t id, const CRDTNode &n) {
     nodes.erase(id);
     name_map.erase(id_map[id]);
     id_map.erase(id);
@@ -856,7 +856,7 @@ inline void CRDTGraph::update_maps_node_delete(uint32_t id, const CRDTNode &n) {
     }
 }
 
-inline void CRDTGraph::update_maps_node_insert(uint32_t id, const CRDTNode &n) {
+inline void DSRGraph::update_maps_node_insert(uint32_t id, const CRDTNode &n) {
     name_map[n.name()] = id;
     id_map[id] = n.name();
     nodeType[n.type()].emplace(id);
@@ -868,47 +868,47 @@ inline void CRDTGraph::update_maps_node_insert(uint32_t id, const CRDTNode &n) {
 }
 
 
-inline void CRDTGraph::update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key) {
+inline void DSRGraph::update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key) {
     edges[{from, to}].erase(key);
     if (edges[{from, to}].empty()) edges.erase({from, to});
     edgeType[key].erase({from, to});
 }
 
-inline void CRDTGraph::update_maps_edge_insert(uint32_t from, uint32_t to, const std::string &key) {
+inline void DSRGraph::update_maps_edge_insert(uint32_t from, uint32_t to, const std::string &key) {
     edges[{from, to}].insert(key);
     edgeType[key].insert({from, to});
 }
 
 
-inline std::optional<uint32_t> CRDTGraph::get_id_from_name(const std::string &name) {
+inline std::optional<uint32_t> DSRGraph::get_id_from_name(const std::string &name) {
     auto v = name_map.find(name);
     if (v != name_map.end()) return v->second;
     return {};
 }
 
-std::optional<std::string> CRDTGraph::get_name_from_id(uint32_t id) {
+std::optional<std::string> DSRGraph::get_name_from_id(uint32_t id) {
     auto v = id_map.find(id);
     if (v != id_map.end()) return v->second;
     return {};
 }
 
-size_t CRDTGraph::size() {
+size_t DSRGraph::size() {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     return nodes.getMapRef().size();
 };
 
-bool CRDTGraph::in(uint32_t id) const {
+bool DSRGraph::in(uint32_t id) const {
     return nodes.in(id);
 }
 
-bool CRDTGraph::empty(const uint32_t &id) {
+bool DSRGraph::empty(const uint32_t &id) {
     if (nodes.in(id)) {
         return nodes[id].read().empty();
     } else
         return false;
 }
 
-void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg) {
+void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
     try {
 
         bool signal = false, ok = false;
@@ -973,7 +973,7 @@ void CRDTGraph::join_delta_node(IDL::Mvreg &mvreg) {
 }
 
 
-void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
+void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
     try {
         bool signal = false, ok = false;
         auto d = translateEdgeMvIDLtoCRDT(mvreg);
@@ -1050,7 +1050,7 @@ void CRDTGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
 }
 
 
-void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
+void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
     try {
         bool ok = false;
@@ -1107,7 +1107,7 @@ void CRDTGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 }
 
 
-void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
+void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
     try {
         bool  ok = false;
         auto d = translateEdgeAttrMvIDLtoCRDT(mvreg);
@@ -1161,7 +1161,7 @@ void CRDTGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
 
 }
 
-void CRDTGraph::join_full_graph(IDL::OrMap &full_graph) {
+void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
 
     vector<tuple<bool, int, std::string, CRDTNode>> updates;
     {
@@ -1236,27 +1236,27 @@ void CRDTGraph::join_full_graph(IDL::OrMap &full_graph) {
 
 }
 
-bool CRDTGraph::start_fullgraph_request_thread() {
+bool DSRGraph::start_fullgraph_request_thread() {
     return fullgraph_request_thread();
 }
 
-void CRDTGraph::start_fullgraph_server_thread() {
-    fullgraph_thread = std::thread(&CRDTGraph::fullgraph_server_thread, this);
+void DSRGraph::start_fullgraph_server_thread() {
+    fullgraph_thread = std::thread(&DSRGraph::fullgraph_server_thread, this);
 }
 
-void CRDTGraph::start_subscription_threads(bool showReceived) {
-    delta_node_thread = std::thread(&CRDTGraph::node_subscription_thread, this, showReceived);
-    delta_edge_thread = std::thread(&CRDTGraph::edge_subscription_thread, this, showReceived);
-    delta_node_attrs_thread = std::thread(&CRDTGraph::node_attrs_subscription_thread, this, showReceived);
-    delta_edge_attrs_thread = std::thread(&CRDTGraph::edge_attrs_subscription_thread, this, showReceived);
+void DSRGraph::start_subscription_threads(bool showReceived) {
+    delta_node_thread = std::thread(&DSRGraph::node_subscription_thread, this, showReceived);
+    delta_edge_thread = std::thread(&DSRGraph::edge_subscription_thread, this, showReceived);
+    delta_node_attrs_thread = std::thread(&DSRGraph::node_attrs_subscription_thread, this, showReceived);
+    delta_edge_attrs_thread = std::thread(&DSRGraph::edge_attrs_subscription_thread, this, showReceived);
 
 }
 
-uint32_t CRDTGraph::id() {
+uint32_t DSRGraph::id() {
     return nodes.getId();
 }
 
-IDL::DotContext CRDTGraph::context() {
+IDL::DotContext DSRGraph::context() {
     IDL::DotContext om_dotcontext;
     for (auto &kv_cc : nodes.context().getCcDc().first) {
         om_dotcontext.cc().emplace(make_pair(kv_cc.first, kv_cc.second));
@@ -1270,7 +1270,7 @@ IDL::DotContext CRDTGraph::context() {
     return om_dotcontext;
 }
 
-std::map<uint32_t, IDL::Mvreg> CRDTGraph::Map() {
+std::map<uint32_t, IDL::Mvreg> DSRGraph::Map() {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::map<uint32_t, IDL::Mvreg> m;
     for (auto kv : nodes.getMapRef()) {
@@ -1279,11 +1279,11 @@ std::map<uint32_t, IDL::Mvreg> CRDTGraph::Map() {
     return m;
 }
 
-void CRDTGraph::node_subscription_thread(bool showReceived) {
+void DSRGraph::node_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
     auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
-                                                 CRDT::CRDTGraph *graph) {
+                                                 DSR::DSRGraph *graph) {
         if (*work) {
             try {
                 eprosima::fastrtps::SampleInfo_t m_info;
@@ -1307,11 +1307,11 @@ void CRDTGraph::node_subscription_thread(bool showReceived) {
     dsrsub_node.init(dsrparticipant.getParticipant(), "DSR", dsrparticipant.getNodeTopicName(), dsrpub_call_node);
 }
 
-void CRDTGraph::edge_subscription_thread(bool showReceived) {
+void DSRGraph::edge_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
     auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
-                                                 CRDT::CRDTGraph *graph) {
+                                                 DSR::DSRGraph *graph) {
         if (*work) {
             try {
                 eprosima::fastrtps::SampleInfo_t m_info;
@@ -1335,11 +1335,11 @@ void CRDTGraph::edge_subscription_thread(bool showReceived) {
     dsrsub_edge.init(dsrparticipant.getParticipant(), "DSR_EDGE", dsrparticipant.getEdgeTopicName(), dsrpub_call_edge);
 }
 
-void CRDTGraph::edge_attrs_subscription_thread(bool showReceived) {
+void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
     auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
-                                                 CRDT::CRDTGraph *graph) {
+                                                 DSR::DSRGraph *graph) {
         if (*work) {
             try {
                 eprosima::fastrtps::SampleInfo_t m_info;
@@ -1364,11 +1364,11 @@ void CRDTGraph::edge_attrs_subscription_thread(bool showReceived) {
                            dsrpub_call_edge_attrs);
 }
 
-void CRDTGraph::node_attrs_subscription_thread(bool showReceived) {
+void DSRGraph::node_attrs_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
     auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
-                                                 CRDT::CRDTGraph *graph) {
+                                                 DSR::DSRGraph *graph) {
         if (*work) {
             try {
                 eprosima::fastrtps::SampleInfo_t m_info;
@@ -1393,10 +1393,10 @@ void CRDTGraph::node_attrs_subscription_thread(bool showReceived) {
                            dsrpub_call_node_attrs);
 }
 
-void CRDTGraph::fullgraph_server_thread() {
+void DSRGraph::fullgraph_server_thread() {
     std::cout << __FUNCTION__ << "->Entering thread to attend full graph requests" << std::endl;
     // Request Topic
-    auto lambda_graph_request = [&](eprosima::fastrtps::Subscriber *sub, bool *work, CRDT::CRDTGraph *graph) {
+    auto lambda_graph_request = [&](eprosima::fastrtps::Subscriber *sub, bool *work, DSR::DSRGraph *graph) {
 
         eprosima::fastrtps::SampleInfo_t m_info;
         IDL::GraphRequest sample;
@@ -1428,10 +1428,10 @@ void CRDTGraph::fullgraph_server_thread() {
                               dsrparticipant.getRequestTopicName(), dsrpub_graph_request_call);
 };
 
-bool CRDTGraph::fullgraph_request_thread() {
+bool DSRGraph::fullgraph_request_thread() {
     bool sync = false;
     // Answer Topic
-    auto lambda_request_answer = [&sync](eprosima::fastrtps::Subscriber *sub, bool *work, CRDT::CRDTGraph *graph) {
+    auto lambda_request_answer = [&sync](eprosima::fastrtps::Subscriber *sub, bool *work, DSR::DSRGraph *graph) {
 
         eprosima::fastrtps::SampleInfo_t m_info;
         IDL::OrMap sample;

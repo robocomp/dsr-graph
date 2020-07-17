@@ -9,8 +9,8 @@ SET ( SOURCES
   ../../../dsr/core/rtps/dsrpublisher.cpp
   ../../../dsr/core/rtps/dsrsubscriber.cpp
   ../../../dsr/core/rtps/dsrparticipant.cpp
-  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
-  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/core/topics/IDLGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/IDLGraph.cxx
   ../../../dsr/api/dsr_inner_api.cpp
   ../../../dsr/api/dsr_utils.cpp
   ../../../dsr/gui/dsr_gui.cpp

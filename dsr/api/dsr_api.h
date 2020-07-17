@@ -29,12 +29,13 @@
 #include "../core/rtps/dsrparticipant.h"
 #include "../core/rtps/dsrpublisher.h"
 #include "../core/rtps/dsrsubscriber.h"
-#include "../core/topics/DSRGraphPubSubTypes.h"
+#include "../core/topics/IDLGraphPubSubTypes.h"
 #include "../core/types/crdt_types.h"
 #include "../core/types/user_types.h"
 #include "../core/types/translator.h"
 #include "dsr_inner_api.h"
 #include "dsr_utils.h"
+#include "../../components/idserver/cmake-build-debug/src/DSRGetID.h"
 
 #define NO_PARENT -1
 #define TIMEOUT 5000
@@ -43,7 +44,7 @@
 //template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 //template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
-namespace CRDT {
+namespace DSR {
 
     //using N = CRDTNode;
     using Nodes = ormap<uint32_t , mvreg<CRDTNode, uint32_t>, uint32_t>;
@@ -82,18 +83,18 @@ namespace CRDT {
                                           std::is_same<std::float_t, Va>::value ||
                                           std::is_same<std::double_t, Va>::value ||
                                           std::is_same<std::vector<float_t>, Va>::value ||
-                                          std::is_same<std::vector<byte>, Va>::value ||
+                                          std::is_same<std::vector<uint8_t>, Va>::value ||
                                           std::is_same<bool, Va>::value;
     template<typename Va>
-    static bool constexpr any_node_or_edge = std::is_same<CRDT::CRDTNode, Va>::value ||
-                                         std::is_same<CRDT::CRDTEdge, Va>::value ||
-                                         std::is_same<CRDT::Node, Va>::value ||
-                                         std::is_same<CRDT::Edge, Va>::value
+    static bool constexpr any_node_or_edge = std::is_same<DSR::CRDTNode, Va>::value ||
+                                         std::is_same<DSR::CRDTEdge, Va>::value ||
+                                         std::is_same<DSR::Node, Va>::value ||
+                                         std::is_same<DSR::Edge, Va>::value
                                          ;
 
     template<typename Va>
-    static bool constexpr node_or_edge = std::is_same<CRDT::Node, Va>::value ||
-                                         std::is_same<CRDT::Edge, Va>::value
+    static bool constexpr node_or_edge = std::is_same<DSR::Node, Va>::value ||
+                                         std::is_same<DSR::Edge, Va>::value
     ;
 
     template<typename Va>
@@ -101,7 +102,7 @@ namespace CRDT {
                                                  std::is_same<std::string, Va>::value ||
                                                  std::is_same<std::float_t, Va>::value ||
                                                  std::is_same<std::vector<float_t>, Va>::value ||
-                                                 std::is_same<std::vector<byte>, Va>::value ||
+                                                 std::is_same<std::vector<uint8_t>, Va>::value ||
                                                  std::is_same<bool, Va>::value ||
                                                  std::is_same<QVec, Va>::value ||
                                                  std::is_same<QMat, Va>::value;
@@ -110,14 +111,33 @@ namespace CRDT {
     /// CRDT API
     /////////////////////////////////////////////////////////////////
 
-    class CRDTGraph : public QObject {
+    class DSRGraph : public QObject {
     Q_OBJECT
+    private:
+        std::function<std::optional<int>(const Node&)> insert_node_read_file = [&] (const Node& node) -> std::optional<int> {
+            if (node.id() == -1) return {};
+            bool r = false;
+            {
+                std::unique_lock<std::shared_mutex> lock(_mutex);
+                if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name())  == name_map.end()) {
+                    std::tie(r, std::ignore) = insert_node_(user_node_to_crdt(node));
+                } else throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
+                                                 + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+            }
+            if (r) {
+                return node.id();
+            }
+            return {};
+        };
+
+
+    public:
     public:
         size_t size();
 
-        CRDTGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_ = nullptr);
+        DSRGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_ = nullptr);
 
-        ~CRDTGraph();
+        ~DSRGraph();
 
 
         //////////////////////////////////////////////////////
@@ -127,7 +147,7 @@ namespace CRDT {
         // Utils
         bool empty(const uint32_t &id);
 
-        template<typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        template<typename Ta, typename = std::enable_if_t<allowed_types<std::remove_cv_t<std::remove_reference_t<Ta>>>>>
         std::tuple<std::string, std::string, int> nativetype_to_string(const Ta &t) {
             if constexpr (std::is_same<Ta, std::string>::value) {
                 return make_tuple("string", t, 1);
@@ -136,7 +156,7 @@ namespace CRDT {
                 for (auto &f : t)
                     str += std::to_string(f) + " ";
                 return make_tuple("vector<float>", str += "\n", t.size());
-            } else if constexpr (std::is_same<Ta, std::vector<byte>>::value) {
+            } else if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
                 std::string str;
                 for (auto &f : t)
                     str += std::to_string(f) + " ";
@@ -165,7 +185,7 @@ namespace CRDT {
 
         void write_to_json_file(const std::string &file) const { utils->write_to_json_file(file); };
 
-        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file); };
+        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file, insert_node_read_file); };
 
         // not working yet
         //typename std::map<int, mvreg<CRDTNode, int>>::const_iterator begin() const { return nodes.getMap().begin(); };
@@ -176,7 +196,7 @@ namespace CRDT {
         std::unique_ptr<InnerAPI> get_inner_api() { return std::make_unique<InnerAPI>(this); };
 
         // Nodes
-        std::optional<Node> get_node_root() { return get_node(100); };  //CHANGE THIS
+        std::optional<Node> get_node_root() { return get_node("world"); };  //CHANGE THIS
         std::optional<Node> get_node(const std::string &name);
 
         std::optional<Node> get_node(int id);
@@ -202,7 +222,7 @@ namespace CRDT {
         std::string get_node_type(Node &n);
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        void add_or_modify(Type &elem, const std::string &att_name, const Ta &att_value) {
+        void add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
 
             if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
                 Attribute at(att_value, get_unix_timestamp(), agent_id);
@@ -239,14 +259,14 @@ namespace CRDT {
         }
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        bool add_attrib(Type &elem, const std::string &att_name, const Ta &att_value) {
+        bool add_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
             if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
-            add_or_modify(elem, att_name, att_value);
+            add_or_modify_attrib_local(elem, att_name, att_value);
             return true;
         };
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool add_attrib(Type &elem, const std::string &att_name, Attribute &attr) {
+        bool add_attrib_local(Type &elem, const std::string &att_name, Attribute &attr) {
             if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[att_name] = attr;
@@ -255,15 +275,15 @@ namespace CRDT {
 
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        bool modify_attrib(Type &elem, const std::string &att_name, const Ta &att_value) {
+        bool modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
             if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
-            add_or_modify(elem, att_name, att_value);
+            add_or_modify_attrib_local(elem, att_name, att_value);
             return true;
         };
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool modify_attrib(Type &elem, const std::string &att_name, CRDTAttribute &attr) {
+        bool modify_attrib_local(Type &elem, const std::string &att_name, CRDTAttribute &attr) {
             if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             attr.timestamp(get_unix_timestamp());
@@ -273,7 +293,7 @@ namespace CRDT {
 
 
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool remove_attrib(Type &elem, const std::string &att_name) {
+        bool remove_attrib_local(Type &elem, const std::string &att_name) {
             if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
             elem.attrs().erase(att_name);
             return true;
@@ -303,7 +323,7 @@ namespace CRDT {
 
         std::vector<Edge> get_edges_by_type(const std::string &type);
 
-        std::vector<Edge> get_edges_by_type(const Node &node, const std::string &type);
+        std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
 
         std::vector<Edge> get_edges_to_id(uint32_t id);
 
@@ -335,7 +355,7 @@ namespace CRDT {
             if constexpr (std::is_same<Ta, bool>::value) {
                 return av->val().bl();
             }
-            if constexpr (std::is_same<Ta, std::vector<byte>>::value) {
+            if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
                 return av->val().byte_vec();
             }
             if constexpr (std::is_same<Ta, QVec>::value) {
@@ -359,7 +379,7 @@ namespace CRDT {
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         void insert_or_assign_attrib_by_name(Ta &elem, const std::string &att_name, const Va &att_value) {
 
-            add_or_modify(elem, att_name, att_value);
+            add_or_modify_attrib_local(elem, att_name, att_value);
 
             // insert in node
             if constexpr (std::is_same<Node, Ta>::value) {
@@ -391,7 +411,7 @@ namespace CRDT {
             //if (elem.attrs().find(new_name) != elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
 
-            bool res = add_attrib(elem, att_name, new_val);
+            bool res = add_attrib_local(elem, att_name, new_val);
             if (!res) return false;
             // insert in node 
             if constexpr (std::is_same<Node, Type>::value) {
@@ -423,7 +443,7 @@ namespace CRDT {
             //if (elem.attrs().find(new_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
 
-            bool res = modify_attrib(elem, att_name, new_val);
+            bool res = modify_attrib_local(elem, att_name, new_val);
             if (!res) return false;
             // insert in node
             if constexpr (std::is_same<Node, Type>::value) {
@@ -596,13 +616,13 @@ namespace CRDT {
 
         class NewMessageFunctor {
         public:
-            CRDTGraph *graph{};
+            DSRGraph *graph{};
             bool *work{};
-            std::function<void(eprosima::fastrtps::Subscriber *sub, bool *work, CRDT::CRDTGraph *graph)> f;
+            std::function<void(eprosima::fastrtps::Subscriber *sub, bool *work, DSR::DSRGraph *graph)> f;
 
-            NewMessageFunctor(CRDTGraph *graph_, bool *work_,
+            NewMessageFunctor(DSRGraph *graph_, bool *work_,
                               std::function<void(eprosima::fastrtps::Subscriber *sub, bool *work,
-                                                 CRDT::CRDTGraph *graph)> f_)
+                                                 DSR::DSRGraph *graph)> f_)
                     : graph(graph_), work(work_), f(std::move(f_)) {}
 
             NewMessageFunctor() = default;
@@ -667,7 +687,7 @@ namespace CRDT {
         void update_node_signal(std::uint32_t, const std::string &type); // REMOVE type
 
         void update_attrs_signal(std::uint32_t id,
-                                 const std::map<string, Attribute> &attribs); //Signal to show node attribs.
+                                 const std::unordered_map<string, Attribute> &attribs); //Signal to show node attribs.
         void update_edge_signal(std::uint32_t from, uint32_t to,
                                 const std::string &type);                   // Signal to show edge attribs.
 

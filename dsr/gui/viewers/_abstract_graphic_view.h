@@ -12,33 +12,31 @@
 #include <QResizeEvent>
 #include <QGLWidget>
 #include <QScrollBar>
+#include <QApplication>
 
 
-namespace DSR {
-    class AbstractGraphicViewer : public QGraphicsView {
-        Q_OBJECT
-    private:
-        qreal m_scaleX, m_scaleY;
+namespace DSR
+{
+	class AbstractGraphicViewer : public QGraphicsView
+	{
+		Q_OBJECT
+		private:
+			qreal m_scaleX, m_scaleY;
 
-    public:
-        AbstractGraphicViewer(QWidget *parent = 0);
+		public:
+			AbstractGraphicViewer(QWidget* parent = 0);
+			QGraphicsScene scene;
 
-        QGraphicsScene scene;
-
-    protected:
-        bool _pan = false;
-        int _panStartX, _panStartY;
-
-        virtual void wheelEvent(QWheelEvent *event);
-
-        virtual void resizeEvent(QResizeEvent *e);
-
-        virtual void mouseMoveEvent(QMouseEvent *event);
-
-        virtual void mousePressEvent(QMouseEvent *event);
-
-        virtual void mouseReleaseEvent(QMouseEvent *event);
-    };
+		protected:
+			bool _pan = false;
+			int _panStartX, _panStartY;
+			virtual void wheelEvent(QWheelEvent* event);
+			virtual void resizeEvent(QResizeEvent* e);
+			virtual void mouseMoveEvent(QMouseEvent *event);
+			virtual void mousePressEvent(QMouseEvent *event);
+			virtual void mouseReleaseEvent(QMouseEvent *event);
+			virtual void showEvent(QShowEvent *event);
+	};
 };
 
 #endif //GRAPH_RELATED_CLASSES_ABSTRACT_GRAPHIC_VIEW_H

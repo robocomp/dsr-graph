@@ -8,7 +8,7 @@
 #include <cstdint>
 #include "crdt_types.h"
 
-namespace CRDT {
+namespace DSR {
 
 
     class Attribute {
@@ -16,7 +16,7 @@ namespace CRDT {
 
         Attribute() = default;
 
-        Attribute(const CRDT::ValType& mvalue, uint64_t mtimestamp, uint32_t magent_id );
+        Attribute(const DSR::ValType& mvalue, uint64_t mtimestamp, uint32_t magent_id );
 
         Attribute (const CRDTAttribute& attr ) {
             m_timestamp = attr.timestamp();
@@ -47,9 +47,6 @@ namespace CRDT {
         friend std::ostream &operator<<(std::ostream &os, const Attribute &type) {
 
             switch (type.m_value.index()) {
-                //case 0:
-                //    os << "UNINITIALIZED ";
-                //    break;
                 case 0:
                     os << " str: " << get<string>(type.m_value);
                     break;
@@ -110,6 +107,45 @@ namespace CRDT {
         bool operator>=(const Attribute &rhs) const {
             return !(*this < rhs);
         }
+
+        [[nodiscard]] int32_t selected() const;
+
+        std::string &str();
+
+        [[nodiscard]] const std::string &str() const;
+
+        void str(const std::string &_str);
+
+        void str(std::string &&_str);
+
+        void dec(int32_t _dec);
+
+        [[nodiscard]] int32_t dec() const;
+
+        void fl(float _fl);
+
+        [[nodiscard]] float fl() const;
+
+        void float_vec(const std::vector<float> &_float_vec);
+
+        void float_vec(std::vector<float> &&_float_vec);
+
+        [[nodiscard]] const std::vector<float> &float_vec() const;
+
+        std::vector<float> &float_vec();
+
+        void bl(bool _bl);
+
+        [[nodiscard]] bool bl() const;
+
+        void byte_vec(const std::vector<uint8_t> &_float_vec);
+
+        void byte_vec(std::vector<uint8_t> &&_float_vec);
+
+        [[nodiscard]] const std::vector<uint8_t> &byte_vec() const;
+
+        std::vector<uint8_t> &byte_vec();
+
 
     private:
         ValType m_value;

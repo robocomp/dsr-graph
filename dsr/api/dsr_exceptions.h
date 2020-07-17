@@ -11,7 +11,7 @@
 /////////////////////////////////////////////////////////////////
 /// DSR Exceptions
 /////////////////////////////////////////////////////////////////
-namespace CRDT {
+namespace DSR {
     class DSRException : public std::exception {
     public:
         explicit DSRException(const std::string &message) : msg_(message) {};
