@@ -54,7 +54,8 @@ Q_OBJECT
 		
 		// graph viewer
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
-
+        std::map<int, QString> node_combo_names;
+        std::map<std::string, QString> edge_combo_names;
 	public:
 		SpecificWorker(TuplePrx tprx, bool startup_check);
 		~SpecificWorker();
@@ -75,6 +76,13 @@ Q_OBJECT
         void new_edge_attrib_slot();
         void del_node_attrib_slot();
         void del_edge_attrib_slot();
+
+        //G signals
+        void G_add_or_assign_node_slot(const std::int32_t id, const std::string &type);
+        void G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type);
+        void G_del_node_slot(const std::int32_t id);
+        void G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);
+
 
 	private:
 		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);
