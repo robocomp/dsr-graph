@@ -25,135 +25,143 @@
 #include <iostream>
 #include <cppitertools/range.hpp>
 
-GraphEdge::GraphEdge(GraphNode *sourceNode, GraphNode *destNode, const QString &edge_name)
-        : QGraphicsLineItem(), arrowSize(10) {
+GraphEdge::GraphEdge(GraphNode *sourceNode, GraphNode *destNode, const QString &edge_name) : QGraphicsLineItem(), arrowSize(10)
+{
     setFlags(QGraphicsItem::ItemIsSelectable);
-    setFlag(QGraphicsItem::ItemIsFocusable);
+	setFlag(QGraphicsItem::ItemIsFocusable);
     source = sourceNode;
     dest = destNode;
     source->addEdge(this);
     dest->addEdge(this);
-    tag = edge_name;
-    animation = new QPropertyAnimation(this, "edge_pen");
-    animation->setDuration(200);
-    animation->setStartValue(4);
-    animation->setEndValue(2);
-    animation->setLoopCount(3);
-    adjust();
+	tag = edge_name;
+	animation = new QPropertyAnimation(this, "edge_pen");
+	animation->setDuration(200);
+	animation->setStartValue(4);
+	animation->setEndValue(2);
+	animation->setLoopCount(3);
+	adjust();
 }
 
-GraphNode *GraphEdge::sourceNode() const {
+GraphNode *GraphEdge::sourceNode() const
+{
     return source;
 }
 
-GraphNode *GraphEdge::destNode() const {
+GraphNode *GraphEdge::destNode() const
+{
     return dest;
 }
 
-void GraphEdge::adjust(GraphNode *node, QPointF pos) {
-    if (!source || !dest)
-        return;
+void GraphEdge::adjust(GraphNode* node, QPointF pos)
+{
+    if(!source || !dest)
+		return;
 
-    QLineF *line;
-    if (node) {
-        if (node == source) {
-            line = new QLineF(pos, mapFromItem(dest, 0, 0));
-        } else {
-            line = new QLineF(mapFromItem(source, 0, 0), pos);
-        }
-    } else {
-        line = new QLineF(mapFromItem(source, 0, 0), mapFromItem(dest, 0, 0));
-    }
+	QLineF *line;
+    if(node) {
+		if (node==source) {
+			line = new QLineF(pos, mapFromItem(dest, 0, 0));
+		}
+		else {
+			line = new QLineF(mapFromItem(source, 0, 0), pos);
+		}
+	}
+	else
+	{
+		line = new QLineF(mapFromItem(source, 0, 0), mapFromItem(dest, 0, 0));
+	}
 
 
     qreal length = line->length();
 
     prepareGeometryChange();
 
-    if (length > qreal(20.)) {
+    if (length > qreal(20.)) 
+		{
         QPointF edgeOffset((line->dx() * 10) / length, (line->dy() * 10) / length);
         sourcePoint = line->p1() + edgeOffset;
         destPoint = line->p2() - edgeOffset;
     } else {
-        sourcePoint = destPoint = line->p1();
-    }
+		sourcePoint = destPoint = line->p1();
+	}
     delete line;
 }
 
-QRectF GraphEdge::boundingRect() const {
-    QLineF line(sourcePoint, destPoint);
+QRectF GraphEdge::boundingRect() const
+{
+	QLineF line(sourcePoint, destPoint);
 
-    return QRectF(sourcePoint, destPoint).normalized().adjusted(-10, -10, +10, +10);
+	return QRectF(sourcePoint, destPoint).normalized().adjusted(-10,-10, +10, +10);
 
 }
 
-QPainterPath GraphEdge::shape() const {
+QPainterPath GraphEdge::shape() const
+{
     QPainterPath path;
     path.addPolygon(tag_polygon);
     return path;
 }
 
 
-void GraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+void GraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+{
     if (!source || !dest)
         return;
 
     QLineF line(sourcePoint, destPoint);
+		
+		// self returning edges
+    if (qFuzzyCompare(line.length(), qreal(0.)))
+		{
+				// Draw the line itself
+				painter->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+				QRectF rectangle(sourcePoint.x()-20, sourcePoint.y()-20, 20.0, 20.0);
+				int startAngle = 35;
+				int spanAngle = 270 * 16;
+				painter->drawArc(rectangle, startAngle, spanAngle);
+				painter->setPen(QColor("coral"));
+				painter->drawText(rectangle.center(), tag);
+				double alpha = 0;
+				double r = 20/2.f;
+				painter->setBrush(Qt::black);
+				painter->setPen(QPen(Qt::black, edge_width));
+				painter->drawPolygon(QPolygonF() << QPointF(r*cos(alpha) + rectangle.center().x(), r*sin(alpha) + rectangle.center().y())
+																				 << QPointF(r*cos(alpha) + rectangle.center().x()-3, r*sin(alpha) + rectangle.center().y()-2) 
+																				 << QPointF(r*cos(alpha) + rectangle.center().x()+2, r*sin(alpha) + rectangle.center().y()-2));
+		}
+		else
+		{
+			//check if there is another parallel edge 
+			// Draw the line itself
 
-    // self returning edges
-    if (qFuzzyCompare(line.length(), qreal(0.))) {
-        // Draw the line itself
-        painter->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        QRectF rectangle(sourcePoint.x() - 20, sourcePoint.y() - 20, 20.0, 20.0);
-        int startAngle = 35;
-        int spanAngle = 270 * 16;
-        painter->drawArc(rectangle, startAngle, spanAngle);
-        painter->setPen(QColor("coral"));
-        painter->drawText(rectangle.center(), tag);
-        double alpha = 0;
-        double r = 20 / 2.f;
-        painter->setBrush(Qt::black);
-        painter->setPen(QPen(Qt::black, edge_width));
-        painter->drawPolygon(
-                QPolygonF() << QPointF(r * cos(alpha) + rectangle.center().x(), r * sin(alpha) + rectangle.center().y())
-                            << QPointF(r * cos(alpha) + rectangle.center().x() - 3,
-                                       r * sin(alpha) + rectangle.center().y() - 2)
-                            << QPointF(r * cos(alpha) + rectangle.center().x() + 2,
-                                       r * sin(alpha) + rectangle.center().y() - 2));
-    } else {
-        //check if there is another parallel edge
-        // Draw the line itself
-
-        painter->save();
-        painter->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        double angle = std::atan2(-line.dy(), line.dx());
-        painter->translate(line.center().x(), line.center().y());
-        painter->rotate(-angle * 180 / M_PI);
-        QRectF rectangle(-line.length() * 0.5, -10, line.length(), 20);
-        painter->drawArc(rectangle, 0, 180 * 16);
-
-
-        painter->setPen(QColor("coral"));
-        painter->drawText(rectangle.center(), tag);
-        auto fm = QFontMetrics(painter->font());
-        auto tag_rect = QRectF(-5, (-fm.height() - 10) * 0.5, fm.width(tag) + 10, fm.height() + 10);
-        tag_polygon = QTransform()
-                .translate(line.center().x(), line.center().y())
-                .rotate(-angle * 180 / M_PI)
-                .map(QPolygonF(tag_rect));
+			painter->save();
+			painter->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+			double angle = std::atan2(-line.dy(), line.dx());
+			painter->translate(line.center().x(), line.center().y());
+			painter->rotate(-angle*180/M_PI);
+			QRectF rectangle(-line.length()*0.5, -10, line.length(), 20);
+			painter->drawArc(rectangle, 0, 180*16);
 
 
-        // Draw the arrows
-        QPointF destArrowP1 =
-                QPointF(line.length() * 0.5, 0) - QPointF(sin(M_PI / 2) * arrowSize, cos(M_PI / 2) * arrowSize);
-        QPointF destArrowP2 =
-                QPointF(line.length() * 0.5, 0) - QPointF(sin(M_PI / 4) * arrowSize, cos(M_PI / 4) * arrowSize);
-        painter->setBrush(Qt::black);
-        painter->setPen(Qt::black);
-        painter->drawPolygon(QPolygonF() << QPointF(line.length() * 0.5, 0) << destArrowP1 << destArrowP2);
-        painter->setPen(pen());
+			painter->setPen(QColor("coral"));
+			painter->drawText(rectangle.center(), tag);
+			auto fm = QFontMetrics(painter->font());
+			auto tag_rect = QRectF(-5,(-fm.height()-10)*0.5, fm.width(tag)+10, fm.height()+10);
+			tag_polygon = QTransform()
+					.translate(line.center().x(), line.center().y())
+					.rotate(-angle*180/M_PI)
+					.map(QPolygonF(tag_rect));
 
-        painter->restore();
+				
+			// Draw the arrows
+			QPointF destArrowP1 = QPointF(line.length()*0.5,0) - QPointF(sin(M_PI / 2) * arrowSize, cos(M_PI / 2) * arrowSize);
+			QPointF destArrowP2 = QPointF(line.length()*0.5,0) - QPointF(sin(M_PI / 4) * arrowSize, cos(M_PI / 4) * arrowSize);
+			painter->setBrush(Qt::black);
+			painter->setPen(Qt::black);
+			painter->drawPolygon(QPolygonF() << QPointF(line.length()*0.5,0) << destArrowP1 << destArrowP2 );
+			painter->setPen(pen());
+
+			painter->restore();
 //			// DEBUG
 //			painter->setBrush(QBrush(Qt::red));
 //			painter->drawRect(boundingRect());
@@ -166,46 +174,56 @@ void GraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidg
 //				painter->setPen(QPen(Qt::black, 2, Qt::DashLine));
 //				painter->drawPath(this->shape());
 //			}
-    }
-
+		}
+	
 }
 
 
-void GraphEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-    std::cout << __FILE__ << " " << __FUNCTION__ << "Edge from " << source->id_in_graph << " to " << dest->id_in_graph
-              << " tag: " << tag.toStdString() << std::endl;
-    static std::unique_ptr <QWidget> do_stuff;
-    const auto graph = source->getGraphViewer()->getGraph();
-    if (event->button() == Qt::RightButton) {
-        if (tag == "RT")
-            do_stuff = std::make_unique<DoRTStuff>(graph, source->id_in_graph, dest->id_in_graph, tag.toStdString());
-    }
-    animation->start();
-    update();
-    QGraphicsLineItem::mouseDoubleClickEvent(event);
+void GraphEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+	qDebug() << __FILE__ << " " << __FUNCTION__ << "Edge from " << source->id_in_graph << " to " << dest->id_in_graph <<" tag: " << tag ;
+	static std::unique_ptr<QWidget> do_stuff;
+	const auto graph = source->getGraphViewer()->getGraph();
+	if( event->button()== Qt::RightButton)
+	{
+		if(tag == "RT")
+			do_stuff = std::make_unique<DoRTStuff>(graph, source->id_in_graph, dest->id_in_graph, tag.toStdString());
+	}
+	animation->start();
+	update();
+	QGraphicsLineItem::mouseDoubleClickEvent(event);
 }
 
 
-void GraphEdge::keyPressEvent(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Escape) {
-        if (label != nullptr) {
+
+
+
+void GraphEdge::keyPressEvent(QKeyEvent *event) 
+{
+    if (event->key() == Qt::Key_Escape)
+    {
+        if(label != nullptr)
+        {
             label->close();
-            delete label;
+            delete label; 
             label = nullptr;
         }
     }
 }
 
-void GraphEdge::change_detected() {
-    animation->start();
+void GraphEdge::change_detected()
+{
+	animation->start();
 }
 
 
-int GraphEdge::_edge_pen() {
-    return this->edge_width;
+int GraphEdge::_edge_pen()
+{
+	return this->edge_width;
 }
 
-void GraphEdge::set_edge_pen(const int p) {
-    this->edge_width = p;
-    this->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+void GraphEdge::set_edge_pen(const int p)
+{
+	this->edge_width = p;
+	this->setPen(QPen(Qt::black, edge_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 }

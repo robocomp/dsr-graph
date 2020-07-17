@@ -22,7 +22,7 @@
 #define _PARTICIPANT_H_
 
 #include <fastrtps/fastrtps_fwd.h>
-#include "../topics/DSRGraphPubSubTypes.h"
+#include "../topics/IDLGraphPubSubTypes.h"
 #include "dsrpublisher.h"
 #include "dsrsubscriber.h"
 

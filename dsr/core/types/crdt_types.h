@@ -11,7 +11,7 @@
 #include "variant"
 #include "map"
 
-namespace CRDT {
+namespace DSR {
 
 
     struct pair_hash {
@@ -21,7 +21,7 @@ namespace CRDT {
         }
     };
 
-    static constexpr std::array<std::string_view, 7> TYPENAMES_UNION = {"UNINITIALIZED", "STRING", "INT", "FLOAT",
+    static constexpr std::array<std::string_view, 7> TYPENAMES_UNION = { "STRING", "INT", "FLOAT",
                                                                         "FLOAT_VEC", "BOOL", "BYTE_VEC"};
     using ValType = std::variant<std::string, int32_t, float, std::vector<float>, bool, std::vector<uint8_t>>;
     enum Types : uint32_t {

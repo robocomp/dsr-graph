@@ -6,7 +6,7 @@
 #include "crdt_types.h"
 #include "translator.h"
 
-namespace CRDT {
+namespace DSR {
 
 
     [[nodiscard]] int32_t CRDTValue::selected() const {

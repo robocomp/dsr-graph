@@ -10,11 +10,11 @@
 #include "dsr_utils.h"
 #include "dsr_api.h"
 
-using namespace CRDT;
+using namespace DSR;
 
-Utilities::Utilities(CRDT::CRDTGraph *G_) { G = G_; }
+Utilities::Utilities(DSR::DSRGraph *G_) { G = G_; }
 
-void Utilities::read_from_json_file(const std::string &json_file_path) {
+void Utilities::read_from_json_file(const std::string &json_file_path, std::function<std::optional<int>(const Node&)> insert_node) {
     std::cout << __FUNCTION__ << " Reading json file: " << json_file_path << std::endl;
 
     // Open file and make initial checks
@@ -87,30 +87,30 @@ void Utilities::read_from_json_file(const std::string &json_file_path) {
 
                 switch (attr_type) {
                     case 0:
-                        G->add_attrib(n, attr_key, attr_value.toString().toStdString());
+                        G->add_attrib_local(n, attr_key, attr_value.toString().toStdString());
                         break;
                     case 1:
-                        G->add_attrib(n, attr_key, attr_value.toInt());
+                        G->add_attrib_local(n, attr_key, attr_value.toInt());
                         break;
                     case 2:
-                        G->add_attrib(n, attr_key, attr_value.toFloat());
+                        G->add_attrib_local(n, attr_key, attr_value.toFloat());
                         break;
                     case 3: {
                         std::vector<float> v;
                                 foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
-                        G->add_attrib(n, attr_key, v);
+                        G->add_attrib_local(n, attr_key, v);
                         break;
                     }
                     case 4: {
-                        G->add_attrib(n, attr_key, attr_value.toBool());
+                        G->add_attrib_local(n, attr_key, attr_value.toBool());
                         break;
                     }
                     default:
-                        G->add_attrib(n, attr_key, attr_value.toString().toStdString());
+                        G->add_attrib_local(n, attr_key, attr_value.toString().toStdString());
                 }
             }
             //n.attrs(attrs);
-            G->insert_node(n);
+            insert_node(n);
             // get links
             QJsonArray nodeLinksArray = sym_obj.value("links").toArray();
             std::copy(nodeLinksArray.begin(), nodeLinksArray.end(), std::back_inserter(linksArray));
@@ -123,7 +123,7 @@ void Utilities::read_from_json_file(const std::string &json_file_path) {
             std::string edgeName = link_obj.value("label").toString().toStdString();
             std::map<string, CRDTAttribute> attrs;
 
-            Edge edge(srcn, dstn, edgeName, {}, G->get_agent_id());
+            Edge edge(dstn, srcn, edgeName, {}, G->get_agent_id());
 //            Edge edge;
 //            edge.from(srcn);
 //            edge.to(dstn);
@@ -143,25 +143,25 @@ void Utilities::read_from_json_file(const std::string &json_file_path) {
 
                 switch (attr_type) {
                     case 0: {
-                        G->add_attrib(edge, attr_key, attr_value.toString().toStdString());
+                        G->add_attrib_local(edge, attr_key, attr_value.toString().toStdString());
                         break;
                     }
                     case 1: {
-                        G->add_attrib(edge, attr_key, attr_value.toInt());
+                        G->add_attrib_local(edge, attr_key, attr_value.toInt());
                         break;
                     }
                     case 2: {
-                        G->add_attrib(edge, attr_key, attr_value.toString().replace(",", ".").toFloat());
+                        G->add_attrib_local(edge, attr_key, attr_value.toString().replace(",", ".").toFloat());
                         break;
                     }
                     case 3: {
                         std::vector<float> v;
                                 foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
-                        G->add_attrib(edge, attr_key, v);
+                        G->add_attrib_local(edge, attr_key, v);
                         break;
                     }
                     case 4: {
-                        G->add_attrib(edge, attr_key, attr_value.toBool());
+                        G->add_attrib_local(edge, attr_key, attr_value.toBool());
                         break;
                     }
                 }
@@ -302,13 +302,13 @@ void Utilities::print() {
         std::cout << "  Name:" << node.name() << std::endl;
         std::cout << "  Agent_id:" << node.agent_id() << std::endl;
         for (auto &[key, val] : node.attrs())
-            std::cout << "      [ " << key << ", " << CRDT::TYPENAMES_UNION[val.value().index()] << ", " << val << " ]"
+            std::cout << "      [ " << key << ", " << DSR::TYPENAMES_UNION[val.value().index()] << ", " << val << " ]"
                       << std::endl;
         for (auto &[key, val] : node.fano()) {
             std::cout << "          Edge-type->" << val.type() << " from:" << val.from() << " to:"
                       << val.to() << std::endl;
             for (auto[k, v] : val.attrs())
-                std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->"
+                std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->"
                           << v << std::endl;
         }
     }
@@ -319,7 +319,7 @@ void Utilities::print_edge(const Edge &edge) {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "Edge-type->" << edge.type() << " from->" << edge.from() << " to->" << edge.to() << std::endl;
     for (auto[k, v] : edge.attrs())
-        std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->" << v
+        std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->" << v
                   << std::endl;
     std::cout << "------------------------------------" << std::endl;
 }
@@ -331,13 +331,13 @@ void Utilities::print_node(const Node &node) {
     std::cout << "  Name->" << node.name() << std::endl;
     std::cout << "  Agent_id->" << node.agent_id() << std::endl;
     for (auto[key, val] : node.attrs())
-        std::cout << "      Key->" << key << " Type->" << CRDT::TYPENAMES_UNION[val.value().index()] << " Value->" << val
+        std::cout << "      Key->" << key << " Type->" << DSR::TYPENAMES_UNION[val.value().index()] << " Value->" << val
                   << std::endl;
     for (auto[key, val] : node.fano()) {
         std::cout << "          Edge-type->" << val.type() << " from->" << val.from() << " to->"
                   << val.to() << std::endl;
         for (auto[k, v] : val.attrs())
-            std::cout << "              Key->" << k << " Type->" << CRDT::TYPENAMES_UNION[v.value().index()] << " Value->"
+            std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->"
                       << v << std::endl;
     }
 }
@@ -360,7 +360,7 @@ void Utilities::print_RT(uint32_t id) {
 }
 
 void Utilities::print_RT(const Node &node) {
-    for (auto &edge: G->get_edges_by_type(node, "RT")) {
+    for (auto &edge: G->get_node_edges_by_type(node, "RT")) {
         auto child = G->get_node(edge.to());
         if (child.has_value()) {
             print_node(child.value());

@@ -7,7 +7,7 @@
 
 #include "user_types.h"
 
-namespace CRDT {
+namespace DSR {
 
     // Translators
     inline static IDL::Mvreg translateNodeMvCRDTtoIDL(uint32_t agent_id, uint32_t id, mvreg<CRDTNode, uint32_t> &data) {

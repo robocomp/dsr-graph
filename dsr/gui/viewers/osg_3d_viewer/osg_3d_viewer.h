@@ -43,82 +43,62 @@
 
 using namespace std::chrono_literals;
 
-namespace DSR {
-    enum CameraView {
-        BACK_POV, FRONT_POV, LEFT_POV, RIGHT_POV, TOP_POV
-    };
+namespace DSR
+{
+    enum CameraView { BACK_POV, FRONT_POV, LEFT_POV, RIGHT_POV, TOP_POV };
+    class DSRtoOSGViewer : public QOpenGLWidget
+    {
+        public:
+            DSRtoOSGViewer(std::shared_ptr<DSR::DSRGraph> G_, float scaleX, float scaleY, QWidget *parent=0);
+			~DSRtoOSGViewer();
+        
+        protected:  
+            virtual void resizeEvent(QResizeEvent *e); 
+            inline void paintGL() override;
+            virtual void resizeGL( int width, int height );
+            // virtual void initializeGL();
+            void mouseMoveEvent(QMouseEvent* event) override;        
+            void mousePressEvent(QMouseEvent* event) override;
+            void mouseReleaseEvent(QMouseEvent* event) override;
+            void wheelEvent(QWheelEvent* event) override;
+            bool event(QEvent* event) override;
+            void initializeGL() override;
 
-    class DSRtoOSGViewer : public QOpenGLWidget {
-    public:
-        DSRtoOSGViewer(std::shared_ptr <CRDT::CRDTGraph> G_, float scaleX, float scaleY, QWidget *parent = 0);
+        private:
+            std::shared_ptr<DSR::DSRGraph> G;
+            osgGA::EventQueue* getEventQueue() const ;
+            osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
+            osg::ref_ptr<osgViewer::Viewer> _mViewer;
+            
+            qreal m_scaleX, m_scaleY;
+            osg::ref_ptr<osg::Group> root;
 
-        ~DSRtoOSGViewer();
+            //Hashes
+            //using OsgTypes = std::variant<osg::, osg::MatrixTransform*>;
+            // //std::map<std::int32_t, osg::Group*> osg_map;
+            std::map<std::tuple<std::int32_t, std::int32_t>, osg::Group*> osg_map;
+            //std::map<std::int32_t, std::int32_t>, osg::Group*> osg_transform;
+            
+            
+            //std::map<std::string, IMVMesh> meshMap;
+            osg::Vec3 QVecToOSGVec(const QVec &vec) const ;
+            osg::Matrix QMatToOSGMat4(const RTMat &nodeB);
+            osg::Vec4 htmlStringToOsgVec4(const std::string &color);
+            osg::ref_ptr<osg::Group> createGraph();
+            void setMainCamera(osgGA::TrackballManipulator *manipulator, CameraView pov) const;
+            osgGA::TrackballManipulator* manipulator;
 
-    protected:
-        virtual void resizeEvent(QResizeEvent *e);
+            void add_or_assign_node_slot(const Node &node);
+            void add_or_assign_edge_slot(const Node &from, const Node& to);
 
-        inline void paintGL() override;
+            void add_or_assign_box(const Node &node, const Node& parent);
+            void add_or_assign_mesh(const Node &node, const Node& parent);
+            void add_or_assign_transform(const Node &from, const Node& to);
+            void add_or_assign_person(const Node& node, const Node& parent);
 
-        virtual void resizeGL(int width, int height);
-
-        // virtual void initializeGL();
-        void mouseMoveEvent(QMouseEvent *event) override;
-
-        void mousePressEvent(QMouseEvent *event) override;
-
-        void mouseReleaseEvent(QMouseEvent *event) override;
-
-        void wheelEvent(QWheelEvent *event) override;
-
-        bool event(QEvent *event) override;
-
-        void initializeGL() override;
-
-    private:
-        std::shared_ptr <CRDT::CRDTGraph> G;
-
-        osgGA::EventQueue *getEventQueue() const;
-
-        osg::ref_ptr <osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
-        osg::ref_ptr <osgViewer::Viewer> _mViewer;
-
-        qreal m_scaleX, m_scaleY;
-        osg::ref_ptr <osg::Group> root;
-
-        //Hashes
-        //using OsgTypes = std::variant<osg::, osg::MatrixTransform*>;
-        // //std::map<std::int32_t, osg::Group*> osg_map;
-        std::map<std::tuple < std::int32_t, std::int32_t>, osg::Group*>
-        osg_map;
-        //std::map<std::int32_t, std::int32_t>, osg::Group*> osg_transform;
-
-
-        //std::map<std::string, IMVMesh> meshMap;
-        osg::Vec3 QVecToOSGVec(const QVec &vec) const;
-
-        osg::Matrix QMatToOSGMat4(const RTMat &nodeB);
-
-        osg::Vec4 htmlStringToOsgVec4(const std::string &color);
-
-        osg::ref_ptr <osg::Group> createGraph();
-
-        void setMainCamera(osgGA::TrackballManipulator *manipulator, CameraView pov) const;
-
-        osgGA::TrackballManipulator *manipulator;
-
-        void add_or_assign_node_slot(const CRDT::Node &node);
-
-        void add_or_assign_edge_slot(const CRDT::Node &from, const CRDT::Node &to);
-
-        void add_or_assign_box(const CRDT::Node &node, const CRDT::Node &parent);
-
-        void add_or_assign_mesh(const CRDT::Node &node, const CRDT::Node &parent);
-
-        void add_or_assign_transform(const CRDT::Node &from, const CRDT::Node &to);
-
-        void traverse_RT_tree(const CRDT::Node &node);
-
-        void analyse_osg_graph(osg::Node *nd);
+            void traverse_RT_tree(const Node& node);
+            void print_RT_subtree(const Node& node);
+            void analyse_osg_graph(osg::Node *nd);
     };
 };
 #endif
