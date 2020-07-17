@@ -54,7 +54,9 @@ GraphViewer::GraphViewer(QMainWindow * widget, std::shared_ptr<DSR::DSRGraph> G_
 	G = G_;
     qRegisterMetaType<std::int32_t>("std::int32_t");
     qRegisterMetaType<std::string>("std::string");
- 	QRect availableGeometry(QApplication::desktop()->availableGeometry());
+    qRegisterMetaType<std::uint32_t>("std::uint32_t");
+
+    QRect availableGeometry(QApplication::desktop()->availableGeometry());
  	this->window = widget;
  	window->move((availableGeometry.width() - window->width()) / 2, (availableGeometry.height() - window->height()) / 2);
 	

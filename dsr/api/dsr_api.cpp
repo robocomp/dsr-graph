@@ -1095,6 +1095,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
         }
 
         if (ok) {
+            print_node(mvreg.id());
             emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
         }
 
