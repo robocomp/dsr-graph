@@ -436,7 +436,23 @@ void SpecificWorker::new_edge_attrib_slot()
     fill_table(edge_attrib_tw, edge.attrs());
 }
 void SpecificWorker::del_node_attrib_slot() {
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
+    if(G->remove_attrib_by_name(node, attrib_name))
+    {
+        fill_table(node_attrib_tw, node.attrs());
+    }
+    else
+        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
 }
 
 void SpecificWorker::del_edge_attrib_slot() {
+    Edge edge = node_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
+    if(G->remove_attrib_by_name(edge, attrib_name))
+    {
+        fill_table(edge_attrib_tw, edge.attrs());
+    }
+    else
+        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
 }
