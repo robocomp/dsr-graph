@@ -62,7 +62,7 @@ void SpecificWorker::initialize(int period)
         QVariant data;
         data.setValue(node);
 	    this->node_cb->addItem(QString::fromStdString(node.name()), data);
-
+        node_combo_names[node.id()] = QString::fromStdString(node.name());
         //edges
         for(const auto &[key, edge] : node.fano())
         {
@@ -72,6 +72,7 @@ void SpecificWorker::initialize(int period)
             QString to = QString::fromStdString(G->get_node(edge.to()).value().name());
             QString name = from + "_" + to + "_" + QString::fromStdString(edge.type());
             this->edge_cb->addItem(name, edge_data);
+            edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
         }
 
     }
@@ -102,6 +103,12 @@ void SpecificWorker::initialize(int period)
     connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
     connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
     connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
+
+    //G signals
+    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::G_add_or_assign_node_slot);
+    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::G_add_or_assign_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::G_del_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::G_del_node_slot);
 }
 
 
@@ -284,33 +291,15 @@ void SpecificWorker::save_edge_slot()
 void SpecificWorker::delete_edge_slot()
 {
     Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-    bool r = G->delete_edge(edge.from(), edge.to(), edge.type());
-    if (r)
-    {
-        edge_attrib_tw->setRowCount(0);
-        edge_cb->removeItem(edge_cb->currentIndex());
-        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") deleted";
-    }
-    else
-    {
+    if (not G->delete_edge(edge.from(), edge.to(), edge.type()))
         qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") could not be deleted";
-    }
 }
 
 void SpecificWorker::delete_node_slot()
 {
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-    bool r = G->delete_node(node.id());
-    if (r)
-    {
-        node_attrib_tw->setRowCount(0);
-        node_cb->removeItem(node_cb->currentIndex());
-        qDebug()<<"Node"<<QString::fromStdString(node.name())<<"deleted";
-    }
-    else
-    {
-        qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";    
-    }
+    if( not  G->delete_node(node.id()))
+       qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";
 }
 
 
@@ -332,11 +321,6 @@ void SpecificWorker::new_node_slot()
     try
     {     
         G->insert_node(node);
-        //Add node to combobox
-        QVariant data;
-        data.setValue(node);
-        this->node_cb->addItem(QString::fromStdString(node.name()), data);
-        this->node_cb->setCurrentIndex(this->node_cb->count()-1);
     }
     catch(const std::exception& e)
     {
@@ -388,16 +372,6 @@ void SpecificWorker::new_edge_slot() {
             std::vector<float> trans{0.f, 0.f, 0.f};
             std::vector<float> rot{0, 0.f, 0};
             G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
-
-            //Add node to combobox
-            std::optional<Edge> edge = G->get_edge_RT(from_node.value(), to);
-            QVariant data;
-            data.setValue(edge.value());
-            QString from_name = QString::fromStdString(from_node.value().name());
-            QString to_name = QString::fromStdString(to_node.value().name());
-            QString name = from_name + "_" + to_name + "_" + QString::fromStdString(edge.value().type());
-            this->edge_cb->addItem(name, data);
-            this->edge_cb->setCurrentIndex(this->edge_cb->count()-1);
         }
         catch (const std::exception &e) {
             std::cout << __FUNCTION__ << e.what() << std::endl;
@@ -455,4 +429,52 @@ void SpecificWorker::del_edge_attrib_slot() {
     }
     else
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
+}
+
+void SpecificWorker::G_add_or_assign_node_slot(const std::int32_t id, const std::string &type) {
+    Node node = G->get_node(id).value();
+    QVariant data;
+    data.setValue(node);
+    int pos = this->node_cb->findText(QString::fromStdString(node.name()));
+    if (pos == -1) { //insert item
+        this->node_cb->addItem(QString::fromStdString(node.name()), data);
+        node_combo_names[node.id()] = QString::fromStdString(node.name());
+    }
+    else //update item
+        this->node_cb->setItemData(pos, data);
+}
+void SpecificWorker::G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type){
+    Edge edge = G->get_edge(from, to, type).value();
+    QVariant edge_data;
+    edge_data.setValue(edge);
+    QString from_s = QString::fromStdString(G->get_node(edge.from()).value().name());
+    QString to_s = QString::fromStdString(G->get_node(edge.to()).value().name());
+    QString name = from_s + "_" + to_s + "_" + QString::fromStdString(type);
+
+    int pos = this->edge_cb->findText(name);
+    if (pos == -1) { //insert item
+        this->edge_cb->addItem(name, edge_data);
+        edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
+    }
+    else //update item
+        this->edge_cb->setItemData(pos, edge_data);
+
+}
+void SpecificWorker::G_del_node_slot(const std::int32_t id){
+    QString combo_name = node_combo_names[id];
+    qDebug()<<"G_del_node"<<id<<combo_name;
+    int pos = this->node_cb->findText(combo_name);
+    if (pos != -1) {
+        this->node_cb->removeItem(pos);
+        node_combo_names.erase(id);
+    }
+}
+void SpecificWorker::G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type){
+    QString combo_name = edge_combo_names[std::to_string(from)+"_"+std::to_string(to)+"_"+type];
+    int pos = this->edge_cb->findText(combo_name);
+    if (pos != -1)
+    {
+        this->edge_cb->removeItem(pos);
+        edge_combo_names.erase(std::to_string(from)+"_"+std::to_string(to)+"_"+type);
+    }
 }
