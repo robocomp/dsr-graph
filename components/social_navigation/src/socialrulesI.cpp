@@ -24,18 +24,4 @@ SocialRulesI::SocialRulesI(GenericWorker *_worker)
 }
 
 
-SocialRulesI::~SocialRulesI()
-{
-}
-
-
-void SocialRulesI::objectsChanged(RoboCompSocialRules::SRObjectSeq objectsAffordances, const Ice::Current&)
-{
-	worker->SocialRules_objectsChanged(objectsAffordances);
-}
-
-void SocialRulesI::personalSpacesChanged(RoboCompSocialNavigationGaussian::SNGPolylineSeq intimateSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq personalSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq socialSpaces, const Ice::Current&)
-{
-	worker->SocialRules_personalSpacesChanged(intimateSpaces, personalSpaces, socialSpaces);
-}
 

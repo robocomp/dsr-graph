@@ -11,6 +11,10 @@ TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
 agent_id = 35 # Change id
 agent_name = social_navigation
 
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
 
 NavigationAgent.MaxZSpeed = 450
 NavigationAgent.MaxXSpeed = 350
