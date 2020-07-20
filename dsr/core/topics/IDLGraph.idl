@@ -12,6 +12,8 @@
         boolean bl;
       case 5:
         sequence<octet> byte_vec;
+      case 1:
+        unsigned long uint;
     };
 
     enum Types

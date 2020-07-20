@@ -52,6 +52,19 @@ namespace DSR {
 
     }
 
+    void CRDTValue::uint(uint32_t _uint) {
+        val = _uint;
+    }
+
+    [[nodiscard]] uint32_t CRDTValue::uint() const {
+        if (auto pval = std::get_if<uint32_t>(&val)) {
+            return *pval;
+        }
+        throw std::runtime_error(
+                ("UINT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
+
+    }
+
     void CRDTValue::fl(float _fl) {
         val = _fl;
     }
@@ -149,6 +162,9 @@ namespace DSR {
                 break;
             case 5:
                 value.byte_vec(std::get<std::vector<uint8_t>>(val));
+                break;
+            case 6:
+                value.uint(std::get<std::uint32_t>(val));
                 break;
             default:
                 throw std::runtime_error(

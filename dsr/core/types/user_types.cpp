@@ -82,6 +82,19 @@ namespace DSR {
 
     }
 
+    void Attribute::uint(uint32_t _uint) {
+        m_value = _uint;
+    }
+
+    [[nodiscard]] uint32_t Attribute::uint() const {
+        if (auto pval = std::get_if<uint32_t>(&m_value)) {
+            return *pval;
+        }
+        throw std::runtime_error(
+                ("UINT is not selected, selected is " + std::string(TYPENAMES_UNION[m_value.index()])).data());
+
+    }
+
     void Attribute::fl(float _fl) {
         m_value = _fl;
     }

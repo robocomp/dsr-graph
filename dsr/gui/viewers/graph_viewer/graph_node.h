@@ -119,7 +119,7 @@ class DoRGBDStuff : public QLabel
   public slots:
     void drawRGBDSLOT( int id, const std::string &type )
     {
-      if( id != node_id) return;
+      if( static_cast<uint32_t>(id) != node_id) return;
 
       std::optional<Node> n = graph->get_node(id);
       if (n.has_value())
@@ -160,6 +160,7 @@ class DoTableStuff : public  QTableWidget
     DoTableStuff(std::shared_ptr<DSR::DSRGraph> graph_, DSR::IDType node_id_) : graph(graph_), node_id(node_id_)
     {
       qRegisterMetaType<std::int32_t>("std::int32_t");
+      qRegisterMetaType<std::uint32_t>("std::uint32_t");
       qRegisterMetaType<std::string>("std::string");
       qRegisterMetaType<unordered_map<string, Attribute>>("Attribs");
 
@@ -197,6 +198,10 @@ class DoTableStuff : public  QTableWidget
                   case 5:
                       setItem(i, 1, new QTableWidgetItem(QString::fromStdString(
                               std::get<1>(graph_->nativetype_to_string(v.byte_vec())))));
+                      break;
+                  case 6:
+                      setItem(i, 1, new QTableWidgetItem(
+                              QString::fromStdString(std::get<1>(graph_->nativetype_to_string(v.uint())))));
                       break;
               }
               i++;
@@ -236,6 +241,10 @@ class DoTableStuff : public  QTableWidget
                         break;
                     case 5:
                         setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.byte_vec())))));
+                        break;
+                    case 6:
+                        setItem(i, 1, new QTableWidgetItem(
+                                QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.uint())))));
                         break;
                 }
                 i++;

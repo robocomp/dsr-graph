@@ -105,6 +105,9 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
                         G->add_attrib_local(n, attr_key, attr_value.toBool());
                         break;
                     }
+                    case 6:
+                        G->add_attrib_local(n, attr_key, static_cast<std::uint32_t>(attr_value.toUInt()));
+                        break;
                     default:
                         G->add_attrib_local(n, attr_key, attr_value.toString().toStdString());
                 }
@@ -164,6 +167,11 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
                         G->add_attrib_local(edge, attr_key, attr_value.toBool());
                         break;
                     }
+                    case 6:
+                        G->add_attrib_local(edge, attr_key, static_cast<std::uint32_t>(attr_value.toUInt()));
+                        break;
+                    default:
+                        G->add_attrib_local(edge, attr_key, attr_value.toString().toStdString());
                 }
             }
             std::cout << __FILE__ << " " << __FUNCTION__ << "Edge from " << std::to_string(srcn) << " to "
@@ -221,6 +229,9 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
                     val = array;
                     break;
                 }
+                case 6:
+                    val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
+                    break;
             }
             content["type"] = static_cast<qint64>(value.value().index());
             content["value"] = val;
@@ -268,6 +279,9 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
                         val = array;
                         break;
                     }
+                    case 6:
+                        val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
+                        break;
                 }
                 content["type"] = static_cast<qint64>(value.value().index());
                 content["value"] = val;

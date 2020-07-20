@@ -89,10 +89,10 @@ void DSRSubscriber::SubListener::onSubscriptionMatched(Subscriber *sub, Matching
     (void) sub;
     if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING) {
         n_matched++;
-        std::cout << "Publisher matched " << info.remoteEndpointGuid << std::endl;
+        std::cout << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] matched " << info.remoteEndpointGuid << std::endl;
     } else {
         n_matched--;
-        std::cout << "Publisher unmatched" << info.remoteEndpointGuid << std::endl;
+        std::cout << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] unmatched "  << info.remoteEndpointGuid << std::endl;
     }
 }
 

@@ -71,6 +71,9 @@ namespace DSR {
                         os << k << ", ";
                     os << "] ";
                     break;
+                case 6:
+                    os << " uint: " << get<uint32_t>(type.m_value);
+                    break;
                 default:
                     os << "OTRO TIPO";
                     break;
@@ -121,6 +124,10 @@ namespace DSR {
         void dec(int32_t _dec);
 
         [[nodiscard]] int32_t dec() const;
+
+        void uint(uint32_t _uint);
+
+        [[nodiscard]] uint32_t uint() const;
 
         void fl(float _fl);
 

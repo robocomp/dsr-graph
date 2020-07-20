@@ -67,7 +67,6 @@ public:
 		bool read_file;
 		bool write_string;
 		int agent_id;
-		std::string agent_name;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
         QHBoxLayout mainLayout;
         QWidget window;
