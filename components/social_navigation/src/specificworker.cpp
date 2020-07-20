@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -92,7 +93,7 @@ void SpecificWorker::initialize(int period)
 		DSR::DSRtoGraphicsceneViewer* widget_2d = qobject_cast<DSR::DSRtoGraphicsceneViewer*> (graph_viewer->get_widget(opts::scene));
 		navigation.initialize(G, confParams, &widget_2d->scene, "viriato.grid");
 	
-		this->Period = period;
+		this->Period = 100;
 		timer.start(Period);
 	}
 }
