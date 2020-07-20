@@ -29,20 +29,6 @@
 
 #define TILE_SIZE_ 250
 
-template <class T>
-auto operator<<(std::ostream &os, const T &t) -> decltype(t.save(os), os)
-{
-	t.save(os);
-	return os;
-};
-template <class T>
-auto operator>>(std::istream &is, T &t) -> decltype(t.read(is), is)
-{
-	t.read(is);
-	return is;
-};
-
-// Map
 struct TCellDefault
 {
     std::uint32_t id;
@@ -58,97 +44,86 @@ struct TCellDefault
 template <typename T = TCellDefault>
 class Grid
 {
-public:
-	struct Dimensions
-	{
-		int TILE_SIZE = 10;
-		float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
-	};
-	struct Key
-	{
-		long int x;
-		long int z;
-	    public:
-		    Key() : x(0), z(0){};
-		    Key(long int &&x, long int &&z) : x(std::move(x)), z(std::move(z)){};
-		    Key(long int &x, long int &z) : x(x), z(z){};
-		    Key(const long int &x, const long int &z) : x(x), z(z){};
-		    Key(const QPointF &p)
+    public:
+        struct Dimensions
+        {
+            int TILE_SIZE = 10;
+            float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
+        };
+        struct Key
+        {
+            long int x;
+            long int z;
+            public:
+                Key() : x(0), z(0){};
+                Key(long int &&x, long int &&z) : x(std::move(x)), z(std::move(z)){};
+                Key(long int &x, long int &z) : x(x), z(z){};
+                Key(const long int &x, const long int &z) : x(x), z(z){};
+                Key(const QPointF &p)
+                {
+                    x = p.x();
+                    z = p.y();
+                };
+                bool operator==(const Key &other) const
+                {
+                    return x == other.x && z == other.z;
+                };
+                void save(std::ostream &os) const   { os << x << " " << z << " "; }; //method to save the keys
+                void read(std::istream &is)         { is >> x >> z; };					   //method to read the keys
+        };
+
+        struct KeyHasher
+        {
+            std::size_t operator()(const Key &k) const
             {
-                x = p.x();
-                z = p.y();
+                using boost::hash_combine;
+                using boost::hash_value;
+                // Start with a hash value of 0    .
+                std::size_t seed = 0;
+                // Modify 'seed' by XORing and bit-shifting in one member of 'Key' after the other:
+                hash_combine(seed, hash_value(k.x));
+                hash_combine(seed, hash_value(k.z));
+                return seed;
             };
-            bool operator==(const Key &other) const
-            {
-                return x == other.x && z == other.z;
-            };
-            void save(std::ostream &os) const   { os << x << " " << z << " "; }; //method to save the keys
-            void read(std::istream &is)         { is >> x >> z; };					   //method to read the keys
-	};
+        };
+        using FMap = std::unordered_map<Key, T, KeyHasher>;
+        void initialize(std::shared_ptr<Collisions> collisions_, const std::string &file_name = std::string());
+        std::tuple<bool, T &> getCell(long int x, long int z);
+        std::tuple<bool, T &> getCell(const Key &k);
+        T at(const Key &k) const                    { return fmap.at(k);};
+        T &at(const Key &k)                         { return fmap.at(k);};
+        typename FMap::iterator begin()             { return fmap.begin(); };
+        typename FMap::iterator end()               { return fmap.end(); };
+        typename FMap::const_iterator begin() const { return fmap.begin(); };
+        typename FMap::const_iterator end() const   { return fmap.begin(); };
+        size_t size() const                         { return fmap.size(); };
+        FMap getMap()                               { return fmap_aux; }
+        void resetGrid()                            { fmap = fmap_aux; }
+        template <typename Q>
+        void insert(const Key &key, const Q &value)
+        {
+            fmap.insert(std::make_pair(key, value));
+        }
+        void clear();
+        void saveToFile(const std::string &fich);
+        void readFromFile(const std::string &fich);
+        std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
+        Key pointToGrid(long int x, long int z) const;
+        void setFree(const Key &k);
+        void setOccupied(const Key &k);
+        void setCost(const Key &k,float cost);
+        void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
+        void modifyCostInGrid(const QPolygonF &poly, float cost);
+        std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
+        std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> xincs,const std::vector<int> zincs, bool all = false);
+        void draw(QGraphicsScene* scene);
 
-	struct KeyHasher
-	{
-		std::size_t operator()(const Key &k) const
-		{
-			using boost::hash_combine;
-			using boost::hash_value;
-			// Start with a hash value of 0    .
-			std::size_t seed = 0;
-			// Modify 'seed' by XORing and bit-shifting in one member of 'Key' after the other:
-			hash_combine(seed, hash_value(k.x));
-			hash_combine(seed, hash_value(k.z));
-			return seed;
-		};
-	};
-	using FMap = std::unordered_map<Key, T, KeyHasher>;
-    void initialize(std::shared_ptr<Collisions> collisions_);
-    std::tuple<bool, T &> getCell(long int x, long int z);
-    std::tuple<bool, T &> getCell(const Key &k);
-	T at(const Key &k) const                    { return fmap.at(k);};
-	T &at(const Key &k)                         { return fmap.at(k);};
-	typename FMap::iterator begin()             { return fmap.begin(); };
-	typename FMap::iterator end()               { return fmap.end(); };
-	typename FMap::const_iterator begin() const { return fmap.begin(); };
-	typename FMap::const_iterator end() const   { return fmap.begin(); };
-	size_t size() const                         { return fmap.size(); };
-    FMap getMap()                               { return fmap_aux; }
-    void resetGrid()                            { fmap = fmap_aux; }
-    template <typename Q>
-	void insert(const Key &key, const Q &value)
-	{
-		fmap.insert(std::make_pair(key, value));
-	}
-	void clear();
-	void saveToFile(const std::string &fich);
-    void readFromFile(const std::string &fich);
-	std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
-	auto pointToGrid(long int x, long int z) const -> decltype(Key())
-	{
-		int kx = (x - dim.HMIN) / dim.TILE_SIZE;
-		int kz = (z - dim.VMIN) / dim.TILE_SIZE;
-		return Key(dim.HMIN + kx * dim.TILE_SIZE, dim.VMIN + kz * dim.TILE_SIZE);
-	};
-
-	void setFree(const Key &k);
-	void setOccupied(const Key &k);
-    void setCost(const Key &k,float cost);
-	void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
-    void modifyCostInGrid(const QPolygonF &poly, float cost);
-	std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
-	std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> xincs,const std::vector<int> zincs, bool all = false);
-    void draw(QGraphicsScene* scene);
-
-private:
-	FMap fmap, fmap_aux;
-	Dimensions dim;
-    std::vector<QGraphicsRectItem *> scene_grid_points;
-
-    /**
-    * @brief Recovers the optimal path from the list of previous nodes
-    *
-    */
-	std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
-	inline double heuristicL2(const Key &a, const Key &b) const;
+    private:
+        FMap fmap, fmap_aux;
+        Dimensions dim;
+        std::vector<QGraphicsRectItem *> scene_grid_points;
+        std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
+        inline double heuristicL2(const Key &a, const Key &b) const;
 };
 
 

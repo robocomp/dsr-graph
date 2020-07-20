@@ -3,29 +3,38 @@
 #include <QGraphicsRectItem>
 
 template <typename T>
-void Grid<T>::initialize(std::shared_ptr<Collisions> collisions_)
+void Grid<T>::initialize(std::shared_ptr<Collisions> collisions_, const std::string &file_name)
 {
-    qDebug()<<"Grid - " <<__FUNCTION__;
+    qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
     uint count = 0;
     dim.TILE_SIZE = int(TILE_SIZE_);
     dim.HMIN = std::min(collisions_->outerRegion.left(), collisions_->outerRegion.right());
     dim.WIDTH = std::max(collisions_->outerRegion.left(), collisions_->outerRegion.right()) - dim.HMIN;
     dim.VMIN = std::min(collisions_->outerRegion.top(), collisions_->outerRegion.bottom());
     dim.HEIGHT = std::max(collisions_->outerRegion.top(), collisions_->outerRegion.bottom()) - dim.VMIN;
+    qDebug() << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+
     fmap.clear();
     fmap_aux.clear();
 
-    qDebug()<<"Collisions - checkRobotValidStateAtTargetFast";
+    if(not file_name.empty())
+    {
+        readFromFile(file_name);
+        fmap_aux = fmap;
+    }
+    else
+    {
+        qDebug() << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast";
 
-    for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
-        for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
-        {
-            bool free = collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{(float)i,10.0,(float)j},std::vector<float>{0.0,0.0,0.0});
-            fmap.emplace(Key(i, j), T{count++, free, false, 1.f});
-        }
-
-    collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{0.0,10.0,0.0},std::vector<float>{0.0,0.0,0.0}); //para devolver el robot a la posición 0,0
-    fmap_aux = fmap;
+        for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
+            for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
+            {
+                bool free = collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
+                fmap.emplace(Key(i, j), T{count++, free, false, 1.f});
+            }
+        collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{0.0, 10.0, 0.0}, std::vector<float>{0.0, 0.0,0.0}); //para devolver el robot a la posición 0,0
+        fmap_aux = fmap;
+    }
     std::cout << "Grid::Initialize. Grid initialized to map size: " << fmap.size() << std::endl;
 }
 
@@ -46,6 +55,14 @@ std::tuple<bool, T &> Grid<T>::getCell(const Key &k) //overladed version
     else
         return std::forward_as_tuple(true, fmap.at(pointToGrid(k.x, k.z)));
 }
+
+template <typename T>
+typename Grid<T>::Key Grid<T>::pointToGrid(long int x, long int z) const
+{
+    int kx = (x - dim.HMIN) / dim.TILE_SIZE;
+    int kz = (z - dim.VMIN) / dim.TILE_SIZE;
+    return Key(dim.HMIN + kx * dim.TILE_SIZE, dim.VMIN + kz * dim.TILE_SIZE);
+};
 
 template <typename T>
 void Grid<T>::saveToFile(const std::string &fich)
@@ -70,9 +87,10 @@ void Grid<T>::readFromFile(const std::string &fich)
     {
         //std::cout << line << std::endl;
         stringstream ss(line);
-        int x,z;  bool free, visited;
+        int x, z;
+        bool free, visited;
         ss >> x >> z >> free >> visited;
-        fmap.emplace(Key(x, z), T{count++, free, false, 1.f});
+        fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f});
     }
 }
 
@@ -85,7 +103,8 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
     // Admission rules
     if (!(target.x >= dim.HMIN and target.x < dim.HMIN + dim.WIDTH and target.z >= dim.VMIN and target.z < dim.VMIN + dim.HEIGHT))
     {
-        qDebug() << __FUNCTION__ << "Target out of limits. Returning empty path";
+        qDebug() << __FUNCTION__ << "Target " << target_.x() << target_.y() << "out of limits " << dim.HMIN << dim.VMIN << dim.HMIN+dim.WIDTH << dim.VMIN+dim.HEIGHT
+        << "Returning empty path";
         return std::list<QPointF>();
     }
     if (!(source.x >= dim.HMIN and source.x < dim.HMIN + dim.WIDTH and source.z >= dim.VMIN and source.z < dim.VMIN + dim.HEIGHT))
@@ -238,8 +257,7 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
                 dist = vec.length();
                 closestVector = vec;
             }
-
-            qDebug()<< "Obstacle found";
+            qDebug() << __FUNCTION__ << "Obstacle found";
             obstacleFound = true;
         }
     }
@@ -249,7 +267,6 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
         const int &I = dim.TILE_SIZE;
         static const std::vector<int> xincs = {0,   I,   2*I,  2*I, 2*I, 2*I, 2*I, I, 0, -I, -2*I, -2*I,-2*I,-2*I,-2*I, -I};
         static const std::vector<int> zincs = {2*I, 2*I, 2*I,  I,   0 , -I , -2*I, -2*I,-2*I,-2*I,-2*I, -I, 0,I, 2*I, 2*I};
-
         auto DistNeigh = neighboors(k,xincs,zincs, true);
         for (auto n : DistNeigh)
         {
@@ -269,7 +286,6 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
         }
     }
     qDebug()<<" reloj "<< reloj.restart();
-
     return std::make_tuple(obstacleFound,closestVector);
 }
 
@@ -379,3 +395,16 @@ void Grid<T>::clear()
 {
     fmap.clear();
 }
+
+template <class T>
+auto operator<<(std::ostream &os, const T &t) -> decltype(t.save(os), os)
+{
+    t.save(os);
+    return os;
+};
+template <class T>
+auto operator>>(std::istream &is, T &t) -> decltype(t.read(is), is)
+{
+    t.read(is);
+    return is;
+};
