@@ -32,8 +32,7 @@
 #include <CommonBehavior.h>
 
 #include <DSRGetID.h>
-#include <SocialNavigationGaussian.h>
-#include <SocialRules.h>
+
 
 
 #define CHECK_PERIOD 5000
@@ -57,9 +56,6 @@ public:
 
 
 	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
-
-	virtual void SocialRules_objectsChanged (RoboCompSocialRules::SRObjectSeq objectsAffordances) = 0;
-	virtual void SocialRules_personalSpacesChanged (RoboCompSocialNavigationGaussian::SNGPolylineSeq intimateSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq personalSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq socialSpaces) = 0;
 
 protected:
 

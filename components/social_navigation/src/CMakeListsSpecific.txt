@@ -3,6 +3,8 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  navigation.cpp
+  grid.cpp
   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
