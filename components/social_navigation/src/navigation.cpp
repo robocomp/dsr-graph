@@ -17,10 +17,7 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     //grid can't be initialized if the robot is moving
     collisions =  std::make_shared<Collisions>();
     collisions->initialize(G, configparams);
-    if(file_name == "")
-        grid.initialize(collisions);
-    else
-        grid.readFromFile(file_name);
+    grid.initialize(collisions, file_name);
     grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
@@ -217,7 +214,7 @@ RoboCompLaser::TLaserData Navigation<TMap, TController>::computeLaser(RoboCompLa
 template<typename TMap, typename TController>
 bool Navigation<TMap, TController>::findNewPath()
 {
-    qDebug()<<"Navigation - "<< __FUNCTION__;
+    qDebug() << __FUNCTION__;
     pathPoints.clear();
 
     // extract target from current_path
@@ -229,6 +226,7 @@ bool Navigation<TMap, TController>::findNewPath()
 
     if (path.size() > 0)
     {
+        qDebug() << __FUNCTION__ << "Path created with length " << path.size();
         pathPoints.push_back(currentRobotNose);
         printf("%.2f %.2f\n", (float)currentRobotNose.x(), (float)currentRobotNose.y());
         for (const QPointF &p : path)
@@ -237,7 +235,6 @@ bool Navigation<TMap, TController>::findNewPath()
             printf("%.2f %.2f\n", (float)p.x(), (float)p.y());
         }
         lastPointInPath = pathPoints[pathPoints.size()-1];
-        std::terminate();
         return true;
     }
     else
