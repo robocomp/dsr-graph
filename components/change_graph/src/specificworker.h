@@ -85,12 +85,12 @@ Q_OBJECT
 
 
 	private:
-		void fill_table(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrib);
-		std::map<std::string, CRDT::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrs);
+		void fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrib);
+		std::map<std::string, DSR::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs);
 
 
 };
 
-Q_DECLARE_METATYPE(CRDT::Node);
-Q_DECLARE_METATYPE(CRDT::Edge);
+Q_DECLARE_METATYPE(DSR::Node);
+Q_DECLARE_METATYPE(DSR::Edge);
 #endif

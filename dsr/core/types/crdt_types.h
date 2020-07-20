@@ -21,16 +21,17 @@ namespace DSR {
         }
     };
 
-    static constexpr std::array<std::string_view, 7> TYPENAMES_UNION = { "STRING", "INT", "FLOAT",
-                                                                        "FLOAT_VEC", "BOOL", "BYTE_VEC"};
-    using ValType = std::variant<std::string, int32_t, float, std::vector<float>, bool, std::vector<uint8_t>>;
+    static constexpr std::array<std::string_view, 8> TYPENAMES_UNION = { "STRING", "INT", "FLOAT",
+                                                                        "FLOAT_VEC", "BOOL", "BYTE_VEC", "UINT",};
+    using ValType = std::variant<std::string, int32_t, float, std::vector<float>, bool, std::vector<uint8_t>, uint32_t>;
     enum Types : uint32_t {
         STRING,
         INT,
         FLOAT,
         FLOAT_VEC,
         BOOL,
-        BYTE_VEC
+        BYTE_VEC,
+        UINT,
     };
 
 
@@ -62,6 +63,10 @@ namespace DSR {
                     break;
                 case 5: {
                     val = x.byte_vec();
+                    break;
+                }
+                case 6: {
+                    val = x.uint();
                     break;
                 }
                 default:
@@ -119,6 +124,9 @@ namespace DSR {
                     return bl() < rhs.bl();
                 case 5:
                     return byte_vec() < rhs.byte_vec();
+                case 6: {
+                    return uint() < rhs.uint();
+                }
                 default:
                     return false;
             }
@@ -177,6 +185,9 @@ namespace DSR {
                         os << static_cast<uint8_t >(k) << ", ";
                     os << "] ";
                     break;
+                case 6:
+                    os << " uint: " << type.uint();
+                    break;
                 default:
                     os << "OTRO TIPO";
                     break;
@@ -197,6 +208,10 @@ namespace DSR {
         void dec(int32_t _dec);
 
         [[nodiscard]] int32_t dec() const;
+
+        void uint(uint32_t _udec);
+
+        [[nodiscard]] uint32_t uint() const;
 
         void fl(float _fl);
 

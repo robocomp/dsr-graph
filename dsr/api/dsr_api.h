@@ -99,6 +99,7 @@ namespace DSR {
 
     template<typename Va>
     static bool constexpr allowed_return_types = std::is_same<std::int32_t, Va>::value ||
+                                                 std::is_same<std::uint32_t, Va>::value ||
                                                  std::is_same<std::string, Va>::value ||
                                                  std::is_same<std::float_t, Va>::value ||
                                                  std::is_same<std::vector<float_t>, Va>::value ||
@@ -242,9 +243,15 @@ namespace DSR {
                 } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
                     at.type(FLOAT_VEC);
                     value.float_vec(att_value);
+                } else if constexpr (std::is_same<std::vector<uint8_t>, Ta>::value) {
+                    at.type(BYTE_VEC);
+                    value.byte_vec(att_value);
                 } else if constexpr (std::is_same<bool, Ta>::value) {
                     at.type(BOOL);
                     value.bl(att_value);
+                } else if constexpr (std::is_same<std::uint32_t, Ta>::value) {
+                    at.type(UINT);
+                    value.uint(att_value);
                 }
 
                 at.val(std::move(value));
@@ -356,6 +363,9 @@ namespace DSR {
             }
             if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
                 return av->val().byte_vec();
+            }
+            if constexpr (std::is_same<Ta, std::uint32_t>::value) {
+                return av->val().uint();
             }
             if constexpr (std::is_same<Ta, QVec>::value) {
                 const auto &val = av->val().float_vec();
@@ -687,10 +697,10 @@ namespace DSR {
 
         void update_attrs_signal(std::uint32_t id,
                                  const std::unordered_map<string, Attribute> &attribs); //Signal to show node attribs.
-        void update_edge_signal(std::uint32_t from, uint32_t to,
+        void update_edge_signal(std::uint32_t from, std::uint32_t to,
                                 const std::string &type);                   // Signal to show edge attribs.
 
-        void del_edge_signal(std::uint32_t from, uint32_t to,
+        void del_edge_signal(std::uint32_t from, std::uint32_t to,
                              const std::string &edge_tag); // Signal to del edge.
         void del_node_signal(
                 std::uint32_t from);                                                     // Signal to del node.

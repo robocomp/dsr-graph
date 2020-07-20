@@ -121,9 +121,9 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
             try{
                 if (dsr_getid_proxy != nullptr)
                 {
-                    //int new_node_id = dsr_getid_proxy->getID();
-                    //node.id(new_node_id);
-                    //node.name(node.type() + "_" + std::to_string(new_node_id));
+                    int new_node_id = dsr_getid_proxy->getID();
+                    node.id(new_node_id);
+                    node.name(node.type() + "_" + std::to_string(new_node_id));
                 }
             }
             catch(const std::exception& e)
@@ -467,18 +467,11 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to)) {
             CRDTEdge e;
-            e.to(to);
-            e.from(n.id());
-            e.type("RT");
-            e.agent_id(agent_id);
+            e.to(to);  e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             CRDTAttribute tr;
-            tr.type(3);
-            tr.val(CRDTValue(std::move(trans)));
-            tr.timestamp(get_unix_timestamp());
+            tr.type(3); tr.val(CRDTValue(std::move(trans))); tr.timestamp(get_unix_timestamp());
             CRDTAttribute rot;
-            rot.type(3);
-            rot.val(CRDTValue(std::move(rot_euler)));
-            rot.timestamp(get_unix_timestamp());
+            rot.type(3); rot.val(CRDTValue(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
             if (e.attrs().find("rotation_euler_xyz") == e.attrs().end()) {
                 mvreg<CRDTAttribute, uint32_t> mv;
                 e.attrs().insert(make_pair("rotation_euler_xyz", mv));
@@ -619,8 +612,10 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<
     }
     if (node1_insert.has_value() and node2.has_value()) {
         dsrpub_edge.write(&node1_insert.value());
-        for (auto &d : node2.value())
+        for (auto &d : node2.value()) {
+            std::cout << d.attr_name() << " "<< d.dk().ds().begin()->second.value()._d() << std::endl;
             dsrpub_node_attrs.write(&d);
+        }
     }
 
     if (node1_update.has_value() and node2.has_value()) {
@@ -823,11 +818,11 @@ std::optional<std::int32_t> DSRGraph::get_node_level(Node &n) {
 }
 
 std::optional<std::uint32_t> DSRGraph::get_parent_id(const Node &n) {
-    return get_attrib_by_name<std::int32_t>(n, "parent");
+    return get_attrib_by_name<std::uint32_t>(n, "parent");
 }
 
 std::optional<DSR::Node> DSRGraph::get_parent_node(const Node &n) {
-    auto p = get_attrib_by_name<std::int32_t>(n, "parent");
+    auto p = get_attrib_by_name<std::uint32_t>(n, "parent");
     if (p.has_value()) {
         std::shared_lock<std::shared_mutex> lock(_mutex);
         return get_(p.value());
@@ -1200,6 +1195,7 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
                         }
                         temp_node_attr[k].erase(kk);
                     }
+                    print_node(*nodes[k].read().begin());
 
                     update_maps_node_insert(k, *mv.read().begin());
                     updates.emplace_back(make_tuple(true, k, nodes[k].read().begin()->type(), nd));
@@ -1275,7 +1271,9 @@ std::map<uint32_t, IDL::Mvreg> DSRGraph::Map() {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::map<uint32_t, IDL::Mvreg> m;
     for (auto kv : nodes.getMapRef()) {
+        //std::cout << "P " << kv.second.dk.ds.begin()->second.attrs().find("parent")->second.dk.ds.begin()->second << std::endl;
         m[kv.first] = translateNodeMvCRDTtoIDL(agent_id, kv.first, kv.second);
+        std::cout << "P " << m[kv.first].dk().ds().begin()->second.attrs().find("parent")->second.dk().ds().begin()->second.value().uint() << std::endl;
     }
     return m;
 }
@@ -1305,7 +1303,7 @@ void DSRGraph::node_subscription_thread(bool showReceived) {
         }
     };
     dsrpub_call_node = NewMessageFunctor(this, &work, lambda_general_topic);
-    dsrsub_node.init(dsrparticipant.getParticipant(), "DSR", dsrparticipant.getNodeTopicName(), dsrpub_call_node);
+    dsrsub_node.init(dsrparticipant.getParticipant(), "DSR_NODE", dsrparticipant.getNodeTopicName(), dsrpub_call_node);
 }
 
 void DSRGraph::edge_subscription_thread(bool showReceived) {

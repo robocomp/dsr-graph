@@ -19,6 +19,8 @@
 #include "specificworker.h"
 #include <thread>
 
+
+using namespace DSR;
 /**
 * \brief Default constructor
 */
@@ -124,19 +126,18 @@ void SpecificWorker::change_node_slot(int id)
     qDebug()<<id;
     Node node = node_cb->itemData(id).value<Node>();
     node_id_label->setText("("+QString::number(node.id())+":"+QString::fromStdString(node.type())+")");
-    fill_table(node_attrib_tw, node.attrs());
+    fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
 }
 
 void SpecificWorker::change_edge_slot(int id)
 {
-    CRDT::Edge edge = edge_cb->itemData(id).value<CRDT::Edge>();
-    Edge edge = edge_cb->itemData(id).value<Edge>();
+    DSR::Edge edge = edge_cb->itemData(id).value<DSR::Edge>();
     edge_id_label->setText("("+QString::number(edge.from())+"-"+QString::number(edge.to())+":"+QString::fromStdString(edge.type())+")");
-    fill_table(edge_attrib_tw, edge.attrs());
+    fill_table(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
 }
 
 
-void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attribs)
+void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attribs)
 {
     table_widget->setRowCount(0);
     for(auto [key, value] : attribs)
@@ -145,20 +146,28 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
         QTableWidgetItem *item =new QTableWidgetItem(QString::fromStdString(key));
         item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
         table_widget->setItem(table_widget->rowCount()-1, 0, item);
-        switch (value.val().selected())
+        switch (value.selected())
         {
             case 0:
                 {
-                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(value.val().str()));
+                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(value.str()));
                     table_widget->setCellWidget(table_widget->rowCount()-1, 1, ledit);
                 }
                 break;
-            case 1:
+            case 1:{
+                QSpinBox *spin = new QSpinBox();
+                spin->setMinimum(-10000);
+                spin->setMaximum(10000);
+                spin->setValue(value.dec());
+                table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
+            }
+                break;
+            case 6:
                 {
                     QSpinBox *spin = new QSpinBox();
                     spin->setMinimum(-10000);
                     spin->setMaximum(10000);
-                    spin->setValue(value.val().dec());
+                    spin->setValue(value.uint());
                     table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
                 }
                 break;
@@ -167,7 +176,7 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
                     QDoubleSpinBox *spin = new QDoubleSpinBox();
                     spin->setMinimum(-10000);
                     spin->setMaximum(10000);
-                    spin->setValue(std::round(static_cast<double>(value.val().fl()) *1000000)/ 1000000);
+                    spin->setValue(std::round(static_cast<double>(value.fl()) *1000000)/ 1000000);
                     table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
                 }
                 break;
@@ -176,14 +185,14 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
                     QWidget  *widget = new QWidget();
                     QHBoxLayout *layout = new QHBoxLayout;
                     widget->setLayout(layout);
-                    if (!value.value().float_vec().empty())
+                    if (!value.float_vec().empty())
                     {
-                        for(std::size_t i = 0; i < value.val().float_vec().size(); ++i)
+                        for(std::size_t i = 0; i < value.float_vec().size(); ++i)
                         {
                             QDoubleSpinBox *spin = new QDoubleSpinBox();
                             spin->setMinimum(-10000);
                             spin->setMaximum(10000);
-                            spin->setValue(value.val().float_vec()[i]);
+                            spin->setValue(value.float_vec()[i]);
                             layout->addWidget(spin);
                         }
                         table_widget->setCellWidget(table_widget->rowCount()-1, 1, widget);
@@ -195,7 +204,7 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
                     QComboBox *combo = new QComboBox();
                     combo->addItem("true");
                     combo->addItem("false");
-                    if (value.val().bl())
+                    if (value.bl())
                         combo->setCurrentText("true");
                     else
                         combo->setCurrentText("false");
@@ -209,35 +218,36 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
 }
 
 
-std::map<std::string, CRDT::Attribute> SpecificWorker::get_table_content(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrs)
+std::map<std::string, DSR::Attribute> SpecificWorker::get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs)
 {
     for (int row=0; row < table_widget->rowCount(); row++)
     {
         std::string key = table_widget->item(row, 0)->text().toStdString();
-        switch(attrs[key].val().selected())
+        switch(attrs[key].selected())
         {
             case 0:
                 {
                     QLineEdit *ledit = (QLineEdit*)table_widget->cellWidget(row, 1);
-                    attrs[key].val().str(ledit->text().toStdString());
+                    attrs[key].str(ledit->text().toStdString());
                 }
                 break;
             case 1:
+            case 6:
                 {
                     QSpinBox *spin = (QSpinBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].val().dec(spin->value());
+                    attrs[key].dec(spin->value());
                 }
                 break;
             case 2:
                 {
                     QDoubleSpinBox *spin = (QDoubleSpinBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].val().fl(spin->value());
+                    attrs[key].fl(spin->value());
                 }
                 break;
             case 4:
                 {
                     QComboBox *combo = (QComboBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].val().bl(combo->currentText().contains("true"));
+                    attrs[key].bl(combo->currentText().contains("true"));
                 }
                 break;
             case 3:
@@ -248,7 +258,7 @@ std::map<std::string, CRDT::Attribute> SpecificWorker::get_table_content(QTableW
                     {
                         r.push_back(spin->value());
                     }
-                    attrs[key].val().float_vec(r);
+                    attrs[key].float_vec(r);
                     std::cout<<r;
                 }
                 break;                
@@ -260,10 +270,10 @@ std::map<std::string, CRDT::Attribute> SpecificWorker::get_table_content(QTableW
 
 void SpecificWorker::save_node_slot()
 {
-    CRDT::Node node = node_cb->itemData(node_cb->currentIndex()).value<CRDT::Node>();
+    DSR::Node node = node_cb->itemData(node_cb->currentIndex()).value<DSR::Node>();
 
-    std::map<std::string, CRDT::Attribute> new_attrs = get_table_content(node_attrib_tw, node.attrs());
-    node.attrs(new_attrs);
+    std::map<std::string, DSR::Attribute> new_attrs = get_table_content(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
+    node.attrs(std::unordered_map(new_attrs.begin(), new_attrs.end()));
     
     if(G->update_node(node))
         qDebug()<<"Node saved";
@@ -276,10 +286,10 @@ void SpecificWorker::save_node_slot()
 
 void SpecificWorker::save_edge_slot()
 {
-    CRDT::Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<CRDT::Edge>();
+    DSR::Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<DSR::Edge>();
 
-    std::map<std::string, CRDT::Attribute> new_attrs = get_table_content(edge_attrib_tw, edge.attrs());
-    edge.attrs(new_attrs);
+    std::map<std::string, DSR::Attribute> new_attrs = get_table_content(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
+    edge.attrs(std::unordered_map(new_attrs.begin(), new_attrs.end()));
     
     if(G->insert_or_assign_edge(edge))
         qDebug()<<"Edge saved";
@@ -317,8 +327,8 @@ void SpecificWorker::new_node_slot()
 
     Node node;
     node.type(node_type.toStdString());
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
-    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0f);
+    G->add_or_modify_attrib_local(node, "pos_y", 130.0f);
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
     try
     {
@@ -347,13 +357,13 @@ void SpecificWorker::new_node_attrib_slot()
     if(attrib_type == "int")
         G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0);
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
         G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
         G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
 
-    fill_table(node_attrib_tw, node.attrs());
+    fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
 }
 
 void SpecificWorker::new_edge_slot() {
@@ -400,7 +410,7 @@ void SpecificWorker::new_edge_attrib_slot()
     if(attrib_type == "int")
         G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0);
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
         G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
@@ -409,14 +419,14 @@ void SpecificWorker::new_edge_attrib_slot()
         std::vector<float> zeros{0.f,0.f,0.f};
         G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
     }
-    fill_table(edge_attrib_tw, edge.attrs());
+    fill_table(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
 }
 void SpecificWorker::del_node_attrib_slot() {
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
     std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
     if(G->remove_attrib_by_name(node, attrib_name))
     {
-        fill_table(node_attrib_tw, node.attrs());
+        fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
     }
     else
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
@@ -427,7 +437,7 @@ void SpecificWorker::del_edge_attrib_slot() {
     std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
     if(G->remove_attrib_by_name(edge, attrib_name))
     {
-        fill_table(edge_attrib_tw, edge.attrs());
+        fill_table(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
     }
     else
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";

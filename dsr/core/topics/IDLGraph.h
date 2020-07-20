@@ -89,6 +89,8 @@ namespace IDL {
                     return m_bl < rhs.m_bl;
                 case 5:
                     return m_byte_vec < rhs.m_byte_vec;
+                case 6:
+                    return m_byte_vec < rhs.m_byte_vec;
                 default:
                     return false;
             }
@@ -223,11 +225,28 @@ namespace IDL {
         eProsima_user_DllExport int32_t dec() const;
 
         /*!
-         * @brief This function returns a reference to member dec
+         * @brief This function returns a reference to member uint
          * @return Reference to member dec
          * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
          */
         eProsima_user_DllExport int32_t &dec();
+
+
+        eProsima_user_DllExport void uint(uint32_t _uint);
+
+        /*!
+         * @brief This function returns the value of member uint
+         * @return Value of member dec
+         * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
+         */
+        eProsima_user_DllExport uint32_t uint() const;
+
+        /*!
+         * @brief This function returns a reference to member uint
+         * @return Reference to member uint
+         * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
+         */
+        eProsima_user_DllExport uint32_t &uint();
 
         /*!
          * @brief This function sets a value in member fl
@@ -359,6 +378,7 @@ namespace IDL {
         std::vector<float> m_float_vec;
         bool m_bl;
         std::vector<uint8_t> m_byte_vec;
+        uint32_t m_uint;
     };
 
 /*!

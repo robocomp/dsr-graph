@@ -47,6 +47,7 @@ namespace IDL {
         m_bl = false;
         // m_byte_vec com.eprosima.idl.parser.typecode.SequenceTypeCode@727803de
 
+        m_uint = 0;
     }
 
     Val::~Val() {
@@ -73,6 +74,9 @@ namespace IDL {
                 break;
             case 5:
                 m_byte_vec = x.m_byte_vec;
+                break;
+            case 6:
+                m_uint = x.m_uint;
                 break;
             default:
                 break;
@@ -101,6 +105,9 @@ namespace IDL {
             case 5:
                 m_byte_vec = std::move(x.m_byte_vec);
                 break;
+            case 6:
+                m_uint = x.m_uint;
+                break;
             default:
                 break;
         }
@@ -127,6 +134,9 @@ namespace IDL {
                 break;
             case 5:
                 m_byte_vec = x.m_byte_vec;
+                break;
+            case 6:
+                m_uint = x.m_uint;
                 break;
             default:
                 break;
@@ -156,6 +166,9 @@ namespace IDL {
                 break;
             case 5:
                 m_byte_vec = std::move(x.m_byte_vec);
+                break;
+            case 6:
+                m_uint = x.m_uint;
                 break;
             default:
                 break;
@@ -216,6 +229,14 @@ namespace IDL {
             case 5:
                 switch (__d) {
                     case 5:
+                        b = true;
+                        break;
+                    default:
+                        break;
+                }
+            case 6:
+                switch (__d) {
+                    case 6:
                         b = true;
                         break;
                     default:
@@ -321,6 +342,46 @@ namespace IDL {
 
         return m_dec;
     }
+
+    void Val::uint(uint32_t _uint) {
+        m_uint = _uint;
+        m__d = 6;
+    }
+
+    uint32_t Val::uint() const {
+        bool b = false;
+
+        switch (m__d) {
+            case 6:
+                b = true;
+                break;
+            default:
+                break;
+        }
+        if (!b) {
+            throw BadParamException("This member is not been selected");
+        }
+
+        return m_uint;
+    }
+
+    uint32_t &Val::uint() {
+        bool b = false;
+
+        switch (m__d) {
+            case 6:
+                b = true;
+                break;
+            default:
+                break;
+        }
+        if (!b) {
+            throw BadParamException("This member is not been selected");
+        }
+
+        return m_uint;
+    }
+
 
     void Val::fl(float _fl) {
         m_fl = _fl;
@@ -552,6 +613,14 @@ namespace IDL {
         if (union_max_size_serialized < reset_alignment)
             union_max_size_serialized = reset_alignment;
 
+        reset_alignment = current_alignment;
+
+        reset_alignment += 4 + eprosima::fastcdr::Cdr::alignment(reset_alignment, 4);
+
+
+        if (union_max_size_serialized < reset_alignment)
+            union_max_size_serialized = reset_alignment;
+
 
         return union_max_size_serialized - initial_alignment;
     }
@@ -594,6 +663,9 @@ namespace IDL {
                 current_alignment +=
                         (data.byte_vec().size() * 1) + eprosima::fastcdr::Cdr::alignment(current_alignment, 1);
 
+            case 6:
+
+                current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
                 break;
             default:
@@ -625,6 +697,9 @@ namespace IDL {
             case 5:
                 scdr << m_byte_vec;
                 break;
+            case 6:
+                scdr << m_uint;
+                break;
             default:
                 break;
         }
@@ -651,6 +726,9 @@ namespace IDL {
                 break;
             case 5:
                 dcdr >> m_byte_vec;
+                break;
+            case 6:
+                dcdr >> m_uint;
                 break;
             default:
                 break;
