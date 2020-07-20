@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -20,18 +20,13 @@
 /**
 * \brief Default constructor
 */
-GenericWorker::GenericWorker(TuplePrx tprx) :
-#ifdef USE_QTGUI
-Ui_guiDlg()
-#else
-QObject()
-#endif
-
+GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
 	dsrgetid_proxy = std::get<0>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
+
 
 	#ifdef USE_QTGUI
 		setupUi(this);
@@ -64,4 +59,3 @@ void GenericWorker::setPeriod(int p)
 	Period = p;
 	timer.start(Period);
 }
-

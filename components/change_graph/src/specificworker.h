@@ -28,13 +28,13 @@
 #define SPECIFICWORKER_H
 
 #include <QLineEdit>
+#include <QInputDialog>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <genericworker.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
-#include "../../../graph-related-classes/dsr_to_osg_viewer.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 
 
 class SpecificWorker : public GenericWorker
@@ -42,10 +42,11 @@ class SpecificWorker : public GenericWorker
 Q_OBJECT
 
 	public:
-		std::shared_ptr<CRDT::CRDTGraph> G;
+		std::shared_ptr<DSR::DSRGraph> G;
 		std::string agent_name;
 
 	private:
+		bool startup_check_flag;
 		int agent_id;
 		std::string dsr_input_file;
 		std::string dsr_output_file;
@@ -53,9 +54,10 @@ Q_OBJECT
 		
 		// graph viewer
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
-
+        std::map<int, QString> node_combo_names;
+        std::map<std::string, QString> edge_combo_names;
 	public:
-		SpecificWorker(TuplePrx tprx);
+		SpecificWorker(TuplePrx tprx, bool startup_check);
 		~SpecificWorker();
 		bool setParams(RoboCompCommonBehavior::ParameterList params);
 
@@ -64,8 +66,23 @@ Q_OBJECT
 		void initialize(int period);
 		void change_node_slot(int id);
 		void save_node_slot();
+		void delete_node_slot();
 		void change_edge_slot(int id);
+		void delete_edge_slot();
 		void save_edge_slot();
+        void new_edge_slot();
+        void new_node_slot();
+        void new_node_attrib_slot();
+        void new_edge_attrib_slot();
+        void del_node_attrib_slot();
+        void del_edge_attrib_slot();
+
+        //G signals
+        void G_add_or_assign_node_slot(const std::int32_t id, const std::string &type);
+        void G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type);
+        void G_del_node_slot(const std::int32_t id);
+        void G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);
+
 
 	private:
 		void fill_table(QTableWidget *table_widget, std::map<std::string, CRDT::Attribute> attrib);
@@ -73,6 +90,7 @@ Q_OBJECT
 
 
 };
+
 Q_DECLARE_METATYPE(CRDT::Node);
 Q_DECLARE_METATYPE(CRDT::Edge);
 #endif

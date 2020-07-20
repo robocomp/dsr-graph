@@ -188,7 +188,7 @@ int ::idserver::run(int argc, char* argv[])
 			auto dsrgetid = std::make_shared<DSRGetIDI>(worker);
 			adapterDSRGetID->add(dsrgetid, Ice::stringToIdentity("dsrgetid"));
 			adapterDSRGetID->activate();
-			cout << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << tmp << endl;
+			qDebug() << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << QString::fromStdString(tmp) ;
 		}
 		catch (const IceStorm::TopicExists&){
 			cout << "[" << PROGRAM_NAME << "]: ERROR creating or activating adapter for DSRGetID\n";
@@ -196,7 +196,7 @@ int ::idserver::run(int argc, char* argv[])
 
 
 		// Server adapter creation and publication
-		cout << SERVER_FULL_NAME " started" << endl;
+		qDebug() << SERVER_FULL_NAME " started" ;
 
 		// User defined QtGui elements ( main window, dialogs, etc )
 
@@ -206,6 +206,7 @@ int ::idserver::run(int argc, char* argv[])
 		#endif
 		// Run QT Application Event Loop
 		a.exec();
+		qDebug() << "[" << PROGRAM_NAME << "]: Finishing qt application execution\n";
 
 
 		status = EXIT_SUCCESS;
@@ -223,10 +224,15 @@ int ::idserver::run(int argc, char* argv[])
 	#endif
 
 	status = EXIT_SUCCESS;
+	qDebug() << "[" << PROGRAM_NAME << "]: To terminate monitor\n";
 	monitor->terminate();
+	qDebug() << "[" << PROGRAM_NAME << "]: To wait monitor\n";
 	monitor->wait();
+	qDebug() << "[" << PROGRAM_NAME << "]: To delete worker\n";
 	delete worker;
+	qDebug() << "[" << PROGRAM_NAME << "]: deleted worker\n";
 	delete monitor;
+	qDebug() << "[" << PROGRAM_NAME << "]: deleted monitor\n";
 	return status;
 }
 

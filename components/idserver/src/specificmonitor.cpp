@@ -29,7 +29,7 @@ SpecificMonitor::SpecificMonitor(GenericWorker *_worker,Ice::CommunicatorPtr _co
 */
 SpecificMonitor::~SpecificMonitor()
 {
-	std::cout << "Destroying SpecificMonitor" << std::endl;
+	qDebug() << "Destroying SpecificMonitor" ;
 }
 
 void SpecificMonitor::run()
@@ -51,7 +51,7 @@ void SpecificMonitor::run()
  */
 void SpecificMonitor::initialize()
 {
-	rInfo("Starting monitor ...");
+	qDebug()<<"Starting monitor ...";
 	initialTime=QTime::currentTime();
 	RoboCompCommonBehavior::ParameterList params;
 	readPConfParams(params);

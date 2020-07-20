@@ -19,7 +19,6 @@
 #    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, Ice, os
-from PySide2 import QtWidgets, QtCore
 
 ROBOCOMP = ''
 try:
@@ -31,62 +30,38 @@ except KeyError:
 Ice.loadSlice("-I ./src/ --all ./src/CommonBehavior.ice")
 import RoboCompCommonBehavior
 
-additionalPathStr = ''
-icePaths = [ '/opt/robocomp/interfaces' ]
-try:
-    SLICE_PATH = os.environ['SLICE_PATH'].split(':')
-    for p in SLICE_PATH:
-        icePaths.append(p)
-        additionalPathStr += ' -I' + p + ' '
-    icePaths.append('/opt/robocomp/interfaces')
-except:
-    print('SLICE_PATH environment variable was not exported. Using only the default paths')
-    pass
-
 Ice.loadSlice("-I ./src/ --all ./src/CameraRGBDSimple.ice")
-from RoboCompCameraRGBDSimple import *
+import RoboCompCameraRGBDSimple 
 Ice.loadSlice("-I ./src/ --all ./src/CameraRGBDSimplePub.ice")
-from RoboCompCameraRGBDSimplePub import *
+import RoboCompCameraRGBDSimplePub 
 Ice.loadSlice("-I ./src/ --all ./src/GenericBase.ice")
-from RoboCompGenericBase import *
+import RoboCompGenericBase 
 Ice.loadSlice("-I ./src/ --all ./src/JoystickAdapter.ice")
-from RoboCompJoystickAdapter import *
+import RoboCompJoystickAdapter 
 Ice.loadSlice("-I ./src/ --all ./src/Laser.ice")
-from RoboCompLaser import *
+import RoboCompLaser 
+Ice.loadSlice("-I ./src/ --all ./src/LaserPub.ice")
+import RoboCompLaserPub 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobot.ice")
-from RoboCompOmniRobot import *
+import RoboCompOmniRobot 
+Ice.loadSlice("-I ./src/ --all ./src/OmniRobotPub.ice")
+import RoboCompOmniRobotPub 
+Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
+import RoboCompHumanToDSRPub 
 
-from camerargbdsimpleI import *
-from laserI import *
-from omnirobotI import *
-from joystickadapterI import *
+import camerargbdsimpleI 
+import laserI 
+import omnirobotI 
+import joystickadapterI 
 
+class GenericWorker():
 
-
-
-class GenericWorker(QtCore.QObject):
-
-    kill = QtCore.Signal()
+    #kill = QtCore.Signal()
 
     def __init__(self, mprx):
         super(GenericWorker, self).__init__()
 
         self.camerargbdsimplepub_proxy = mprx["CameraRGBDSimplePubPub"]
-
-        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
-        self.Period = 30
-        self.timer = QtCore.QTimer(self)
-
-
-    @QtCore.Slot()
-    def killYourSelf(self):
-        rDebug("Killing myself")
-        self.kill.emit()
-
-    # \brief Change compute period
-    # @param per Period in ms
-    @QtCore.Slot(int)
-    def setPeriod(self, p):
-        print("Period changed", p)
-        self.Period = p
-        self.timer.start(self.Period)
+        self.laserpub_proxy = mprx["LaserPubPub"]
+        self.omnirobotpub_proxy = mprx["OmniRobotPubPub"]
+        self.humantodsrpub_proxy = mprx["HumanToDSRPubPub"]

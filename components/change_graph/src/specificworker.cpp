@@ -22,7 +22,7 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx) {
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx, startup_check) {
 }
 
 /**
@@ -49,7 +49,7 @@ void SpecificWorker::initialize(int period)
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, ""); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 
      
     // Graph viewer
@@ -62,16 +62,17 @@ void SpecificWorker::initialize(int period)
         QVariant data;
         data.setValue(node);
 	    this->node_cb->addItem(QString::fromStdString(node.name()), data);
-
+        node_combo_names[node.id()] = QString::fromStdString(node.name());
         //edges
         for(const auto &[key, edge] : node.fano())
         {
             QVariant edge_data;
             edge_data.setValue(edge);
-            QString from = QString::fromStdString(G->get_node(edge.read().begin()->from()).value().name());
-            QString to = QString::fromStdString(G->get_node(edge.read().begin()->to()).value().name());
-            QString name = from + "_" + to + "_" + QString::fromStdString(edge.read().begin()->type());
+            QString from = QString::fromStdString(G->get_node(edge.from()).value().name());
+            QString to = QString::fromStdString(G->get_node(edge.to()).value().name());
+            QString name = from + "_" + to + "_" + QString::fromStdString(edge.type());
             this->edge_cb->addItem(name, edge_data);
+            edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
         }
 
     }
@@ -83,17 +84,31 @@ void SpecificWorker::initialize(int period)
     node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
     node_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     node_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-
+    node_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     edge_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
     edge_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-
+    edge_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
     connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
     connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
     connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
+    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
+    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
+    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
+    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
+    connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
+    connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
+    connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
+    connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
+
+    //G signals
+    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::G_add_or_assign_node_slot);
+    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::G_add_or_assign_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::G_del_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::G_del_node_slot);
 }
 
 
@@ -107,14 +122,16 @@ void SpecificWorker::compute()
 void SpecificWorker::change_node_slot(int id)
 {
     qDebug()<<id;
-    CRDT::Node node = node_cb->itemData(id).value<CRDT::Node>();
-
+    Node node = node_cb->itemData(id).value<Node>();
+    node_id_label->setText("("+QString::number(node.id())+":"+QString::fromStdString(node.type())+")");
     fill_table(node_attrib_tw, node.attrs());
 }
 
 void SpecificWorker::change_edge_slot(int id)
 {
     CRDT::Edge edge = edge_cb->itemData(id).value<CRDT::Edge>();
+    Edge edge = edge_cb->itemData(id).value<Edge>();
+    edge_id_label->setText("("+QString::number(edge.from())+"-"+QString::number(edge.to())+":"+QString::fromStdString(edge.type())+")");
     fill_table(edge_attrib_tw, edge.attrs());
 }
 
@@ -125,7 +142,9 @@ void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string
     for(auto [key, value] : attribs)
     {
         table_widget->insertRow( table_widget->rowCount() );
-        table_widget->setItem(table_widget->rowCount()-1, 0, new QTableWidgetItem(QString::fromStdString(key)));
+        QTableWidgetItem *item =new QTableWidgetItem(QString::fromStdString(key));
+        item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        table_widget->setItem(table_widget->rowCount()-1, 0, item);
         switch (value.val().selected())
         {
             case 0:
@@ -262,11 +281,202 @@ void SpecificWorker::save_edge_slot()
     std::map<std::string, CRDT::Attribute> new_attrs = get_table_content(edge_attrib_tw, edge.attrs());
     edge.attrs(new_attrs);
     
-    if(true)//G->insert_or_assign_edge(edge))
+    if(G->insert_or_assign_edge(edge))
         qDebug()<<"Edge saved";
     else
     {
         qDebug()<<"Error saving edge";
     }
   
+}
+
+void SpecificWorker::delete_edge_slot()
+{
+    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    if (not G->delete_edge(edge.from(), edge.to(), edge.type()))
+        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") could not be deleted";
+}
+
+void SpecificWorker::delete_node_slot()
+{
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    if( not  G->delete_node(node.id()))
+       qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";
+}
+
+
+void SpecificWorker::new_node_slot()
+{
+    //get node type
+    bool ok;
+    QStringList items;
+    items << tr("plane") << tr("transform") << tr("mesh") << tr("person")<< tr("omnirobot")<< tr("rgbd");
+    QString node_type = QInputDialog::getItem(this, tr("New node"), tr("Attrib name:"), items, 0, false, &ok);
+    if(not ok or node_type.isEmpty())
+        return;
+
+    Node node;
+    node.type(node_type.toStdString());
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
+    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
+    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    try
+    {
+        G->insert_node(node);
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+    }
+}
+
+void SpecificWorker::new_node_attrib_slot()
+{
+    bool ok1, ok2;
+    QString attrib_name = QInputDialog::getText(this, tr("New node attrib"),
+                                         tr("Attrib name:"), QLineEdit::Normal,
+                                         "name", &ok1);
+    QStringList items;
+    items << tr("int") << tr("float") << tr("string") << tr("bool");
+    QString attrib_type = QInputDialog::getItem(this, tr("New node attrib"), tr("Attrib type:"), items, 0, false, &ok2);
+
+    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
+        return;
+
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    if(attrib_type == "int")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
+    else if(attrib_type == "float")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0);
+    else if(attrib_type == "bool")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
+    else if(attrib_type == "string")
+        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
+
+    fill_table(node_attrib_tw, node.attrs());
+}
+
+void SpecificWorker::new_edge_slot() {
+    bool ok1, ok2, ok3;
+    int from = QInputDialog::getInt(this, tr("New edge"), "From  node id:", 0, 1, 50000, 1, &ok1);
+    int to = QInputDialog::getInt(this, tr("New edge"), "To  node id:", 0, 1, 50000, 1, &ok2);
+    QStringList items;
+    items << tr("RT");
+    QString edge_type = QInputDialog::getItem(this, tr("New edge"), tr("Edge type:"), items, 0, false, &ok3);
+
+    if (not ok1 or not ok2 or not ok3 or edge_type.isEmpty())
+        return;
+
+    std::optional<Node> from_node = G->get_node(from);
+    std::optional<Node> to_node = G->get_node(to);
+    if (from_node.has_value() and to_node.has_value()) {
+        try {
+            std::vector<float> trans{0.f, 0.f, 0.f};
+            std::vector<float> rot{0, 0.f, 0};
+            G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+        }
+        catch (const std::exception &e) {
+            std::cout << __FUNCTION__ << e.what() << std::endl;
+        }
+    }
+    else{
+        qDebug()<<"Selected node from or to does not exist";
+    }
+}
+void SpecificWorker::new_edge_attrib_slot()
+{
+    bool ok1, ok2;
+    QString attrib_name = QInputDialog::getText(this, tr("New edge attrib"),
+                                                tr("Attrib name:"), QLineEdit::Normal,
+                                                "name", &ok1);
+    QStringList items;
+    items << tr("int") << tr("float") << tr("string") << tr("bool") <<tr("vector");
+    QString attrib_type = QInputDialog::getItem(this, tr("New edge attrib"), tr("Attrib type:"), items, 0, false, &ok2);
+
+    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
+        return;
+
+    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    if(attrib_type == "int")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
+    else if(attrib_type == "float")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0);
+    else if(attrib_type == "bool")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
+    else if(attrib_type == "string")
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
+    else if(attrib_type == "vector") {
+        std::vector<float> zeros{0.f,0.f,0.f};
+        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
+    }
+    fill_table(edge_attrib_tw, edge.attrs());
+}
+void SpecificWorker::del_node_attrib_slot() {
+    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
+    std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
+    if(G->remove_attrib_by_name(node, attrib_name))
+    {
+        fill_table(node_attrib_tw, node.attrs());
+    }
+    else
+        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
+}
+
+void SpecificWorker::del_edge_attrib_slot() {
+    Edge edge = node_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
+    if(G->remove_attrib_by_name(edge, attrib_name))
+    {
+        fill_table(edge_attrib_tw, edge.attrs());
+    }
+    else
+        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
+}
+
+void SpecificWorker::G_add_or_assign_node_slot(const std::int32_t id, const std::string &type) {
+    Node node = G->get_node(id).value();
+    QVariant data;
+    data.setValue(node);
+    int pos = this->node_cb->findText(QString::fromStdString(node.name()));
+    if (pos == -1) { //insert item
+        this->node_cb->addItem(QString::fromStdString(node.name()), data);
+        node_combo_names[node.id()] = QString::fromStdString(node.name());
+    }
+    else //update item
+        this->node_cb->setItemData(pos, data);
+}
+void SpecificWorker::G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type){
+    Edge edge = G->get_edge(from, to, type).value();
+    QVariant edge_data;
+    edge_data.setValue(edge);
+    QString from_s = QString::fromStdString(G->get_node(edge.from()).value().name());
+    QString to_s = QString::fromStdString(G->get_node(edge.to()).value().name());
+    QString name = from_s + "_" + to_s + "_" + QString::fromStdString(type);
+
+    int pos = this->edge_cb->findText(name);
+    if (pos == -1) { //insert item
+        this->edge_cb->addItem(name, edge_data);
+        edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
+    }
+    else //update item
+        this->edge_cb->setItemData(pos, edge_data);
+
+}
+void SpecificWorker::G_del_node_slot(const std::int32_t id){
+    QString combo_name = node_combo_names[id];
+    qDebug()<<"G_del_node"<<id<<combo_name;
+    int pos = this->node_cb->findText(combo_name);
+    if (pos != -1) {
+        this->node_cb->removeItem(pos);
+        node_combo_names.erase(id);
+    }
+}
+void SpecificWorker::G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type){
+    QString combo_name = edge_combo_names[std::to_string(from)+"_"+std::to_string(to)+"_"+type];
+    int pos = this->edge_cb->findText(combo_name);
+    if (pos != -1)
+    {
+        this->edge_cb->removeItem(pos);
+        edge_combo_names.erase(std::to_string(from)+"_"+std::to_string(to)+"_"+type);
+    }
 }

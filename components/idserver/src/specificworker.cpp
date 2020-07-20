@@ -24,7 +24,7 @@
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 {
-
+	QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -32,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx) : GenericWorker(tprx)
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
+	qDebug() << "Destroying SpecificWorker" ;
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
@@ -53,7 +53,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
+	qDebug() << "Initialize worker" ;
 
 	// create graph
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
@@ -62,21 +62,24 @@ void SpecificWorker::initialize(int period)
 
 	// Graph viewer
 	using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G,  opts::scene|opts::graph|opts::tree|opts::osg, opts::graph);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree|opts::osg, opts::graph);
+//	mainLayout.addWidget(graph_viewer.get());
+//	window.setLayout(&mainLayout);
+//	setCentralWidget(&window);
 	setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 	connect(actionSaveToFile, &QAction::triggered,  [this]()
-		{
-            auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc",
+		{ 
+			auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc",
                                                           tr("JSON Files (*.json)"), nullptr,
                                                           QFileDialog::Option::DontUseNativeDialog);
-			G->write_to_json_file(file_name.toStdString());
+			G->write_to_json_file(file_name.toStdString()); 
 			qDebug() << __FUNCTION__ << "Written";
 		});
 	//connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
 
 	// Compute max Id in G
     get_max_id_from_G();
-	std::cout<< __FUNCTION__ << ": Graph loaded" << std::endl;  
+	qDebug()<< __FUNCTION__ << ": Graph loaded" ;
 	if(dsr_write_to_file)
 		timer.start(Period);
 	

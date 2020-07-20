@@ -28,7 +28,8 @@ HumanToDSRI::~HumanToDSRI()
 {
 }
 
-void HumanToDSRI::newPeopleData(PeopleData people, const Ice::Current&)
+
+void HumanToDSRI::newPeopleData(RoboCompHumanToDSR::PeopleData people, const Ice::Current&)
 {
 	worker->HumanToDSR_newPeopleData(people);
 }
