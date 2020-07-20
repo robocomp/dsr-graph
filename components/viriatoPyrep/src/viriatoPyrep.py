@@ -91,10 +91,11 @@ class CommonBehaviorI(RoboCompCommonBehavior.CommonBehavior):
 
 #SIGNALS handler
 def sigint_handler(*args):
-    QtCore.QCoreApplication.quit()
+    #QtCore.QCoreApplication.quit()
+    pass
     
 if __name__ == '__main__':
-    app = QtCore.QCoreApplication(sys.argv)
+    #app = QtCore.QCoreApplication(sys.argv)
     params = copy.deepcopy(sys.argv)
     if len(params) > 1:
         if not params[1].startswith('--Ice.Config='):
@@ -132,8 +133,63 @@ if __name__ == '__main__':
             except:
                 print('Another client created the CameraRGBDSimplePub topic? ...')
     pub = topic.getPublisher().ice_oneway()
-    camerargbdsimplepubTopic = CameraRGBDSimplePubPrx.uncheckedCast(pub)
+    camerargbdsimplepubTopic = RoboCompCameraRGBDSimplePub.CameraRGBDSimplePubPrx.uncheckedCast(pub)
     mprx["CameraRGBDSimplePubPub"] = camerargbdsimplepubTopic
+
+    # Create a proxy to publish a LaserPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("LaserPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("LaserPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("LaserPub")
+            except:
+                print('Another client created the LaserPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    laserpubTopic = RoboCompLaserPub.LaserPubPrx.uncheckedCast(pub)
+    mprx["LaserPubPub"] = laserpubTopic
+
+
+    # Create a proxy to publish a OmniRobotPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("OmniRobotPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("OmniRobotPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("OmniRobotPub")
+            except:
+                print('Another client created the OmniRobotPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    omnirobotpubTopic = RoboCompOmniRobotPub.OmniRobotPubPrx.uncheckedCast(pub)
+    mprx["OmniRobotPubPub"] = omnirobotpubTopic
+
+    # Create a proxy to publish a LaserPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("HumanToDSRPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("HumanToDSRPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("HumanToDSRPub")
+            except:
+                print('Another client created the HumanToDSRPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    humantodsrpubTopic = RoboCompHumanToDSRPub.HumanToDSRPubPrx.uncheckedCast(pub)
+    mprx["HumanToDSRPubPub"] = humantodsrpubTopic
 
     if status == 0:
         worker = SpecificWorker(mprx)
@@ -143,20 +199,20 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     adapter = ic.createObjectAdapter('CameraRGBDSimple')
-    adapter.add(CameraRGBDSimpleI(worker), ic.stringToIdentity('camerargbdsimple'))
+    adapter.add(camerargbdsimpleI.CameraRGBDSimpleI(worker), ic.stringToIdentity('camerargbdsimple'))
     adapter.activate()
 
     adapter = ic.createObjectAdapter('Laser')
-    adapter.add(LaserI(worker), ic.stringToIdentity('laser'))
+    adapter.add(laserI.LaserI(worker), ic.stringToIdentity('laser'))
     adapter.activate()
 
     adapter = ic.createObjectAdapter('OmniRobot')
-    adapter.add(OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
+    adapter.add(omnirobotI.OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
     adapter.activate()
 
 
     JoystickAdapter_adapter = ic.createObjectAdapter("JoystickAdapterTopic")
-    joystickadapterI_ = JoystickAdapterI(worker)
+    joystickadapterI_ = joystickadapterI.JoystickAdapterI(worker)
     joystickadapter_proxy = JoystickAdapter_adapter.addWithUUID(joystickadapterI_).ice_oneway()
 
     subscribeDone = False
@@ -178,7 +234,8 @@ if __name__ == '__main__':
     JoystickAdapter_adapter.activate()
 
     signal.signal(signal.SIGINT, sigint_handler)
-    app.exec_()
+    #app.exec_()
+    worker.compute()
 
     if ic:
         try:

@@ -4,9 +4,8 @@ CommonBehavior.Endpoints=tcp -p XXX
 # Proxies for required interfaces
 
 
-agent_id = 0
-agent_name = agent
-read_dsr = true
+agent_id = 10
+agent_name = viriato
 dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/initial_dsr.json
 
 

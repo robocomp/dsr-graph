@@ -52,6 +52,7 @@ public slots:
 	void initialize(int period);
 
 private:
+
 	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;

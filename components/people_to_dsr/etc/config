@@ -1,8 +1,8 @@
-CommonBehavior.Endpoints=tcp -p 10009
+CommonBehavior.Endpoints=tcp -p 10909
 
 
 # Endpoints for subscriptions
-HumanToDSRTopic.Endpoints=tcp -p 12000
+HumanToDSRPubTopic.Endpoints=tcp -p 12200
 
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 

@@ -29,8 +29,14 @@ SET ( HEADERS
   specificmonitor.h
   ../../../dsr/api/dsr_api.h
   ../../../dsr/gui/dsr_gui.h
+  ../../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/CRDT_graphviewer.h
+  ../../../graph-related-classes/CRDT_graph.h
+  ../../../graph-related-classes/CRDT_graphnode.h
+  ../../../graph-related-classes/CRDT_graphedge.h
+  
 )
-
+INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-g  -fmax-errors=1 -std=c++2a  )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )

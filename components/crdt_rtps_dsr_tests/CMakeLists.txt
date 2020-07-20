@@ -14,7 +14,7 @@ SET(RC_COMPONENT_INSTALL_PATH "/opt/robocomp" CACHE STRING "component install pa
 
 SUBDIRS( src )
 
-INSTALL(FILES etc/config DESTINATION ${RC_COMPONENT_INSTALL_PATH}/etc-default/ RENAME crdt_rtps_dsr_strings.conf )
+INSTALL(FILES etc/config DESTINATION ${RC_COMPONENT_INSTALL_PATH}/etc-default/ RENAME crdt_rtps_dsr_tests.conf )
 
 #ADD_CUSTOM_TARGET(doc doxygen Doxyfile)
 #ADD_CUSTOM_TARGET(installdoc mkdir -p ${RC_COMPONENT_INSTALL_PATH}/doc COMMAND cp -R doc/html ${RC_COMPONENT_INSTALL_PATH}/doc/crdt_rtps_dsr_tests )

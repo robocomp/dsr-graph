@@ -1,0 +1,15 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 0
+
+
+agent_id = 0 # Change id
+agent_name = crdt_rtps_dsr_tests
+dsr_input_file = "/path/to/json/input/file.json"
+
+InnerModelPath = innermodel.xml
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0

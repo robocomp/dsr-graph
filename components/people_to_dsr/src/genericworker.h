@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -32,25 +32,17 @@
 #include <CommonBehavior.h>
 
 #include <DSRGetID.h>
-#include <HumanToDSR.h>
+#include <HumanToDSRPub.h>
 
 
 #define CHECK_PERIOD 5000
 #define BASIC_PERIOD 100
 
-using namespace std;
-using namespace RoboCompDSRGetID;
-using namespace RoboCompHumanToDSR;
 
 using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
 
 
-class GenericWorker :
-#ifdef USE_QTGUI
-	public QMainWindow, public Ui_guiDlg
-#else
-	public QObject
- #endif
+class GenericWorker : public QMainWindow, public Ui_guiDlg
 {
 Q_OBJECT
 public:
@@ -63,9 +55,9 @@ public:
 	QMutex *mutex;
 
 
-	DSRGetIDPrxPtr dsrgetid_proxy;
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
-	virtual void HumanToDSR_newPeopleData(PeopleData people) = 0;
+	virtual void HumanToDSRPub_newPeopleData (RoboCompHumanToDSRPub::PeopleData people) = 0;
 
 protected:
 

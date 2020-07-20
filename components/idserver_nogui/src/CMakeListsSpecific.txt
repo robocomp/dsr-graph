@@ -19,7 +19,9 @@ SET ( SOURCES
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  ../../../dsr/api/dsr_api.h
+   ../../../dsr/api/dsr_api.h
+
+
 )
 
 set(CMAKE_CXX_STANDARD 17)

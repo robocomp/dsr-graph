@@ -81,24 +81,20 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
-#include <humantodsrI.h>
+#include <humantodsrpubI.h>
 
 
 
-// User includes here
-
-// Namespaces
-using namespace std;
-using namespace RoboCompCommonBehavior;
 
 class people_to_dsr : public RoboComp::Application
 {
 public:
-	people_to_dsr (QString prfx) { prefix = prfx.toStdString(); }
+	people_to_dsr (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
+	bool startup_check_flag;
 
 public:
 	virtual int run(int, char*[]);
@@ -134,7 +130,7 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	DSRGetIDPrxPtr dsrgetid_proxy;
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 	string proxy, tmp;
 	initialize();
@@ -145,7 +141,7 @@ int ::people_to_dsr::run(int argc, char* argv[])
 		{
 			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
 		}
-		dsrgetid_proxy = Ice::uncheckedCast<DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
+		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
 	}
 	catch(const Ice::Exception& ex)
 	{
@@ -167,7 +163,7 @@ int ::people_to_dsr::run(int argc, char* argv[])
 	}
 
 	tprx = std::make_tuple(dsrgetid_proxy);
-	SpecificWorker *worker = new SpecificWorker(tprx);
+	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
 	QObject::connect(monitor, SIGNAL(kill()), &a, SLOT(quit()));
@@ -206,27 +202,27 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 
 		// Server adapter creation and publication
-		std::shared_ptr<IceStorm::TopicPrx> humantodsr_topic;
-		Ice::ObjectPrxPtr humantodsr;
+		std::shared_ptr<IceStorm::TopicPrx> humantodsrpub_topic;
+		Ice::ObjectPrxPtr humantodsrpub;
 		try
 		{
-			if (not GenericMonitor::configGetString(communicator(), prefix, "HumanToDSRTopic.Endpoints", tmp, ""))
+			if (not GenericMonitor::configGetString(communicator(), prefix, "HumanToDSRPubTopic.Endpoints", tmp, ""))
 			{
-				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy HumanToDSRProxy";
+				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy HumanToDSRPubProxy";
 			}
-			Ice::ObjectAdapterPtr HumanToDSR_adapter = communicator()->createObjectAdapterWithEndpoints("humantodsr", tmp);
-			HumanToDSRPtr humantodsrI_ =  std::make_shared <HumanToDSRI>(worker);
-			auto humantodsr = HumanToDSR_adapter->addWithUUID(humantodsrI_)->ice_oneway();
-			if(!humantodsr_topic)
+			Ice::ObjectAdapterPtr HumanToDSRPub_adapter = communicator()->createObjectAdapterWithEndpoints("humantodsrpub", tmp);
+			RoboCompHumanToDSRPub::HumanToDSRPubPtr humantodsrpubI_ =  std::make_shared <HumanToDSRPubI>(worker);
+			auto humantodsrpub = HumanToDSRPub_adapter->addWithUUID(humantodsrpubI_)->ice_oneway();
+			if(!humantodsrpub_topic)
 			{
 				try {
-					humantodsr_topic = topicManager->create("HumanToDSR");
+					humantodsrpub_topic = topicManager->create("HumanToDSRPub");
 				}
 				catch (const IceStorm::TopicExists&) {
 					//Another client created the topic
 					try{
 						cout << "[" << PROGRAM_NAME << "]: Probably other client already opened the topic. Trying to connect.\n";
-						humantodsr_topic = topicManager->retrieve("HumanToDSR");
+						humantodsrpub_topic = topicManager->retrieve("HumanToDSRPub");
 					}
 					catch(const IceStorm::NoSuchTopic&)
 					{
@@ -241,13 +237,13 @@ int ::people_to_dsr::run(int argc, char* argv[])
 					return EXIT_FAILURE;
 				}
 				IceStorm::QoS qos;
-				humantodsr_topic->subscribeAndGetPublisher(qos, humantodsr);
+				humantodsrpub_topic->subscribeAndGetPublisher(qos, humantodsrpub);
 			}
-			HumanToDSR_adapter->activate();
+			HumanToDSRPub_adapter->activate();
 		}
 		catch(const IceStorm::NoSuchTopic&)
 		{
-			cout << "[" << PROGRAM_NAME << "]: Error creating HumanToDSR topic.\n";
+			cout << "[" << PROGRAM_NAME << "]: Error creating HumanToDSRPub topic.\n";
 			//Error. Topic does not exist
 		}
 
@@ -266,13 +262,14 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 		try
 		{
-			std::cout << "Unsubscribing topic: humantodsr " <<std::endl;
-			humantodsr_topic->unsubscribe( humantodsr );
+			std::cout << "Unsubscribing topic: humantodsrpub " <<std::endl;
+			humantodsrpub_topic->unsubscribe( humantodsrpub );
 		}
 		catch(const Ice::Exception& ex)
 		{
-			std::cout << "ERROR Unsubscribing topic: humantodsr " <<std::endl;
+			std::cout << "ERROR Unsubscribing topic: humantodsrpub " << ex.what()<<std::endl;
 		}
+
 
 		status = EXIT_SUCCESS;
 	}
@@ -301,36 +298,49 @@ int main(int argc, char* argv[])
 	string arg;
 
 	// Set config file
-	std::string configFile = "etc/config";
+	QString configFile("etc/config");
+	bool startup_check_flag = false;
+	QString prefix("");
 	if (argc > 1)
 	{
-		std::string initIC("--Ice.Config=");
-		size_t pos = std::string(argv[1]).find(initIC);
-		if (pos == 0)
+	    QString initIC = QString("--Ice.Config=");
+	    for (int i = 1; i < argc; ++i)
 		{
-			configFile = std::string(argv[1]+initIC.size());
-		}
-		else
-		{
-			configFile = std::string(argv[1]);
-		}
-	}
+		    arg = argv[i];
+            if (arg.find(initIC.toStdString(), 0) == 0)
+            {
+                configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+        }
 
-	// Search in argument list for --prefix= argument (if exist)
-	QString prefix("");
-	QString prfx = QString("--prefix=");
-	for (int i = 2; i < argc; ++i)
-	{
-		arg = argv[i];
-		if (arg.find(prfx.toStdString(), 0) == 0)
-		{
-			prefix = QString::fromStdString(arg).remove(0, prfx.size());
-			if (prefix.size()>0)
-				prefix += QString(".");
-			printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
-		}
-	}
-	::people_to_dsr app(prefix);
+        // Search in argument list for --prefix= argument (if exist)
+        QString prfx = QString("--prefix=");
+        for (int i = 2; i < argc; ++i)
+        {
+            arg = argv[i];
+            if (arg.find(prfx.toStdString(), 0) == 0)
+            {
+                prefix = QString::fromStdString(arg).remove(0, prfx.size());
+                if (prefix.size()>0)
+                    prefix += QString(".");
+                printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
+            }
+        }
 
-	return app.main(argc, argv, configFile.c_str());
+        // Search in argument list for --test argument (if exist)
+        QString startup = QString("--startup-check");
+		for (int i = 0; i < argc; ++i)
+		{
+			arg = argv[i];
+			if (arg.find(startup.toStdString(), 0) == 0)
+			{
+				startup_check_flag = true;
+				cout << "Startup check = True"<< endl;
+			}
+		}
+
+	}
+	::people_to_dsr app(prefix, startup_check_flag);
+
+	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }

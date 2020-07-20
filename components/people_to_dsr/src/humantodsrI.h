@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -26,7 +26,6 @@
 #include <config.h>
 #include "genericworker.h"
 
-using namespace RoboCompHumanToDSR;
 
 class HumanToDSRI : public virtual RoboCompHumanToDSR::HumanToDSR
 {
@@ -34,7 +33,7 @@ public:
 	HumanToDSRI(GenericWorker *_worker);
 	~HumanToDSRI();
 
-	void newPeopleData(PeopleData people, const Ice::Current&);
+	void newPeopleData(RoboCompHumanToDSR::PeopleData people, const Ice::Current&);
 
 private:
 
