@@ -70,10 +70,13 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
     if (checkPathState() == false)
         return;
 
-    computeForces(pathPoints, laserData_);
-    cleanPoints();
-    addPoints();
-    auto [blocked, active, xVel,zVel,rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose);
+    //computeForces(pathPoints, laserData_);
+    //cleanPoints();
+    //addPoints();
+    //auto [blocked, active, xVel,zVel,rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose);
+
+
+
     //    qDebug()<< "xVel "<<xVel << "zVel "<<zVel << "rotVel" << rotVel;
 
     //    if (blocked)
@@ -120,7 +123,8 @@ bool Navigation<TMap, TController>::isCurrentTargetActive()
 template<typename TMap, typename TController>
 bool Navigation<TMap, TController>::checkPathState()
 {
-   //std::cout << __FUNCTION__ << current_target.active.load() << " " << current_target.blocked.load() << std::endl;
+   std::cout << __FUNCTION__ << " " << current_target.active.load() << " " <<
+             current_target.blocked.load() << " "  << scene_road_points.size() << std::endl;
     if (current_target.active.load())
     {
         if (current_target.blocked.load())
@@ -140,10 +144,8 @@ bool Navigation<TMap, TController>::checkPathState()
             }
             else
             {
-                qDebug()<< "checkPathState - Path found";
-                this->current_target.lock();
+                std::cout << "checkPathState - Path found" << std::endl;
                 this->current_target.blocked.store(false);
-                this->current_target.unlock();
                 drawRoad();
                 // reloj.restart();
             }
@@ -158,16 +160,12 @@ template<typename TMap, typename TController>
 void Navigation<TMap, TController>::newRandomTarget()
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
-
     auto hmin = std::min(collisions->outerRegion.left(), collisions->outerRegion.right());
     auto width = std::max(collisions->outerRegion.left(), collisions->outerRegion.right()) - hmin;
     auto vmin = std::min(collisions->outerRegion.top(), collisions->outerRegion.bottom());
     auto height = std::max(collisions->outerRegion.top(), collisions->outerRegion.bottom()) - vmin;
-
     auto x = hmin + (double)rand() * width / (double)RAND_MAX;
     auto z = vmin + (double)rand() * height/ (double)RAND_MAX;
-
-
     this->current_target.lock();
     current_target.active.store(true);
     current_target.blocked.store(true);
@@ -383,14 +381,11 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
     if(isVisible(currentRobotNose))
     {
         pathPoints[0] = currentRobotNose;
-        drawRoad();
+        //drawRoad();
     }
     else
     {
-        this->current_target.lock();
         current_target.blocked.store(true);
-        this->current_target.unlock();
-
         qDebug()<< "Robot Nose not visible -- NEEDS REPLANNING ";
     }
 
@@ -576,7 +571,7 @@ QPointF Navigation<TMap, TController>::getRobotNose()
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::drawRoad()
 {
-    qDebug()<<"Navigation - "<< __FUNCTION__;
+    qDebug() << "Navigation - "<< __FUNCTION__;
     ///////////////////////
     // Preconditions
     ///////////////////////
@@ -613,8 +608,8 @@ void Navigation<TMap, TController>::drawRoad()
             else
                 color = "#A200FF";
 
-        line1 = viewer_2d->addLine(qli, QPen(QString::fromStdString(color)));
-        line2 = viewer_2d->addLine(qli_perp, QPen(QString::fromStdString(color)));
+        line1 = viewer_2d->addLine(qli, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qli_perp, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
         line1->setZValue(2000);
         line2->setZValue(2000);
         scene_road_points.push_back(line1);
