@@ -67,24 +67,17 @@
 
 // ICE includes
 #include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
 #include <Ice/Application.h>
 
 #include <rapplication/rapplication.h>
 #include <sigwatch/sigwatch.h>
 #include <qlog/qlog.h>
-
 #include "config.h"
 #include "genericmonitor.h"
 #include "genericworker.h"
 #include "specificworker.h"
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
-
-#include <socialrulesI.h>
-
-#include <SocialNavigationGaussian.h>
-
 
 
 class social_navigation : public RoboComp::Application

@@ -120,23 +120,22 @@ bool Navigation<TMap, TController>::isCurrentTargetActive()
 template<typename TMap, typename TController>
 bool Navigation<TMap, TController>::checkPathState()
 {
-    //    qDebug()<<"Navigation - "<< __FUNCTION__;
+   //std::cout << __FUNCTION__ << current_target.active.load() << " " << current_target.blocked.load() << std::endl;
     if (current_target.active.load())
     {
         if (current_target.blocked.load())
         {
-            if (!findNewPath())
+            if ( not findNewPath())
             {
                 qDebug() << __FUNCTION__ << "Path not found";
                 if(current_target.humanBlock.load()) //if the path is blocked by human the target is not deactivated
                     return false;
                 qDebug()<< "checkPathState - Deactivating current target";
                 stopRobot();
-                this->current_target.lock();
                 current_target.active.store(false);
-                this->current_target.unlock();
                 pathPoints.clear();
-                if(robotAutoMov) newRandomTarget();
+                if(robotAutoMov)
+                    newRandomTarget();
                 return false;
             }
             else
@@ -183,7 +182,7 @@ void Navigation<TMap, TController>::newRandomTarget()
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::newTarget(QPointF newT)
 {
-    qDebug() << "Navigation - " << __FUNCTION__  << "New Target arrived "<< newT;
+    std::cout << __FUNCTION__  << " New Target arrived " << newT << std::endl;
     if(stopMovingRobot)
     {
         stopRobot();
@@ -228,11 +227,11 @@ bool Navigation<TMap, TController>::findNewPath()
     {
         qDebug() << __FUNCTION__ << "Path created with length " << path.size();
         pathPoints.push_back(currentRobotNose);
-        printf("%.2f %.2f\n", (float)currentRobotNose.x(), (float)currentRobotNose.y());
+        //printf("%.2f %.2f\n", (float)currentRobotNose.x(), (float)currentRobotNose.y());
         for (const QPointF &p : path)
         {
             pathPoints.push_back(p);
-            printf("%.2f %.2f\n", (float)p.x(), (float)p.y());
+            //printf("%.2f %.2f\n", (float)p.x(), (float)p.y());
         }
         lastPointInPath = pathPoints[pathPoints.size()-1];
         return true;
@@ -578,8 +577,6 @@ template<typename TMap, typename TController>
 void Navigation<TMap, TController>::drawRoad()
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
-    std::vector<QGraphicsLineItem *> scene_road_points;
-
     ///////////////////////
     // Preconditions
     ///////////////////////
@@ -588,15 +585,11 @@ void Navigation<TMap, TController>::drawRoad()
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-    {
         viewer_2d->removeItem((QGraphicsItem*)item);
-    }
     scene_road_points.clear();
-
-    ///////////////////
-    //Draw all points
-    //////////////////
-    QGraphicsLineItem *line;
+//
+    /// Draw all points
+    QGraphicsLineItem *line1, *line2;
     std::string color;
     for (unsigned int i = 1; i < pathPoints.size(); i++)
     {
@@ -604,26 +597,28 @@ void Navigation<TMap, TController>::drawRoad()
         QPointF &wAnt = pathPoints[i - 1];
         if (w == wAnt) //avoid calculations on equal points
             continue;
-        //TODO: check which line should be painted
-        QLine2D l(QVec::vec2(wAnt.x(),wAnt.y()), QVec::vec2(w.x(),w.y()));
-        QLine2D lp = l.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
-        QVec normal = lp.getNormalForOSGLineDraw();  //3D vector
+
+        QLine2D li(QVec::vec2(wAnt.x(),wAnt.y()), QVec::vec2(w.x(),w.y()));
+        QLine2D lp = li.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
+        QVec p1 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), 200);
+        QVec p2 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), -200);
+        QLineF qli(wAnt, w);
+        QLineF qli_perp(p1.toQPointF(), p2.toQPointF());
 
         if(i == 1 or i == pathPoints.size()-1)
-        {
             color = "#FF0000"; //Red
-        }
         else
-        {
             if (isVisible(w))
                 color = "#00FFF0";
             else
                 color = "#A200FF";
-        }
 
-        line = viewer_2d->addLine(QLineF(w, wAnt), QPen(QString::fromStdString(color)));
-        line->setZValue(2000);
-        scene_road_points.push_back(line);
+        line1 = viewer_2d->addLine(qli, QPen(QString::fromStdString(color)));
+        line2 = viewer_2d->addLine(qli_perp, QPen(QString::fromStdString(color)));
+        line1->setZValue(2000);
+        line2->setZValue(2000);
+        scene_road_points.push_back(line1);
+        scene_road_points.push_back(line2);
     }
 }
 

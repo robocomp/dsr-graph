@@ -98,17 +98,18 @@ class Navigation
         const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
         bool targetBehindRobot = false;
 
-        //Integrating time
+        //Draw
         QTime reloj = QTime::currentTime();
         QPointF lastPointInPath, currentRobotNose;
         QPolygonF currentRobotPolygon, laser_poly;
         std::vector<QPointF> laser_cart;
         QVec currentRobotPose;
-
         float robotXWidth, robotZLong; //robot dimensions read from config
         QVec robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         bool gridChanged = false;
         std::map<float, vector<QPolygonF>> mapCostObjects;
+        std::vector<QGraphicsLineItem *> scene_road_points;
+
 };
 
 #endif //PROJECT_NAVIGATION_H
