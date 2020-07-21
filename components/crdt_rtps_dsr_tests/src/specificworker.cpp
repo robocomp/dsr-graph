@@ -73,12 +73,12 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     //G->print();
 
     // Graph viewer
     using opts = DSR::GraphViewer::view;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree);
+    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree, opts::scene);
 
     setWindowTitle(QString::fromStdString(agent_name));
 
@@ -105,9 +105,10 @@ void SpecificWorker::compute()
     std::distance(tests.begin(), iter);
 
     switch(std::distance(tests.begin(), iter)){
+        
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
-            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            DSR_insert_remove_node concurrent_test = DSR_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -115,7 +116,7 @@ void SpecificWorker::compute()
         }
         case 1: {
             qDebug() << "INSERT AND REMOVE EDGES TEST:";
-            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            DSR_insert_remove_edge concurrent_test = DSR_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -123,7 +124,7 @@ void SpecificWorker::compute()
         }
         case 2: {
             qDebug() << "CHANGE ATTRIBUTES TEST:";
-            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file,  test_output_file,5000, agent_id);
+            DSR_change_attribute concurrent_test = DSR_change_attribute(dsrgetid_proxy, G, dsr_output_file,  test_output_file,5000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -131,7 +132,7 @@ void SpecificWorker::compute()
         }
         case 3: {
             qDebug() << "CONFLICT RESOLUTION TEST:";
-            CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, test_output_file, 10000, agent_id);
+            DSR_conflict_resolution concurrent_test = DSR_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, test_output_file, 10000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -139,7 +140,7 @@ void SpecificWorker::compute()
         }
         case 4: {
             qDebug() << "CONCURRENT OPERATIONS TEST:";
-            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
+            DSR_concurrent_operations concurrent_test = DSR_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (60));
             concurrent_test.save_json_result();
@@ -147,7 +148,7 @@ void SpecificWorker::compute()
         }
         case 5: {
             qDebug() << "DELAYED START TEST:";
-            CRDT_delayed_start concurrent_test = CRDT_delayed_start(dsrgetid_proxy, G, dsr_output_file,  test_output_file,1200, agent_id);
+            DSR_delayed_start concurrent_test = DSR_delayed_start(dsrgetid_proxy, G, dsr_output_file,  test_output_file,1200, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (20));
             concurrent_test.save_json_result();
@@ -156,11 +157,33 @@ void SpecificWorker::compute()
         default: {
             qDebug() << "TEST NOT FOUND";
 
-            break;
+            DSR::DSRGraph copy = G->G_copy();
+
+            //Obtenemnos un nodo
+            copy.print_node(copy.get_id_from_name("world").value());
+            Node n = copy.get_node("world").value();
+            //Añadimos un atributo
+            copy.insert_attrib_by_name(n, "prueba", 1.0f);
+            copy.print_node(n.id());
+            G->print_node(n.id());
+
+            //Añadimos un nodo
+            Node n_new;
+            n_new.type("D");
+
+            auto id = copy.insert_node(n_new);
+            if (id.has_value()) {
+                copy.print_node(id.value());
+                G->print_node(id.value());
+
+            } else {
+                qDebug() << "ERROR";
+            }
+            //break;
         }
     }
 
-    exit(0);
+    //exit(0);
 
 }
 

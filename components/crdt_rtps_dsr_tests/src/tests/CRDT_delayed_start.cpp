@@ -8,7 +8,7 @@
 #include <thread>
 #include <fstream>
 
-void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_delayed_start::create_or_remove_nodes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)
@@ -60,7 +60,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const shared_ptr<CRDT::CR
 }
 
 
-void CRDT_delayed_start::run_test()
+void DSR_delayed_start::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -76,7 +76,7 @@ void CRDT_delayed_start::run_test()
     }
 }
 
-void CRDT_delayed_start::save_json_result() {
+void DSR_delayed_start::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

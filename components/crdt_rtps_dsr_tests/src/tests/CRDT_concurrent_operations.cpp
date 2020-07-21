@@ -5,11 +5,10 @@
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_concurrent_operations.h"
-#include "/home/robocomp/robocomp/classes/graph-related-classes/topics/DSRGraph.h"
 #include <thread>
 #include <fstream>
 
-void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
 {
     int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
@@ -143,13 +142,13 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
 }
 
 
-void CRDT_concurrent_operations::run_test()
+void DSR_concurrent_operations::run_test()
 {
     try {
         threads.resize(num_threads);
 
         for (int i = 0; thread &t: threads) {
-            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, i++, num_ops, G);
+            t = std::thread(&DSR_concurrent_operations::concurrent_ops,this, i++, num_ops, G);
         }
         //create_or_remove_nodes(0, G);
         start_global = std::chrono::steady_clock::now();
@@ -171,7 +170,7 @@ void CRDT_concurrent_operations::run_test()
     }
 }
 
-void CRDT_concurrent_operations::save_json_result() {
+void DSR_concurrent_operations::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

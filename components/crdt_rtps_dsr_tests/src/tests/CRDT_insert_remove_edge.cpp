@@ -9,7 +9,7 @@
 #include <fstream>
 
 
-void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)
@@ -50,7 +50,7 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<CRD
 }
 
 
-void CRDT_insert_remove_edge::run_test()
+void DSR_insert_remove_edge::run_test()
 {
     try {
         int i = 0;
@@ -89,7 +89,7 @@ void CRDT_insert_remove_edge::run_test()
     }
 }
 
-void CRDT_insert_remove_edge::save_json_result() {
+void DSR_insert_remove_edge::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);
