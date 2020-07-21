@@ -9,7 +9,7 @@
 #include <random>
 #include <fstream>
 
-void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it = 0;
     while (it++ < num_ops)
@@ -55,7 +55,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
 }
 
 
-void CRDT_conflict_resolution::run_test()
+void DSR_conflict_resolution::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -75,7 +75,7 @@ void CRDT_conflict_resolution::run_test()
     }
 }
 
-void CRDT_conflict_resolution::save_json_result() {
+void DSR_conflict_resolution::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

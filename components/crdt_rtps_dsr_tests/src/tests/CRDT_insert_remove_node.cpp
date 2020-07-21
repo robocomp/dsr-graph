@@ -8,7 +8,7 @@
 #include <thread>
 #include <fstream>
 
-void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)
@@ -59,7 +59,7 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<CRD
 }
 
 
-void CRDT_insert_remove_node::run_test()
+void DSR_insert_remove_node::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -76,7 +76,7 @@ void CRDT_insert_remove_node::run_test()
     }
 }
 
-void CRDT_insert_remove_node::save_json_result() {
+void DSR_insert_remove_node::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);
