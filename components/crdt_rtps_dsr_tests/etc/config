@@ -1,15 +1,25 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10001
+
 
 # Proxies for required interfaces
-DSRGetIDProxy = dsrgetid:tcp -h localhost -p 0
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
-agent_id = 0 # Change id
-agent_name = crdt_rtps_dsr_tests
-dsr_input_file = "/path/to/json/input/file.json"
 
 InnerModelPath = innermodel.xml
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
+
+agent_id = 0
+agent_name = agent0
+read_file = false
+dsr_input_file = ../../etc/shelly_dsr.json
+dsr_output_file = ../../etc/insert_remove_node_agent0_dsr.json
+test_output_file = ../../etc/insert_remove_node_agent0_test.txt
+
+dsr_empty_test_file = ../../etc/initial_dsr2.json
+dsr_test_file = ../../etc/empty_file.json
+test_name = a
+

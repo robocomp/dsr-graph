@@ -5,12 +5,11 @@
 #include <QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_change_attribute.h"
-#include "/home/robocomp/robocomp/classes/graph-related-classes/topics/DSRGraph.h"
 #include <thread>
 #include <random>
 #include <fstream>
 
-void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<CRDT::CRDTGraph>& G)
+void DSR_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     std::string result;
     static int it = 0;
@@ -65,7 +64,7 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<
 }
 
 
-void CRDT_change_attribute::run_test()
+void DSR_change_attribute::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -87,7 +86,7 @@ void CRDT_change_attribute::run_test()
     }
 }
 
-void CRDT_change_attribute::save_json_result() {
+void DSR_change_attribute::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

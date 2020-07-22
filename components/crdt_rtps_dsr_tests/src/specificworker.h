@@ -29,8 +29,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
-#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT_graphviewer.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 //#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 #include <thread>
@@ -70,7 +70,7 @@ public:
 		int agent_id;
 		std::string agent_name;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
-        std::shared_ptr<CRDT::CRDTGraph> G;
+        std::shared_ptr<DSR::DSRGraph> G;
         QHBoxLayout mainLayout;
         QWidget window;
 
