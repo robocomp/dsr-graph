@@ -122,30 +122,28 @@ class CalculateTriangles : public osg::NodeVisitor
 		osg::Matrix transformMatrix;
 };
 
- //TODO: update objects if node parameters values changed
- //Also update on new/delete/changed nodes
-
-class Collisions {
+class Collisions
+{
     public:
+        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_);
+        bool checkRobotValidStateAtTargetFast(DSR::DSRGraph &G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot);
+        QRectF outerRegion;
+
+    private:
+        std::shared_ptr<DSR::DSRGraph> G;
+        std::map<std::string, fcl::CollisionObject*> collision_objects;
         std::vector<std::string> robotNodes;
         std::vector<std::string> restNodes;
         std::set<std::string> excludedNodes;
-        QRectF outerRegion;
+
         std::string robot_name;
 
-        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_);
-        bool checkRobotValidStateAtTargetFast(const std::vector<float> &targetPos, const std::vector<float> &targetRot);
         void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
-        bool collide(const std::string &node_a_name, const std::string &node_b_name);
+        bool collide(std::shared_ptr<DSR::InnerAPI> innerModel, const std::string &node_a_name, const std::string &node_b_name);
         //return collison object, creates it if does not exist
-        fcl::CollisionObject* get_collision_object(std::string node_name);
-        fcl::CollisionObject* create_mesh_collision_object(Node node);
-        fcl::CollisionObject* create_plane_collision_object(Node node);
-
-private:
-        std::shared_ptr<DSR::InnerAPI> innerModel;
-        std::shared_ptr<DSR::DSRGraph> G;
-        std::map<std::string, fcl::CollisionObject*> collision_objects;
+        fcl::CollisionObject* get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, std::string node_name);
+        fcl::CollisionObject* create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
+        fcl::CollisionObject* create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
 };
 
 #endif //COLLISIONS_H
