@@ -2,12 +2,12 @@
 // Created by juancarlos on 7/5/20.
 //
 
-#ifndef CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
-#define CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
+#ifndef DSR_RTPS_DSR_STRINGS_DSR_TEST_H
+#define DSR_RTPS_DSR_STRINGS_DSR_TEST_H
 
 #include <DSRGetID.h>
 #include <random>
-#include "/home/robocomp/robocomp/classes/graph-related-classes/CRDT.h"
+#include <dsr/api/dsr_api.h>
 
 static const std::string MARKER = ";";
 
@@ -20,7 +20,7 @@ public:
         random_pos = std::uniform_int_distribution((int)-200, (int)200);
         random_selector = std::uniform_int_distribution(0,1);
     };
-    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<CRDT::CRDTGraph> G_, const std::string& output_,const std::string& output_result_) :
+    DSR_test(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  shared_ptr<DSR::DSRGraph> G_, const std::string& output_,const std::string& output_result_) :
     dsrgetid_proxy(id_prx), G(G_), output(output_), output_result(output_result_)
     {
             mt = std::mt19937(rd());
@@ -50,7 +50,7 @@ protected:
     std::vector<int> times;
     std::chrono::steady_clock::time_point start, end, start_global, end_global;
     std::shared_ptr<RoboCompDSRGetID::DSRGetIDPrx>  dsrgetid_proxy;
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
 
     std::string output;
     std::string output_result;
@@ -73,4 +73,4 @@ private:
 };
 
 
-#endif //CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
+#endif //DSR_RTPS_DSR_STRINGS_DSR_TEST_H
