@@ -45,6 +45,10 @@ bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const s
     G_copy.update_node(world.value());
     std::shared_ptr<DSR::InnerAPI> inner = G_copy.get_inner_api();
 
+    G_copy.get_edge_RT_as_RTMat(edge.value()).print("rt_orig");
+    std::optional<Edge> e = G_copy.get_edge("world", robot_name, "RT");
+    G_copy.get_edge_RT_as_RTMat(e.value()).print("rt");
+
     ///////////////////////
     //// Check if the robot at the target collides with any know object
     ///////////////////////
