@@ -7,7 +7,6 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
 {
     qDebug()<<"Collisions - " <<__FUNCTION__;
     G = graph_;
-    innerModel = G->get_inner_api();
     //read from World (DSR node)
     std::optional<Node> world_node = G->get_node("world");
     if(world_node.has_value())
@@ -23,47 +22,84 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
     }
     QStringList ls = QString::fromStdString(params_->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
-    qDebug() << __FILE__ << __FUNCTION__ << ls.size() << "objects read for exclusion list";
+    std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
     foreach(const QString &s, ls)
         excludedNodes.insert(s.toStdString());
 
     // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
-    //std::cout<<"lists"<<std::endl;
-    //std::cout<<"robot"<<robotNodes<<std::endl;
-    //std::cout<<"rest"<<restNodes<<std::endl;
+    std::cout<<"lists"<<std::endl;
+    std::cout<<"robot"<<robotNodes<<std::endl;
+    std::cout<<"rest"<<restNodes<<std::endl;
     qsrand( QTime::currentTime().msec() );
 }
 
-bool Collisions::checkRobotValidStateAtTargetFast(const std::vector<float> &targetPos, const std::vector<float> &targetRot)
+bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in our copy of innermodel to its current coordinates
-    std::optional<Edge> edge = G->get_edge("world", robot_name, "RT");
-    G->modify_attrib_local(edge.value(), "translation", targetPos);
-    G->modify_attrib_local(edge.value(), "rotation_euler_xyz", targetRot);
-    //          innerModel->updateTransformValues("robot", targetPos.x(), targetPos.y(), targetPos.z(), targetRot.x(), targetRot.y(), targetRot.z());
+    std::optional<Node> world = G_copy.get_node("world");
+    std::optional<Edge> edge = G_copy.get_edge("world", robot_name, "RT");
+    G_copy.modify_attrib_local(edge.value(), "translation", targetPos);
+    G_copy.modify_attrib_local(edge.value(), "rotation_euler_xyz", targetRot);
+    G_copy.update_node(world.value());
+    std::shared_ptr<DSR::InnerAPI> inner = G_copy.get_inner_api();
+
     ///////////////////////
     //// Check if the robot at the target collides with any know object
     ///////////////////////
     bool collision = false;
-    for ( std::string in : robotNodes )
-    {
-        for ( std::string  out : restNodes )
+    for ( const std::string& in : robotNodes )
+        for ( const std::string&  out : restNodes )
         {
             try
             {
-                collision = collide(in, out);
+                collision = collide(inner, in, out);
             }
-            catch(QString s) {qDebug()<< __FUNCTION__ << s;}
+            catch (QString &s)
+            {
+                qDebug() << __FUNCTION__ << s;
+                qFatal("Collision");
+            }
             if (collision)
             {
-                std::cout<<"COLLISION: "<<in<<" to "<<out<<" pos: ("<<targetPos[0]<<","<<targetPos[1]<<","<<targetPos[2]<<")"<<std::endl;
+                std::cout << "COLLISION: " << in << " to " << out << " pos: (" << targetPos[0] << "," << targetPos[1]
+                          << "," << targetPos[2] << ")" << std::endl;
                 return false;
             }
         }
-    }
     return true;
+}
+
+bool Collisions::collide(std::shared_ptr<DSR::InnerAPI> inner, const std::string &node_a_name, const std::string &node_b_name)
+{
+    //std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
+    QMat r1q = inner->getTransformationMatrixS("world", node_a_name).value();
+    fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
+    fcl::Vec3f T1( r1q(0,3), r1q(1,3), r1q(2,3) );
+
+    QMat r2q = inner->getTransformationMatrixS("world", node_b_name).value();
+    fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
+    fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
+
+    fcl::CollisionRequest request;
+    fcl::CollisionResult result;
+    fcl::CollisionObject* n1 = get_collision_object(inner, node_a_name);
+    fcl::CollisionObject* n2 = get_collision_object(inner, node_b_name);
+
+    if (n1 != nullptr and n2 != nullptr)
+    {
+        n1->setTransform(R1, T1);
+        n1->computeAABB();
+        n2->setTransform(R2, T2);
+        n2->computeAABB();
+        fcl::collide(n1, n2, request, result);
+        return result.isCollision();
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded)
@@ -94,43 +130,9 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
     }
 }
 
-bool Collisions::collide(const std::string &node_a_name, const std::string &node_b_name)
-{
-    //std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
-
-    QMat r1q = innerModel->getTransformationMatrixS("world", node_a_name).value();
-    fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
-    fcl::Vec3f T1( r1q(0,3), r1q(1,3), r1q(2,3) );
-
-
-    QMat r2q = innerModel->getTransformationMatrixS("world", node_b_name).value();
-    fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
-    fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
-
-    fcl::CollisionRequest request;
-    fcl::CollisionResult result;
-
-    fcl::CollisionObject* n1 = get_collision_object(node_a_name);
-    fcl::CollisionObject* n2 = get_collision_object(node_b_name);
-
-    if (n1 != nullptr and n2 != nullptr)
-    {
-        n1->setTransform(R1, T1);
-        n1->computeAABB();
-
-        n2->setTransform(R2, T2);
-        n2->computeAABB();
-        fcl::collide(n1, n2, request, result);
-        return result.isCollision();
-    }
-    else
-    {
-        return false;
-    }
-}
 
 //return collison object, creates it if does not exist
-fcl::CollisionObject* Collisions::get_collision_object(std::string node_name)
+fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, std::string node_name)
 {
     if (collision_objects.find(node_name) == collision_objects.end())
     {
@@ -140,13 +142,13 @@ fcl::CollisionObject* Collisions::get_collision_object(std::string node_name)
         {
             if( node.value().type() == "plane" )
             {
-                collision_objects[node_name] = create_plane_collision_object(node.value());
+                collision_objects[node_name] = create_plane_collision_object(inner, node.value());
             }
             else
             {
                 if( node.value().type() == "mesh")
                 {
-                    collision_objects[node_name] = create_mesh_collision_object(node.value());
+                    collision_objects[node_name] = create_mesh_collision_object(inner, node.value());
                 }
                 else
                 {
@@ -158,7 +160,7 @@ fcl::CollisionObject* Collisions::get_collision_object(std::string node_name)
     return collision_objects[node_name];
 }
 
-fcl::CollisionObject* Collisions::create_mesh_collision_object(Node node)
+fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<std::string> meshPath = G->get_attrib_by_name<std::string>(node, "path");
@@ -173,7 +175,7 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(Node node)
         std::optional<Node> parent = G->get_parent_node(node);
         if(not parent.has_value())
             return collision_object;
-        std::optional<QVec> pose = innerModel->transformS6D(node.name(), parent.value().name());
+        std::optional<QVec> pose = inner->transformS6D(node.name(), parent.value().name());
         RTMat rtm(pose.value().rx(), pose.value().ry(), pose.value().rz(), pose.value().x(), pose.value().y(), pose.value().z());
         // Transform each of the read vertices
         std::optional<int> scalex = G->get_attrib_by_name<int>(node, "scalex");
@@ -197,7 +199,7 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(Node node)
     return collision_object;
 }
 
-fcl::CollisionObject* Collisions::create_plane_collision_object(Node node)
+fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<int> width = G->get_attrib_by_name<int>(node, "width");
@@ -218,7 +220,7 @@ fcl::CollisionObject* Collisions::create_plane_collision_object(Node node)
     std::optional<Node> parent = G->get_parent_node(node);
     if(not parent.has_value())
         return collision_object;
-    std::optional<QVec> pose = innerModel->transformS6D(node.name(), parent.value().name());
+    std::optional<QVec> pose = inner->transformS6D(node.name(), parent.value().name());
     osg::Matrix r;
     r.makeRotate(osg::Vec3(0, 0, 1), osg::Vec3(pose.value().rx(), pose.value().ry(), -pose.value().rz()));
     QMat qmatmat(4,4);

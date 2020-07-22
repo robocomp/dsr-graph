@@ -87,7 +87,8 @@ class Grid
             };
         };
         using FMap = std::unordered_map<Key, T, KeyHasher>;
-        void initialize(std::shared_ptr<Collisions> collisions_, const std::string &file_name = std::string());
+        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, std::shared_ptr<Collisions> collisions_,
+                        bool read_from_file = true, const std::string &file_name = std::string());
         std::tuple<bool, T &> getCell(long int x, long int z);
         std::tuple<bool, T &> getCell(const Key &k);
         T at(const Key &k) const                    { return fmap.at(k);};
@@ -121,6 +122,7 @@ class Grid
     private:
         FMap fmap, fmap_aux;
         Dimensions dim;
+        std::shared_ptr<DSR::DSRGraph> G;
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;

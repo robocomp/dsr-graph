@@ -3,39 +3,43 @@
 #include <QGraphicsRectItem>
 
 template <typename T>
-void Grid<T>::initialize(std::shared_ptr<Collisions> collisions_, const std::string &file_name)
+void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, std::shared_ptr<Collisions> collisions_, bool read_from_file, const std::string &file_name)
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
+    G = graph_;
     uint count = 0;
     dim.TILE_SIZE = int(TILE_SIZE_);
     dim.HMIN = std::min(collisions_->outerRegion.left(), collisions_->outerRegion.right());
     dim.WIDTH = std::max(collisions_->outerRegion.left(), collisions_->outerRegion.right()) - dim.HMIN;
     dim.VMIN = std::min(collisions_->outerRegion.top(), collisions_->outerRegion.bottom());
     dim.HEIGHT = std::max(collisions_->outerRegion.top(), collisions_->outerRegion.bottom()) - dim.VMIN;
-    qDebug() << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+    qDebug() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
 
     fmap.clear();
     fmap_aux.clear();
 
-    if(not file_name.empty())
+    if(read_from_file and not file_name.empty())
     {
         readFromFile(file_name);
         fmap_aux = fmap;
     }
     else
     {
-        qDebug() << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast";
+        std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
+        auto G_copy = G->G_copy();
 
         for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
             for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
             {
-                bool free = collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
+                bool free = collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
                 fmap.emplace(Key(i, j), T{count++, free, false, 1.f});
             }
-        collisions_->checkRobotValidStateAtTargetFast(std::vector<float>{0.0, 10.0, 0.0}, std::vector<float>{0.0, 0.0,0.0}); //para devolver el robot a la posición 0,0
+        // return the robot to position 0,0 SHOULD BE TO CURRENT POSITION
+        collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{0.0, 10.0, 0.0}, std::vector<float>{0.0, 0.0,0.0});
         fmap_aux = fmap;
+        if(not file_name.empty())
+            saveToFile(file_name);
     }
-    std::cout << "Grid::Initialize. Grid initialized to map size: " << fmap.size() << std::endl;
 }
 
 template <typename T>
@@ -74,7 +78,7 @@ void Grid<T>::saveToFile(const std::string &fich)
         myfile << k << v << std::endl;
     }
     myfile.close();
-    std::cout << fmap.size() << " elements written to " << fich << std::endl;
+    std::cout << __FUNCTION__ << " " << fmap.size() << " elements written to " << fich << std::endl;
 }
 
 template <typename T>
@@ -92,6 +96,7 @@ void Grid<T>::readFromFile(const std::string &fich)
         ss >> x >> z >> free >> visited;
         fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f});
     }
+    std::cout << __FUNCTION__ << fmap.size() << " elements read from " << fich << std::endl;
 }
 
 template <typename T>

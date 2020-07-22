@@ -3,9 +3,9 @@
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGraph> &graph,
-                 std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_,
-                 QGraphicsScene *scene,
-                 std::string file_name)
+                                                std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_,
+                                                QGraphicsScene *scene,
+                                                std::string file_name)
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
     G = graph;
@@ -17,7 +17,7 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     //grid can't be initialized if the robot is moving
     collisions =  std::make_shared<Collisions>();
     collisions->initialize(G, configparams);
-    grid.initialize(collisions, file_name);
+    grid.initialize(G, collisions, false, file_name);
     grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
@@ -123,8 +123,8 @@ bool Navigation<TMap, TController>::isCurrentTargetActive()
 template<typename TMap, typename TController>
 bool Navigation<TMap, TController>::checkPathState()
 {
-   std::cout << __FUNCTION__ << " " << current_target.active.load() << " " <<
-             current_target.blocked.load() << " "  << scene_road_points.size() << std::endl;
+   //std::cout << __FUNCTION__ << " " << current_target.active.load() << " " <<
+   //              current_target.blocked.load() << " "  << scene_road_points.size() << std::endl;
     if (current_target.active.load())
     {
         if (current_target.blocked.load())
