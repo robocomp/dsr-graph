@@ -30,8 +30,8 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
     // std::cout << __FUNCTION__ << "lists" ;
-    std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
-    std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
+    //std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
+    //std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
     qsrand( QTime::currentTime().msec() );
 }
 
@@ -105,12 +105,9 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
         if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())
         {
             if (inside)
-            {
                 in.push_back(node.name());
-            } else
-            {
+            else
                 out.push_back(node.name());
-            }
         }
     }
     for(auto &edge: G->get_node_edges_by_type(node, "RT"))
@@ -130,19 +127,13 @@ fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::Inne
         if (node.has_value())
         {
             if( node.value().type() == "plane" )
-            {
                 collision_objects[node_name] = create_plane_collision_object(inner, node.value());
-            }
             else
             {
                 if( node.value().type() == "mesh")
-                {
                     collision_objects[node_name] = create_mesh_collision_object(inner, node.value());
-                }
                 else
-                {
                     collision_objects[node_name] = nullptr;
-                }
             }
         }
     }
@@ -207,7 +198,7 @@ fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<
     vertices.push_back(fcl::Vec3f(+width.value()/2., +height.value()/2., +depth.value()/2.)); // Back NE
     vertices.push_back(fcl::Vec3f(-width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SW
     vertices.push_back(fcl::Vec3f(+width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SE
-    
+
     std::vector<fcl::Triangle> triangles;
     triangles.push_back(fcl::Triangle(0,1,2)); // Front
     triangles.push_back(fcl::Triangle(1,2,3));

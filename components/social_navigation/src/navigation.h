@@ -42,11 +42,12 @@ class Navigation
         void initialize( const std::shared_ptr<DSR::DSRGraph> &graph,
                          std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_,
                          QGraphicsScene *scene,
-                         std::string file_name);
+                         bool read_from_file = false,
+                         std::string file_name = std::string());
         void stopRobot();
         bool isCurrentTargetActive();
         void update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning);
-        bool checkPathState();
+        std::string checkPathState();
         void newRandomTarget();
         void newTarget(QPointF newT);
         void updateFreeSpaceMap(bool drawGrid = true);
@@ -88,6 +89,7 @@ class Navigation
 
         TMap grid;
         TController controller;
+        std::string robot_name = "omnirobot";
 
         // Scene
         QGraphicsScene *viewer_2d;
