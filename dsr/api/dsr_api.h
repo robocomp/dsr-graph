@@ -161,66 +161,112 @@ namespace DSR {
                 for (auto &f : t)
                     str += std::to_string(f) + " ";
                 return make_tuple("vector<byte>", str += "\n", t.size());
-            } else return make_tuple(typeid(Ta).name(), std::to_string(t), 1);
+            } else if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value)
+            {
+                std::string str;
+                for(auto &f : t)
+                    str += std::to_string(f) + " ";
+                return make_tuple("vector<uint8_t>",  str += "\n",t.size());
+            }
+            else return make_tuple(typeid(Ta).name(), std::to_string(t), 1);
 
         }; //Used by viewer
 
         std::map<uint32_t, Node> getCopy() const;
-
         std::vector<uint32_t> getKeys() const;
-
-        inline uint32_t get_agent_id() const { return agent_id; };
-
-        inline std::string get_agent_name() const { return agent_name; };
-
-        void print() { utils->print(); };
-
-        void print_edge(const Edge &edge) { utils->print_edge(edge); };
-
-        void print_node(const Node &node) { utils->print_node(node); };
-
-        void print_node(uint32_t id) { utils->print_node(id); };
-
-        void print_RT(uint32_t root) const { utils->print_RT(root); };
-
-        void write_to_json_file(const std::string &file) const { utils->write_to_json_file(file); };
-
-        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file, insert_node_read_file); };
-
-        // not working yet
-        //typename std::map<int, mvreg<CRDTNode, int>>::const_iterator begin() const { return nodes.getMap().begin(); };
-
-        //typename std::map<int, mvreg<CRDTNode, int>>::const_iterator end() const { return nodes.getMap().end(); };
 
         // Innermodel API
         std::unique_ptr<InnerAPI> get_inner_api() { return std::make_unique<InnerAPI>(this); };
 
+        /**
+         * CORE
+         **/
         // Nodes
-        std::optional<Node> get_node_root() { return get_node("world"); };  //CHANGE THIS
         std::optional<Node> get_node(const std::string &name);
-
         std::optional<Node> get_node(int id);
-
         std::optional<uint32_t> insert_node(Node &node);
-
         bool update_node(Node &node);
-
         bool delete_node(const std::string &name);
-
         bool delete_node(uint32_t id);
 
-        std::vector<Node> get_nodes_by_type(const std::string &type);
+        // Edges
+        bool insert_or_assign_edge(const Edge& attrs);
+        std::optional<Edge> get_edge(const std::string& from, const std::string& to, const std::string& key);
+        std::optional<Edge> get_edge(uint32_t from, uint32_t to, const std::string& key);
+        std::optional<Edge> get_edge(const Node& n, const std::string& to, const std::string& key);
+        std::optional<Edge> get_edge(const Node& n, uint32_t to, const std::string& key);
+        bool delete_edge(const std::string& from, const std::string& t, const std::string& key);
+        bool delete_edge(uint32_t from, uint32_t t, const std::string& key);
 
+
+        /**
+         * CONVENIENCE METHODS
+         **/
+        // Nodes
+        std::optional<Node> get_node_root() { return get_node("world"); };  //CHANGE THIS
+        std::vector<Node> get_nodes_by_type(const std::string &type);
         std::optional<std::string> get_name_from_id(uint32_t id);  // caché
         std::optional<std::uint32_t> get_id_from_name(const std::string &name);  // caché
         std::optional<std::int32_t> get_node_level(Node &n);
-
         std::optional<std::uint32_t> get_parent_id(const Node &n);
-
         std::optional<Node> get_parent_node(const Node &n);
-
         std::string get_node_type(Node &n);
 
+        // Edges
+        std::vector<Edge> get_edges_by_type(const std::string &type);
+        std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
+        std::vector<Edge> get_edges_to_id(uint32_t id);
+        std::optional<std::unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash>> get_edges(uint32_t id);
+
+
+        // Attributes
+        template<typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>>>
+        std::optional<Ta> get_attrib_by_name(const Type &n, const std::string &key) {
+            std::optional<CRDTAttribute> av = get_attrib_by_name_(n, key);
+            if (!av.has_value()) return {};
+            if constexpr (std::is_same<Ta, std::string>::value) {
+                return av->val().str();
+            }
+            if constexpr (std::is_same<Ta, std::int32_t>::value) {
+                return av->val().dec();
+            }
+            if constexpr (std::is_same<Ta, float>::value) {
+                return av->val().fl();
+            }
+            if constexpr (std::is_same<Ta, std::vector<float>>::value) {
+                return av->val().float_vec();
+            }
+            if constexpr (std::is_same<Ta, bool>::value) {
+                return av->val().bl();
+            }
+            if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
+                return av->val().byte_vec();
+            }
+            if constexpr (std::is_same<Ta, std::uint32_t>::value) {
+                return av->val().uint();
+            }
+            if constexpr (std::is_same<Ta, QVec>::value) {
+                const auto &val = av->val().float_vec();
+                if ((key == "translation" or key == "rotation_euler_xyz")
+                    and (val.size() == 3 or val.size() == 6))
+                    return QVec{val};
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            }
+            if constexpr (std::is_same<Ta, QMat>::value) {
+                if (av->val().selected() == FLOAT_VEC and key == "rotation_euler_xyz") {
+                    const auto &val = av->val().float_vec();
+                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                }
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            }  //else
+            //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
+        }
+
+
+
+        /**
+         * LOCAL ATTRIBUTES MODIFICATION METHODS (for nodes and edges)
+         **/
         template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         void add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
 
@@ -305,85 +351,12 @@ namespace DSR {
             return true;
         }
 
-        // Edges
-        std::optional<Edge> get_edge(const std::string &from, const std::string &to, const std::string &key);
-
-        std::optional<Edge> get_edge(uint32_t from, uint32_t to, const std::string &key);
-
-        std::optional<Edge> get_edge(const Node &n, int to, const std::string &key) {
-            //EdgeKey ek; ek.to(to); ek.type(key);
-            return (n.fano().find({to, key}) != n.fano().end()) ? std::make_optional(
-                    n.fano().find({to, key})->second) : std::nullopt;
-        };
-
-        bool insert_or_assign_edge(const Edge &attrs);
-
-        void
-        insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans, const std::vector<float> &rot_euler);
-
-        void insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float> &&trans, std::vector<float> &&rot_euler);
-
-        bool delete_edge(const std::string &from, const std::string &t, const std::string &key);
-
-        bool delete_edge(uint32_t from, uint32_t t, const std::string &key);
-
-        std::vector<Edge> get_edges_by_type(const std::string &type);
-
-        std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
-
-        std::vector<Edge> get_edges_to_id(uint32_t id);
-
-        std::optional<std::unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash>> get_edges(uint32_t id);
-
-        Edge get_edge_RT(const Node &n, uint32_t to);
-
-        RTMat get_edge_RT_as_RTMat(const Edge &edge);
-
-        RTMat get_edge_RT_as_RTMat(Edge &&edge);
 
 
-        template<typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<node_or_edge<Type>>>
-        std::optional<Ta> get_attrib_by_name(const Type &n, const std::string &key) {
-            std::optional<CRDTAttribute> av = get_attrib_by_name_(n, key);
-            if (!av.has_value()) return {};
-            if constexpr (std::is_same<Ta, std::string>::value) {
-                return av->val().str();
-            }
-            if constexpr (std::is_same<Ta, std::int32_t>::value) {
-                return av->val().dec();
-            }
-            if constexpr (std::is_same<Ta, float>::value) {
-                return av->val().fl();
-            }
-            if constexpr (std::is_same<Ta, std::vector<float>>::value) {
-                return av->val().float_vec();
-            }
-            if constexpr (std::is_same<Ta, bool>::value) {
-                return av->val().bl();
-            }
-            if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
-                return av->val().byte_vec();
-            }
-            if constexpr (std::is_same<Ta, std::uint32_t>::value) {
-                return av->val().uint();
-            }
-            if constexpr (std::is_same<Ta, QVec>::value) {
-                const auto &val = av->val().float_vec();
-                if ((key == "translation" or key == "rotation_euler_xyz")
-                    and (val.size() == 3 or val.size() == 6))
-                    return QVec{val};
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }
-            if constexpr (std::is_same<Ta, QMat>::value) {
-                if (av->val().selected() == FLOAT_VEC and key == "rotation_euler_xyz") {
-                    const auto &val = av->val().float_vec();
-                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
-                }
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }  //else
-            //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
-        }
 
+        // ******************************************************************
+        //  DISTRIBUTED ATTRIBUTE MODIFICATION METHODS (for nodes and edges)
+        // ******************************************************************
         template<typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         void insert_or_assign_attrib_by_name(Ta &elem, const std::string &att_name, const Va &att_value) {
@@ -422,7 +395,7 @@ namespace DSR {
 
             bool res = add_attrib_local(elem, att_name, new_val);
             if (!res) return false;
-            // insert in node 
+            // insert in node
             if constexpr (std::is_same<Node, Type>::value) {
                 if (update_node(elem))
                     return true;
@@ -507,6 +480,9 @@ namespace DSR {
             }
         }
 
+        // Mixed
+        inline uint32_t get_agent_id() const { return agent_id; };
+        inline std::string get_agent_name() const { return agent_name; };
         void reset() {
             nodes.reset();
             deleted.clear();
@@ -517,10 +493,45 @@ namespace DSR {
             nodeType.clear();
         }
 
+        /////////////////////////////////////////////////
+        /// AUXILIARY RT SUB-API
+        /////////////////////////////////////////////////
+
+        void insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans, const std::vector<float> &rot_euler);
+        void insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float> &&trans, std::vector<float> &&rot_euler);
+        Edge get_edge_RT(const Node &n, uint32_t to);
+        RTMat get_edge_RT_as_RTMat(const Edge &edge);
+        RTMat get_edge_RT_as_RTMat(Edge &&edge);
+
+
+        /////////////////////////////////////////////////
+        /// AUXILIARY IO SUB-API
+        /////////////////////////////////////////////////
+        void print() { utils->print(); };
+        void print_edge(const Edge &edge) { utils->print_edge(edge); };
+        void print_node(const Node &node) { utils->print_node(node); };
+        void print_node(uint32_t id) { utils->print_node(id); };
+        void print_RT(uint32_t root) const { utils->print_RT(root); };
+        void write_to_json_file(const std::string &file) const { utils->write_to_json_file(file); };
+        void read_from_json_file(const std::string &file) const { utils->read_from_json_file(file, insert_node_read_file); };
+
+        //////////////////////////////////////////////////
+        ///// PRIVATE COPY
+        /////////////////////////////////////////////////
+        DSRGraph G_copy();
+        bool is_copy();
+
+
+
+
+
+
 
     private:
-        Nodes nodes;
 
+        DSRGraph(const DSRGraph& G);
+
+        Nodes nodes;
         int graph_root;
         bool work;
         mutable std::shared_mutex _mutex;
@@ -528,8 +539,9 @@ namespace DSR {
         const uint32_t agent_id;
         std::string agent_name;
         std::unique_ptr<Utilities> utils;
-
         RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy; // proxy to obtain unique node ids
+        const bool copy;
+
 
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
@@ -544,12 +556,10 @@ namespace DSR {
         std::unordered_map<pair<uint32_t, uint32_t>, std::unordered_set<std::string>, hash_tuple> edges;      // collection with all graph edges. ((from, to), key)
         std::unordered_map<std::string, std::unordered_set<pair<uint32_t, uint32_t>, hash_tuple>> edgeType;  // collection with all edge types.
         std::unordered_map<std::string, std::unordered_set<uint32_t>> nodeType;  // collection with all node types.
+
         void update_maps_node_delete(uint32_t id, const CRDTNode &n);
-
         void update_maps_node_insert(uint32_t id, const CRDTNode &n);
-
         void update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key);
-
         void update_maps_edge_insert(uint32_t from, uint32_t to, const std::string &key);
 
 
@@ -557,32 +567,20 @@ namespace DSR {
         // Non-blocking graph operations
         //////////////////////////////////////////////////////////////////////////
         std::optional<CRDTNode> get(uint32_t id);
-
         bool in(uint32_t id) const;
-
         std::optional<CRDTNode> get_(uint32_t id);
-
         std::optional<CRDTEdge> get_edge_(uint32_t from, uint32_t to, const std::string &key);
-
         std::tuple<bool, std::optional<IDL::Mvreg>> insert_node_(const CRDTNode &node);
-
         std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> update_node_(const CRDTNode &node);
-
-        std::tuple<bool, vector<tuple<uint32_t, uint32_t, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>>
-        delete_node_(uint32_t id);
-
+        std::tuple<bool, vector<tuple<uint32_t, uint32_t, std::string>>, std::optional<IDL::Mvreg>, vector<IDL::MvregEdge>> delete_node_(uint32_t id);
         std::optional<IDL::MvregEdge> delete_edge_(uint32_t from, uint32_t t, const std::string &key);
-
-        std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>>
-        insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to);
+        std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>> insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to);
 
         //////////////////////////////////////////////////////////////////////////
         // Other methods
         //////////////////////////////////////////////////////////////////////////
         uint32_t id();
-
         IDL::DotContext context();
-
         std::map<uint32_t, IDL::Mvreg> Map();
 
 
@@ -593,7 +591,7 @@ namespace DSR {
             return static_cast<uint64_t>(secs);
         }
 
-        template<typename T, typename = std::enable_if_t<node_or_edge<T>>>
+        template<typename T, typename = std::enable_if_t<any_node_or_edge<T>>>
         std::optional<CRDTAttribute> get_attrib_by_name_(const T &n, const std::string &key) {
             auto attrs = n.attrs();
             auto value = attrs.find(key);
@@ -613,16 +611,16 @@ namespace DSR {
             return {};
         }
 
+        //////////////////////////////////////////////////////////////////////////
+        // CRDT join operations
+        ///////////////////////////////////////////////////////////////////////////
         void join_delta_node(IDL::Mvreg &mvreg);
-
         void join_delta_edge(IDL::MvregEdge &mvreg);
-
         void join_delta_node_attr(IDL::MvregNodeAttr &mvreg);
-
         void join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg);
-
         void join_full_graph(IDL::OrMap &full_graph);
 
+        //Custom function for each rtps topic
         class NewMessageFunctor {
         public:
             DSRGraph *graph{};
@@ -642,26 +640,18 @@ namespace DSR {
 
 
         //Threads
-        // threads
         bool start_fullgraph_request_thread();
-
         void start_fullgraph_server_thread();
-
         void start_subscription_threads(bool showReceived);
 
         std::thread delta_node_thread, delta_edge_thread, delta_node_attrs_thread, delta_edge_attrs_thread, fullgraph_thread;
 
         // Threads handlers
         void node_subscription_thread(bool showReceived);
-
         void edge_subscription_thread(bool showReceived);
-
         void node_attrs_subscription_thread(bool showReceived);
-
         void edge_attrs_subscription_thread(bool showReceived);
-
         void fullgraph_server_thread();
-
         bool fullgraph_request_thread();
 
 

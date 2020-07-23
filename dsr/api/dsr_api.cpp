@@ -18,7 +18,7 @@ using namespace DSR;
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) {
+DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) , copy(false) {
     dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);
@@ -138,13 +138,14 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
                                       + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
     }
     if (r) {
-        if (aw.has_value()) {
-            dsrpub_node.write(&aw.value());
-            emit update_node_signal(node.id(), node.type());
-            for (const auto &[k, v]: node.fano())
-                    emit update_edge_signal(node.id(), k.first, k.second);
+        if (!copy) {
+            if (aw.has_value()) {
+                dsrpub_node.write(&aw.value());
+                emit update_node_signal(node.id(), node.type());
+                for (const auto &[k, v]: node.fano())
+                        emit update_edge_signal(node.id(), k.first, k.second);
+            }
         }
-
         return node.id();
     }
     return {};
@@ -208,12 +209,14 @@ bool DSRGraph::update_node(Node &node) {
         std::tie(r, vec_node_attr) = update_node_(user_node_to_crdt(std::move(node)));
     }
     if (r) {
-        if (vec_node_attr.has_value()) {
-            for (auto &v: vec_node_attr.value()) {
-                std::cout << "SEND ATTR CHANGE " << v.attr_name() << std::endl;
-                dsrpub_node_attrs.write(&v);
+        if (!copy) {
+            if (vec_node_attr.has_value()) {
+                for (auto &v: vec_node_attr.value()) {
+                    std::cout << "SEND ATTR CHANGE " << v.attr_name() << std::endl;
+                    dsrpub_node_attrs.write(&v);
+                }
+                emit update_node_signal(node.id(), node.type());
             }
-            emit update_node_signal(node.id(), node.type());
         }
     }
     return r;
@@ -281,15 +284,16 @@ bool DSRGraph::delete_node(const std::string &name) {
     }
 
     if (result) {
-        emit del_node_signal(id.value());
+        if (!copy) {
+            emit del_node_signal(id.value());
+            dsrpub_node.write(&deleted_node.value());
 
-        dsrpub_node.write(&deleted_node.value());
+            for (auto &a  : aw_)
+                dsrpub_edge.write(&a);
 
-        for (auto &a  : aw_)
-            dsrpub_edge.write(&a);
-
-        for (auto &[id0, id1, label] : edges_)
-                emit del_edge_signal(id0, id1, label);
+            for (auto &[id0, id1, label] : edges_)
+                    emit del_edge_signal(id0, id1, label);
+        }
         return true;
     }
     return false;
@@ -310,15 +314,17 @@ bool DSRGraph::delete_node(uint32_t id) {
     }
 
     if (result) {
-        emit del_node_signal(id);
+        if (!copy) {
 
-        dsrpub_node.write(&deleted_node.value());
+            emit del_node_signal(id);
+            dsrpub_node.write(&deleted_node.value());
 
-        for (auto &a  : aw_)
-            dsrpub_edge.write(&a);
+            for (auto &a  : aw_)
+                dsrpub_edge.write(&a);
 
-        for (auto &[id0, id1, label] : edges_)
-                emit del_edge_signal(id0, id1, label);
+            for (auto &[id0, id1, label] : edges_)
+                    emit del_edge_signal(id0, id1, label);
+        }
         return true;
     }
 
@@ -378,6 +384,20 @@ std::optional<DSR::Edge> DSRGraph::get_edge(uint32_t from, uint32_t to, const st
     return {};
 }
 
+std::optional<Edge> DSRGraph::get_edge(const Node& n, const std::string& to, const std::string& key)
+{
+    std::optional<uint32_t> id_to = get_id_from_name(to);
+    if (id_to.has_value()) {
+        return (n.fano().find({id_to.value(), key}) != n.fano().end()) ?  std::make_optional(n.fano().find({id_to.value(), key})->second) : std::nullopt;
+    }
+    return {};
+}
+
+std::optional<Edge> DSRGraph::get_edge(const Node &n, uint32_t to, const std::string& key)
+{
+    EdgeKey ek; ek.to(to); ek.type(key);
+    return (n.fano().find({to, key}) != n.fano().end()) ?  std::make_optional(n.fano().find({to, key})->second) : std::nullopt;
+};
 
 std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>>
 DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to) {
@@ -441,15 +461,17 @@ bool DSRGraph::insert_or_assign_edge(const Edge &attrs) {
         }
     }
     if (r) {
-        if (delta_edge.has_value()) { //Insert
-            dsrpub_edge.write(&delta_edge.value());
-        }
-        if (delta_attrs.has_value()) { //Update
-            for (auto &d : delta_attrs.value())
-                dsrpub_edge_attrs.write(&d);
-        }
-        emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
+        if (!copy) {
 
+            if (delta_edge.has_value()) { //Insert
+                dsrpub_edge.write(&delta_edge.value());
+            }
+            if (delta_attrs.has_value()) { //Update
+                for (auto &d : delta_attrs.value())
+                    dsrpub_edge_attrs.write(&d);
+            }
+            emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
+        }
     }
     return true;
 }
@@ -459,6 +481,8 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
 
     bool r1 = false;
     bool r2 = false;
+    bool no_send = true;
+
     std::optional<IDL::MvregEdge> node1_insert;
     std::optional<vector<IDL::MvregEdgeAttr>> node1_update;
     std::optional<vector<IDL::MvregNodeAttr>> node2;
@@ -466,54 +490,48 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to)) {
-            CRDTEdge e;
-            e.to(to);  e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
-            CRDTAttribute tr;
-            tr.type(3); tr.val(CRDTValue(std::move(trans))); tr.timestamp(get_unix_timestamp());
-            CRDTAttribute rot;
-            rot.type(3); rot.val(CRDTValue(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
-            if (e.attrs().find("rotation_euler_xyz") == e.attrs().end()) {
-                mvreg<CRDTAttribute, uint32_t> mv;
-                e.attrs().insert(make_pair("rotation_euler_xyz", mv));
+            CRDTEdge e; e.to(to);  e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
+            CRDTAttribute tr; tr.type(3); tr.val(CRDTValue(std::move(trans))); tr.timestamp(get_unix_timestamp());
+            CRDTAttribute rot; rot.type(3); rot.val(CRDTValue(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
+            if (auto [it, new_el] = e.attrs().emplace("rotation_euler_xyz", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
+            {
+                it->second.write(rot);
             }
-            e.attrs()["rotation_euler_xyz"].write(rot);
-            if (e.attrs().find("translation") == e.attrs().end()) {
-                mvreg<CRDTAttribute, uint32_t> mv;
-                e.attrs().insert(make_pair("translation", mv));
+
+            if (auto [it, new_el] = e.attrs().emplace("translation", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
+            {
+                it->second.write(tr);
             }
-            e.attrs()["translation"].write(tr);
 
             to_n = get_(to).value();
-            bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
-            if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
-            bool res2 = modify_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
-            if (!res2) (void) add_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
-
+            if (auto x = get_attrib_by_name<uint32_t>(to_n.value(), "parent"); x.has_value() and x.value() != n.id()) {
+                bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
+                if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+                no_send = false;
+            }
+            if (auto x = get_attrib_by_name<int32_t>(to_n.value(), "level"); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+                bool res2 = modify_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+                if (!res2) (void) add_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+                no_send = false;
+            }
             //Check if RT edge exist.
             if (n.fano().find({to, "RT"}) == n.fano().end()) {
                 //Create -> from: IDL::MvregEdge, to: vector<IDL::MvregNodeAttr>
-
                 std::tie(r1, node1_insert, std::ignore) = insert_or_assign_edge_(e, n.id(), to);
                 std::tie(r2, node2) = update_node_(to_n.value());
 
-                if (!r1 || !r2) {
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
-                            __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-                }
             } else {
                 //Update -> from: IDL::MvregEdgeAttr, to: vector<IDL::MvregNodeAttr>
 
                 std::tie(r1, std::ignore, node1_update) = insert_or_assign_edge_(e, n.id(), to);
                 std::tie(r2, node2) = update_node_(to_n.value());
 
-                if (!r1 || !r2) {
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
-                            __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-                }
             }
-
+            if (!r1 || !r2) {
+                throw std::runtime_error(
+                        "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
+                        __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+            }
         } else
             throw std::runtime_error(
                     "Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() " +
@@ -524,25 +542,30 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
         for (auto &d : node2.value())
             dsrpub_node_attrs.write(&d);
     }
+    if (!copy) {
 
-    if (node1_update.has_value() and node2.has_value()) {
-        for (auto &d : node1_update.value())
-            dsrpub_edge_attrs.write(&d);
-
-        for (auto &d : node2.value())
-            dsrpub_node_attrs.write(&d);
+        if (node1_update.has_value() and node2.has_value()) {
+            for (auto &d : node1_update.value())
+                dsrpub_edge_attrs.write(&d);
+            if (!no_send) {
+                for (auto &d : node2.value())
+                    dsrpub_node_attrs.write(&d);
+            }
+        }
+        emit update_edge_signal(n.id(), to, "RT");
+        if (!no_send) emit update_node_signal(to_n->id(), to_n->type());
     }
-
-    emit update_edge_signal(n.id(), to, "RT");
-    emit update_node_signal(to_n->id(), to_n->type());
 
 }
 
 void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans,
                                         const std::vector<float> &rot_euler) {
 
+
     bool r1 = false;
     bool r2 = false;
+    bool no_send = true;
+
     std::optional<IDL::MvregEdge> node1_insert;
     std::optional<vector<IDL::MvregEdgeAttr>> node1_update;
     std::optional<vector<IDL::MvregNodeAttr>> node2;
@@ -550,61 +573,48 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
         if (in(to)) {
-            CRDTEdge e;
-            e.to(to);
-            e.from(n.id());
-            e.type("RT");
-            e.agent_id(agent_id);
-            CRDTAttribute tr;
-            tr.type(3);
-            tr.val(CRDTValue(trans));
-            tr.timestamp(get_unix_timestamp());
-            CRDTAttribute rot;
-            tr.type(3);
-            rot.val(CRDTValue(rot_euler));
-            tr.timestamp(get_unix_timestamp());
-            if (e.attrs().find("rotation_euler_xyz") == e.attrs().end()) {
-                mvreg<CRDTAttribute, uint32_t> mv;
-                e.attrs().insert(make_pair("rotation_euler_xyz", mv));
+            CRDTEdge e; e.to(to);  e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
+            CRDTAttribute tr; tr.type(3); tr.val(CRDTValue(trans)); tr.timestamp(get_unix_timestamp());
+            CRDTAttribute rot; rot.type(3); rot.val(CRDTValue(rot_euler)); rot.timestamp(get_unix_timestamp());
+            if (auto [it, new_el] = e.attrs().emplace("rotation_euler_xyz", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
+            {
+                it->second.write(rot);
             }
-            e.attrs()["rotation_euler_xyz"].write(rot);
-            if (e.attrs().find("translation") == e.attrs().end()) {
-                mvreg<CRDTAttribute, uint32_t> mv;
-                e.attrs().insert(make_pair("translation", mv));
-            }
-            e.attrs()["translation"].write(tr);
 
+            if (auto [it, new_el] = e.attrs().emplace("translation", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
+            {
+                it->second.write(tr);
+            }
 
             to_n = get_(to).value();
-            bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
-            if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
-            bool res2 = modify_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
-            if (!res2) (void) add_attrib_local(to_n.value(), "level", get_node_level(n).value() + 1);
-
+            if (auto x = get_attrib_by_name<uint32_t>(to_n.value(), "parent"); x.has_value() and x.value() != n.id()) {
+                bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
+                if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+                no_send = false;
+            }
+            if (auto x = get_attrib_by_name<int32_t>(to_n.value(), "level"); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+                bool res2 = modify_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+                if (!res2) (void) add_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+                no_send = false;
+            }
             //Check if RT edge exist.
             if (n.fano().find({to, "RT"}) == n.fano().end()) {
                 //Create -> from: IDL::MvregEdge, to: vector<IDL::MvregNodeAttr>
                 std::tie(r1, node1_insert, std::ignore) = insert_or_assign_edge_(e, n.id(), to);
                 std::tie(r2, node2) = update_node_(to_n.value());
 
-                if (!r1 || !r2) {
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
-                            __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-                }
             } else {
                 //Update -> from: IDL::MvregEdgeAttr, to: vector<IDL::MvregNodeAttr>
 
                 std::tie(r1, std::ignore, node1_update) = insert_or_assign_edge_(e, n.id(), to);
                 std::tie(r2, node2) = update_node_(to_n.value());
 
-                if (!r1 || !r2) {
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
-                            __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-                }
             }
-
+            if (!r1 || !r2) {
+                throw std::runtime_error(
+                        "Could not insert Node " + std::to_string(n.id()) + " in G in insert_or_assign_edge_RT() " +
+                        __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+            }
         } else
             throw std::runtime_error(
                     "Destination node " + std::to_string(n.id()) + " not found in G in insert_or_assign_edge_RT() " +
@@ -612,22 +622,23 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<
     }
     if (node1_insert.has_value() and node2.has_value()) {
         dsrpub_edge.write(&node1_insert.value());
-        for (auto &d : node2.value()) {
-            std::cout << d.attr_name() << " "<< d.dk().ds().begin()->second.value()._d() << std::endl;
-            dsrpub_node_attrs.write(&d);
-        }
-    }
-
-    if (node1_update.has_value() and node2.has_value()) {
-        for (auto &d : node1_update.value())
-            dsrpub_edge_attrs.write(&d);
-
         for (auto &d : node2.value())
             dsrpub_node_attrs.write(&d);
     }
+    if (!copy) {
 
-    emit update_edge_signal(n.id(), to, "RT");
-    emit update_node_signal(to_n->id(), to_n->type());
+        if (node1_update.has_value() and node2.has_value()) {
+            for (auto &d : node1_update.value())
+                dsrpub_edge_attrs.write(&d);
+            if (!no_send) {
+                for (auto &d : node2.value())
+                    dsrpub_node_attrs.write(&d);
+            }
+        }
+        emit update_edge_signal(n.id(), to, "RT");
+        if (!no_send) emit update_node_signal(to_n->id(), to_n->type());
+    }
+
 
 }
 
@@ -655,8 +666,10 @@ bool DSRGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) {
         delta = delete_edge_(from, to, key);
     }
     if (delta.has_value()) {
-        emit del_edge_signal(from, to, key);
-        dsrpub_edge.write(&delta.value());
+        if (!copy) {
+            emit del_edge_signal(from, to, key);
+            dsrpub_edge.write(&delta.value());
+        }
         return true;
     }
     return false;
@@ -679,8 +692,10 @@ bool DSRGraph::delete_edge(const std::string &from, const std::string &to, const
     }
 
     if (delta.has_value()) {
-        emit del_edge_signal(id_from.value(), id_to.value(), key);
-        dsrpub_edge.write(&delta.value());
+        if (!copy) {
+            emit del_edge_signal(id_from.value(), id_to.value(), key);
+            dsrpub_edge.write(&delta.value());
+        }
         return true;
     }
     return false;
@@ -1470,3 +1485,28 @@ bool DSRGraph::fullgraph_request_thread() {
     return sync;
 }
 
+
+//////////////////////////////////////////////////
+///// PRIVATE COPY
+/////////////////////////////////////////////////
+
+DSRGraph::DSRGraph(const DSRGraph& G) : agent_id(G.agent_id), copy(true)
+{
+    nodes = G.nodes;
+    graph_root = G.graph_root;
+    utils = std::make_unique<Utilities>(this);
+    id_map = G.id_map;
+    deleted = G.deleted;
+    name_map = G.name_map;
+    edges = G.edges;
+    edgeType = G.edgeType;
+    nodeType = G.nodeType;
+}
+
+DSRGraph DSRGraph::G_copy() {
+    return DSRGraph(*this);
+};
+
+bool DSRGraph::is_copy() {
+    return copy;
+};
