@@ -5,6 +5,7 @@ template<typename TMap, typename TController>
 void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGraph> &graph,
                                                 std::shared_ptr< RoboCompCommonBehavior::ParameterList > configparams_,
                                                 QGraphicsScene *scene,
+                                                bool read_from_file,
                                                 std::string file_name)
 {
     qDebug()<<"Navigation - "<< __FUNCTION__;
@@ -12,12 +13,13 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     innerModel = G->get_inner_api();
     configparams = configparams_;
     viewer_2d = scene;
+    robot_name = configparams_->at("RobotName").value;
 
     stopRobot();
     //grid can't be initialized if the robot is moving
     collisions =  std::make_shared<Collisions>();
     collisions->initialize(G, configparams);
-    grid.initialize(G, collisions, false, file_name);
+    grid.initialize(G, collisions, read_from_file, file_name);
     grid.draw(viewer_2d);
     controller.initialize(innerModel,configparams);
 
@@ -34,49 +36,32 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning)
 {
-    qDebug() << "Navigation - " << __FUNCTION__;
-    // static QTime reloj = QTime::currentTime();
+    //qInfo() << "Navigation - " << __FUNCTION__;
+    static QTime reloj = QTime::currentTime();
 
-    //    if (gridChanged)
-    //    {
-    //        updateFreeSpaceMap();
-    //        gridChanged = false;
-    //    }
+    currentRobotPose = innerModel->transformS6D("world", robot_name).value();
+    //auto robot = QPointF(currentRobotPose.x(),currentRobotPose.z());
+    //currentRobotNose = (robot - QPointF(250*sin(currentRobotPose.ry()),250*cos(currentRobotPose.ry())));
+    auto rn_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
+    currentRobotNose = QPointF(rn_3d.x(), rn_3d.z());
+    updateLaserPolygon(laserData_);
+    currentRobotPolygon = getRobotPolygon();
+    // std::cout << __FUNCTION__ << "Updated Robot pose " << reloj.restart() << std::endl;
+    //currentRobotPose.print("currentRobotPose");
 
-    //TODO:
-    //    currentRobotPose = innerModel->transformS6D("world","robot");
-    //    qDebug()<< "Updated Robot pose " << reloj.restart();
-
-    // if(needsReplaning)
-    // {
-    //     for (auto p: pathPoints)
-    //     {
-    //         if(std::any_of(std::begin(socialSpaces), std::end(socialSpaces),[p](const auto &poly) { return poly.containsPoint(p, Qt::OddEvenFill);})
-    //         or std::any_of(std::begin(personalSpaces), std::end(personalSpaces),[p](const auto &poly) { return poly.containsPoint(p, Qt::OddEvenFill);})
-    //         or std::any_of(std::begin(totalAffordances), std::end(totalAffordances),[p](const auto &poly) { return poly.containsPoint(p, Qt::OddEvenFill);})
-    //        )
-    //         {
-    //             stopRobot();
-
-    //             this->current_target.lock();
-    //                 current_target.blocked.store(true);
-    //             this->current_target.unlock();
-
-    //             break;
-    //         }
-    //     }
-    // }
-
-    if (checkPathState() == false)
+    auto state = checkPathState();
+    if(state == "PATH_NOT_FOUND")
+    {
+        qWarning(state.c_str());
         return;
+    }
 
-    //computeForces(pathPoints, laserData_);
-    //cleanPoints();
-    //addPoints();
+    computeForces(pathPoints, laserData_);
+    cleanPoints();
+    addPoints();
+    drawRoad();
+
     //auto [blocked, active, xVel,zVel,rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose);
-
-
-
     //    qDebug()<< "xVel "<<xVel << "zVel "<<zVel << "rotVel" << rotVel;
 
     //    if (blocked)
@@ -121,7 +106,7 @@ bool Navigation<TMap, TController>::isCurrentTargetActive()
 }
 
 template<typename TMap, typename TController>
-bool Navigation<TMap, TController>::checkPathState()
+std::string Navigation<TMap, TController>::checkPathState()
 {
    //std::cout << __FUNCTION__ << " " << current_target.active.load() << " " <<
    //              current_target.blocked.load() << " "  << scene_road_points.size() << std::endl;
@@ -132,28 +117,28 @@ bool Navigation<TMap, TController>::checkPathState()
             if ( not findNewPath())
             {
                 qDebug() << __FUNCTION__ << "Path not found";
-                if(current_target.humanBlock.load()) //if the path is blocked by human the target is not deactivated
-                    return false;
-                qDebug()<< "checkPathState - Deactivating current target";
+                //                if(current_target.humanBlock.load()) //if the path is blocked by human the target is not deactivated
+                //                    return "";
+                //qDebug()<< "checkPathState - Deactivating current target";
                 stopRobot();
                 current_target.active.store(false);
                 pathPoints.clear();
                 if(robotAutoMov)
                     newRandomTarget();
-                return false;
+                return "PATH_NOT_FOUND";;
             }
             else
             {
-                std::cout << "checkPathState - Path found" << std::endl;
+                // std::cout << "checkPathState - Path found" << std::endl;
                 this->current_target.blocked.store(false);
-                drawRoad();
-                // reloj.restart();
+                reloj.restart();
+                return "PATH_FOUND";
             }
         }
-        return true;
+        return "NOT_BLOCKED";
     }
     else
-        return false;
+        return "NOT_ACTIVE";
 }
 
 template<typename TMap, typename TController>
@@ -172,9 +157,7 @@ void Navigation<TMap, TController>::newRandomTarget()
     current_target.p = QPointF(x,z);
 
     this->current_target.unlock();
-
     qDebug()<<"New Random Target" << current_target.p;
-
 }
 
 template<typename TMap, typename TController>
@@ -251,9 +234,8 @@ bool Navigation<TMap, TController>::isVisible(QPointF p)
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &path, const RoboCompLaser::TLaserData &lData)
 {
-    if (path.size() < 3) {
+    if (path.size() < 3)
         return;
-    }
 
     int pointIndex = 0;
     int nonVisiblePointsComputed = 0;
@@ -263,7 +245,6 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
     {
         if (group.size() < 3)
             break; // break if too short
-
 
         //        if (group[0] == pathPoints[0])
         //            continue;
@@ -286,7 +267,6 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
             {
                 qDebug () << "No obstacles found ";
                 nonVisiblePointsComputed++;
-
                 continue;
             }
             else
@@ -357,18 +337,15 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
 
         qDebug() << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
 
-        //        if (isVisible(temp_p)
         if (isPointVisitable(temp_p)
             and (!currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
-                )
+            )
         {
-
             auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s) {
                 return (s.x() == p.x() and s.y() == p.y() );
             } );
-
             if (it != pathPoints.end())
             {
                 int index = std::distance(pathPoints.begin(), it);
@@ -386,20 +363,8 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
     else
     {
         current_target.blocked.store(true);
-        qDebug()<< "Robot Nose not visible -- NEEDS REPLANNING ";
+        qWarning()<< "Robot Nose not visible -- NEEDS REPLANNING ";
     }
-
-    FILE *fd1 = fopen("calculatedPoints.txt", "w");
-
-    for (const QPointF &p : pathPoints)
-    {
-        fprintf(fd1, "%.2f %.2f\n", (float)p.x(), (float)p.y());
-    }
-
-    fclose(fd1);
-
-    qDebug()<< endl;
-    qDebug()<< endl;
     return;
 }
 
@@ -419,8 +384,7 @@ bool Navigation<TMap, TController>::isPointVisitable(QPointF point)
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::addPoints()
 {
-    //        qDebug()<<"Navigation - "<< __FUNCTION__;
-
+    // qDebug()<<"Navigation - "<< __FUNCTION__;
     std::vector<std::tuple<int, QPointF>> points_to_insert;
     for (auto &&[k, group] : iter::enumerate(iter::sliding_window(pathPoints, 2)))
     {
@@ -431,26 +395,19 @@ void Navigation<TMap, TController>::addPoints()
             continue;
 
         float dist = QVector2D(p1 - p2).length();
-
         if (dist > ROAD_STEP_SEPARATION)
         {
-            float l = 0.9 * ROAD_STEP_SEPARATION / dist; //Crucial que el punto se ponga mas cerca que la condición de entrada
+            float l = 0.9 * ROAD_STEP_SEPARATION /
+                      dist; //Crucial que el punto se ponga mas cerca que la condición de entrada
             QLineF line(p1, p2);
             points_to_insert.push_back(std::make_tuple(k + 1, QPointF{line.pointAt(l)}));
         }
-        //qDebug() << __FUNCTION__ << k;
     }
     for (const auto &[l, p] : iter::enumerate(points_to_insert))
     {
-        if(!currentRobotPolygon.containsPoint(std::get<QPointF>(p), Qt::OddEvenFill))
-        {
-            //                qDebug()<< "Add points  " << std::get<QPointF>(p);
-
+        if (!currentRobotPolygon.containsPoint(std::get<QPointF>(p), Qt::OddEvenFill))
             pathPoints.insert(pathPoints.begin() + std::get<int>(p) + l, std::get<QPointF>(p));
-        }
-
     }
-    //        qDebug() << __FUNCTION__ << "points inserted " << points_to_insert.size();
 }
 
 template<typename TMap, typename TController>
@@ -496,65 +453,31 @@ void Navigation<TMap, TController>::cleanPoints()
 template<typename TMap, typename TController>
 QPolygonF Navigation<TMap, TController>::getRobotPolygon()
 {
-    //        qDebug()<<"Navigation - "<< __FUNCTION__;
-
     QPolygonF robotP;
-
-    auto bLWorld = innerModel->transform ("world", robotBottomLeft ,"base_mesh");
-    auto bRWorld = innerModel->transform ("world", robotBottomRight ,"base_mesh");
-    auto tRWorld = innerModel->transform ("world", robotTopRight ,"base_mesh");
-    auto tLWorld = innerModel->transform ("world", robotTopLeft ,"base_mesh");
-
-
+    auto bLWorld = innerModel->transformS("world", robotBottomLeft ,robot_name);
+    auto bRWorld = innerModel->transformS("world", robotBottomRight ,robot_name);
+    auto tRWorld = innerModel->transformS("world", robotTopRight ,robot_name);
+    auto tLWorld = innerModel->transformS("world", robotTopLeft ,robot_name);
     robotP << QPointF(bLWorld.value().x(),bLWorld.value().z());
     robotP << QPointF(bRWorld.value().x(),bRWorld.value().z());
     robotP << QPointF(tRWorld.value().x(),tRWorld.value().z());
     robotP << QPointF(tLWorld.value().x(),tLWorld.value().z());
-
-    FILE *fd = fopen("robot.txt", "w");
-    for (const auto &r: robotP)
-    {
-        fprintf(fd, "%d %d\n", (int)r.x(), (int)r.y());
-    }
-
-    fprintf(fd, "%d %d\n", (int)robotP[0].x(), (int)robotP[0].y());
-
-    fclose(fd);
     return robotP;
 }
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
 {
-    //        qDebug()<<"Navigation - "<< __FUNCTION__;
-
     laser_poly.clear(); //stores the points of the laser in lasers refrence system
     laser_cart.clear();
-    /*   auto lasernode = innerModel->getNode<InnerModelLaser>(QString("laser"));
-
-       for (const auto &l : lData)
-       {
-           //convert laser polar coordinates to cartesian
-           QVec laserc = lasernode->laserTo(QString("laser"),l.dist, l.angle);
-           QVec laserWord = lasernode->laserTo(QString("world"),l.dist, l.angle);
-   //        QVec laserWorld = innerModel->transform("world",QVec::vec3(laserc.x(),0,laserc.y()),"laser");
-
-           laser_poly << QPointF(laserc.x(),laserc.z());
-
-           laser_cart.push_back(QPointF(laserWord.x(),laserWord.z()));
-
-       }
-
-
-       FILE *fd = fopen("laserPoly.txt", "w");
-       for (const auto &lp : laser_poly)
-       {
-           QVec p = innerModel->transform("world",QVec::vec3(lp.x(),0,lp.y()),"laser");
-           fprintf(fd, "%d %d\n", (int)p.x(), (int)p.z());
-       }
-       fclose(fd);
-   */
-
+    for (const auto &l : lData)
+    {
+        //convert laser polar coordinates to cartesian
+        float x = l.dist*sin(l.angle); float z = l.dist*cos(l.angle);
+        QVec laserWorld = innerModel->transform("world", QVec::vec3(x, 0, z), "laser").value(); //OJO CON LOS NOMBRES
+        laser_poly << QPointF(x, z);
+        laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.z()));
+    }
 }
 
 template<typename TMap, typename TController>
@@ -604,9 +527,9 @@ void Navigation<TMap, TController>::drawRoad()
             color = "#FF0000"; //Red
         else
             if (isVisible(w))
-                color = "#00FFF0";
+                color = "#00FFF0"; //Blue
             else
-                color = "#A200FF";
+                color = "#A200FF"; //Purple
 
         line1 = viewer_2d->addLine(qli, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
         line2 = viewer_2d->addLine(qli_perp, QPen(QBrush(QColor(QString::fromStdString(color))), 20));

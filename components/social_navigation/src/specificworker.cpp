@@ -91,7 +91,11 @@ void SpecificWorker::initialize(int period)
     	moveRobot();
 
 		DSR::DSRtoGraphicsceneViewer* widget_2d = qobject_cast<DSR::DSRtoGraphicsceneViewer*> (graph_viewer->get_widget(opts::scene));
-		navigation.initialize(G, confParams, &widget_2d->scene, "viriato.grid");
+
+        //Signal from 2D viewer
+        connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int, int, int)));
+
+        navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato.grid");
 	
 		this->Period = 100;
 		timer.start(Period);
@@ -132,7 +136,6 @@ void  SpecificWorker::moveRobot()
         navigation.moveRobot = true;
 		navigation.stopMovingRobot = false;
     }
-
     else
     {
         if(navigation.current_target.active.load())
@@ -160,6 +163,12 @@ void  SpecificWorker::checkRobotAutoMovState()
     {
         navigation.robotAutoMov = false;
     }
+}
+
+void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
+{
+    std::cout << "New target:" << pos_x << " " << pos_y << " " << id << std::endl;
+    navigation.newTarget(QPointF(pos_x, pos_y));
 }
 
 ///////////////////////////////////////////////////

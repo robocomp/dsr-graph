@@ -87,8 +87,10 @@ class Grid
             };
         };
         using FMap = std::unordered_map<Key, T, KeyHasher>;
-        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, std::shared_ptr<Collisions> collisions_,
-                        bool read_from_file = true, const std::string &file_name = std::string());
+        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
+                        std::shared_ptr<Collisions> collisions_,
+                        bool read_from_file = true,
+                        const std::string &file_name = std::string());
         std::tuple<bool, T &> getCell(long int x, long int z);
         std::tuple<bool, T &> getCell(const Key &k);
         T at(const Key &k) const                    { return fmap.at(k);};

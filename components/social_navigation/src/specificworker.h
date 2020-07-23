@@ -61,7 +61,7 @@ public slots:
     void moveRobot();
     void sendRobotTo();
 	void forcesSliderChanged(int value = 0);
-
+    void new_target_from_mouse(int pos_x, int pos_y, int id);
 
 private:
 	std::shared_ptr<DSR::InnerAPI> innermodel;

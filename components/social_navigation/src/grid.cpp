@@ -96,7 +96,7 @@ void Grid<T>::readFromFile(const std::string &fich)
         ss >> x >> z >> free >> visited;
         fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f});
     }
-    std::cout << __FUNCTION__ << fmap.size() << " elements read from " << fich << std::endl;
+    std::cout << __FUNCTION__ << " " << fmap.size() << " elements read from " << fich << std::endl;
 }
 
 template <typename T>
