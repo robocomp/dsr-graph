@@ -37,17 +37,13 @@ template<typename TMap, typename TController>
 void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning)
 {
     //qInfo() << "Navigation - " << __FUNCTION__;
-    static QTime reloj = QTime::currentTime();
+    //static QTime reloj = QTime::currentTime();
 
     currentRobotPose = innerModel->transformS6D("world", robot_name).value();
-    //auto robot = QPointF(currentRobotPose.x(),currentRobotPose.z());
-    //currentRobotNose = (robot - QPointF(250*sin(currentRobotPose.ry()),250*cos(currentRobotPose.ry())));
-    auto rn_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
+  auto rn_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, -250), robot_name).value();
     currentRobotNose = QPointF(rn_3d.x(), rn_3d.z());
     updateLaserPolygon(laserData_);
     currentRobotPolygon = getRobotPolygon();
-    // std::cout << __FUNCTION__ << "Updated Robot pose " << reloj.restart() << std::endl;
-    //currentRobotPose.print("currentRobotPose");
 
     auto state = checkPathState();
     if(state == "PATH_NOT_FOUND")

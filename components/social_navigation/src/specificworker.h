@@ -90,6 +90,7 @@ private:
 	//navigation
 	std::shared_ptr<RoboCompCommonBehavior::ParameterList> confParams;
     Navigation<Grid<>,Controller> navigation;
+    std::string robot_name = "omnirobot";
 
 	//local widget
 	Custom_widget custom_widget;
