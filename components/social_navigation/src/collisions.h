@@ -135,13 +135,12 @@ class Collisions
         std::vector<std::string> robotNodes;
         std::vector<std::string> restNodes;
         std::set<std::string> excludedNodes;
-
         std::string robot_name;
 
         void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
         bool collide(std::shared_ptr<DSR::InnerAPI> innerModel, const std::string &node_a_name, const std::string &node_b_name);
-        //return collison object, creates it if does not exist
-        fcl::CollisionObject* get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, std::string node_name);
+        // returns collison object, creates it if does not exist
+        fcl::CollisionObject* get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const std::string& node_name);
         fcl::CollisionObject* create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
         fcl::CollisionObject* create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
 };
