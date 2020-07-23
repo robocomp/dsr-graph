@@ -29,29 +29,21 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
-    std::cout<<"lists"<<std::endl;
-    std::cout<<"robot"<<robotNodes<<std::endl;
-    std::cout<<"rest"<<restNodes<<std::endl;
+    // std::cout << __FUNCTION__ << "lists" ;
+    std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
+    std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
     qsrand( QTime::currentTime().msec() );
 }
 
 bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
-    //First we move the robot in our copy of innermodel to its current coordinates
+    //First we move the robot in G_copy to the target coordinates
     std::optional<Node> world = G_copy.get_node("world");
-    std::optional<Edge> edge = G_copy.get_edge("world", robot_name, "RT");
-    G_copy.modify_attrib_local(edge.value(), "translation", targetPos);
-    G_copy.modify_attrib_local(edge.value(), "rotation_euler_xyz", targetRot);
-    G_copy.update_node(world.value());
+    std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
+    G_copy.insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
     std::shared_ptr<DSR::InnerAPI> inner = G_copy.get_inner_api();
 
-    G_copy.get_edge_RT_as_RTMat(edge.value()).print("rt_orig");
-    std::optional<Edge> e = G_copy.get_edge("world", robot_name, "RT");
-    G_copy.get_edge_RT_as_RTMat(e.value()).print("rt");
-
-    ///////////////////////
-    //// Check if the robot at the target collides with any know object
-    ///////////////////////
+    //// Check if the robot at the target collides with any object in restNodes
     bool collision = false;
     for ( const std::string& in : robotNodes )
         for ( const std::string&  out : restNodes )
@@ -62,7 +54,7 @@ bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const s
             }
             catch (QString &s)
             {
-                qDebug() << __FUNCTION__ << s;
+                std::cout << __FUNCTION__ << " " << s.toStdString() << " between " << in << " and " << out << std::endl;
                 qFatal("Collision");
             }
             if (collision)
@@ -101,32 +93,26 @@ bool Collisions::collide(std::shared_ptr<DSR::InnerAPI> inner, const std::string
         return result.isCollision();
     }
     else
-    {
         return false;
-    }
 }
 
 void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded)
 {
     if (node.name() == robot_name)
-    {
         inside = true;
-    }
     if (node.type() == "mesh" or node.type() == "plane")
     {
-        if( std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end() )
+        if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())
         {
             if (inside)
             {
                 in.push_back(node.name());
-            }
-            else
+            } else
             {
                 out.push_back(node.name());
             }
         }
     }
-
     for(auto &edge: G->get_node_edges_by_type(node, "RT"))
     {
         auto child = G->get_node(edge.to());
@@ -134,9 +120,8 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
     }
 }
 
-
-//return collison object, creates it if does not exist
-fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, std::string node_name)
+//returns collison object, creates it if does not exist
+fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const std::string& node_name)
 {
     if (collision_objects.find(node_name) == collision_objects.end())
     {
@@ -175,28 +160,27 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<D
         std::vector<fcl::Triangle> triangles;
         CalculateTriangles calcTriangles(&vertices, &triangles);
         osgnode_->accept(calcTriangles);
-        // Get the internal transformation matrix of the mesh
-        std::optional<Node> parent = G->get_parent_node(node);
-        if(not parent.has_value())
-            return collision_object;
-        std::optional<QVec> pose = inner->transformS6D(node.name(), parent.value().name());
-        RTMat rtm(pose.value().rx(), pose.value().ry(), pose.value().rz(), pose.value().x(), pose.value().y(), pose.value().z());
+
         // Transform each of the read vertices
         std::optional<int> scalex = G->get_attrib_by_name<int>(node, "scalex");
         std::optional<int> scaley = G->get_attrib_by_name<int>(node, "scaley");
         std::optional<int> scalez = G->get_attrib_by_name<int>(node, "scalez");
         if(not (scalex.has_value() and scaley.has_value() and scalez.has_value()))
-            return collision_object;
-        for (size_t i=0; i<vertices.size(); i++)
         {
-            fcl::Vec3f v = vertices[i];
-            const QMat v2 = (rtm * QVec::vec3(v[0]*scalex.value(), v[1]*scaley.value(), -v[2]*scalez.value()).toHomogeneousCoordinates()).fromHomogeneousCoordinates();
-            vertices[i] = fcl::Vec3f(v2(0), v2(1), v2(2));
+            qWarning() << __FUNCTION__ << "scale attributes not found in object " << QString::fromStdString(node.name()) << " returning nullptr";
+            return collision_object;
         }
-        // Associate the read vertices and triangles vectors to the FCL collision model object
+        for(auto &v : vertices)
+        {
+            v[0] *= scalex.value();
+            v[1] *= scaley.value();
+            v[2] *= -scalez.value();
+        }
+
+        // Associate the vertices and triangles vectors to the FCL collision model object
         FCLModelPtr fclMesh = FCLModelPtr(new FCLModel());
         fclMesh->beginModel();
-        fclMesh->addSubModel(vertices, triangles);
+            fclMesh->addSubModel(vertices, triangles);
         fclMesh->endModel();
         collision_object = new fcl::CollisionObject(fclMesh);
     }
@@ -210,7 +194,10 @@ fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<
     std::optional<int> height = G->get_attrib_by_name<int>(node, "height");
     std::optional<int> depth = G->get_attrib_by_name<int>(node, "depth");
     if(not (width.has_value() and height.has_value() and depth.has_value()))
+    {
+        qWarning() << __FUNCTION__ << "size attributes not found in object " << QString::fromStdString(node.name()) << " returning nullptr";
         return collision_object;
+    }
     std::vector<fcl::Vec3f> vertices;
     vertices.push_back(fcl::Vec3f(-width.value()/2., +height.value()/2., -depth.value()/2.)); // Front NW
     vertices.push_back(fcl::Vec3f(+width.value()/2., +height.value()/2., -depth.value()/2.)); // Front NE
@@ -220,29 +207,7 @@ fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<
     vertices.push_back(fcl::Vec3f(+width.value()/2., +height.value()/2., +depth.value()/2.)); // Back NE
     vertices.push_back(fcl::Vec3f(-width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SW
     vertices.push_back(fcl::Vec3f(+width.value()/2., -height.value()/2., +depth.value()/2.)); // Back SE
-
-    std::optional<Node> parent = G->get_parent_node(node);
-    if(not parent.has_value())
-        return collision_object;
-    std::optional<QVec> pose = inner->transformS6D(node.name(), parent.value().name());
-    osg::Matrix r;
-    r.makeRotate(osg::Vec3(0, 0, 1), osg::Vec3(pose.value().rx(), pose.value().ry(), -pose.value().rz()));
-    QMat qmatmat(4,4);
-    for (int rro=0; rro<4; rro++)
-    {
-        for (int cco=0; cco<4; cco++)
-        {
-            qmatmat(rro,cco) = r(rro,cco);
-        }
-    }
-
-    for (size_t i=0; i<vertices.size(); i++)
-    {
-        fcl::Vec3f v = vertices[i];
-        const QVec rotated = (qmatmat*(QVec::vec3(v[0], v[1], v[2]).toHomogeneousCoordinates())).fromHomogeneousCoordinates();
-        vertices[i] = fcl::Vec3f(rotated(0)+pose.value().x(), rotated(1)+pose.value().y(), rotated(2)+pose.value().z());
-    }
-
+    
     std::vector<fcl::Triangle> triangles;
     triangles.push_back(fcl::Triangle(0,1,2)); // Front
     triangles.push_back(fcl::Triangle(1,2,3));
@@ -259,10 +224,8 @@ fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<
 
     FCLModelPtr fclMesh = FCLModelPtr(new FCLModel());
     fclMesh->beginModel();
-    fclMesh->addSubModel(vertices, triangles);
+        fclMesh->addSubModel(vertices, triangles);
     fclMesh->endModel();
-
     collision_object = new fcl::CollisionObject(fclMesh);
-
     return collision_object;
 }
