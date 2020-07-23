@@ -43,6 +43,8 @@
 #include <cppitertools/zip.hpp>
 #include <algorithm>
 
+#include <QGraphicsPolygonItem>
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -52,6 +54,7 @@ public:
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
 	RoboCompLaser::TLaserData updateLaser();
+    void draw_laser(RoboCompLaser::TLaserData laserData);
 
 public slots:
 	void compute();
@@ -91,6 +94,9 @@ private:
 	//local widget
 	Custom_widget custom_widget;
 
+	//drawing
+    DSR::DSRtoGraphicsceneViewer* widget_2d;
+    QGraphicsPolygonItem *laser_polygon = nullptr;
 };
 
 #endif
