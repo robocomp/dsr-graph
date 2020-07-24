@@ -40,8 +40,6 @@ import queue
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map):
         super(SpecificWorker, self).__init__(proxy_map)
-        #self.timer.timeout.connect(self.compute)
-        #self.Period = 100
        
     def __del__(self):
         print('SpecificWorker destructor')
@@ -49,135 +47,138 @@ class SpecificWorker(GenericWorker):
     def setParams(self, params):
         
         SCENE_FILE = '../../etc/autonomy-lab.ttt'
+        #SCENE_FILE = '/home/pbustos/software/PyRep/examples/scene_youbot_navigation.ttt'
+
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
         
         self.robot = Viriato()
-        
-        self.cameras = {}
-        cam = VisionSensor("camera_1_rgbd_sensor")
-        self.cameras["camera_1_rgbd_sensor"] = {    "handle": cam, 
-                                                    "id": 1,
-                                                    "angle": np.radians(cam.get_perspective_angle()), 
-                                                    "width": cam.get_resolution()[0],
-                                                    "height": cam.get_resolution()[1],
-                                                    "depth": 3,
-                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-                                                    "rgb": np.array(0), 
-                                                    "depth": np.ndarray(0) }
-        cam = VisionSensor("camera_2_rgbd_sensor")                                            
-        self.cameras["camera_2_rgbd_sensor"] = {    "handle": cam, 
-                                                    "id": 2,
-                                                    "angle": np.radians(cam.get_perspective_angle()), 
-                                                    "width": cam.get_resolution()[0],
-                                                    "height": cam.get_resolution()[1],
-                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-                                                    "rgb": np.array(0), 
-                                                    "depth": np.ndarray(0) }
-        cam = VisionSensor("camera_3_rgbd_sensor")                                            
-        self.cameras["camera_3_rgbd_sensor"] = {    "handle": cam, 
-                                                    "id": 3,
-                                                    "angle": np.radians(cam.get_perspective_angle()), 
-                                                    "width": cam.get_resolution()[0],
-                                                    "height": cam.get_resolution()[1],
-                                                    "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-                                                    "rgb": np.array(0), 
-                                                    "depth": np.ndarray(0) }
+        #self.youBot = YouBot(1)
 
-        cam = VisionSensor("Viriato_head_camera_front_sensor")                                            
-        self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam, 
-                                                                "id": 0,
-                                                                "angle": np.radians(cam.get_perspective_angle()), 
-                                                                "width": cam.get_resolution()[0],
-                                                                "height": cam.get_resolution()[1],
-                                                                "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-                                                                "rgb": np.array(0), 
-                                                                "depth": np.ndarray(0) }
-        
+        # self.cameras = {}
+        # cam = VisionSensor("camera_1_rgbd_sensor")
+        # self.cameras["camera_1_rgbd_sensor"] = {    "handle": cam, 
+        #                                             "id": 1,
+        #                                             "angle": np.radians(cam.get_perspective_angle()), 
+        #                                             "width": cam.get_resolution()[0],
+        #                                             "height": cam.get_resolution()[1],
+        #                                             "depth": 3,
+        #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+        #                                             "rgb": np.array(0), 
+        #                                             "depth": np.ndarray(0) }
+        # cam = VisionSensor("camera_2_rgbd_sensor")                                            
+        # self.cameras["camera_2_rgbd_sensor"] = {    "handle": cam, 
+        #                                             "id": 2,
+        #                                             "angle": np.radians(cam.get_perspective_angle()), 
+        #                                             "width": cam.get_resolution()[0],
+        #                                             "height": cam.get_resolution()[1],
+        #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+        #                                             "rgb": np.array(0), 
+        #                                             "depth": np.ndarray(0) }
+        # cam = VisionSensor("camera_3_rgbd_sensor")                                            
+        # self.cameras["camera_3_rgbd_sensor"] = {    "handle": cam, 
+        #                                             "id": 3,
+        #                                             "angle": np.radians(cam.get_perspective_angle()), 
+        #                                             "width": cam.get_resolution()[0],
+        #                                             "height": cam.get_resolution()[1],
+        #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+        #                                             "rgb": np.array(0), 
+        #                                             "depth": np.ndarray(0) }
+        # 
+        # cam = VisionSensor("Viriato_head_camera_front_sensor")                                            
+        # self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam, 
+        #                                                         "id": 0,
+        #                                                         "angle": np.radians(cam.get_perspective_angle()), 
+        #                                                         "width": cam.get_resolution()[0],
+        #                                                         "height": cam.get_resolution()[1],
+        #                                                         "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
+        #                                                         "rgb": np.array(0), 
+        #                                                         "depth": np.ndarray(0) }
+        # 
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
         self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
-       
-        self.people = {}
-        for i in range(1,5):
-            name = "Bill#" + str(i)
-            if Dummy.exists(name):
-                self.people["name"] = Dummy(name)
-        #print (self.people)
-        #self.joy_queue = queue.Queue(1)
-        #self.omnirobot_queue = queue.Queue(1)
+        # 
+        # self.people = {}
+        # for i in range(1,5):
+        #     name = "Bill#" + str(i)
+        #     if Dummy.exists(name):
+        #         self.people["name"] = Dummy(name)
+        
+        
         self.joystick_newdata = []
+        self.speed_robot = []
+        self.speed_robot_ant = []
 
     #@QtCore.Slot()
     def compute(self):
         while True:
+        #     try:
+        #         #start = time.time()
+            self.pr.step()
+        #         #for name,cam in self.cameras.items():
+        #         cam = self.cameras["Viriato_head_camera_front_sensor"]
+        #         image_float = cam["handle"].capture_rgb()
+        #         depth = cam["handle"].capture_depth()
+        #         image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        #         cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
+        #         cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
+        #     
+        #         try:
+        #             self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
+        #         except Ice.Exception as e:
+        #             print(e)
+        # 
+        #         # get People position
+        #         people_data = RoboCompHumanToDSRPub.PeopleData()
+        #         people_data.timestamp = time.time()
+        #         people = [] #RoboCompHumanToDSRPub.People()
+        #         for name, handle in self.people.items():
+        #             pos = handle.get_position()
+        #             rot = handle.get_orientation()
+        #             person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
+        #             people.append(person)
+        #         try:
+        #             people_data.peoplelist = people
+        #             self.humantodsrpub_proxy.newPeopleData(people_data)
+        #         except Ice.Exception as e:
+        #             print(e)
+        # 
+        #         # compute TLaserData and publish
+            ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
+                                             self.hokuyo_base_front_left,
+                                             self.hokuyo_base_back_left,
+                                             self.hokuyo_base_back_right
+                                            ], self.robot)
             try:
-                #start = time.time()
-                self.pr.step()
-                #for name,cam in self.cameras.items():
-                cam = self.cameras["Viriato_head_camera_front_sensor"]
-                image_float = cam["handle"].capture_rgb()
-                depth = cam["handle"].capture_depth()
-                image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-                cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
-                cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
-            
-                try:
-                    self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
-                except Ice.Exception as e:
-                    print(e)
+                self.laserpub_proxy.pushLaserData(ldata)
+            except Ice.Exception as e:
+                print(e)
+        #         
+            # Move robot from data in joystick buffer
+            if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
+                self.update_joystick(self.joystick_newdata[0])
+                self.joystick_newdata = None
+        # 
+            # Get and publish robot pose
+            pose = self.robot.get_2d_pose()
+            try:
+                self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000, z=pose[0]*1000, alpha=-pose[2]+1.5707963)
+                self.omnirobotpub_proxy.pushBaseState(self.bState)
+            except Ice.Exception as e:
+                print(e)
+        # 
+            # Move robot from data in setSpeedBase
+            if self.speed_robot != self.speed_robot_ant:
+                self.robot.set_base_angular_velocites(self.speed_robot)
+                self.speed_robot_ant = self.speed_robot
 
-                # get People position
-                people_data = RoboCompHumanToDSRPub.PeopleData()
-                people_data.timestamp = time.time()
-                people = [] #RoboCompHumanToDSRPub.People()
-                for name, handle in self.people.items():
-                    pos = handle.get_position()
-                    rot = handle.get_orientation()
-                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
-                    people.append(person)
-                try:
-                    people_data.peoplelist = people
-                    self.humantodsrpub_proxy.newPeopleData(people_data)
-                except Ice.Exception as e:
-                    print(e)
-
-                # compute TLaserData and publish
-                ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
-                                                 self.hokuyo_base_front_left, 
-                                                 self.hokuyo_base_back_left,
-                                                 self.hokuyo_base_back_right
-                                                 ],
-                                                 self.robot)                   
-                try:
-                    self.laserpub_proxy.pushLaserData(ldata)
-                except Ice.Exception as e:
-                    print(e)
-                
-                # Move robot from data in joystick buffer
-                if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
-                    self.update_joystick(self.joystick_newdata[0])
-
-                # Get and publish robot pose
-                pose = self.robot.get_2d_pose()
-                try:
-                    self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000, z=pose[0]*1000, alpha=-pose[2]+1.5707963)
-                    
-                    self.omnirobotpub_proxy.pushBaseState(self.bState)
-                except Ice.Exception as e:
-                    print(e)
-
-                # Move robot from data setSpeedBase
-                # if not self.omnirobot_queue.empty():
-                #     vels = self.omnirobot_queue.get()
-                #     self.robot.set_base_angular_velocites(vels)
-
-                time.sleep(0.08)
-                #print(time.time()-start)
-            except KeyboardInterrupt:
-                break
+            time.sleep(0.08)
+        #         #print(time.time()-start)
+        #     except KeyboardInterrupt:
+        #         break
 
     ###################################################################################################
 
@@ -212,28 +213,26 @@ class SpecificWorker(GenericWorker):
         adv = 0.0
         rot = 0.0
         side = 0.0
-       
+
         for x in datos.axes:
             if x.name == "advance":
-                adv = x.value
-            if x.name=="rotate":
-                rot = x.value
-            if x.name=="side":
-                side = x.value
+                adv = x.value if np.abs(x.value) > 0.4 else 0
+            if x.name == "rotate":
+                rot = x.value if np.abs(x.value) > 0.4 else 0
+            if x.name == "side":
+                side = x.value if np.abs(x.value) > 0.4 else 0
         print(adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 
     ##################################################################################
-    #
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
-    #
+    ###################################################################################
     def JoystickAdapter_sendData(self, data):
-        #self.joy_queue.put(data)
         self.joystick_newdata = [data, time.time()]
 
-    # =============== Methods for Component Implements ==================
-    # ===================================================================
-
+    ##################################################################################
+    #                       Methods for CameraRGBDSimple
+    # ===============================================================================
     #
     # getAll
     #
@@ -325,8 +324,8 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        #self.omnirobot_queue.put([advz, advx, rot])
-        pass
+        self.speed_robot = [advz, advx, rot]
+
 
     #
     # stopBase

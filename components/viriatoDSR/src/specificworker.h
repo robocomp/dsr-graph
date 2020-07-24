@@ -80,7 +80,7 @@ private:
 	void update_omirobot(const RoboCompGenericBase::TBaseState& bState);
 	void update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb);
 	bool areDifferent(float a, float b, float epsilon);
-
+    void checkNewCommand(const RoboCompGenericBase::TBaseState& bState);
 };
 
 #endif

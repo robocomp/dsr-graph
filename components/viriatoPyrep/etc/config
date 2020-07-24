@@ -1,8 +1,7 @@
 # Endpoints for implements interfaces
 CameraRGBDSimple.Endpoints=tcp -p 10096
 Laser.Endpoints=tcp -p 10003
-OmniRobot.Endpoints=tcp -p 10004
-
+OmniRobotProxy.Endpoints=tcp -p 10004
 
 # Endpoints for subscriptions interfaces
 JoystickAdapterTopic.Endpoints=tcp -p 13100
