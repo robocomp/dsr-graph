@@ -186,7 +186,7 @@ namespace DSR {
         return aw;
     }
 
-    inline static IDL::MvregEdge translateEdgeMvCRDTtoIDL(uint32_t agent_id, uint32_t id, mvreg<CRDTEdge, uint32_t> &data) {
+    inline static IDL::MvregEdge translateEdgeMvCRDTtoIDL(uint32_t agent_id, uint32_t from,uint32_t to, const std::string& type , mvreg<CRDTEdge, uint32_t> &data) {
         IDL::MvregEdge delta_crdt;
 
         for (auto &kv_dots : data.dk.ds) {
@@ -194,11 +194,8 @@ namespace DSR {
             pi.first(kv_dots.first.first);
             pi.second(kv_dots.first.second);
 
-            auto edge = kv_dots.second.toIDLEdge(id);
+            auto edge = kv_dots.second.toIDLEdge(from);
             delta_crdt.dk().ds().emplace(make_pair(pi, edge));
-            delta_crdt.from(edge.from());
-            delta_crdt.to(edge.to());
-            delta_crdt.type(edge.type());
             delta_crdt.dk().cbase().cc().emplace(kv_dots.first);
 
         }
@@ -213,7 +210,10 @@ namespace DSR {
 
             delta_crdt.dk().cbase().dc().push_back(pi);
         }
-        delta_crdt.id(id);
+        delta_crdt.from(from);
+        delta_crdt.to(to);
+        delta_crdt.type(type);
+        delta_crdt.id(from);
         delta_crdt.agent_id(agent_id);
         return delta_crdt;
     }

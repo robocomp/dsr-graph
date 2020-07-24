@@ -62,7 +62,7 @@ void SpecificWorker::initialize(int period)
 
 	// Graph viewer
 	using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph|opts::tree|opts::osg, opts::graph);
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::graph/*|opts::tree|opts::osg*/, opts::graph);
 //	mainLayout.addWidget(graph_viewer.get());
 //	window.setLayout(&mainLayout);
 //	setCentralWidget(&window);

@@ -1,4 +1,5 @@
 
+sudo perf record --call-graph dwarf -e instructions:u -F 30  bin/idserver etc/config
 
 sudo perf record --call-graph dwarf -e instructions:u -F 20  bin/Crdt_rtps_dsr etc/config
 sudo perf report -n --gtk

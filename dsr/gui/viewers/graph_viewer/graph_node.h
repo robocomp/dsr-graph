@@ -162,7 +162,7 @@ class DoTableStuff : public  QTableWidget
       qRegisterMetaType<std::int32_t>("std::int32_t");
       qRegisterMetaType<std::uint32_t>("std::uint32_t");
       qRegisterMetaType<std::string>("std::string");
-      qRegisterMetaType<unordered_map<string, Attribute>>("Attribs");
+      qRegisterMetaType<map<string, Attribute>>("Attribs");
 
       //setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
       std::optional<Node> n = graph->get_node(node_id_);
@@ -215,7 +215,7 @@ class DoTableStuff : public  QTableWidget
     };
 
   public slots:
-    void drawSLOT(const std::int32_t &id, const std::unordered_map<string,Attribute> &attribs)
+    void drawSLOT(const std::int32_t &id, const std::map<string,Attribute> &attribs)
     {
         //std::cout << " Window " << this->window()->windowTitle().toStdString() << " id " << QString::number(id).toStdString() << " contains? " << this->window()->windowTitle().contains(QString::number(id)) << std::endl;
         if (this->window()->windowTitle().contains(QString::number(id))) {

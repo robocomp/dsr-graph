@@ -216,7 +216,7 @@ namespace DSR {
         std::vector<Edge> get_edges_by_type(const std::string &type);
         std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
         std::vector<Edge> get_edges_to_id(uint32_t id);
-        std::optional<std::unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash>> get_edges(uint32_t id);
+        std::optional<std::map<std::pair<uint32_t, std::string>, Edge/*, pair_hash*/>> get_edges(uint32_t id);
 
 
         // Attributes
@@ -686,7 +686,7 @@ namespace DSR {
         void update_node_signal(std::uint32_t, const std::string &type); // REMOVE type
 
         void update_attrs_signal(std::uint32_t id,
-                                 const std::unordered_map<string, Attribute> &attribs); //Signal to show node attribs.
+                                 const std::map<string, Attribute> &attribs); //Signal to show node attribs.
         void update_edge_signal(std::uint32_t from, std::uint32_t to,
                                 const std::string &type);                   // Signal to show edge attribs.
 

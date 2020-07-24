@@ -66,10 +66,10 @@ private:
     std::uniform_real_distribution<float> dist;
     std::uniform_int_distribution<int> random_selector, random_pos;
 
-    std::vector<int> created_nodos;
     std::vector<std::pair<int, int>> created_edges;
     std::shared_mutex mut;
-
+protected:
+    std::vector<int> created_nodes;
 };
 
 
