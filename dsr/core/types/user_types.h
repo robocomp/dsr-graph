@@ -165,7 +165,7 @@ namespace DSR {
 
         Edge() = default;
 
-        Edge(uint32_t mTo, uint32_t mFrom, const string &mType, const unordered_map<std::string, Attribute>& mAttrs,
+        Edge(uint32_t mTo, uint32_t mFrom, const string &mType, const map<std::string, Attribute>& mAttrs,
                  uint32_t mAgentId);
 
 
@@ -201,9 +201,9 @@ namespace DSR {
 
         string &type();
 
-        const unordered_map<std::string, Attribute> &attrs() const;
+        const map<std::string, Attribute> &attrs() const;
 
-        unordered_map<std::string, Attribute> &attrs();
+        map<std::string, Attribute> &attrs();
 
         uint32_t agent_id() const;
 
@@ -213,7 +213,7 @@ namespace DSR {
 
         void type(const string &mType);
 
-        void attrs(const unordered_map<std::string, Attribute> &mAttrs);
+        void attrs(const map<std::string, Attribute> &mAttrs);
 
         void agent_id(uint32_t mAgentId);
 
@@ -260,7 +260,7 @@ namespace DSR {
         uint32_t m_to;
         uint32_t m_from;
         std::string m_type;
-        std::unordered_map<std::string, Attribute> m_attrs;
+        std::map<std::string, Attribute> m_attrs;
         uint32_t m_agent_id;
     };
 
@@ -270,8 +270,8 @@ namespace DSR {
         Node() = default;
 
         Node(uint32_t mId, const string &mType, const string &mName,
-                 const unordered_map<std::string, Attribute> &mAttrs,
-                 const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano, uint32_t mAgentId);
+                 const map<std::string, Attribute> &mAttrs,
+                 const map<std::pair<uint32_t, std::string>, Edge > &mFano, uint32_t mAgentId);
 
         Node (const CRDTNode& node) {
             m_agent_id = node.agent_id();
@@ -313,13 +313,13 @@ namespace DSR {
 
         string &name();
 
-        const unordered_map<std::string, Attribute> &attrs() const;
+        const map<std::string, Attribute> &attrs() const;
 
-        unordered_map<std::string, Attribute> &attrs();
+        map<std::string, Attribute> &attrs();
 
-        const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &fano() const;
+        const map<std::pair<uint32_t, std::string>, Edge > &fano() const;
 
-        unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &fano();
+        map<std::pair<uint32_t, std::string>, Edge > &fano();
 
         uint32_t agent_id() const;
 
@@ -329,9 +329,9 @@ namespace DSR {
 
         void name(const string &mName);
 
-        void attrs(const unordered_map<std::string, Attribute> &mAttrs);
+        void attrs(const map<std::string, Attribute> &mAttrs);
 
-        void fano(const unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> &mFano);
+        void fano(const map<std::pair<uint32_t, std::string>, Edge > &mFano);
 
         void agent_id(uint32_t mAgentId);
 
@@ -379,8 +379,8 @@ namespace DSR {
         uint32_t m_id;
         std::string m_type;
         std::string m_name;
-        std::unordered_map<std::string, Attribute> m_attrs;
-        std::unordered_map<std::pair<uint32_t, std::string>, Edge, pair_hash> m_fano;
+        std::map<std::string, Attribute> m_attrs;
+        std::map<std::pair<uint32_t, std::string>, Edge > m_fano;
         uint32_t m_agent_id;
     };
 

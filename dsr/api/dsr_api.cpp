@@ -117,7 +117,7 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
     bool r = false;
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
-        if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name()) == name_map.end()) {
+        //if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name()) == name_map.end()) {
             try{
                 if (dsr_getid_proxy != nullptr)
                 {
@@ -133,17 +133,20 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
             }
 
             std::tie(r, aw) = insert_node_(user_node_to_crdt(std::move(node)));
-        } else
-            throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
-                                      + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
-    }
+        }// else
+        //    throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
+        //                              + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+    //}
     if (r) {
         if (!copy) {
             if (aw.has_value()) {
                 dsrpub_node.write(&aw.value());
+                std::cout << "[INSERT NODE] : " << aw->id()<< std::endl;
                 emit update_node_signal(node.id(), node.type());
-                for (const auto &[k, v]: node.fano())
-                        emit update_edge_signal(node.id(), k.first, k.second);
+                for (const auto &[k, v]: node.fano()) {
+                    std::cout << "  [INSERT EDGE] : " << node.id() << " " << k.first << " type: " << k.second << std::endl;
+                    emit update_edge_signal(node.id(), k.first, k.second);
+                }
             }
         }
         return node.id();
@@ -212,7 +215,7 @@ bool DSRGraph::update_node(Node &node) {
         if (!copy) {
             if (vec_node_attr.has_value()) {
                 for (auto &v: vec_node_attr.value()) {
-                    std::cout << "SEND ATTR CHANGE " << v.attr_name() << std::endl;
+                    std::cout << "[ATTR CHANGE] " << v.attr_name() << std::endl;
                     dsrpub_node_attrs.write(&v);
                 }
                 emit update_node_signal(node.id(), node.type());
@@ -250,7 +253,7 @@ DSRGraph::delete_node_(uint32_t id) {
         for (const auto &key : edges[{k, id}]) {
 
             auto delta_fano = visited_node.fano()[{k, key}].reset();
-            aw.emplace_back(translateEdgeMvCRDTtoIDL(agent_id, visited_node.id(), delta_fano));
+            aw.emplace_back(translateEdgeMvCRDTtoIDL(agent_id, visited_node.id(), k, key, delta_fano));
             visited_node.fano().erase({k, key});
             edges_.emplace_back(make_tuple(visited_node.id(), id, key));
 
@@ -285,12 +288,14 @@ bool DSRGraph::delete_node(const std::string &name) {
 
     if (result) {
         if (!copy) {
+            std::cout << "[DELETE NODE] : " << id.value()<< std::endl;
             emit del_node_signal(id.value());
             dsrpub_node.write(&deleted_node.value());
 
-            for (auto &a  : aw_)
+            for (auto &a  : aw_) {
+                std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
                 dsrpub_edge.write(&a);
-
+            }
             for (auto &[id0, id1, label] : edges_)
                     emit del_edge_signal(id0, id1, label);
         }
@@ -316,12 +321,14 @@ bool DSRGraph::delete_node(uint32_t id) {
     if (result) {
         if (!copy) {
 
+            std::cout << "[DELETE NODE] : " << id<< std::endl;
             emit del_node_signal(id);
             dsrpub_node.write(&deleted_node.value());
 
-            for (auto &a  : aw_)
+            for (auto &a  : aw_) {
+                std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
                 dsrpub_edge.write(&a);
-
+            }
             for (auto &[id0, id1, label] : edges_)
                     emit del_edge_signal(id0, id1, label);
         }
@@ -435,7 +442,7 @@ DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t 
             node.fano().insert({{to, attrs.type()}, mv});
             auto delta = node.fano()[{to, attrs.type()}].write(attrs);
             update_maps_node_insert(from, node);
-            return {true, translateEdgeMvCRDTtoIDL(agent_id, from, delta), {}};
+            return {true, translateEdgeMvCRDTtoIDL(agent_id, from, to, attrs.type(), delta), {}};
         }
     }
     return {false, {}, {}};
@@ -470,6 +477,7 @@ bool DSRGraph::insert_or_assign_edge(const Edge &attrs) {
                 for (auto &d : delta_attrs.value())
                     dsrpub_edge_attrs.write(&d);
             }
+            std::cout << "[INSERT EDGE] : " << attrs.from() << " " << attrs.to() << " type: " << attrs.type() << std::endl;
             emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
         }
     }
@@ -651,7 +659,7 @@ std::optional<IDL::MvregEdge> DSRGraph::delete_edge_(uint32_t from, uint32_t to,
             node.fano().erase({to, key});
             update_maps_edge_delete(from, to, key);
             //node.value().agent_id(agent_id);
-            return translateEdgeMvCRDTtoIDL(agent_id, from, delta);
+            return translateEdgeMvCRDTtoIDL(agent_id, from, to, key, delta);
         }
     }
     return {};
@@ -667,6 +675,7 @@ bool DSRGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) {
     }
     if (delta.has_value()) {
         if (!copy) {
+            std::cout << "[DELETE EDGE] : " <<from << " " << to << " type: " << key << std::endl;
             emit del_edge_signal(from, to, key);
             dsrpub_edge.write(&delta.value());
         }
@@ -693,6 +702,7 @@ bool DSRGraph::delete_edge(const std::string &from, const std::string &to, const
 
     if (delta.has_value()) {
         if (!copy) {
+            std::cout << "[DELETE EDGE] : " <<id_from.value() << " " << id_to.value() << " type: " << key << std::endl;
             emit del_edge_signal(id_from.value(), id_to.value(), key);
             dsrpub_edge.write(&delta.value());
         }
@@ -739,8 +749,8 @@ std::vector<DSR::Edge> DSRGraph::get_edges_to_id(uint32_t id) {
     return edges_;
 }
 
-std::optional<std::unordered_map<std::pair<uint32_t, std::string>, DSR::Edge, pair_hash>> DSRGraph::get_edges(uint32_t id) {
-    std::unordered_map<std::pair<uint32_t, std::string>, CRDTEdge, pair_hash> pa;
+std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> DSRGraph::get_edges(uint32_t id) {
+    //std::unordered_map<std::pair<uint32_t, std::string>, CRDTEdge, pair_hash> pa;
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<Node> n = get_node(id);
     if (n.has_value()) {
@@ -919,6 +929,7 @@ bool DSRGraph::empty(const uint32_t &id) {
 }
 
 void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
+    CRDTNode nd;
     try {
 
         bool signal = false, ok = false;
@@ -927,11 +938,12 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             if (deleted.find(mvreg.id()) == deleted.end()) {
                 ok = true;
-                CRDTNode nd = (nodes[mvreg.id()].read().empty()) ?
+                nd = (nodes[mvreg.id()].read().empty()) ?
                               CRDTNode() : *nodes[mvreg.id()].read().begin();
 
                 nodes[mvreg.id()].join(d);
                 if (nodes[mvreg.id()].read().empty() or mvreg.dk().ds().empty()) {
+                    nodes.erase(mvreg.id());
                     std::cout << "JOIN REMOVE" << std::endl;
                     //Delete all nodes and attributes received out of order
                     temp_edge.erase(mvreg.id());
@@ -966,12 +978,30 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
 
         if (ok) {
             if (signal) {
+                std::cout << "[INSERT NODE] : " << mvreg.id() << std::endl;
                 emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
                 for (auto &[k,v] : nodes[mvreg.id()].read().begin()->fano()) {
+                    std::cout << "[INSERT EDGE] : " << mvreg.id() << "" <<  k.first << " type: " << k.second <<  std::endl;
                     emit update_edge_signal(mvreg.id(), k.first, k.second);
                 }
             } else {
+                std::cout << "[DELETE NODE] : " << mvreg.id() << std::endl;
                 emit del_node_signal(mvreg.id());
+                for (auto &node: nd.fano()) {
+                    std::cout << "  [DELETE EDGE] : " << mvreg.id() << "" <<  node.second.read_reg().to()<<  " type: " << node.second.read_reg().type()<<  std::endl;
+                    emit del_edge_signal(node.second.read_reg().from(), node.second.read_reg().to(), node.second.read_reg().type());
+                }
+
+                for (const auto &[key, types] : edges)
+                {
+                    auto [from, to] = key;
+                    if (to == nd.id()) {
+                        for (const std::string& type : types) {
+                            std::cout << "  [DELETE EDGE] : " << from << "" <<  to << " type: " << type <<  std::endl;
+                            emit del_edge_signal(from, to, type);
+                        }
+                    }
+                }
             }
         }
 
@@ -998,6 +1028,8 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
 
                 //Check if we are inserting or deleting.
                 if (mvreg.dk().ds().empty() or n.fano().find({mvreg.to(), mvreg.type()}) == n.fano().end()) { //Remove
+                    n.fano().erase({mvreg.to(), mvreg.type()});
+
                     //Delete received items out of order
                     temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                     //Update maps
@@ -1045,8 +1077,10 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
 
         if (ok) {
             if (signal) {
+                std::cout << "[INSERT EDGE] : " << mvreg.from() << " " <<  mvreg.to() <<  " type: " << mvreg.type()<< std::endl;
                 emit update_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
             } else {
+                std::cout << "[DELETE EDGE] : " << mvreg.from() << " " <<  mvreg.to() << " type: " << mvreg.type()<< std::endl;
                 emit del_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
             }
         }
@@ -1106,6 +1140,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
         if (ok) {
             print_node(mvreg.id());
+            std::cout << "[UPDATE NODE] : " << mvreg.id() << std::endl;
             emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
         }
 
@@ -1161,6 +1196,7 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
         }
 
         if (ok) {
+            std::cout << "[UPDATE EDGE] : " << mvreg.id()  << " " << mvreg.from() << std::endl;
             emit update_edge_signal(mvreg.id(),  mvreg.from(), mvreg.type());
         }
 

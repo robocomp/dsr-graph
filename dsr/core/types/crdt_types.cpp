@@ -278,20 +278,20 @@ namespace DSR {
         return m_from;
     }
 
-    void CRDTEdge::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
+    void CRDTEdge::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
         m_attrs = _attrs;
     }
 
-    void CRDTEdge::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
+    void CRDTEdge::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
         m_attrs = std::move(_attrs);
     }
 
-    const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() const {
+    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() const {
         return m_attrs;
     }
 
 
-    std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() {
+    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() {
         return m_attrs;
     }
 
@@ -404,37 +404,37 @@ namespace DSR {
         return m_agent_id;
     }
 
-    void CRDTNode::attrs(const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
+    void CRDTNode::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
         m_attrs = _attrs;
     }
 
-    void CRDTNode::attrs(std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
+    void CRDTNode::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
         m_attrs = std::move(_attrs);
     }
 
 
-    std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() &{
+    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() &{
         return m_attrs;
     }
 
-    const std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() const &{
+    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() const &{
         return m_attrs;
     }
 
     void
-    CRDTNode::fano(const std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &_fano) {
+    CRDTNode::fano(const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &_fano) {
         m_fano = _fano;
     }
 
-    void CRDTNode::fano(std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &&_fano) {
+    void CRDTNode::fano(std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &&_fano) {
         m_fano = std::move(_fano);
     }
 
-    std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &CRDTNode::fano() {
+    std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano() {
         return m_fano;
     }
 
-    const std::unordered_map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, pair_hash> &CRDTNode::fano() const {
+    const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano() const {
         return m_fano;
     }
 

@@ -56,21 +56,20 @@ void CRDT_insert_remove_edge::run_test()
         int i = 0;
         while (i++ < 20) {
             DSR::Node node;
-            node.type("plane");
-            auto id = newID();
-            node.id( id );
+            node.type("other");
             node.agent_id(0);
-            node.name("plane" + std::to_string(id));
             G->add_attrib_local(node, "name", std::string("fucking_plane"));
             G->add_attrib_local(node, "color", std::string("SteelBlue"));
             G->add_attrib_local(node, "pos_x", rnd_float());
             G->add_attrib_local(node, "pos_y", rnd_float());
-            G->add_attrib_local(node, "parent", 100);
+            G->add_attrib_local(node, "parent", static_cast<uint32_t>(100));
 
             // insert node
-            auto r = G->insert_node(node);
-            if (r)
-                qDebug() << "Created node:" << id << " Total size:" << G->size();
+            auto id = G->insert_node(node);
+            if (id.has_value()) {
+                qDebug() << "Created node:" << id.value() << " Total size:" << G->size();
+                created_nodes.push_back(id.value());
+            }
         }
 
         start_global = std::chrono::steady_clock::now();

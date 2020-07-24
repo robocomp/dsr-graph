@@ -12,7 +12,7 @@ int DSR_test::newID()
     try{
         unique_lock<std::shared_mutex> lock(mut);
         node_id = dsrgetid_proxy->getID();
-        created_nodos.push_back(node_id);
+        created_nodes.push_back(node_id);
         qDebug() <<"New nodeID: "<< node_id;
     }catch(...)
     {
@@ -24,12 +24,12 @@ int DSR_test::newID()
 int DSR_test::removeID()
 {
     unique_lock<std::shared_mutex>  lock(mut);
-    if(created_nodos.size()==0)
+    if(created_nodes.size() == 0)
         return -1;
-    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
+    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodes.size() - 1);
     int l = node_randomizer(mt);
-    int val = created_nodos.at(l);
-    created_nodos.erase(created_nodos.begin()+l);
+    int val = created_nodes.at(l);
+    created_nodes.erase(created_nodes.begin() + l);
     return val;
 }
 
@@ -37,11 +37,11 @@ int DSR_test::removeID()
 int DSR_test::getID()
 {
     unique_lock<std::shared_mutex>  lock(mut);
-    if(created_nodos.size()==0)
+    if(created_nodes.size() == 0)
         return -1;
-    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodos.size()-1);
+    auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodes.size() - 1);
     int l = node_randomizer(mt);
-    int val = created_nodos.at(l);
+    int val = created_nodes.at(l);
     return val;
 }
 
