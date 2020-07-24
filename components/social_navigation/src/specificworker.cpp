@@ -93,6 +93,8 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::DSRtoGraphicsceneViewer*> (graph_viewer->get_widget(opts::scene));
 		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato.grid");
 
+        widget_2d->set_draw_laser(true);
+        
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
 		this->Period = 100;
@@ -121,36 +123,8 @@ RoboCompLaser::TLaserData  SpecificWorker::updateLaser()
         if (lAngles.has_value() and lDists.has_value()) 
             for( auto &&[angle, dist] : iter::zip(lAngles.value(), lDists.value()))
                 laserData.push_back(RoboCompLaser::TData{angle, dist});
-        draw_laser(laserData);
     }
     return laserData;
-}
-
-void SpecificWorker::draw_laser(RoboCompLaser::TLaserData laserData)
-{
-    if(widget_2d->robot == nullptr) //robot is required to draw laser
-        return;
-
-//    std::optional<RTMat> transform = innermodel->getTransformationMatrixS(confParams->at("RobotName").value, std::string("laser"));
-//    if(transform.has_value())
-//    {
-        //transform.value().print("l");
-        if (laser_polygon != nullptr)
-            widget_2d->scene.removeItem(laser_polygon);
-
-        QPolygonF poly;
-        //QVec p = QVec::vec4(0.f,0.f,0.f, 1.f);
-        for (auto &&l : laserData) {
-            //p[0] = l.dist * sin(l.angle);
-            //p[2] = l.dist * cos(l.angle);
-            // QVec p_robot = transform.value() * p;
-            poly << widget_2d->robot->mapToScene(QPointF(l.dist * sin(l.angle), l.dist * cos(l.angle)));
-        }
-        QColor color("Pink");
-        color.setAlpha(150);
-        laser_polygon = widget_2d->scene.addPolygon(poly, QPen(color), QBrush(color));
-        laser_polygon->setZValue(-1);
-    //}
 }
 
 
