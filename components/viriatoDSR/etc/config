@@ -5,6 +5,8 @@ CameraRGBDSimplePubTopic.Endpoints=tcp -p 11111
 LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
 
+OmniRobotProxy = omnirobot:tcp -p 10004
+
 agent_id = 10
 agent_name = viriato
 #dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json

@@ -36,6 +36,7 @@
 #include <GenericBase.h>
 #include <Laser.h>
 #include <LaserPub.h>
+#include <OmniRobot.h>
 #include <OmniRobotPub.h>
 
 
@@ -43,7 +44,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<>;
+using TuplePrx = std::tuple<RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -59,6 +60,7 @@ public:
 	QMutex *mutex;
 
 
+	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;
 	virtual void LaserPub_pushLaserData (RoboCompLaser::TLaserData laserData) = 0;

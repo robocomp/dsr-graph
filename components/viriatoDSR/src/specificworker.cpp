@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <algorithm>
 
 /**
 * \brief Default constructor
@@ -91,10 +92,16 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	if(auto ldata = laser_buffer.get(); ldata.has_value())
-	 	update_laser(ldata.value());
-	if(auto bState = omnirobot_buffer.get(); bState.has_value())
-		update_omirobot(bState.value());
+    static RoboCompGenericBase::TBaseState my_bstate;
+
+    if (auto ldata = laser_buffer.get(); ldata.has_value())
+        update_laser(ldata.value());
+    if (auto bState = omnirobot_buffer.get(); bState.has_value())
+    {
+        update_omirobot(bState.value());
+        my_bstate = bState.value();
+    }
+    checkNewCommand(my_bstate);
 	if(auto rgb = rgb_buffer.get(); rgb.has_value())
 		update_rgb(rgb.value());
 }
@@ -138,7 +145,7 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bState)
 {
 	static RoboCompGenericBase::TBaseState last_state;
-	auto robots = G->get_nodes_by_type("omnirobot"); //any omnirobot
+	auto robots = G->get_nodes_by_type("omnirobot"); //cambiar por robot_name from config
 	if (robots.size() == 0)
 	{ 
 		std::cout << __FUNCTION__ << " No node omnirobot" << std::endl; 
@@ -157,6 +164,51 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 		G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
 		last_state = bState;
 	}
+}
+
+// Check if rotation_speed or advance_speed have changed and move the robot consequently
+void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bState)
+{
+    auto robot = G->get_node("omnirobot"); //any omnirobot
+    if (not robot.has_value())
+    {
+        std::cout << __FUNCTION__ << " No node omnirobot" << std::endl;
+        return;
+    }
+    auto desired_z_speed = G->get_attrib_by_name<float>(robot.value(), "advance_speed");
+    auto desired_rot_speed = G->get_attrib_by_name<float>(robot.value(), "rotation_speed");
+    auto desired_x_speed = G->get_attrib_by_name<float>(robot.value(), "side_speed");
+    if(not desired_z_speed.has_value() or not desired_rot_speed.has_value() or not desired_x_speed.has_value())
+    {
+        std::cout << __FUNCTION__ << " No valid attributes for robot speed" << std::endl;
+        return;
+    }
+    // Check de values are within robot's accepted range. Read them from config
+    std::cout << __FUNCTION__ << desired_rot_speed.value() << " " << desired_x_speed.value() << " " << desired_z_speed.value() << std::endl;
+    const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 10, lowerS = -10, upperS = 10;
+    std::clamp(desired_z_speed.value(), lowerA, upperA);
+    std::clamp(desired_x_speed.value(), lowerS, upperS);
+    std::clamp(desired_rot_speed.value(), lowerR, upperR);
+
+//    if( not (lowerA < desired_z_speed.value() and desired_z_speed.value() < upperA
+//           and lowerR < desired_rot_speed.value() and desired_rot_speed.value() < upperR
+//           and lowerS < desired_x_speed.value() and desired_x_speed.value() < upperS))
+//    {
+//        qDebug() << __FUNCTION__ << "Desired speed values out of bounds:" << desired_z_speed.value() << desired_rot_speed.value() << "where bounds are:" << lowerA << upperA << lowerR << upperR;
+//        return;
+//    }
+    if( areDifferent(bState.advVz, desired_z_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, desired_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, desired_x_speed.value(), FLT_EPSILON))
+    {
+        qDebug() << __FUNCTION__ << "Diff detected" << desired_z_speed.value() << bState.advVz << desired_rot_speed.value() << bState.rotV << desired_x_speed.value() << bState.advVx;
+        try
+        {
+            omnirobot_proxy->setSpeedBase(desired_x_speed.value(), desired_z_speed.value(), desired_rot_speed.value());
+        }
+        catch(const RoboCompGenericBase::HardwareFailedException &re)
+        { std::cout << re << '\n';}
+        catch(const Ice::Exception &e)
+        { std::cout << e.what() << '\n';}
+    }
 }
 
 bool SpecificWorker::areDifferent(float a, float b, float epsilon)

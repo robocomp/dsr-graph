@@ -23,6 +23,7 @@
 GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
+	omnirobot_proxy = std::get<0>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
