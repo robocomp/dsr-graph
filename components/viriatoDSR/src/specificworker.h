@@ -49,10 +49,13 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+
 private:
 	bool startup_check_flag;
+
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
+	std::string robot_name = "omnirobot";
 
 	//params
 	std::string agent_name;

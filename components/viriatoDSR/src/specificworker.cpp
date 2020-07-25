@@ -145,64 +145,64 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bState)
 {
 	static RoboCompGenericBase::TBaseState last_state;
-	auto robots = G->get_nodes_by_type("omnirobot"); //cambiar por robot_name from config
-	if (robots.size() == 0)
-	{ 
-		std::cout << __FUNCTION__ << " No node omnirobot" << std::endl; 
-		return; 
-	}
-	auto robot = robots.at(0); //TODO: what sould be done if there are more than one robot?
-	auto parent = G->get_parent_node(robot);  
+    auto robot = G->get_node(robot_name);
+    if (not robot.has_value())
+    {
+        std::cout << __FUNCTION__ << " No node " << robot_name << std::endl;
+        return;
+    }
+	auto parent = G->get_parent_node(robot.value());
 	if(not parent.has_value()) 
 	{ 
-		std::cout << __FUNCTION__ << " No parent found for node " << robot.name() << std::endl; 
+		std::cout << __FUNCTION__ << " No parent found for node " << robot_name << std::endl;
 		return;
 	}
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
-		last_state = bState;
+		auto edge = G->get_edge_RT(parent.value(), robot->id());
+	    //G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
+        G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
+        G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
+        G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
+        G->modify_attrib_local(edge, "angular_speed", std::vector<float>{0, bState.rotV, 0});
+        G->insert_or_assign_edge(edge);
+        last_state = bState;
 	}
 }
 
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bState)
 {
+    std::cout << __FUNCTION__ << std::endl;
     auto robot = G->get_node("omnirobot"); //any omnirobot
     if (not robot.has_value())
     {
         std::cout << __FUNCTION__ << " No node omnirobot" << std::endl;
         return;
     }
-    auto desired_z_speed = G->get_attrib_by_name<float>(robot.value(), "advance_speed");
-    auto desired_rot_speed = G->get_attrib_by_name<float>(robot.value(), "rotation_speed");
-    auto desired_x_speed = G->get_attrib_by_name<float>(robot.value(), "side_speed");
-    if(not desired_z_speed.has_value() or not desired_rot_speed.has_value() or not desired_x_speed.has_value())
+    auto ref_adv_speed = G->get_attrib_by_name<float>(robot.value(), "ref_adv_speed");
+    auto ref_rot_speed = G->get_attrib_by_name<float>(robot.value(), "ref_rot_speed");
+    auto ref_side_speed = G->get_attrib_by_name<float>(robot.value(), "ref_side_speed");
+    if(not ref_adv_speed.has_value() or not ref_rot_speed.has_value() or not ref_side_speed.has_value())
     {
         std::cout << __FUNCTION__ << " No valid attributes for robot speed" << std::endl;
         return;
     }
     // Check de values are within robot's accepted range. Read them from config
-    std::cout << __FUNCTION__ << desired_rot_speed.value() << " " << desired_x_speed.value() << " " << desired_z_speed.value() << std::endl;
-    const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 10, lowerS = -10, upperS = 10;
-    std::clamp(desired_z_speed.value(), lowerA, upperA);
-    std::clamp(desired_x_speed.value(), lowerS, upperS);
-    std::clamp(desired_rot_speed.value(), lowerR, upperR);
+    if(fabs(ref_adv_speed.value())>0 or fabs(ref_rot_speed.value())>0 or fabs(ref_side_speed.value())>0)
+        std::cout << __FUNCTION__ << "Rot: "  << ref_rot_speed.value() << " Side: " << ref_side_speed.value() << " Adv: " << ref_adv_speed.value() << std::endl;
+    //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
+    //std::clamp(ref_adv_speed.value(), lowerA, upperA);
+    //std::clamp(ref_side_speed.value(), lowerS, upperS);
+    //std::clamp(ref_rot_speed.value(), lowerR, upperR);
 
-//    if( not (lowerA < desired_z_speed.value() and desired_z_speed.value() < upperA
-//           and lowerR < desired_rot_speed.value() and desired_rot_speed.value() < upperR
-//           and lowerS < desired_x_speed.value() and desired_x_speed.value() < upperS))
-//    {
-//        qDebug() << __FUNCTION__ << "Desired speed values out of bounds:" << desired_z_speed.value() << desired_rot_speed.value() << "where bounds are:" << lowerA << upperA << lowerR << upperR;
-//        return;
-//    }
-    if( areDifferent(bState.advVz, desired_z_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, desired_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, desired_x_speed.value(), FLT_EPSILON))
+    if( areDifferent(bState.advVz, ref_adv_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, ref_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, ref_side_speed.value(), FLT_EPSILON))
     {
-        qDebug() << __FUNCTION__ << "Diff detected" << desired_z_speed.value() << bState.advVz << desired_rot_speed.value() << bState.rotV << desired_x_speed.value() << bState.advVx;
+        qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
         try
         {
-            omnirobot_proxy->setSpeedBase(desired_x_speed.value(), desired_z_speed.value(), desired_rot_speed.value());
+            omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value());
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}
