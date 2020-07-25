@@ -30,6 +30,7 @@ from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
+from pyrep.objects.shape import Object
 
 import numpy as np
 import numpy_indexed as npi
@@ -47,14 +48,16 @@ class SpecificWorker(GenericWorker):
     def setParams(self, params):
         
         SCENE_FILE = '../../etc/autonomy-lab.ttt'
+        SCENE_FILE = '../../etc/youbot.ttt'
         #SCENE_FILE = '/home/pbustos/software/PyRep/examples/scene_youbot_navigation.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
         
-        self.robot = Viriato()
-        #self.youBot = YouBot(1)
+        #self.robot = Viriato()
+        self.robot = YouBot()
+        self.robot_object = Object("youBot")
 
         # self.cameras = {}
         # cam = VisionSensor("camera_1_rgbd_sensor")
@@ -96,10 +99,12 @@ class SpecificWorker(GenericWorker):
         #                                                         "rgb": np.array(0), 
         #                                                         "depth": np.ndarray(0) }
         # 
+
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
         self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
+
         # 
         # self.people = {}
         # for i in range(1,5):
@@ -147,11 +152,12 @@ class SpecificWorker(GenericWorker):
         #             print(e)
         # 
         #         # compute TLaserData and publish
+
             ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
-                                             self.hokuyo_base_front_left,
-                                             self.hokuyo_base_back_left,
-                                             self.hokuyo_base_back_right
-                                            ], self.robot)
+                                              self.hokuyo_base_front_left,
+                                              self.hokuyo_base_back_left,
+                                              self.hokuyo_base_back_right
+                                             ], self.robot)
             try:
                 self.laserpub_proxy.pushLaserData(ldata)
             except Ice.Exception as e:
@@ -164,8 +170,17 @@ class SpecificWorker(GenericWorker):
         # 
             # Get and publish robot pose
             pose = self.robot.get_2d_pose()
+            linear_vel, ang_vel = self.robot_object.get_velocity()
+            #print("Veld:", linear_vel, ang_vel)
             try:
-                self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000, z=pose[0]*1000, alpha=-pose[2]+1.5707963)
+                isMoving = np.abs(linear_vel[1])>0.01 or np.abs(linear_vel[1])>0.01 or np.abs(ang_vel[2])>0.05
+                self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000,
+                                                             z=pose[0]*1000,
+                                                             alpha=-pose[2]+1.5707963,
+                                                             advVx = linear_vel[1]*1000,
+                                                             advVz = linear_vel[0]*1000,
+                                                             rotV = ang_vel[2],
+                                                             isMoving = isMoving)
                 self.omnirobotpub_proxy.pushBaseState(self.bState)
             except Ice.Exception as e:
                 print(e)
