@@ -61,6 +61,22 @@
                                     0,
                                     0
                                 ]
+                            },
+                            "linear_speed": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "angular_speed": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
                             }
                         },
                         "src": 1
@@ -929,6 +945,18 @@
                     "pos_y": {
                         "type": 2,
                         "value": -274.917053
+                    },
+                    "ref_adv_speed": {
+                        "type": 2,
+                        "value": 0.0
+                    },
+                    "ref_rot_speed": {
+                        "type": 2,
+                        "value": 0.0
+                    },
+                    "ref_side_speed": {
+                        "type": 2,
+                        "value": 0.0
                     }
                 },
                 "id": 2,
@@ -4163,29 +4191,6 @@
                 },
                 "id": 60,
                 "links": [
-                    {
-                        "dst": 61,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "translation": {
-                                "type": 3,
-                                "value": [
-                                    4000,
-                                    0,
-                                    -1767
-                                ]
-                            }
-                        },
-                        "src": 60
-                    },
                     {
                         "dst": 64,
                         "label": "RT",

@@ -44,7 +44,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-
 	tree_view = params["tree_view"].value == "true";
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
@@ -106,6 +105,8 @@ void SpecificWorker::compute()
 		update_rgb(rgb.value());
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SpecificWorker::update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb)
 {
 	qDebug() << __FUNCTION__; 
@@ -160,8 +161,7 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		auto edge = G->get_edge_RT(parent.value(), robot->id());
-	    //G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
+		auto edge = G->get_edge_RT(parent.value(), robot->id());//G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
         G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
         G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
         G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
@@ -174,11 +174,11 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bState)
 {
-    std::cout << __FUNCTION__ << std::endl;
-    auto robot = G->get_node("omnirobot"); //any omnirobot
+    //std::cout << __FUNCTION__ << " " << robot_name << std::endl;
+    auto robot = G->get_node(this->robot_name); //any omnirobot
     if (not robot.has_value())
     {
-        std::cout << __FUNCTION__ << " No node omnirobot" << std::endl;
+        std::cout << __FUNCTION__ << " No node " <<  "this->robot_name" << std::endl;
         return;
     }
     auto ref_adv_speed = G->get_attrib_by_name<float>(robot.value(), "ref_adv_speed");
@@ -190,8 +190,7 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
         return;
     }
     // Check de values are within robot's accepted range. Read them from config
-    if(fabs(ref_adv_speed.value())>0 or fabs(ref_rot_speed.value())>0 or fabs(ref_side_speed.value())>0)
-        std::cout << __FUNCTION__ << "Rot: "  << ref_rot_speed.value() << " Side: " << ref_side_speed.value() << " Adv: " << ref_adv_speed.value() << std::endl;
+    //if(fabs(ref_adv_speed.value())>0 or fabs(ref_rot_speed.value())>0 or fabs(ref_side_speed.value())>0)
     //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
     //std::clamp(ref_adv_speed.value(), lowerA, upperA);
     //std::clamp(ref_side_speed.value(), lowerS, upperS);
@@ -200,9 +199,17 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
     if( areDifferent(bState.advVz, ref_adv_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, ref_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, ref_side_speed.value(), FLT_EPSILON))
     {
         qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
+        // Proportinal controller
         try
         {
-            omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value());
+            const float KA = 0.01; const float KS = 0.01; const float KR = 4;
+            const float side_error = KS * (ref_side_speed.value()-bState.advVx);
+            const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
+            const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
+            omnirobot_proxy->setSpeedBase(side_error, adv_error, rot_error);
+            std::cout << __FUNCTION__ << "Adv: "  << ref_adv_speed.value() << " Side: " << ref_side_speed.value() << " Rot: " << ref_rot_speed.value()
+                      << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
+                      << " " << (ref_adv_speed.value()-bState.advVz) << " "  << (ref_side_speed.value()-bState.advVx) << " " << (ref_rot_speed.value()-bState.rotV) << std::endl;
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}

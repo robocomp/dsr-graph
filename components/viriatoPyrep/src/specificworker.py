@@ -173,14 +173,14 @@ class SpecificWorker(GenericWorker):
             linear_vel, ang_vel = self.robot_object.get_velocity()
             #print("Veld:", linear_vel, ang_vel)
             try:
-                isMoving = np.abs(linear_vel[1])>0.01 or np.abs(linear_vel[1])>0.01 or np.abs(ang_vel[2])>0.05
+                isMoving = np.abs(linear_vel[1]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
                 self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000,
                                                              z=pose[0]*1000,
                                                              alpha=-pose[2]+1.5707963,
-                                                             advVx = linear_vel[1]*1000,
-                                                             advVz = linear_vel[0]*1000,
-                                                             rotV = ang_vel[2],
-                                                             isMoving = isMoving)
+                                                             advVx=-linear_vel[1]*1000,
+                                                             advVz=linear_vel[0]*1000,
+                                                             rotV=ang_vel[2],
+                                                             isMoving=isMoving)
                 self.omnirobotpub_proxy.pushBaseState(self.bState)
             except Ice.Exception as e:
                 print(e)
@@ -188,6 +188,7 @@ class SpecificWorker(GenericWorker):
             # Move robot from data in setSpeedBase
             if self.speed_robot != self.speed_robot_ant:
                 self.robot.set_base_angular_velocites(self.speed_robot)
+                print("Velocities sent to robot:", self.speed_robot)
                 self.speed_robot_ant = self.speed_robot
 
             time.sleep(0.08)
@@ -236,7 +237,7 @@ class SpecificWorker(GenericWorker):
                 rot = x.value if np.abs(x.value) > 0.4 else 0
             if x.name == "side":
                 side = x.value if np.abs(x.value) > 0.4 else 0
-        print(adv, rot, side)
+        #print(adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 
     ##################################################################################
