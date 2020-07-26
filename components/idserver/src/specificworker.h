@@ -35,14 +35,10 @@ class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 public:
-	SpecificWorker(TuplePrx tprx);
+	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void initialize();
-    
-	 // DSR
-    std::shared_ptr<DSR::DSRGraph> G;
-    std::string agent_name;
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
@@ -50,10 +46,13 @@ public:
 public slots:
 	void compute();
 	void initialize(int period);
+    int startup_check();
 
 private:
-
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+    std::shared_ptr<DSR::DSRGraph> G;
+    std::string agent_name;
+    bool startup_check_flag;
+    std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	int node_id = -9999;
@@ -64,9 +63,12 @@ private:
 	std::string dsr_output_path;
 	int output_file_count = 0;
 	bool dsr_write_to_file;
+    bool tree_view;
+    bool graph_view;
+    bool qscene_2d_view;
+    bool osg_3d_view;
 
 	void get_max_id_from_G();
-
 };
 
 #endif
