@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : DSR::GraphViewer::view::none;
-	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : DSR::GraphViewer::view::none;
-	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : DSR::GraphViewer::view::none;
-	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : DSR::GraphViewer::view::none;
+	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
+	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
 	return true;
 }
 
