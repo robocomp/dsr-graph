@@ -1029,7 +1029,6 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                 //Check if we are inserting or deleting.
                 if (mvreg.dk().ds().empty() or n.fano().find({mvreg.to(), mvreg.type()}) == n.fano().end()) { //Remove
                     n.fano().erase({mvreg.to(), mvreg.type()});
-
                     //Delete received items out of order
                     temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                     //Update maps
@@ -1324,7 +1323,7 @@ std::map<uint32_t, IDL::Mvreg> DSRGraph::Map() {
     for (auto kv : nodes.getMapRef()) {
         //std::cout << "P " << kv.second.dk.ds.begin()->second.attrs().find("parent")->second.dk.ds.begin()->second << std::endl;
         m[kv.first] = translateNodeMvCRDTtoIDL(agent_id, kv.first, kv.second);
-        std::cout << "P " << m[kv.first].dk().ds().begin()->second.attrs().find("parent")->second.dk().ds().begin()->second.value().uint() << std::endl;
+        //std::cout << "P " << m[kv.first].dk().ds().begin()->second.attrs().find("parent")->second.dk().ds().begin()->second.value().uint() << std::endl;
     }
     return m;
 }
@@ -1401,7 +1400,7 @@ void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
                             if (showReceived)
                                 std::cout << name << " Received:" << sample.id() << " node from: "
                                           << m_info.sample_identity.writer_guid() << std::endl;
-                            graph->join_delta_edge_attr(sample);
+                            //graph->join_delta_edge_attr(sample);
                         }
                     }
                 }
@@ -1515,7 +1514,7 @@ bool DSRGraph::fullgraph_request_thread() {
     while (!sync and !timeout) {
         std::this_thread::sleep_for(500ms);
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        timeout = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > TIMEOUT * 3;
+        timeout = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > TIMEOUT * 5;
     }
     eprosima::fastrtps::Domain::removeSubscriber(dsrsub_request_answer.getSubscriber());
     return sync;
