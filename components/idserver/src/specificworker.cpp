@@ -85,9 +85,7 @@ void SpecificWorker::initialize(int period)
             G->write_to_json_file(file_name.toStdString());
             qDebug() << __FUNCTION__ << "Written";
         });
-
         this->Period = 100;
-        timer.start(Period);
 
         // Compute max Id in G
         get_max_id_from_G();
