@@ -433,7 +433,7 @@ void SpecificWorker::del_node_attrib_slot() {
 }
 
 void SpecificWorker::del_edge_attrib_slot() {
-    Edge edge = node_cb->itemData(edge_cb->currentIndex()).value<Edge>();
+    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
     std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
     if(G->remove_attrib_by_name(edge, attrib_name))
     {
