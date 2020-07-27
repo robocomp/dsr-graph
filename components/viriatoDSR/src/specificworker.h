@@ -63,10 +63,10 @@ private:
 	bool read_dsr;
 	std::string dsr_input_file;
 
-	bool tree_view;
-	bool graph_view;
-	bool qscene_2d_view;
-	bool osg_3d_view;
+	int tree_view;
+	int graph_view;
+	int qscene_2d_view;
+	int osg_3d_view;
 
 	// graph viewer
 	std::unique_ptr<DSR::GraphViewer> graph_viewer;
