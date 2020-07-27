@@ -430,11 +430,20 @@ DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t 
                     if (iter_edge[k].read().empty() or
                         *att.read().begin() !=
                         *iter_edge.at(k).read().begin()) {
-                        auto delta = iter_edge.at(k).write(*iter_edge.at(k).read().begin());
+                        auto delta = iter_edge.at(k).write(att.read_reg());//*iter_edge.at(k).read().begin());
                         atts_deltas.emplace_back(
                                 translateEdgeAttrMvCRDTtoIDL(agent_id, from, from, to, attrs.type(), k, delta));
                     }
                 }
+                auto it = iter_edge.begin();
+                while (it != iter_edge.end()) {
+                    if (attrs.attrs().find(it->first) == attrs.attrs().end()) {
+                        it = iter_edge.erase(it);
+                    } else {
+                        it++;
+                    }
+                }
+
                 return {true, {}, atts_deltas};
             }
         } else { // Insert
@@ -1400,7 +1409,7 @@ void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
                             if (showReceived)
                                 std::cout << name << " Received:" << sample.id() << " node from: "
                                           << m_info.sample_identity.writer_guid() << std::endl;
-                            //graph->join_delta_edge_attr(sample);
+                            graph->join_delta_edge_attr(sample);
                         }
                     }
                 }

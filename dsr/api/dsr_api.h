@@ -373,15 +373,15 @@ namespace DSR {
             }
                 // insert in edge
             else if constexpr (std::is_same<Edge, Ta>::value) {
-                auto node = get_node(elem.from());
-                if (node.has_value()) {
+                //auto node = get_node(elem.from());
+                //if (node.has_value()) {
                     if (insert_or_assign_edge(elem))
                         return;
                     else
                         throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
                                                  " in G in add_attrib_by_name()");
-                } else
-                    throw std::runtime_error("Node " + std::to_string(elem.from()) + " not found in attrib_by_name()");
+                //} else
+                //    throw std::runtime_error("Node " + std::to_string(elem.from()) + " not found in attrib_by_name()");
             }
             //else
             //    throw std::runtime_error("Node or Edge type not valid for add_attrib_by_name()");
@@ -466,18 +466,17 @@ namespace DSR {
             }
                 // insert in edge
             else if constexpr (std::is_same<Edge, Type>::value) {
-                auto node = get_node(elem.from());
-                if (node.has_value()) {
-                    bool r = insert_or_assign_edge(elem);
-                    if (r)
+                //auto node = get_node(elem.from());
+                //if (node.has_value()) {
+                    if (insert_or_assign_edge(elem))
                         return true;
                     else
                         throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
                                                  " in G in add_attrib_by_name()");
-                } else
+            } else
                     throw std::runtime_error(
                             "Node " + std::to_string(elem.from()) + " not found in remove_attrib_by_name()");
-            }
+            //}
         }
 
         // Mixed
