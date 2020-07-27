@@ -59,7 +59,7 @@ class SpecificWorker(GenericWorker):
         self.robot = YouBot()
         self.robot_object = Object("youBot")
 
-        # self.cameras = {}
+        self.cameras = {}
         # cam = VisionSensor("camera_1_rgbd_sensor")
         # self.cameras["camera_1_rgbd_sensor"] = {    "handle": cam, 
         #                                             "id": 1,
@@ -89,16 +89,16 @@ class SpecificWorker(GenericWorker):
         #                                             "rgb": np.array(0), 
         #                                             "depth": np.ndarray(0) }
         # 
-        # cam = VisionSensor("Viriato_head_camera_front_sensor")                                            
-        # self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam, 
-        #                                                         "id": 0,
-        #                                                         "angle": np.radians(cam.get_perspective_angle()), 
-        #                                                         "width": cam.get_resolution()[0],
-        #                                                         "height": cam.get_resolution()[1],
-        #                                                         "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-        #                                                         "rgb": np.array(0), 
-        #                                                         "depth": np.ndarray(0) }
-        # 
+        cam = VisionSensor("Viriato_head_camera_front_sensor")
+        self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam,
+                                                                "id": 0,
+                                                                "angle": np.radians(cam.get_perspective_angle()),
+                                                                "width": cam.get_resolution()[0],
+                                                                "height": cam.get_resolution()[1],
+                                                                "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())),
+                                                                "rgb": np.array(0),
+                                                                "depth": np.ndarray(0) }
+
 
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
@@ -122,20 +122,20 @@ class SpecificWorker(GenericWorker):
         #     try:
         #         #start = time.time()
             self.pr.step()
-        #         #for name,cam in self.cameras.items():
-        #         cam = self.cameras["Viriato_head_camera_front_sensor"]
-        #         image_float = cam["handle"].capture_rgb()
-        #         depth = cam["handle"].capture_depth()
-        #         image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-        #         cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
-        #         cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
-        #     
-        #         try:
-        #             self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
-        #         except Ice.Exception as e:
-        #             print(e)
-        # 
-        #         # get People position
+            for name,cam in self.cameras.items():
+                cam = self.cameras["Viriato_head_camera_front_sensor"]
+                image_float = cam["handle"].capture_rgb()
+                depth = cam["handle"].capture_depth()
+                image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
+                cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
+
+                try:
+                    self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
+                except Ice.Exception as e:
+                    print(e)
+
+                # get People position
         #         people_data = RoboCompHumanToDSRPub.PeopleData()
         #         people_data.timestamp = time.time()
         #         people = [] #RoboCompHumanToDSRPub.People()
