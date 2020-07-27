@@ -273,7 +273,7 @@ void SpecificWorker::save_node_slot()
     DSR::Node node = node_cb->itemData(node_cb->currentIndex()).value<DSR::Node>();
 
     std::map<std::string, DSR::Attribute> new_attrs = get_table_content(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
-    node.attrs(std::unordered_map(new_attrs.begin(), new_attrs.end()));
+    node.attrs(std::map(new_attrs.begin(), new_attrs.end()));
     
     if(G->update_node(node))
         qDebug()<<"Node saved";
@@ -289,7 +289,7 @@ void SpecificWorker::save_edge_slot()
     DSR::Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<DSR::Edge>();
 
     std::map<std::string, DSR::Attribute> new_attrs = get_table_content(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
-    edge.attrs(std::unordered_map(new_attrs.begin(), new_attrs.end()));
+    edge.attrs(std::map(new_attrs.begin(), new_attrs.end()));
     
     if(G->insert_or_assign_edge(edge))
         qDebug()<<"Edge saved";

@@ -27,7 +27,7 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *p
 	central_point = new QGraphicsEllipseItem(0,0,0,0);
 	scene.addItem(central_point);
 	connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &DSRtoGraphViewer::add_or_assign_edge_SLOT);
-	//connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &DSRtoGraphViewer::delEdgeSLOT);
+	connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &DSRtoGraphViewer::del_edge_SLOT);
 	connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &DSRtoGraphViewer::del_node_SLOT);
 }
 
@@ -239,17 +239,16 @@ void DSRtoGraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t t
 
 }
 
-void DSRtoGraphViewer::del_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string &edge_tag)
+void DSRtoGraphViewer::del_edge_SLOT(const std::uint32_t from, const std::uint32_t to, const std::string &edge_tag)
 {
     qDebug()<<__FUNCTION__<<":"<<__LINE__;
-	try {
-		std::tuple<std::int32_t, std::int32_t, std::string> key = std::make_tuple(from, to, edge_tag);
-		while (gmap_edges.count(key) > 0) {
+    try {
+        std::tuple<std::uint32_t, std::uint32_t, std::string> key = std::make_tuple(from, to, edge_tag);
+        while (gmap_edges.count(key) > 0) {
             scene.removeItem(gmap_edges.at(key));
-		    gmap_edges.erase(key);
-		}
-	} catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
-
+            gmap_edges.erase(key);
+        }
+    } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
 }
 
 void DSRtoGraphViewer::del_node_SLOT(int id)
