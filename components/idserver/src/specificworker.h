@@ -63,10 +63,10 @@ private:
 	std::string dsr_output_path;
 	int output_file_count = 0;
 	bool dsr_write_to_file;
-    bool tree_view;
-    bool graph_view;
-    bool qscene_2d_view;
-    bool osg_3d_view;
+    int tree_view;
+    int graph_view;
+    int qscene_2d_view;
+    int osg_3d_view;
 
 	void get_max_id_from_G();
 };
