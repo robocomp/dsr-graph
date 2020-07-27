@@ -16,6 +16,7 @@ graph_view = true
 3d_view = false
 
 
+
 dsr_output_path = ../../etc/
 dsr_write_to_file = false
 period = 100000  # miliseconds period on dsr saving to file
