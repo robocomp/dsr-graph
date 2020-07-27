@@ -111,8 +111,7 @@ class SpecificWorker(GenericWorker):
         #     name = "Bill#" + str(i)
         #     if Dummy.exists(name):
         #         self.people["name"] = Dummy(name)
-        
-        
+
         self.joystick_newdata = []
         self.speed_robot = []
         self.speed_robot_ant = []
@@ -209,20 +208,27 @@ class SpecificWorker(GenericWorker):
             data = laser.capture_depth(in_meters=True)
             m = laser.get_matrix(robot)     # these data should be read first
             imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
-            
+
             for i,d in enumerate(data.T):
                 z = d[0]        # min if more than one row in depth image
                 vec = np.array([-(i-semiwidth)*z/focal, 0, z, 1])
                 res = imat.dot(vec)[:3]       # translate to robot's origin, homogeneous
                 c_data.append([np.arctan2(res[0], res[1]), np.linalg.norm(res)])  # add to list in polar coordinates
+
         # create 360 polar rep
         c_data_np = np.asarray(c_data)
-        angles = np.linspace(-np.pi, np.pi, 360)                              # create regular angular values
+        angles = np.linspace(-np.pi, np.pi, 360)                          # create regular angular values
         positions = np.searchsorted(angles, c_data_np[:,0])               # list of closest position for each laser meas
-        ldata = [RoboCompLaser.TData(a, 0) for a in angles]                   # create empty 360 angle array
+        ldata = [RoboCompLaser.TData(a, 0) for a in angles]               # create empty 360 angle array
         pos , medians  = npi.group_by(positions).median(c_data_np[:,1])   # group by repeated positions
-        for p, m in zip_longest(pos, medians):                                # fill the angles with measures                    
-            ldata[p].dist = int(m*1000)                                       # to millimeters
+        for p, m in zip_longest(pos, medians):                            # fill the angles with measures
+            ldata[p].dist = int(m*1000)   # to millimeters
+        if ldata[0] == 0:
+            ldata[0] = 200       #half robot width
+        for i in range(1, len(ldata)):
+            if ldata[i].dist == 0:
+                ldata[i].dist = ldata[i-1].dist
+
         return ldata
     
     def update_joystick(self, datos):
@@ -234,10 +240,10 @@ class SpecificWorker(GenericWorker):
             if x.name == "advance":
                 adv = x.value if np.abs(x.value) > 0.4 else 0
             if x.name == "rotate":
-                rot = x.value if np.abs(x.value) > 0.4 else 0
+                rot = x.value if np.abs(x.value) > 0.1 else 0
             if x.name == "side":
                 side = x.value if np.abs(x.value) > 0.4 else 0
-        #print(adv, rot, side)
+        print("Joystick ", adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 
     ##################################################################################

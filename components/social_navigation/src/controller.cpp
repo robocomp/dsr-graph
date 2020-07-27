@@ -84,7 +84,7 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Robo
     //      qDebug()<<"rotVel" <<rotVel;
 
     // Compute advance speed
-    std::min(advVelz = MAX_ADV_SPEED * exponentialFunction(rotVel, 0.3, 0.4, 0), euc_dist_to_target);
+    std::min(advVelz = MAX_ADV_SPEED * exponentialFunction(rotVel, 0.3, 0.6, 0), euc_dist_to_target);
 
     // Compute bumper-away speed
     QVector2D total{0, 0};

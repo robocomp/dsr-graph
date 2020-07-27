@@ -202,14 +202,20 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
         // Proportinal controller
         try
         {
-            const float KA = 0.01; const float KS = 0.01; const float KR = 4;
+            const float KA = 0.04; const float KS = 0.01; const float KR = 3;
             const float side_error = KS * (ref_side_speed.value()-bState.advVx);
             const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
             const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
-            omnirobot_proxy->setSpeedBase(side_error, adv_error, rot_error);
-            std::cout << __FUNCTION__ << "Adv: "  << ref_adv_speed.value() << " Side: " << ref_side_speed.value() << " Rot: " << ref_rot_speed.value()
-                      << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
-                      << " " << (ref_adv_speed.value()-bState.advVz) << " "  << (ref_side_speed.value()-bState.advVx) << " " << (ref_rot_speed.value()-bState.rotV) << std::endl;
+            if(fabs(side_error)>0.1 or fabs(adv_error)>0.1 or fabs(rot_error)>0.01)
+            {
+                omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
+                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
+                          << " Rot: " << ref_rot_speed.value()
+                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
+                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
+                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
+                          << std::endl;
+            }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}
