@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = params["tree_view"].value == "true";
-	graph_view = params["graph_view"].value == "true";
-	qscene_2d_view = params["2d_view"].value == "true";
-	osg_3d_view = params["3d_view"].value == "true";
+	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : DSR::GraphViewer::view::none;
+	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : DSR::GraphViewer::view::none;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : DSR::GraphViewer::view::none;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : DSR::GraphViewer::view::none;
 	return true;
 }
 
@@ -64,24 +64,11 @@ void SpecificWorker::initialize(int period)
 
 		// Graph viewer
 		using opts = DSR::GraphViewer::view;
-		int current_opts = 0;
+		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
 		opts main = opts::none;
-		if(tree_view)
-		{
-			current_opts = current_opts | opts::tree;
-		}
 		if(graph_view)
 		{
-			current_opts = current_opts | opts::graph;
 			main = opts::none;
-		}
-		if(qscene_2d_view)
-		{
-			current_opts = current_opts | opts::scene;
-		}
-		if(osg_3d_view)
-		{
-			current_opts = current_opts | opts::osg;
 		}
 		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
