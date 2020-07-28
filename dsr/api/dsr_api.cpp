@@ -1044,7 +1044,9 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                     update_maps_edge_delete(mvreg.from(), mvreg.to(), mvreg.type());
                 } else { //Insert
                     signal = true;
+                    temp_edge.erase(mvreg.from());
 
+                    /*
                     //We have to consume all unordered delta attributes for this edge. Normally there won't be any.
                     for (auto &[k, v] : temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}]) {
                         n.fano()[{mvreg.to(), mvreg.type()}].read_reg().attrs()[k].join(v);
@@ -1053,6 +1055,7 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                         }
                         temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(k);
                     }
+                     */
                     //Update maps
                     update_maps_edge_insert(mvreg.from(), mvreg.to(), mvreg.type());
                 }
@@ -1067,8 +1070,9 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                     temp_edge[mvreg.from()].erase(
                             {mvreg.from(), mvreg.to(), mvreg.type()}); //Delete the mvreg if the edge is deleted.
                     if (temp_edge[mvreg.id()].empty()) { temp_edge.erase(mvreg.id()); }
-                    temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
+                    //temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                 } else {
+                    /*
                     //Consume al attributes
                     for (auto &[k, v] : temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}]) {
                         temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].read_reg().attrs()[k].join(v);
@@ -1079,6 +1083,7 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                         }
                         temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(k);
                     }
+                     */
                 }
             }
         }
@@ -1186,7 +1191,7 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                     //Update maps
                     update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
                 }
-            } else if (deleted.find(mvreg.id()) == deleted.end()) {
+            } /*else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
                 temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}][mvreg.attr_name()].join(d);
@@ -1200,7 +1205,7 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                         temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                     }
                 }
-            }
+            }*/
         }
 
         if (ok) {
@@ -1493,7 +1498,7 @@ bool DSRGraph::fullgraph_request_thread() {
 
         eprosima::fastrtps::SampleInfo_t m_info;
         IDL::OrMap sample;
-        //std::cout << "Mensajes sin leer " << sub->get_unread_count() << std::endl;
+        std::cout << "Grafo completo - Mensajes sin leer " << sub->get_unread_count() << std::endl;
         if (sub->takeNextData(&sample, &m_info)) { // Get sample
             if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                 if (m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {

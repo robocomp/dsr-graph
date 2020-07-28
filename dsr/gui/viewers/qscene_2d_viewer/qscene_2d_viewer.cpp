@@ -90,7 +90,7 @@ qDebug()<<__FUNCTION__;
     {
 qDebug()<<"ORPHAND NODE FOUND"<<to;
         orphand_nodes.erase(it);
-        add_or_assign_node_slot(it->first, it->second);
+        add_or_assign_node_slot(it->first, /*it->second*/ type);
     }
     std::string edge_key = std::to_string(from) + "_" + std::to_string(to);
     for (int node_id : edge_map[edge_key])
