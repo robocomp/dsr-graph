@@ -57,10 +57,11 @@ qDebug()<<"*************************";
 qDebug() << __FUNCTION__ ;
     
     auto node = G->get_node(id);
-    qDebug() << QString::fromStdString(node.value().name()) << " " << node.value().id() ;
-    
+
     if(node.has_value())
-    { 
+    {
+        qDebug() << QString::fromStdString(node.value().name()) << " " << node.value().id() ;
+
         if (ignore_nodes.find(node.value().id()) != ignore_nodes.end())
             return;
 
@@ -216,7 +217,7 @@ bool DSRtoGraphicsceneViewer::check_RT_required_attributes(Node node)
 {
     try{
         std::optional<int> level = G->get_node_level(node);
-        std::optional<int> parent = G->get_parent_id(node);
+        std::optional<uint32_t> parent = G->get_parent_id(node);
         std::optional<QVec> pose = innermodel->transformS6D("world", node.name());
 
         if(level.has_value() and parent.has_value() and pose.has_value())
