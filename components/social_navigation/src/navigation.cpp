@@ -60,40 +60,40 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
     cleanPoints();
     addPoints();
     drawRoad();
-//    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose,  currentRobotNose );
-//
-//        if (blocked)
-//        {
-//            stopRobot();
-//            current_target.blocked.store(true);
-//        }
-//        if (!active)
-//        {
-//            stopRobot();
-//            current_target.active.store(false);
-//            pathPoints.clear();
-//            if(stopMovingRobot)
-//                moveRobot = false;
-//            if(robotAutoMov)
-//                newRandomTarget();
-//        }
-//        float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
-//        float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
-//        float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
-//        static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-14,14}}});
-//        static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-3,3}}});
-//        if (!blocked and active)
-//            if(moveRobot)
-//            {
-//                zVel = (adv_conv * QVec::vec2(zVel,1.0))[0];
-//                rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
-//                qInfo()<< __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel;
-//                auto robot_node = G->get_node(robot_name);
-//                G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
-//                G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
-//                G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)0);
-//                G->update_node(robot_node.value());
-//            }
+    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose,  currentRobotNose );
+
+    if (blocked)
+    {
+        stopRobot();
+        current_target.blocked.store(true);
+    }
+    if (!active)
+    {
+        stopRobot();
+        current_target.active.store(false);
+        pathPoints.clear();
+        if(stopMovingRobot)
+            moveRobot = false;
+        if(robotAutoMov)
+            newRandomTarget();
+    }
+    float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
+    float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
+    float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
+    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
+    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
+    if (!blocked and active)
+        if(moveRobot)
+        {
+            zVel = (adv_conv * QVec::vec2(zVel,1.0))[0];
+            rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
+            qInfo()<< __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel;
+            auto robot_node = G->get_node(robot_name);
+            G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
+            G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
+            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)0);
+            G->update_node(robot_node.value());
+        }
 };
 
 template<typename TMap, typename TController>
