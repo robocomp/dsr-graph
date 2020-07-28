@@ -6,41 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
-    <height>510</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string> DSR - Viewer</string>
+   <string>DSRGraph</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QSplitter" name="splitter_1">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <widget class="QSplitter" name="splitter_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+  <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>780</width>
+     <width>800</width>
      <height>25</height>
     </rect>
    </property>
@@ -48,26 +27,30 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionSave"/>
-   </widget>
-   <widget class="QMenu" name="menuSimulation">
-    <property name="title">
-     <string>Simulation</string>
-    </property>
-    <addaction name="actionStart_Stop"/>
+    <addaction name="actionSaveToFile"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuSimulation"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save file in JSON format&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
   </action>
-  <action name="actionStart_Stop">
+  <action name="actionSimulate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Start/Stop</string>
+    <string>Simulate</string>
+   </property>
+  </action>
+  <action name="actionSaveToFile">
+   <property name="text">
+    <string>Save</string>
    </property>
   </action>
  </widget>
