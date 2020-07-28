@@ -83,7 +83,7 @@ private:
 	bool osg_3d_view;
 
 	// DSR graph viewer
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
@@ -97,7 +97,7 @@ private:
 	Custom_widget custom_widget;
 
 	//drawing
-    DSR::DSRtoGraphicsceneViewer* widget_2d;
+    DSR::QScene2dViewer* widget_2d;
     QGraphicsPolygonItem *laser_polygon = nullptr;
 };
 
