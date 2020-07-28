@@ -48,9 +48,9 @@ void SpecificWorker::initialize(int period)
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     innermodel = G->get_inner_api();
 
-    // GraphViewer creation
-    using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg,  opts::graph);
+    // DSRViewer creation
+    using opts = DSR::DSRViewer::view;
+	graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, opts::graph|opts::osg,  opts::graph);
     
     this->Period = 100;
     timer.start(Period);
