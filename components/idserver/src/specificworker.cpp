@@ -46,10 +46,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
    	 	dsr_output_path = params["dsr_output_path"].value;
 		dsr_write_to_file = params["dsr_write_to_file"].value == "true";
     	this->Period = stoi(params["period"].value);
-		tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
-		graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
-		qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
-		osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
+		tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
+		graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
+		qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
+		osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
 	}
 	catch(const std::exception &e) { qFatal("Error reading config params"); }
 	return true;
@@ -70,12 +70,12 @@ void SpecificWorker::initialize(int period)
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
 
         // Graph viewer
-        using opts = DSR::GraphViewer::view;
+        using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
         opts main = opts::none;
         if (graph_view)
         	main = opts::graph;
-        graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
+        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         connect(actionSaveToFile, &QAction::triggered, [this]() {
             auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"),
