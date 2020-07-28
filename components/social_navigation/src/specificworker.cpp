@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		//opts main = opts::none;
 		if(tree_view)
@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts);
+		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
 
 		//Inner Api
 		innermodel = G->get_inner_api();
@@ -92,7 +92,7 @@ void SpecificWorker::initialize(int period)
         forcesSliderChanged();
     	moveRobot();
 
-		widget_2d = qobject_cast<DSR::DSRtoGraphicsceneViewer*> (graph_viewer->get_widget(opts::scene));
+		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
 		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato.grid");
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
