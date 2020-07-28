@@ -53,8 +53,8 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init(int32_t
 
     //Create a descriptor for the new transport.
     auto custom_transport = std::make_shared<eprosima::fastrtps::rtps::UDPv4TransportDescriptor>();
-    custom_transport->sendBufferSize = 12582912; //33554432;
-    custom_transport->receiveBufferSize = 12582912; //33554432;
+    custom_transport->sendBufferSize = 33554432;
+    custom_transport->receiveBufferSize = 33554432;
     custom_transport->maxMessageSize = 65000;
     custom_transport->interfaceWhiteList.emplace_back("127.0.0.1");
     //custom_transport->interfaceWhiteList.emplace_back("192.168.1.253");
@@ -65,6 +65,8 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init(int32_t
 
     //Link the Transport Layer to the Participant.
     PParam.rtps.userTransports.push_back(custom_transport);
+    PParam.rtps.sendSocketBufferSize = 33554432;
+    PParam.rtps.listenSocketBufferSize = 33554432;
 
     mp_participant = eprosima::fastrtps::Domain::createParticipant(PParam);
 
