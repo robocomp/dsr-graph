@@ -21,10 +21,10 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR
             // create node
             DSR::Node node;
             node.type("n");
-            auto id = newID();
-            node.id( id );
+            //auto id = newID();
+            //node.id( id );
             node.agent_id(0);
-            node.name("plane" + std::to_string(id));
+            //node.name("plane" + std::to_string(id));
             G->add_attrib_local(node, "name", std::string("fucking_plane"));
             G->add_attrib_local(node, "color", std::string("SteelBlue"));
             G->add_attrib_local(node, "pos_x", rnd_float());
@@ -36,9 +36,10 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR
             // insert node
             auto res = G->insert_node(node);
             if (res.has_value()) {
-                r = true;
-                qDebug() << "Created node:" << id << " Total size:" << G->size();
-            }
+                created_nodes.push_back(res.value());
+                qDebug() << "Created node:" << res.value() << " Total size:" << G->size();
+            } else  qDebug() << "Error inserting node "<< " Total size:" << G->size();
+
         }
         else
         {
@@ -49,6 +50,10 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR
                 r = G->delete_node(id);
                 if (r)
                     qDebug() << "Deleted node:" << id << " Total size:" << G->size();
+                else {
+                    qDebug() << "Error deleting node:" << id << " Total size:" << G->size();
+
+                }
             }
         }
         end = std::chrono::steady_clock::now();
