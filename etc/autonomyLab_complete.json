@@ -1812,7 +1812,7 @@
                     },
                     "path": {
                         "type": 0,
-                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/viriato_base_concept_3/viriato_mesh.ive"
+                        "value": "../../etc/viriato_base_concept_3/viriato_mesh.ive"
                     },
                     "pos_x": {
                         "type": 2,
