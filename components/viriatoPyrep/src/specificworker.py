@@ -175,7 +175,7 @@ class SpecificWorker(GenericWorker):
                 isMoving = np.abs(linear_vel[1]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
                 self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000,
                                                              z=pose[0]*1000,
-                                                             alpha=-pose[2]+1.5707963,
+                                                             alpha=-pose[2]-1.5707963,
                                                              advVx=-linear_vel[1]*1000,
                                                              advVz=linear_vel[0]*1000,
                                                              rotV=ang_vel[2],
