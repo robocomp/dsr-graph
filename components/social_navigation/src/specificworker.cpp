@@ -76,6 +76,7 @@ void SpecificWorker::initialize(int period)
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+        setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
 		//Inner Api
 		innermodel = G->get_inner_api();
@@ -97,7 +98,7 @@ void SpecificWorker::initialize(int period)
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
-		this->Period = 300;
+		this->Period = 160;
 		timer.start(Period);
 	}
 }

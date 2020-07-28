@@ -185,7 +185,7 @@ class SpecificWorker(GenericWorker):
                 print(e)
         # 
             # Move robot from data in setSpeedBase
-            if self.speed_robot != self.speed_robot_ant or (isMoving and self.speed_robot == [0,0,0]):
+            if self.speed_robot != self.speed_robot_ant:#or (isMoving and self.speed_robot == [0,0,0]):
                 self.robot.set_base_angular_velocites(self.speed_robot)
                 print("Velocities sent to robot:", self.speed_robot)
                 self.speed_robot_ant = self.speed_robot

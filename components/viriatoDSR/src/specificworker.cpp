@@ -66,10 +66,8 @@ void SpecificWorker::initialize(int period)
 		using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
 		opts main = opts::none;
-		if(graph_view)
-		{
-			main = opts::none;
-		}
+        if (graph_view)
+            main = opts::graph;
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         timer.start(100);
@@ -148,8 +146,8 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		auto edge = G->get_edge_RT(parent.value(), robot->id());//G->insert_or_assign_edge_RT(parent.value(), robot.id(), std::vector<float>{bState.x, 0., bState.z}, std::vector<float>{0., bState.alpha, 0.});
-        G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
+		auto edge = G->get_edge_RT(parent.value(), robot->id());
+		G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
         G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
         G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
         G->modify_attrib_local(edge, "angular_speed", std::vector<float>{0, bState.rotV, 0});
@@ -189,20 +187,21 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
         // Proportinal controller
         try
         {
-            const float KA = 0.04; const float KS = 0.01; const float KR = 3;
-            const float side_error = KS * (ref_side_speed.value()-bState.advVx);
-            const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
-            const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
-            if(fabs(side_error)>0.1 or fabs(adv_error)>0.1 or fabs(rot_error)>0.01)
-            {
+//            const float KA = 0.04; const float KS = 0.01; const float KR = 3;
+//            const float side_error = KS * (ref_side_speed.value()-bState.advVx);
+//            const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
+//            const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
+//            if(fabs(side_error)>0.1 or fabs(adv_error)>0.1 or fabs(rot_error)>0.01)
+//            {
                 omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
+
                 std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
                           << " Rot: " << ref_rot_speed.value()
                           << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
                           << " " << (ref_adv_speed.value() - bState.advVz) << " "
                           << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
                           << std::endl;
-            }
+ //           }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}
