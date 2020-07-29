@@ -179,6 +179,7 @@ QVariant GraphNode::itemChange(GraphicsItemChange change, const QVariant &value)
         case ItemPositionChange:
         {
             foreach (GraphEdge *edge, edgeList)
+                if (edge)
                  edge->adjust(this, value.toPointF());
             break;
         }

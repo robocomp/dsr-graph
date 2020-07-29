@@ -101,98 +101,102 @@ void DSRtoGraphViewer::timerEvent(QTimerEvent *event)
 ///// SLOTS
 //////////////////////////////////////////////////////////////////////////////////////
 void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
-{	
-	//qDebug() << __FUNCTION__ << "node id " << id<<", type "<<QString::fromUtf8(type.c_str());
-	GraphNode *gnode;														// CAMBIAR a sharer_ptr
+{
+    try {
+        //qDebug() << __FUNCTION__ << "node id " << id<<", type "<<QString::fromUtf8(type.c_str());
+        GraphNode *gnode;                                                        // CAMBIAR a sharer_ptr
 
-    auto name_op = G->get_name_from_id(id);
-    auto name = name_op.value_or("No_name");
-	std::optional<Node> n = G->get_node(id);
-    if (n.has_value()) {
-        if (gmap.count(id) == 0)    // if node does not exist, create it
-        {
-            qDebug()<<__FUNCTION__<<"##### New node";
-        	gnode = new GraphNode(own);
-            gnode->id_in_graph = id;
-            gnode->setType(type);
-			gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
-            scene.addItem(gnode);
-            gmap.insert(std::pair(id, gnode));
-            // //left table filling only if it is new
-            // tableWidgetNodes->setColumnCount(1);
-            // tableWidgetNodes->setHorizontalHeaderLabels(QStringList{"type"});
-            // tableWidgetNodes->verticalHeader()->setVisible(false);
-            // tableWidgetNodes->setShowGrid(false);
-            // nodes_types_list << QString::fromStdString(type);
-            // nodes_types_list.removeDuplicates();
-            // int i = 0;
-            // tableWidgetNodes->clearContents();
-            // tableWidgetNodes->setRowCount(nodes_types_list.size());
-            // for (auto &s : nodes_types_list) 
-			// {
-            //     tableWidgetNodes->setItem(i, 0, new QTableWidgetItem(s));
-            //     tableWidgetNodes->item(i, 0)->setIcon(QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
-            //     i++;
-            // }
-            // tableWidgetNodes->horizontalHeader()->setStretchLastSection(true);
-            // tableWidgetNodes->resizeRowsToContents();
-            // tableWidgetNodes->resizeColumnsToContents();
-            // tableWidgetNodes->show();
+        auto name_op = G->get_name_from_id(id);
+        auto name = name_op.value_or("No_name");
+        std::optional<Node> n = G->get_node(id);
+        if (n.has_value()) {
+            if (gmap.count(id) == 0)    // if node does not exist, create it
+            {
+                qDebug() << __FUNCTION__ << "##### New node";
+                gnode = new GraphNode(own);
+                gnode->id_in_graph = id;
+                gnode->setType(type);
+                gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
+                scene.addItem(gnode);
+                gmap.insert(std::pair(id, gnode));
+                // //left table filling only if it is new
+                // tableWidgetNodes->setColumnCount(1);
+                // tableWidgetNodes->setHorizontalHeaderLabels(QStringList{"type"});
+                // tableWidgetNodes->verticalHeader()->setVisible(false);
+                // tableWidgetNodes->setShowGrid(false);
+                // nodes_types_list << QString::fromStdString(type);
+                // nodes_types_list.removeDuplicates();
+                // int i = 0;
+                // tableWidgetNodes->clearContents();
+                // tableWidgetNodes->setRowCount(nodes_types_list.size());
+                // for (auto &s : nodes_types_list)
+                // {
+                //     tableWidgetNodes->setItem(i, 0, new QTableWidgetItem(s));
+                //     tableWidgetNodes->item(i, 0)->setIcon(QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
+                //     i++;
+                // }
+                // tableWidgetNodes->horizontalHeader()->setStretchLastSection(true);
+                // tableWidgetNodes->resizeRowsToContents();
+                // tableWidgetNodes->resizeColumnsToContents();
+                // tableWidgetNodes->show();
 
-            // connect QTableWidget itemClicked to hide/show nodes of selected type and nodes fanning into it
-            // disconnect(tableWidgetNodes, &QTableWidget::itemClicked, nullptr, nullptr);
-            // connect(tableWidgetNodes, &QTableWidget::itemClicked, this, [this](const auto &item) 
-			// {
-            //     static bool visible = true;
-            //     qDebug() << __FILE__ << " " << __FUNCTION__ << "hide or show all nodes of type " << item->text().toStdString() ;
-            //     for (auto &[k, v] : gmap)
-            //         if (item->text().toStdString() == v->getType()) {
-            //             v->setVisible(!v->isVisible());
-            //             for (const auto &gedge: gmap.at(k)->edgeList)
-            //                 gedge->setVisible(!gedge->isVisible());
-            //         }
-            //     visible = !visible;
-            //     if (visible)
-            //         tableWidgetNodes->item(item->row(), 0)->setIcon(
-            //                 QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
-            //     else
-            //         tableWidgetNodes->item(item->row(), 0)->setIcon(
-            //                 QPixmap::fromImage(QImage("../../dsr/redBall.png")));
-            // }, Qt::UniqueConnection);
-        
-			std::string color = "coral";
-			if(type == "world") color = "SeaGreen";
-			else if(type == "transform") color = "SteelBlue";
-			else if(type == "plane") color = "Khaki";
-			else if(type == "differentialrobot") color = "GoldenRod";
-			else if(type == "laser") color = "GreenYellow";
-			else if(type == "mesh") color = "LightBlue";
-			else if(type == "imu") color = "LightSalmon";
-			gnode->setColor(color);
-        } else
-		{
-			qDebug()<<__FUNCTION__<<"##### Updated node";
-            gnode = gmap.at(id);
-		}
-		gnode->change_detected();
-        float posx = 10;
-        float posy = 10;
-        try 
-		{
-            posx = G->get_attrib_by_name<float>(n.value(), "pos_x").value_or(10);
-            posy = G->get_attrib_by_name<float>(n.value(), "pos_y").value_or(10);
+                // connect QTableWidget itemClicked to hide/show nodes of selected type and nodes fanning into it
+                // disconnect(tableWidgetNodes, &QTableWidget::itemClicked, nullptr, nullptr);
+                // connect(tableWidgetNodes, &QTableWidget::itemClicked, this, [this](const auto &item)
+                // {
+                //     static bool visible = true;
+                //     qDebug() << __FILE__ << " " << __FUNCTION__ << "hide or show all nodes of type " << item->text().toStdString() ;
+                //     for (auto &[k, v] : gmap)
+                //         if (item->text().toStdString() == v->getType()) {
+                //             v->setVisible(!v->isVisible());
+                //             for (const auto &gedge: gmap.at(k)->edgeList)
+                //                 gedge->setVisible(!gedge->isVisible());
+                //         }
+                //     visible = !visible;
+                //     if (visible)
+                //         tableWidgetNodes->item(item->row(), 0)->setIcon(
+                //                 QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
+                //     else
+                //         tableWidgetNodes->item(item->row(), 0)->setIcon(
+                //                 QPixmap::fromImage(QImage("../../dsr/redBall.png")));
+                // }, Qt::UniqueConnection);
+
+                std::string color = "coral";
+                if (type == "world") color = "SeaGreen";
+                else if (type == "transform") color = "SteelBlue";
+                else if (type == "plane") color = "Khaki";
+                else if (type == "differentialrobot") color = "GoldenRod";
+                else if (type == "laser") color = "GreenYellow";
+                else if (type == "mesh") color = "LightBlue";
+                else if (type == "imu") color = "LightSalmon";
+                gnode->setColor(color);
+            } else {
+                qDebug() << __FUNCTION__ << "##### Updated node";
+                gnode = gmap.at(id);
+            }
+            gnode->change_detected();
+            float posx = 10;
+            float posy = 10;
+            try {
+                posx = G->get_attrib_by_name<float>(n.value(), "pos_x").value_or(10);
+                posy = G->get_attrib_by_name<float>(n.value(), "pos_y").value_or(10);
+            }
+            catch (const std::exception &e) {
+                auto rd = QVec::uniformVector(2, -200, 200);
+                posx = rd.x();
+                posy = rd.y();
+            }
+            if ((posx != gnode->x() or posy != gnode->y()) and gnode != scene.mouseGrabberItem()) {
+                qDebug() << __FUNCTION__ << "##### posx " << posx << " != gnode->x() " << gnode->x() << " or posy "
+                         << posy << " != gnode->y() " << gnode->y();
+                gnode->setPos(posx, posy);
+            }
+
+            emit G->update_attrs_signal(id, n.value().attrs());
         }
-        catch (const std::exception &e) {
-            auto rd = QVec::uniformVector(2, -200, 200);
-            posx = rd.x();
-            posy = rd.y();
-        }
-        if ((posx != gnode->x() or posy != gnode->y()) and gnode != scene.mouseGrabberItem()) {
-			qDebug()<<__FUNCTION__<<"##### posx "<<posx<<" != gnode->x() "<<gnode->x()<<" or posy "<<posy<<" != gnode->y() "<<gnode->y();
-			gnode->setPos(posx, posy);
-		}
-
-        emit G->update_attrs_signal(id, n.value().attrs());
+    } catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
+        throw;
     }
 }
 
