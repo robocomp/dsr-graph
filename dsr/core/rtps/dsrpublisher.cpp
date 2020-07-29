@@ -55,17 +55,16 @@ DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char 
     Wparam.multicastLocatorList.push_back(locator);
     Wparam.qos.m_reliability.kind = eprosima::fastrtps::RELIABLE_RELIABILITY_QOS;
     Wparam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
+    Wparam.qos.m_durability.kind = eprosima::fastrtps::VOLATILE_DURABILITY_QOS;
 
 
-    //if (std::string_view(topicName) == "DSR") {
-        // This would be better, but we sent a lots of messages to use it.
-        //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
+    //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
     Wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
     Wparam.topic.historyQos.depth = 20; // Adjust this value if we are losing  messages
 
         // Check ACK for sended messages.
     Wparam.times.heartbeatPeriod.seconds = 0;
-    Wparam.times.heartbeatPeriod.nanosec = 300000000; //300 ms
+    Wparam.times.heartbeatPeriod.nanosec = 150000000; //150 ms
 
     Wparam.topic.resourceLimitsQos.max_samples = 200;
     //}
