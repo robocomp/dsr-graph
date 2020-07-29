@@ -955,15 +955,15 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
                     nodes.erase(mvreg.id());
                     std::cout << "JOIN REMOVE" << std::endl;
                     //Delete all nodes and attributes received out of order
-                    temp_edge.erase(mvreg.id());
-                    temp_node_attr.erase(mvreg.id());
+                    //temp_edge.erase(mvreg.id());
+                    //temp_node_attr.erase(mvreg.id());
                     //Update Maps
                     update_maps_node_delete(mvreg.id(), nd);
                 } else {
                     std::cout << "JOIN INSERT" << std::endl;
                     signal = true;
                     //We have to consume all unordered delta edges for this node. Normally there won't be any.
-                    for (auto &[k, v] : temp_edge[mvreg.id()]) {
+                    /*for (auto &[k, v] : temp_edge[mvreg.id()]) {
                         nodes[mvreg.id()].read_reg().fano()[{std::get<1>(k), std::get<2>(k)}].join(v);
                         if (nodes[mvreg.id()].read_reg().fano()[{std::get<1>(k), std::get<2>(k)}].read().empty()) {
                             nodes[mvreg.id()].read_reg().fano().erase({std::get<1>(k), std::get<2>(k)});
@@ -978,7 +978,7 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
                             nodes[mvreg.id()].read_reg().attrs().erase(k);
                         }
                         temp_node_attr[mvreg.id()].erase(k);
-                    }
+                    }*/
 
                     update_maps_node_insert(mvreg.id(), *nodes[mvreg.id()].read().begin());
                 }
@@ -1039,12 +1039,10 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                 if (mvreg.dk().ds().empty() or n.fano().find({mvreg.to(), mvreg.type()}) == n.fano().end()) { //Remove
                     n.fano().erase({mvreg.to(), mvreg.type()});
                     //Delete received items out of order
-                    temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
                     //Update maps
                     update_maps_edge_delete(mvreg.from(), mvreg.to(), mvreg.type());
                 } else { //Insert
                     signal = true;
-                    temp_edge.erase(mvreg.from());
 
                     /*
                     //We have to consume all unordered delta attributes for this edge. Normally there won't be any.
@@ -1059,10 +1057,13 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                     //Update maps
                     update_maps_edge_insert(mvreg.from(), mvreg.to(), mvreg.type());
                 }
+                //temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
+                //temp_edge.erase(mvreg.from());
+
             } else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
-                temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].join(d);
+                /*temp_edge[mvreg.from()][{mvreg.from(), mvreg.to(), mvreg.type()}].join(d);
 
                 //If we are deleting the edge
                 if (temp_edge[mvreg.from()].find({mvreg.from(), mvreg.to(), mvreg.type()}) ==
@@ -1071,7 +1072,7 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                             {mvreg.from(), mvreg.to(), mvreg.type()}); //Delete the mvreg if the edge is deleted.
                     if (temp_edge[mvreg.id()].empty()) { temp_edge.erase(mvreg.id()); }
                     //temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()});
-                } else {
+                } else {*/
                     /*
                     //Consume al attributes
                     for (auto &[k, v] : temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}]) {
@@ -1083,8 +1084,8 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
                         }
                         temp_edge_attr[{mvreg.from(), mvreg.to(), mvreg.type()}].erase(k);
                     }
-                     */
-                }
+
+                }*/
             }
         }
 
@@ -1134,7 +1135,9 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                     //Update maps
                     update_maps_node_insert(mvreg.id(), n);
                 }
-            } else if (deleted.find(mvreg.id()) == deleted.end()) {
+                //temp_node_attr.erase(mvreg.id());
+            } /*else if (deleted.find(mvreg.id()) == deleted.end()) {
+                std::cout << "!!!!!!!!!!!!!!!!!Saving for later" << std::endl;
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.
                 if (temp_node_attr[mvreg.id()].find(mvreg.attr_name()) == temp_node_attr[mvreg.id()].end()) {
@@ -1148,7 +1151,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                     temp_node_attr[mvreg.id()].erase(mvreg.attr_name()); //Delete the mvreg if the edge is deleted.
                     if (temp_node_attr[mvreg.id()].empty()) { temp_node_attr.erase(mvreg.id()); }
                 }
-            }
+            }*/
         }
 
         if (ok) {
@@ -1242,7 +1245,7 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
                     update_maps_node_delete(k, nd);
                     updates.emplace_back(make_tuple(false, k, "", nd));
                 } else {
-
+                    /*
                     for (auto &[kk, v] : temp_edge[k]) {
                         nodes[k].read_reg().fano()[{std::get<1>(kk), std::get<2>(kk)}].join(v);
                         if (nodes[k].read_reg().fano()[{std::get<1>(kk), std::get<2>(kk)}].read().empty()) {
@@ -1259,6 +1262,7 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
                         }
                         temp_node_attr[k].erase(kk);
                     }
+                     */
                     print_node(*nodes[k].read().begin());
 
                     update_maps_node_insert(k, *mv.read().begin());
@@ -1266,10 +1270,10 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
                 }
             } else {
                 //Delete all temporary information.
-                temp_edge.erase(k);
-                temp_node_attr.erase(k);
-                for (auto &[kk, v] : temp_edge_attr)
-                    if (std::get<0>(kk) == k) temp_edge_attr.erase(kk);
+                //temp_edge.erase(k);
+                //temp_node_attr.erase(k);
+                //for (auto &[kk, v] : temp_edge_attr)
+                //    if (std::get<0>(kk) == k) temp_edge_attr.erase(kk);
             }
         }
 

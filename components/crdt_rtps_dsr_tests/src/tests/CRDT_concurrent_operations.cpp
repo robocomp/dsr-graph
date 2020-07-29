@@ -25,10 +25,10 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             if ( rnd_selector())
             {
                 // create node
-                auto id = newID();
-                DSR::Node node; node.type("n"); node.id(id);
+                DSR::Node node;
+                node.type("n"); //node.id(id);
                 node.agent_id(agent_id);
-                node.name("plane" + std::to_string(id));
+                //node.name("plane" + std::to_string(id));
                 G->add_attrib_local(node, "name", std::string("fucking_plane"));
                 G->add_attrib_local(node, "color", std::string("SteelBlue"));
                 G->add_attrib_local(node, "pos_x", rnd_float());
@@ -37,7 +37,8 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
 
                 auto res = G->insert_node(node);
                 if (res.has_value()) {
-                    qDebug() << "Created node:" << id;
+                    created_nodes.push_back(res.value());
+                    qDebug() << "Created node:" << res.value();
                     r = true;
                 }
                 else
@@ -103,9 +104,12 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             }
 
             std::string str = std::to_string(agent_id) + "_" + std::to_string(i) + "_" + std::to_string(it);
+            if (rnd_selector()) {
+                G->add_or_modify_attrib_local(node.value(), "testattrib", str) ;
+            } else {
+                G->remove_attrib_local(node.value(), "testattrib") ;
+            }
 
-            DSR::Attribute ab (str, 0, agent_id);
-            node.value().attrs()["testattrib"] = ab;
 
             G->modify_attrib_local(node.value(), "pos_x", rnd_float());
             G->modify_attrib_local(node.value(), "pos_y", rnd_float());

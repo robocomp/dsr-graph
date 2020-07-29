@@ -545,9 +545,9 @@ namespace DSR {
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
         ///////////////////////////////////////////////////////////////////////////
-        std::unordered_map<uint32_t, std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>>> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
-        std::unordered_map<std::tuple<uint32_t, uint32_t, std::string>, std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>>, hash_tuple> temp_edge_attr; //temporal storage for attributes to solve problems with unsorted messages.
-        std::unordered_map<int, std::unordered_map<std::tuple<uint32_t, uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, hash_tuple>> temp_edge; //temporal storage for attributes to solve problems with unsorted messages.
+        //std::unordered_map<uint32_t, std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>>> temp_node_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        //std::unordered_map<std::tuple<uint32_t, uint32_t, std::string>, std::unordered_map<std::string, mvreg<CRDTAttribute, uint32_t>>, hash_tuple> temp_edge_attr; //temporal storage for attributes to solve problems with unsorted messages.
+        //std::unordered_map<int, std::unordered_map<std::tuple<uint32_t, uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>, hash_tuple>> temp_edge; //temporal storage for attributes to solve problems with unsorted messages.
 
         std::unordered_set<uint32_t> deleted;     // deleted nodes, used to avoid insertion after remove.
         std::unordered_map<string, uint32_t> name_map;     // mapping between name and id of nodes.

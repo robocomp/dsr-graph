@@ -16,7 +16,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
     {
         start = std::chrono::steady_clock::now();
         // request node
-        std::optional<DSR::Node> node = G->get_node(100);
+        std::optional<DSR::Node> node = G->get_node("world");
         if (!node.has_value())
         {
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
@@ -27,12 +27,12 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
         DSR::Attribute ab (str, 0, agent_id);
         node.value().attrs()["testattrib"] = ab;
 
-        G->modify_attrib_local(node.value(), "pos_x", rnd_float());
-        G->modify_attrib_local(node.value(), "pos_y", rnd_float());
+        G->add_or_modify_attrib_local(node.value(), "pos_x", rnd_float());
+        G->add_or_modify_attrib_local(node.value(), "pos_y", rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {
-            throw std::runtime_error("ERROR INSERTANDO EL NODO");
+            throw std::runtime_error("ERROR ACTUALIZANDO EL NODO");
         }
         end = std::chrono::steady_clock::now();
         times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());

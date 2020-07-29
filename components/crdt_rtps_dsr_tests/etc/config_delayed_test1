@@ -12,7 +12,7 @@ Ice.Warn.Connections=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 
-agent_id = 1
+agent_id = 1301
 agent_name = agent1
 read_file = false
 dsr_input_file = ../../etc/shelly_dsr.json
