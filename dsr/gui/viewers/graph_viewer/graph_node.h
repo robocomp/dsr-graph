@@ -217,40 +217,47 @@ class DoTableStuff : public  QTableWidget
   public slots:
     void drawSLOT(const std::int32_t &id, const std::map<string,Attribute> &attribs)
     {
-        //std::cout << " Window " << this->window()->windowTitle().toStdString() << " id " << QString::number(id).toStdString() << " contains? " << this->window()->windowTitle().contains(QString::number(id)) << std::endl;
-        if (this->window()->windowTitle().contains(QString::number(id))) {
-        int i = 0;
-            for (auto &[k,v] : attribs) 
-            {
-                setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));   
-                switch (v.selected()) {
-                    case 0:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.str())));
-                        break;
-                    case 1:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.dec())))));
-                        break;
-                    case 2:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.fl())))));
-                        break;
-                    case 3:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.float_vec())))));
-                        break;
-                    case 4:
-                        setItem(i, 1, new QTableWidgetItem(QString(v.bl() ? "true" : "false")));
-                        break;
-                    case 5:
-                        setItem(i, 1, new QTableWidgetItem(QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.byte_vec())))));
-                        break;
-                    case 6:
-                        setItem(i, 1, new QTableWidgetItem(
-                                QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.uint())))));
-                        break;
-                }
-                i++;
-            }
-        }
-        resize_widget();
+      try {
+          //std::cout << " Window " << this->window()->windowTitle().toStdString() << " id " << QString::number(id).toStdString() << " contains? " << this->window()->windowTitle().contains(QString::number(id)) << std::endl;
+          if (this->window()->windowTitle().contains(QString::number(id))) {
+              int i = 0;
+              for (auto &[k, v] : attribs) {
+                  setItem(i, 0, new QTableWidgetItem(QString::fromStdString(k)));
+                  switch (v.selected()) {
+                      case 0:
+                          setItem(i, 1, new QTableWidgetItem(QString::fromStdString(v.str())));
+                          break;
+                      case 1:
+                          setItem(i, 1, new QTableWidgetItem(
+                                  QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.dec())))));
+                          break;
+                      case 2:
+                          setItem(i, 1, new QTableWidgetItem(
+                                  QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.fl())))));
+                          break;
+                      case 3:
+                          setItem(i, 1, new QTableWidgetItem(
+                                  QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.float_vec())))));
+                          break;
+                      case 4:
+                          setItem(i, 1, new QTableWidgetItem(QString(v.bl() ? "true" : "false")));
+                          break;
+                      case 5:
+                          setItem(i, 1, new QTableWidgetItem(
+                                  QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.byte_vec())))));
+                          break;
+                      case 6:
+                          setItem(i, 1, new QTableWidgetItem(
+                                  QString::fromStdString(std::get<1>(graph->nativetype_to_string(v.uint())))));
+                          break;
+                  }
+                  i++;
+              }
+          }
+          resize_widget();
+      } catch (const std::exception &e) {
+          std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<<" "<<e.what()<< std::endl;
+      }
     }
     
     void resizeEvent(QResizeEvent* event)

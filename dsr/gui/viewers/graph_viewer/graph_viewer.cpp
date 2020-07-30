@@ -49,7 +49,7 @@ DSRtoGraphViewer::~DSRtoGraphViewer()
 
 void DSRtoGraphViewer::createGraph()
 {
-	qDebug() << __FUNCTION__ << "Reading graph in Graph Viewer";
+	std::cout << __FUNCTION__ << "Reading graph in Graph Viewer" << std::endl;
     try
     {
         auto map = G->getCopy();
@@ -102,6 +102,8 @@ void DSRtoGraphViewer::timerEvent(QTimerEvent *event)
 //////////////////////////////////////////////////////////////////////////////////////
 void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
 {
+   std::cout << __FUNCTION__ << "##### New node"<< std::endl;
+
     try {
         //qDebug() << __FUNCTION__ << "node id " << id<<", type "<<QString::fromUtf8(type.c_str());
         GraphNode *gnode;                                                        // CAMBIAR a sharer_ptr
@@ -195,14 +197,15 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
             emit G->update_attrs_signal(id, n.value().attrs());
         }
     } catch (const std::exception &e) {
-        std::cout << e.what() << std::endl;
-        throw;
+        std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<<" "<<e.what()<< std::endl;
     }
 }
 
 void DSRtoGraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t to, const std::string &edge_tag)
 {
-	try 
+    std::cout << __FUNCTION__ << "##### New edge"<< std::endl;
+
+    try
     {
  		//qDebug() << __FUNCTION__ << "edge id " << QString::fromStdString(edge_tag) << from << to;
 		std::tuple<std::int32_t, std::int32_t, std::string> key = std::make_tuple(from, to, edge_tag);
@@ -245,7 +248,8 @@ void DSRtoGraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t t
 
 void DSRtoGraphViewer::del_edge_SLOT(const std::uint32_t from, const std::uint32_t to, const std::string &edge_tag)
 {
-    qDebug()<<__FUNCTION__<<":"<<__LINE__;
+
+    std::cout <<__FUNCTION__<<":"<<__LINE__ << std::endl;
     try {
         std::tuple<std::uint32_t, std::uint32_t, std::string> key = std::make_tuple(from, to, edge_tag);
         while (gmap_edges.count(key) > 0) {
@@ -272,10 +276,12 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
 
 void DSRtoGraphViewer::hide_show_node_SLOT(int id, bool visible)
 {
-	auto item = gmap[id];
-	item->setVisible(visible);
-	for (const auto &gedge: item->edgeList)
-		gedge->setVisible(visible);
+    try {
+        auto item = gmap[id];
+        item->setVisible(visible);
+        for (const auto &gedge: item->edgeList)
+            gedge->setVisible(visible);
+    } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
 }
 
 void DSRtoGraphViewer::mousePressEvent(QMouseEvent *event)

@@ -61,13 +61,9 @@ void SpecificWorker::initialize(int period)
 	G->print_RT(G->get_id_from_name("world").value());
 
 	// Graph viewer
-	using opts = DSR::GraphViewer::view;
+	//using opts = DSR::GraphViewer::view;
 	//graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph);//opts::scene|opts::graph/*|opts::tree|opts::osg*/, opts::graph);
-//	mainLayout.addWidget(graph_viewer.get());
-//	window.setLayout(&mainLayout);
-//	setCentralWidget(&window);
-    /*
-	setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+	/*setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 	connect(actionSaveToFile, &QAction::triggered,  [this]()
 		{ 
 			auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc",
@@ -76,7 +72,7 @@ void SpecificWorker::initialize(int period)
 			G->write_to_json_file(file_name.toStdString()); 
 			qDebug() << __FUNCTION__ << "Written";
 		});
-     */
+    */
 	//connect(actionSimulate, &QAction::triggered, graph_viewer.get(), &DSR::GraphViewer::toggleSimulationSLOT);
 
 	// Compute max Id in G
