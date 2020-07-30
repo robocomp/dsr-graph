@@ -82,7 +82,26 @@
 #include "commonbehaviorI.h"
 
 
+class MyApplication :  public QApplication {
 
+public:
+
+
+    MyApplication(int& argc, char** argv)  : QApplication(argc, argv) {};
+    bool notify(QObject* receiver, QEvent* event) {
+        bool done = true;
+        try {
+            done = QApplication::notify(receiver, event);
+        }   catch (const std::exception& ex) {
+            qDebug() << ex.what()  << " \nEVENT: " << event<< " \nRECEIVER: " << receiver ;
+            throw;
+        } catch (...) {
+            std::cout << "EXCEPCION" << std::endl;
+            throw;
+        }
+        return done;
+    };
+};
 
 
 class crdt_rtps_dsr_tests : public RoboComp::Application
@@ -109,7 +128,7 @@ void ::crdt_rtps_dsr_tests::initialize()
 int ::crdt_rtps_dsr_tests::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
-	QApplication a(argc, argv);  // GUI application
+	MyApplication a(argc, argv);  // GUI application
 #else
 	QCoreApplication a(argc, argv);  // NON-GUI application
 #endif

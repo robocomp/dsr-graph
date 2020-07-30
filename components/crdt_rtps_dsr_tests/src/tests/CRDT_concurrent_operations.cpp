@@ -114,6 +114,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr
             G->modify_attrib_local(node.value(), "pos_x", rnd_float());
             G->modify_attrib_local(node.value(), "pos_y", rnd_float());
             node->agent_id(agent_id);
+            G->print_node(node->id());
             r = G->update_node(node.value());
 
             if (!r) {

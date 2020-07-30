@@ -96,7 +96,8 @@ void SpecificWorker::initialize(int period) {
 
     // Graph viewer
     using opts = DSR::GraphViewer::view;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G,opts::scene/*|opts::graph/*|opts::tree|opts::osg*/, opts::graph);
+
+    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
     setWindowTitle(QString::fromStdString(agent_name));
     connect(actionSave, &QAction::triggered,  [this]()
     {
@@ -153,7 +154,7 @@ void SpecificWorker::compute()
             qDebug() << "CONCURRENT OPERATIONS TEST:";
             CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (60));
+            std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
             break;
         }
