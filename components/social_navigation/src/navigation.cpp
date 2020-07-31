@@ -91,7 +91,7 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
             auto robot_node = G->get_node(robot_name);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
-            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)0);
+            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)xVel);
             G->update_node(robot_node.value());
         }
 };
