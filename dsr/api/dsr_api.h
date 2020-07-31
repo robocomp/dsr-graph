@@ -36,6 +36,7 @@
 #include "dsr_inner_api.h"
 #include "dsr_utils.h"
 #include "../../components/idserver/cmake-build-debug/src/DSRGetID.h"
+#include "dsr_attr_name.h"
 
 #define NO_PARENT -1
 #define TIMEOUT 5000
@@ -74,39 +75,6 @@ namespace DSR {
         }
     };
 
-
-    template<typename Va>
-    static bool constexpr allowed_types = std::is_same<std::int32_t, Va>::value ||
-                                          std::is_same<std::uint32_t, Va>::value ||
-                                          std::is_same<std::string_view, Va>::value ||
-                                          std::is_same<std::string, Va>::value ||
-                                          std::is_same<std::float_t, Va>::value ||
-                                          std::is_same<std::double_t, Va>::value ||
-                                          std::is_same<std::vector<float_t>, Va>::value ||
-                                          std::is_same<std::vector<uint8_t>, Va>::value ||
-                                          std::is_same<bool, Va>::value;
-    template<typename Va>
-    static bool constexpr any_node_or_edge = std::is_same<DSR::CRDTNode, Va>::value ||
-                                         std::is_same<DSR::CRDTEdge, Va>::value ||
-                                         std::is_same<DSR::Node, Va>::value ||
-                                         std::is_same<DSR::Edge, Va>::value
-                                         ;
-
-    template<typename Va>
-    static bool constexpr node_or_edge = std::is_same<DSR::Node, Va>::value ||
-                                         std::is_same<DSR::Edge, Va>::value
-    ;
-
-    template<typename Va>
-    static bool constexpr allowed_return_types = std::is_same<std::int32_t, Va>::value ||
-                                                 std::is_same<std::uint32_t, Va>::value ||
-                                                 std::is_same<std::string, Va>::value ||
-                                                 std::is_same<std::float_t, Va>::value ||
-                                                 std::is_same<std::vector<float_t>, Va>::value ||
-                                                 std::is_same<std::vector<uint8_t>, Va>::value ||
-                                                 std::is_same<bool, Va>::value ||
-                                                 std::is_same<QVec, Va>::value ||
-                                                 std::is_same<QMat, Va>::value;
 
     /////////////////////////////////////////////////////////////////
     /// CRDT API
@@ -219,7 +187,66 @@ namespace DSR {
         std::optional<std::map<std::pair<uint32_t, std::string>, Edge/*, pair_hash*/>> get_edges(uint32_t id);
 
 
-        // Attributes
+
+        //Comprueba si en el tipo T existen los attributos attr_type y attr_name
+        template <typename, typename = void, typename = void>
+        struct is_attr_name : std::false_type {};
+        template <typename T>
+        struct is_attr_name<T, std::void_t<decltype(T::attr_type), decltype(T::attr_name)>, typename std::enable_if<T::attr_type >::type > : std::true_type {};
+
+
+
+        template<typename name, class Ta>
+        constexpr bool valid_type ()
+        {
+            using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
+            return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>> >;
+        }
+
+
+        template <typename name, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>> >
+        inline std::optional<decltype(name::type)> get_attrib_by_name(const Type &n)
+        {
+            using name_type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>;
+            static_assert(is_attr_name<name>::value, "No es un tipo nativo");
+            std::cout << "tipo : " << name::attr_name <<  " "<<  typeid(name_type).name() << std::endl;
+            std::optional<CRDTAttribute> av = get_attrib_by_name_( n , name::attr_name);
+            if (!av.has_value()) return {};
+            if constexpr (std::is_same_v< name_type, float>)
+                return av->val().fl();
+            else if constexpr (std::is_same_v< name_type, std::string>) //TODO: Cambiar string vire por algo que identifique todos los strings
+                return av->val().str();
+            else if constexpr (std::is_same_v< name_type,  std::int32_t>)
+                return av->val().dec();
+            else if constexpr (std::is_same_v< name_type, std::uint32_t>)
+                return av->val().uint();
+            else if constexpr (std::is_same_v< name_type, bool>)
+                return av->val().bl();
+            else if constexpr (std::is_same_v< name_type, std::vector<float>>)
+                return av->val().float_vec();
+            else if constexpr (std::is_same_v< name_type, std::vector<byte>>)
+                return av->val().byte_vec();
+            else if constexpr (std::is_same_v< name_type, QVec>) {
+                const auto &val = av->val().float_vec();
+                if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
+                    and (val.size() == 3 or val.size() == 6))
+                    return QVec{val};
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            }
+            else if constexpr (std::is_same_v<name_type, QMat>) {
+                if (av->val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
+                    const auto &val = av->val().float_vec();
+                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                }
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            }
+            //else {
+            //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
+            //}
+        }
+
+
+        /*
         template<typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>>>
         std::optional<Ta> get_attrib_by_name(const Type &n, const std::string &key) {
             std::optional<CRDTAttribute> av = get_attrib_by_name_(n, key);
@@ -261,13 +288,62 @@ namespace DSR {
             }  //else
             //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
         }
-
+        */
 
 
         /**
          * LOCAL ATTRIBUTES MODIFICATION METHODS (for nodes and edges)
          **/
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, class Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        inline void add_or_modify_attrib_local(Type &elem, const Ta &att_value) {
+
+            static_assert(is_attr_name<name>::value, "No es un tipo nativo");
+
+            constexpr bool result = valid_type<name, Ta>();
+            if constexpr(result) {
+                if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
+                    Attribute at(att_value, get_unix_timestamp(), agent_id);
+                    elem.attrs().insert_or_assign(name::attr_name, at);
+                } else {
+                    CRDTAttribute at;
+                    CRDTValue value;
+                    if constexpr (std::is_same<std::string, Ta>::value || std::is_same<std::string_view, Ta>::value ||
+                                  std::is_same<const string &, Ta>::value) {
+                        at.type(STRING);
+                        value.str(att_value);
+                    } else if constexpr (std::is_same<std::int32_t, Ta>::value) {
+                        at.type(INT);
+                        value.dec(att_value);
+                    } else if constexpr (std::is_same<float, Ta>::value || std::is_same<double, Ta>::value) {
+                        at.type(FLOAT);
+                        value.fl(att_value);
+                    } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
+                        at.type(FLOAT_VEC);
+                        value.float_vec(att_value);
+                    } else if constexpr (std::is_same<std::vector<uint8_t>, Ta>::value) {
+                        at.type(BYTE_VEC);
+                        value.byte_vec(att_value);
+                    } else if constexpr (std::is_same<bool, Ta>::value) {
+                        at.type(BOOL);
+                        value.bl(att_value);
+                    } else if constexpr (std::is_same<std::uint32_t, Ta>::value) {
+                        at.type(UINT);
+                        value.uint(att_value);
+                    }
+
+                    at.val(std::move(value));
+                    at.timestamp(get_unix_timestamp());
+                    if (elem.attrs().find(name::attr_name) == elem.attrs().end()) {
+                        mvreg<CRDTAttribute, uint32_t> mv;
+                        elem.attrs().insert(make_pair(name::attr_name, mv));
+                    }
+                    elem.attrs()[name::attr_name].write(at);
+                }
+            }  else {
+                static_assert(result, "Error, tipo incorrecto");
+            }
+        }
+        /*template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         void add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
 
             if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
@@ -308,46 +384,51 @@ namespace DSR {
                 }
                 elem.attrs()[att_name].write(at);
             }
-        }
+        }*/
 
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        bool add_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
-            if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
-            add_or_modify_attrib_local(elem, att_name, att_value);
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        bool add_attrib_local(Type &elem, const Ta &att_value) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) != elem.attrs().end()) return false;
+            add_or_modify_attrib_local<name>(elem, att_value);
             return true;
         };
 
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool add_attrib_local(Type &elem, const std::string &att_name, Attribute &attr) {
-            if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool add_attrib_local(Type &elem, Attribute &attr) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) != elem.attrs().end()) return false;
             attr.timestamp(get_unix_timestamp());
-            elem.attrs()[att_name] = attr;
+            elem.attrs()[name::attr_name] = attr;
             return true;
         };
 
 
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        bool modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
-            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        bool modify_attrib_local(Type &elem, const Ta &att_value) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
-            add_or_modify_attrib_local(elem, att_name, att_value);
+            add_or_modify_attrib_local<name>(elem, att_value);
             return true;
         };
 
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool modify_attrib_local(Type &elem, const std::string &att_name, CRDTAttribute &attr) {
-            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool modify_attrib_local(Type &elem,  CRDTAttribute &attr) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             attr.timestamp(get_unix_timestamp());
-            elem.attrs()[att_name] = attr;
+            elem.attrs()[name::attr_name] = attr;
             return true;
         };
 
 
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool remove_attrib_local(Type &elem, const std::string &att_name) {
-            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
-            elem.attrs().erase(att_name);
+        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool remove_attrib_local(Type &elem) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            elem.attrs().erase(name::attr_name);
             return true;
         }
 
@@ -357,11 +438,12 @@ namespace DSR {
         // ******************************************************************
         //  DISTRIBUTED ATTRIBUTE MODIFICATION METHODS (for nodes and edges)
         // ******************************************************************
-        template<typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
+        template<typename name,
+                typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
-        void insert_or_assign_attrib_by_name(Ta &elem, const std::string &att_name, const Va &att_value) {
-
-            add_or_modify_attrib_local(elem, att_name, att_value);
+        void insert_or_assign_attrib_by_name(Ta &elem,  const Va &att_value) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            add_or_modify_attrib_local<name>(elem, att_value);
 
             // insert in node
             if constexpr (std::is_same<Node, Ta>::value) {
@@ -387,13 +469,15 @@ namespace DSR {
             //    throw std::runtime_error("Node or Edge type not valid for add_attrib_by_name()");
         }
 
-        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
+        template<typename name,
+                typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
-        bool insert_attrib_by_name(Type &elem, const std::string &att_name, const Va &new_val) {
+        bool insert_attrib_by_name(Type &elem,  const Va &new_val) {
             //if (elem.attrs().find(new_name) != elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
 
-            bool res = add_attrib_local(elem, att_name, new_val);
+            bool res = add_attrib_local<name>(elem, new_val);
             if (!res) return false;
             // insert in node
             if constexpr (std::is_same<Node, Type>::value) {
@@ -419,13 +503,15 @@ namespace DSR {
         }
 
 
-        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
+        template<typename name,
+                typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
-        bool update_attrib_by_name(Type &elem, const std::string &att_name, const Va &new_val) {
+        bool update_attrib_by_name(Type &elem,  const Va &new_val) {
             //if (elem.attrs().find(new_name) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
 
-            bool res = modify_attrib_local(elem, att_name, new_val);
+            bool res = modify_attrib_local<name>(elem, new_val);
             if (!res) return false;
             // insert in node
             if constexpr (std::is_same<Node, Type>::value) {
@@ -450,11 +536,11 @@ namespace DSR {
         }
 
 
-        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
-        bool remove_attrib_by_name(Type &elem, const std::string &att_name) {
-
-            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
-            elem.attrs().erase(att_name);
+        template<typename name, typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
+        bool remove_attrib_by_name(Type &elem) {
+            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
+            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            elem.attrs().erase(name::attr_name);
 
             // insert in node
             if constexpr (std::is_same<Node, Type>::value) {
