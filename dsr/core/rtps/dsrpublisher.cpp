@@ -58,9 +58,9 @@ DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char 
     Wparam.qos.m_durability.kind = eprosima::fastrtps::VOLATILE_DURABILITY_QOS;
 
 
-    //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
-    Wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
-    Wparam.topic.historyQos.depth = 20; // Adjust this value if we are losing  messages
+    Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
+    //Wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
+    //Wparam.topic.historyQos.depth = 20; // Adjust this value if we are losing  messages
 
         // Check ACK for sended messages.
     Wparam.times.heartbeatPeriod.seconds = 0;
