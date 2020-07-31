@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
-	graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
-	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
-	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
+	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
+	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
 	return true;
 }
 
@@ -63,12 +63,12 @@ void SpecificWorker::initialize(int period)
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		using opts = DSR::DSRViewer::view;
+		using opts = DSR::GraphViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
 		opts main = opts::none;
         if (graph_view)
             main = opts::graph;
-		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         timer.start(100);
     }

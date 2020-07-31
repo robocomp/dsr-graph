@@ -32,9 +32,11 @@
 #include <unordered_map>
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 #include <QHBoxLayout>
+
+using namespace DSR;
 
 class SpecificWorker : public GenericWorker
 {
@@ -84,7 +86,7 @@ private:
 public:
     std::string agent_name;
     std::shared_ptr<DSR::DSRGraph> G;
-    std::unique_ptr<DSR::DSRViewer> graph_viewer;
+    std::unique_ptr<DSR::GraphViewer> graph_viewer;
     QHBoxLayout mainLayout;
     QWidget window;
     

@@ -207,7 +207,7 @@ namespace DSR {
         std::vector<Node> get_nodes_by_type(const std::string &type);
         std::optional<std::string> get_name_from_id(uint32_t id);  // caché
         std::optional<std::uint32_t> get_id_from_name(const std::string &name);  // caché
-        std::optional<std::int32_t> get_node_level(Node &n);
+        std::optional<std::int32_t> get_node_level(const Node &n);
         std::optional<std::uint32_t> get_parent_id(const Node &n);
         std::optional<Node> get_parent_node(const Node &n);
         std::string get_node_type(Node &n);
