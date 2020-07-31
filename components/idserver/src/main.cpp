@@ -99,6 +99,8 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
+    bool startup_check_flag;
+
 
 public:
 	virtual int run(int, char*[]);
@@ -139,8 +141,8 @@ int ::idserver::run(int argc, char* argv[])
 	initialize();
 
 	tprx = std::tuple<>();
-	SpecificWorker *worker = new SpecificWorker(tprx);
-	//Monitor thread
+	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
+    //Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
 	QObject::connect(monitor, SIGNAL(kill()), &a, SLOT(quit()));
 	QObject::connect(worker, SIGNAL(kill()), &a, SLOT(quit()));

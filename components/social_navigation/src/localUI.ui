@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>822</width>
-    <height>159</height>
+    <height>336</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,6 +87,13 @@
           </property>
           <property name="text">
            <string>send</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPushButton" name="stop_button">
+          <property name="text">
+           <string>Stop</string>
           </property>
          </widget>
         </item>
@@ -174,7 +181,7 @@
              <number>500</number>
             </property>
             <property name="value">
-             <number>120</number>
+             <number>320</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -198,10 +205,10 @@
              <number>500</number>
             </property>
             <property name="value">
-             <number>60</number>
+             <number>40</number>
             </property>
             <property name="sliderPosition">
-             <number>60</number>
+             <number>40</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>

@@ -22,14 +22,15 @@
 	@author authorname
 */
 
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include <Laser.h>
 #include <navigation.h>
+#include <navigation.cpp>  // Trick to remove linking errors due to templates
+#include <grid.cpp>
+
 #include <grid.h>
 #include <controller.h>
 #include <custom_widget.h>
@@ -40,30 +41,20 @@
 
 #include <localPerson.h>
 #include <cppitertools/zip.hpp>
-
 #include <algorithm>
+
+#include <QGraphicsPolygonItem>
 
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 public:
-	using retPersonalSpaces = std::tuple <vector<QPolygonF>,vector<QPolygonF>,vector<QPolygonF>>;
-	using retAffordanceSpaces = std::tuple <std::map<float, vector<QPolygonF>>,vector<QPolygonF>,vector<QPolygonF>>;
-
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
 	RoboCompLaser::TLaserData updateLaser();
-	void getPersonsFromModel();
-	retPersonalSpaces getPolylinesFromModel();
-	retAffordanceSpaces getAffordancesFromModel();
-	void checkHumanBlock();
-
-
-	void SocialRules_objectsChanged(RoboCompSocialRules::SRObjectSeq objectsAffordances);
-	void SocialRules_personalSpacesChanged(RoboCompSocialNavigationGaussian::SNGPolylineSeq intimateSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq personalSpaces, RoboCompSocialNavigationGaussian::SNGPolylineSeq socialSpaces);
+    void draw_laser(RoboCompLaser::TLaserData laserData);
 
 public slots:
 	void compute();
@@ -71,9 +62,10 @@ public slots:
 	void initialize(int period);
 	void checkRobotAutoMovState();
     void moveRobot();
+    void stopRobot();
     void sendRobotTo();
 	void forcesSliderChanged(int value = 0);
-
+    void new_target_from_mouse(int pos_x, int pos_y, int id);
 
 private:
 	std::shared_ptr<DSR::InnerAPI> innermodel;
@@ -85,31 +77,28 @@ private:
 	int agent_id;
 	bool read_dsr;
 	std::string dsr_input_file;
+	bool tree_view;
+	bool graph_view;
+	bool qscene_2d_view;
+	bool osg_3d_view;
 
 	// DSR graph viewer
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
-
+	
 	//navigation
 	std::shared_ptr<RoboCompCommonBehavior::ParameterList> confParams;
     Navigation<Grid<>,Controller> navigation;
-
- 	RoboCompSocialNavigationGaussian::SNGPolylineSeq intimate_seq, personal_seq, social_seq;
-    RoboCompSocialRules::SRObjectSeq objects_seq;
-
-    bool personalSpacesChanged = false;
-    bool affordancesChanged = false;
-
-	std::vector <int32_t> prev_blockingIDs = {};
-	std::vector<std::vector<int32_t>> prev_softBlockingIDs = {};
-
-	localPersonsVec totalPersons;
+    std::string robot_name = "omnirobot";
 
 	//local widget
 	Custom_widget custom_widget;
 
+	//drawing
+    DSR::QScene2dViewer* widget_2d;
+    QGraphicsPolygonItem *laser_polygon = nullptr;
 };
 
 #endif

@@ -49,10 +49,13 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+
 private:
 	bool startup_check_flag;
+
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
+	std::string robot_name = "omnirobot";
 
 	//params
 	std::string agent_name;
@@ -60,13 +63,13 @@ private:
 	bool read_dsr;
 	std::string dsr_input_file;
 
-	bool tree_view;
-	bool graph_view;
-	bool qscene_2d_view;
-	bool osg_3d_view;
+	int tree_view;
+	int graph_view;
+	int qscene_2d_view;
+	int osg_3d_view;
 
 	// graph viewer
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 
@@ -80,7 +83,7 @@ private:
 	void update_omirobot(const RoboCompGenericBase::TBaseState& bState);
 	void update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb);
 	bool areDifferent(float a, float b, float epsilon);
-
+    void checkNewCommand(const RoboCompGenericBase::TBaseState& bState);
 };
 
 #endif

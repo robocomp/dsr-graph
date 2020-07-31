@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DSRGraph</string>
+   <string>DSRViewer</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -29,13 +29,7 @@
     </property>
     <addaction name="actionSaveToFile"/>
    </widget>
-   <widget class="QMenu" name="menuForces">
-    <property name="title">
-     <string>Forces</string>
-    </property>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuForces"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSave">
