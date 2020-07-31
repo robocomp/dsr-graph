@@ -515,25 +515,21 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
             CRDTEdge e; e.to(to);  e.from(n.id()); e.type("RT"); e.agent_id(agent_id);
             CRDTAttribute tr; tr.type(3); tr.val(CRDTValue(std::move(trans))); tr.timestamp(get_unix_timestamp());
             CRDTAttribute rot; rot.type(3); rot.val(CRDTValue(std::move(rot_euler))); rot.timestamp(get_unix_timestamp());
-            if (auto [it, new_el] = e.attrs().emplace("rotation_euler_xyz", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
-            {
-                it->second.write(rot);
-            }
+            auto [it, new_el] = e.attrs().emplace("rotation_euler_xyz", mvreg<CRDTAttribute, uint32_t> ());
+            it->second.write(rot);
+            auto [it2, new_el2] = e.attrs().emplace("translation", mvreg<CRDTAttribute, uint32_t> ());
+            it2->second.write(tr);
 
-            if (auto [it, new_el] = e.attrs().emplace("translation", mvreg<CRDTAttribute, uint32_t> ()); !new_el)
-            {
-                it->second.write(tr);
-            }
 
             to_n = get_(to).value();
-            if (auto x = get_attrib_by_name<uint32_t>(to_n.value(), "parent"); x.has_value() and x.value() != n.id()) {
-                bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
-                if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+            if (auto x = get_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
+                bool res1 = modify_attrib_local<parent_att>(to_n.value(), n.id());
+                if (!res1) (void) add_attrib_local<parent_att>(to_n.value(), n.id());
                 no_send = false;
             }
-            if (auto x = get_attrib_by_name<int32_t>(to_n.value(), "level"); x.has_value() and x.value() != get_node_level(n).value() + 1) {
-                bool res2 = modify_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
-                if (!res2) (void) add_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (auto x = get_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+                bool res2 = modify_attrib_local<level_att>(to_n.value(),  get_node_level(n).value() + 1 );
+                if (!res2) (void) add_attrib_local<level_att>(to_n.value(),  get_node_level(n).value() + 1 );
                 no_send = false;
             }
             //Check if RT edge exist.
@@ -609,14 +605,14 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<
             }
 
             to_n = get_(to).value();
-            if (auto x = get_attrib_by_name<uint32_t>(to_n.value(), "parent"); x.has_value() and x.value() != n.id()) {
-                bool res1 = modify_attrib_local(to_n.value(), "parent", n.id());
-                if (!res1) (void) add_attrib_local(to_n.value(), "parent", n.id());
+            if (auto x = get_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
+                bool res1 = modify_attrib_local<parent_att>(to_n.value(),  n.id());
+                if (!res1) (void) add_attrib_local<parent_att>(to_n.value(), n.id());
                 no_send = false;
             }
-            if (auto x = get_attrib_by_name<int32_t>(to_n.value(), "level"); x.has_value() and x.value() != get_node_level(n).value() + 1) {
-                bool res2 = modify_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
-                if (!res2) (void) add_attrib_local(to_n.value(), "level",  get_node_level(n).value() + 1 );
+            if (auto x = get_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+                bool res2 = modify_attrib_local<level_att>(to_n.value(),   get_node_level(n).value() + 1 );
+                if (!res2) (void) add_attrib_local<level_att>(to_n.value(),   get_node_level(n).value() + 1 );
                 no_send = false;
             }
             //Check if RT edge exist.
@@ -787,10 +783,10 @@ DSR::Edge DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
 }
 
 RTMat DSRGraph::get_edge_RT_as_RTMat(const Edge &edge) {
-    auto r = get_attrib_by_name<std::vector<float>>(edge, "rotation_euler_xyz");
-    auto t = get_attrib_by_name<std::vector<float>>(edge, "translation");
+    auto r = get_attrib_by_name<rotation_euler_xyz_att>(edge);
+    auto t =  get_attrib_by_name<translation_att>(edge);
     if (r.has_value() and t.has_value())
-        return RTMat{r.value()[0], r.value()[1], r.value()[2], t.value()[0], t.value()[1], t.value()[2]};
+        return RTMat{r->get()[0], r->get()[1], r->get()[2], t->get()[0], t->get()[1], t->get()[2]};
     else
         throw std::runtime_error(
                 "Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) +
@@ -799,10 +795,10 @@ RTMat DSRGraph::get_edge_RT_as_RTMat(const Edge &edge) {
 }
 
 RTMat DSRGraph::get_edge_RT_as_RTMat(Edge &&edge) {
-    auto r = get_attrib_by_name<std::vector<float>>(edge, "rotation_euler_xyz");
-    auto t = get_attrib_by_name<std::vector<float>>(edge, "translation");
+    auto r = get_attrib_by_name<rotation_euler_xyz_att>(edge);
+    auto t =  get_attrib_by_name<translation_att>(edge);
     if (r.has_value() and t.has_value())
-        return RTMat{r.value()[0], r.value()[1], r.value()[2], t.value()[0], t.value()[1], t.value()[2]};
+        return RTMat{r->get()[0], r->get()[1], r->get()[2], t->get()[0], t->get()[1], t->get()[2]};
     else
         throw std::runtime_error(
                 "Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) +
@@ -854,15 +850,15 @@ std::optional<CRDTNode> DSRGraph::get_(uint32_t id) {
 }
 
 std::optional<std::int32_t> DSRGraph::get_node_level(const Node &n) {
-    return get_attrib_by_name<std::int32_t>(n, "level");
+    return get_attrib_by_name<level_att>(n);
 }
 
 std::optional<std::uint32_t> DSRGraph::get_parent_id(const Node &n) {
-    return get_attrib_by_name<std::uint32_t>(n, "parent");
+    return get_attrib_by_name<parent_att>(n);
 }
 
 std::optional<DSR::Node> DSRGraph::get_parent_node(const Node &n) {
-    auto p = get_attrib_by_name<std::uint32_t>(n, "parent");
+    auto p = get_attrib_by_name<parent_att>(n);
     if (p.has_value()) {
         std::shared_lock<std::shared_mutex> lock(_mutex);
         return get_(p.value());
