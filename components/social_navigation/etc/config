@@ -1,16 +1,18 @@
 CommonBehavior.Endpoints=tcp -p 17700
 
-# Endpoints for subscriptions interfaces
-SocialRulesTopic.Endpoints=tcp -p 14400
-
 # Proxies for required interfaces
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+OmniRobotProxy = omnirobot:tcp -p 10004
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
 agent_id = 35 # Change id
 agent_name = social_navigation
 
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
 
 NavigationAgent.MaxZSpeed = 450
 NavigationAgent.MaxXSpeed = 350

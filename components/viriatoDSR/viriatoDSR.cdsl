@@ -1,14 +1,17 @@
 import "CameraRGBDSimplePub.idsl";
 import "OmniRobotPub.idsl";
 import "LaserPub.idsl";
+import "OmniRobot.idsl";
 
 Component viriatoDSR
 {
     Communications
     {
+        requires OmniRobot;
         subscribesTo CameraRGBDSimplePub, OmniRobotPub, LaserPub;
     };
     language Cpp11;
     gui Qt(QMainWindow);
+    options dsr;
 };
 

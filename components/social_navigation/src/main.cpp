@@ -67,24 +67,17 @@
 
 // ICE includes
 #include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
 #include <Ice/Application.h>
 
 #include <rapplication/rapplication.h>
 #include <sigwatch/sigwatch.h>
 #include <qlog/qlog.h>
-
 #include "config.h"
 #include "genericmonitor.h"
 #include "genericworker.h"
 #include "specificworker.h"
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
-
-#include <socialrulesI.h>
-
-#include <SocialNavigationGaussian.h>
-
 
 
 class social_navigation : public RoboComp::Application
@@ -152,17 +145,6 @@ int ::social_navigation::run(int argc, char* argv[])
 	rInfo("DSRGetIDProxy initialized Ok!");
 
 
-	IceStorm::TopicManagerPrxPtr topicManager;
-	try
-	{
-		topicManager = topicManager = Ice::checkedCast<IceStorm::TopicManagerPrx>(communicator()->propertyToProxy("TopicManager.Proxy"));
-	}
-	catch (const Ice::Exception &ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception: 'rcnode' not running: " << ex << endl;
-		return EXIT_FAILURE;
-	}
-
 	tprx = std::make_tuple(dsrgetid_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
@@ -194,60 +176,9 @@ int ::social_navigation::run(int argc, char* argv[])
 		catch(const Ice::Exception& ex)
 		{
 			status = EXIT_FAILURE;
-
 			cout << "[" << PROGRAM_NAME << "]: Exception raised while creating CommonBehavior adapter: " << endl;
 			cout << ex;
-
 		}
-
-
-
-		// Server adapter creation and publication
-		std::shared_ptr<IceStorm::TopicPrx> socialrules_topic;
-		Ice::ObjectPrxPtr socialrules;
-		try
-		{
-			if (not GenericMonitor::configGetString(communicator(), prefix, "SocialRulesTopic.Endpoints", tmp, ""))
-			{
-				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy SocialRulesProxy";
-			}
-			Ice::ObjectAdapterPtr SocialRules_adapter = communicator()->createObjectAdapterWithEndpoints("socialrules", tmp);
-			RoboCompSocialRules::SocialRulesPtr socialrulesI_ =  std::make_shared <SocialRulesI>(worker);
-			auto socialrules = SocialRules_adapter->addWithUUID(socialrulesI_)->ice_oneway();
-			if(!socialrules_topic)
-			{
-				try {
-					socialrules_topic = topicManager->create("SocialRules");
-				}
-				catch (const IceStorm::TopicExists&) {
-					//Another client created the topic
-					try{
-						cout << "[" << PROGRAM_NAME << "]: Probably other client already opened the topic. Trying to connect.\n";
-						socialrules_topic = topicManager->retrieve("SocialRules");
-					}
-					catch(const IceStorm::NoSuchTopic&)
-					{
-						cout << "[" << PROGRAM_NAME << "]: Topic doesn't exists and couldn't be created.\n";
-						//Error. Topic does not exist
-					}
-				}
-				catch(const IceUtil::NullHandleException&)
-				{
-					cout << "[" << PROGRAM_NAME << "]: ERROR TopicManager is Null. Check that your configuration file contains an entry like:\n"<<
-					"\t\tTopicManager.Proxy=IceStorm/TopicManager:default -p <port>\n";
-					return EXIT_FAILURE;
-				}
-				IceStorm::QoS qos;
-				socialrules_topic->subscribeAndGetPublisher(qos, socialrules);
-			}
-			SocialRules_adapter->activate();
-		}
-		catch(const IceStorm::NoSuchTopic&)
-		{
-			cout << "[" << PROGRAM_NAME << "]: Error creating SocialRules topic.\n";
-			//Error. Topic does not exist
-		}
-
 
 		// Server adapter creation and publication
 		cout << SERVER_FULL_NAME " started" << endl;
@@ -260,18 +191,6 @@ int ::social_navigation::run(int argc, char* argv[])
 		#endif
 		// Run QT Application Event Loop
 		a.exec();
-
-		try
-		{
-			std::cout << "Unsubscribing topic: socialrules " <<std::endl;
-			socialrules_topic->unsubscribe( socialrules );
-		}
-		catch(const Ice::Exception& ex)
-		{
-			std::cout << "ERROR Unsubscribing topic: socialrules " << ex.what()<<std::endl;
-		}
-
-
 		status = EXIT_SUCCESS;
 	}
 	catch(const Ice::Exception& ex)
