@@ -67,11 +67,11 @@ DSRGraph::~DSRGraph() {
     qDebug() << "Removing rtps participant";
     eprosima::fastrtps::Domain::removeParticipant(
             dsrparticipant.getParticipant()); // Remove a Participant and all associated publishers and subscribers.
-    fullgraph_thread.join();
-    delta_node_thread.join();
-    delta_edge_thread.join();
-    delta_node_attrs_thread.join();
-    delta_edge_attrs_thread.join();
+    if (fullgraph_thread.joinable()) fullgraph_thread.join();
+    if (delta_node_thread.joinable()) delta_node_thread.join();
+    if (delta_edge_thread.joinable()) delta_edge_thread.join();
+    if (delta_node_attrs_thread.joinable()) delta_node_attrs_thread.join();
+    if (delta_edge_attrs_thread.joinable()) delta_edge_attrs_thread.join();
 }
 
 //////////////////////////////////////
@@ -853,7 +853,7 @@ std::optional<CRDTNode> DSRGraph::get_(uint32_t id) {
     return {};
 }
 
-std::optional<std::int32_t> DSRGraph::get_node_level(Node &n) {
+std::optional<std::int32_t> DSRGraph::get_node_level(const Node &n) {
     return get_attrib_by_name<std::int32_t>(n, "level");
 }
 

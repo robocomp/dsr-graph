@@ -3,30 +3,38 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
-  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
-  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
-  $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
-  $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
-  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
-  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
-  $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_viewer.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_node.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
-  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
+  ../../../dsr/api/dsr_api.cpp
+  ../../../dsr/core/types/crdt_types.cpp
+  ../../../dsr/core/types/user_types.cpp
+  ../../../dsr/core/rtps/dsrpublisher.cpp
+  ../../../dsr/core/rtps/dsrsubscriber.cpp
+  ../../../dsr/core/rtps/dsrparticipant.cpp
+  ../../../dsr/core/topics/IDLGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/IDLGraph.cxx
+  ../../../dsr/api/dsr_inner_api.cpp
+  ../../../dsr/api/dsr_utils.cpp
+  ../../../dsr/gui/dsr_gui.cpp
+  ../../../dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
+  ../../../dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_viewer.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_node.cpp
+  ../../../dsr/gui/viewers/graph_viewer/graph_edge.cpp
+  ../../../dsr/gui/viewers/tree_viewer/tree_viewer.cpp
+  ../../../dsr/gui/viewers/_abstract_graphic_view.cpp
 )
+
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
-  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
+  ../../../dsr/api/dsr_api.h
+  ../../../dsr/gui/dsr_gui.h
+  ../../../graph-related-classes/CRDT.h
+  ../../../graph-related-classes/CRDT_graphviewer.h
+  ../../../graph-related-classes/CRDT_graph.h
+  ../../../graph-related-classes/CRDT_graphnode.h
+  ../../../graph-related-classes/CRDT_graphedge.h
 )
 INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
 set(CMAKE_CXX_STANDARD 17)

@@ -27,8 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 #include "doublebuffer/DoubleBuffer.h"
 
 class SpecificWorker : public GenericWorker
@@ -69,7 +69,7 @@ private:
 	int osg_3d_view;
 
 	// graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 

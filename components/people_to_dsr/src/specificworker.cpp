@@ -49,8 +49,8 @@ void SpecificWorker::initialize(int period)
     innermodel = G->get_inner_api();
 
     // DSRViewer creation
-    using opts = DSR::DSRViewer::view;
-	graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, opts::graph|opts::osg,  opts::graph);
+    using opts = DSR::GraphViewer::view;
+	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg,  opts::graph);
     
     this->Period = 100;
     timer.start(Period);
@@ -193,12 +193,12 @@ std::optional<Node> SpecificWorker::create_node(const std::string &type, const s
     node.type(type);
     node.agent_id(agent_id);
     node.name(name);
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
-    G->add_or_modify_attrib_local(node, "pos_y", 100.0);
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0f);
+    G->add_or_modify_attrib_local(node, "pos_y", 100.0f);
     G->add_or_modify_attrib_local(node, "name", name);
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
     G->add_or_modify_attrib_local(node, "parent", parent_id);
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level(  G->get_node(parent_id).value()    ).value() + 1);
     //G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
     try
     {
@@ -228,8 +228,8 @@ std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, co
     Node node;
     node.type("mesh");
     node.name(name + "_mesh");
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
-    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
+    G->add_or_modify_attrib_local(node, "pos_x", 100.0f);
+    G->add_or_modify_attrib_local(node, "pos_y", 130.0f);
     G->add_or_modify_attrib_local(node, "name", name + "_mesh");
     G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
     G->add_or_modify_attrib_local(node, "path", path);
@@ -237,7 +237,7 @@ std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, co
     G->add_or_modify_attrib_local(node, "scaley", 900);
     G->add_or_modify_attrib_local(node, "scalez", 900);
     G->add_or_modify_attrib_local(node, "parent", parent_id);
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    G->add_or_modify_attrib_local(node, "level", G->get_node_level( G->get_node(parent_id).value()).value() + 1);
     try
     {     
         std::optional<int> new_id = G->insert_node(node);
