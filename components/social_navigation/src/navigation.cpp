@@ -261,74 +261,78 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         auto p3 = QVector2D(group[2]);
         auto p = group[1];
 
+        ////////////////////////////////
+        /// INTERNAL curvature forces on p2. Stretches the path locally
+        /// Approximates the angle between adjacent segments: p2->p1, p2->p3
+        ////////////////////////////////
+        QVector2D iforce = ((p1 - p2) / (p1 - p2).length() + (p3 - p2) / (p3 - p2).length());
+
+        ////////////////////////////////////////////
+        /// External forces caused by obstacles repulsion field
+        ///////////////////////////////////////////7
         float min_dist;
-        QVector2D force;
+        QVector2D eforce;
 
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
-        if ((isVisible(p) == false))// if not visible (computed before) continue
+        // compute forces from map on not visible points
+        if ((isVisible(p) == false))
         {
             auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
-            if ((!obstacleFound) or (nonVisiblePointsComputed > 10))
+            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
             {
-                qDebug ()  << __FUNCTION__ << "No obstacles found ";
+                qDebug ()  << __FUNCTION__ << "No obstacles found in map for not visible point or it is more than 10 not visible points away";
                 nonVisiblePointsComputed++;
                 continue;
             }
             else
             {
                 qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
-                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);
-                if (min_dist <= 0)
+                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
+                if (min_dist <= 0)    // hard limit to close obstables
                     min_dist = 0.01;
-                force = vectorForce;
+                eforce = vectorForce;
             }
             nonVisiblePointsComputed++;
         }
+        // compute forces from laser on visible points
         else
         {
+            // vector holding a) distance from laser tip to p, vector from laser tip to p, laser tip plane coordinates
             std::vector<std::tuple<float, QVector2D, QPointF>> distances;
-            // Apply to all laser points a functor to compute the distances to point p2
-            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, this](QPointF &t) { //lasercart is updated in UpdateLaserPolygon
-                // compute distante from laser tip to point minus RLENGTH/2 or 0 and keep it positive
-                float dist = (QVector2D(p) - QVector2D(t)).length() - (ROBOT_LENGTH / 2);
-                if (dist <= 0)
-                    dist = 0.01;
-                return std::make_tuple(dist,  QVector2D(p)-QVector2D(t), t);
-            });
-
-            // compute min distance
+            // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
+            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, this](QPointF &laser)
+                    {   // compute distance from laser measure to point minus RLENGTH/2 or 0 and keep it positive
+                        float dist = (QVector2D(p) - QVector2D(laser)).length() - (ROBOT_LENGTH / 2);
+                        if (dist <= 0)
+                            dist = 0.01;
+                        return std::make_tuple(dist,  QVector2D(p)-QVector2D(laser), laser);
+                    });
+            // compute min of all laser to p distances
             auto min = std::min_element(std::begin(distances), std::end(distances), [](auto &a, auto &b)
-            {
-                return std::get<float>(a) < std::get<float>(b);
-            });
+                    {
+                        return std::get<float>(a) < std::get<float>(b);
+                    });
             min_dist = std::get<float>(*min);
-            //QPointF min_angle = std::get<QPointF>(*min);
-            //          qDebug()<< "Point "<< p << " --  min dist " << min_dist << "--- min angle "<< min_angle;
-            force = std::get<QVector2D>(*min);
+            eforce = std::get<QVector2D>(*min);
         }
-
-
-        // INTERNAL curvature forces on p2
-        QVector2D iforce = ((p1 - p2) / (p1 - p2).length() + (p3 - p2) / (p3 - p2).length());
-
-        // EXTERNAL forces. We need the minimun distance from each point to the obstacle(s). we compute the shortest laser ray to each point in the path
-        // compute minimun distances to each point within the laser field
+        /// Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
+        /// a logarithmic law can be used to compute de force from the distance.
+        /// To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
 
         // rescale min_dist so 1 is ROBOT_LENGTH
         float magnitude = (1.f / ROBOT_LENGTH) * min_dist;
         // compute inverse square law
         magnitude = 10.f / (magnitude * magnitude);
         //if(magnitude > 25) magnitude = 25.;
-        QVector2D f_force = magnitude * force.normalized();
-        //qDebug() << magnitude << f_force;
+        QVector2D f_force = magnitude * eforce.normalized();
 
         // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
         QVector2D base_line = (p1 - p3).normalized();
         const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
         f_force = f_force - itangential;
 
-        //        qDebug()<< "[NAVIGATION]"<< __FUNCTION__<< " --- i force " << iforce << "f force "<< f_force;
-        // update node pos
+        // update node pos. KI and KE are approximating inverse Jacobians modules.
+        // Directions are taken as the vector going from p to closest obstacle.
         auto total = (KI * iforce) + (KE * f_force);
         //
         // limiters CHECK!!!!!!!!!!!!!!!!!!!!!!
@@ -337,22 +341,20 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         if (total.length() < -30)
             total = -8 * total.normalized();
 
-        //        qDebug()<< "[NAVIGATION]"<< __FUNCTION__<< "---total forces = " << total;
-        // move node only if they do not exit the laser polygon and do not get inside objects or underneath the robot.
+        /// Compute additional restrictions to be forced in the minimization process
+            // A) Check boundaries for final displacements
+                // A.1) Move node only if they do not exit the laser polygon
+                // A.2) Does not move inside objects
+                // A.3) Does not move underneath the robot.
         QPointF temp_p = p + total.toPointF();
-
         qDebug()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
-
-        if (isPointVisitable(temp_p)
-            and (!currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
+        if (isPointVisitable(temp_p) and (!currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             )
         {
-            auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s) {
-                return (s.x() == p.x() and s.y() == p.y() );
-            } );
-            if (it != pathPoints.end())
+           if( auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s) { return (s.x() == p.x() and s.y() == p.y() );});
+               it != pathPoints.end())
             {
                 int index = std::distance(pathPoints.begin(), it);
                 pathPoints[index] = temp_p;
@@ -362,16 +364,12 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
     }
 
     if(isVisible(currentRobotNose))
-    {
         pathPoints[0] = currentRobotNose;
-        //drawRoad();
-    }
     else
     {
         current_target.blocked.store(true);
-        qWarning()<< "Robot Nose not visible -- NEEDS REPLANNING ";
+        qWarning() << __FUNCTION__  << "Robot Nose not visible -- NEEDS REPLANNING ";
     }
-    return;
 }
 
 template<typename TMap, typename TController>

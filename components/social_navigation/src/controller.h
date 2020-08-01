@@ -37,9 +37,6 @@ class Controller
         const float FINAL_DISTANCE_TO_TARGET = 500; //mm
         float KB = 2.0;
 
-        float advVelx = 0, advVelz = 0, rotVel = 0;
-        QVector2D bumperVel;
-
         // compute max de gauss(value) where gauss(x)=y  y min
         float exponentialFunction(float value, float xValue, float yValue, float min);
         float rewrapAngleRestricted(const float angle);
