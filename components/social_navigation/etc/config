@@ -16,7 +16,7 @@ graph_view = true
 
 NavigationAgent.MaxZSpeed = 450
 NavigationAgent.MaxXSpeed = 350
-NavigationAgent.MaxRotationSpeed = 0.75
+NavigationAgent.MaxRotationSpeed = 2
 
 NavigationAgent.RobotName = omnirobot
 NavigationAgent.RobotXWidth = 540
