@@ -15,10 +15,15 @@
 
 class Controller
 {
+    //laser
+    using dists = std::vector<float>;
+    using angles = std::vector<float>;
+    using LaserData = std::tuple<angles, dists>;
+
     public:
         using retUpdate = std::tuple <bool, bool, bool, float, float, float>;
         void initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_);
-        retUpdate update(std::vector<QPointF> points, const RoboCompLaser::TLaserData &laserData, const QPointF &target, const QVec &robotPose, const QPointF &robotNose);
+        retUpdate update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const QVec &robotPose, const QPointF &robotNose);
 
     private:
         std::shared_ptr<DSR::InnerAPI> innerModel;
@@ -40,6 +45,7 @@ class Controller
         // compute max de gauss(value) where gauss(x)=y  y min
         float exponentialFunction(float value, float xValue, float yValue, float min);
         float rewrapAngleRestricted(const float angle);
+
 };
 
 #endif //PROJECT_CONTROLLER_H

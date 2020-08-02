@@ -46,23 +46,12 @@ class Navigation
                          std::string file_name = std::string());
         void stopRobot();
         bool isCurrentTargetActive();
-        void update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning);
+        void update();
         std::string checkPathState();
         void newRandomTarget();
         void newTarget(QPointF newT);
-        void updateFreeSpaceMap(bool drawGrid = true);
-        RoboCompLaser::TLaserData computeLaser(RoboCompLaser::TLaserData laserData);
-        bool findNewPath();
-        bool isVisible(QPointF p);
-        void computeForces(const std::vector<QPointF> &path, const RoboCompLaser::TLaserData &lData);
-        bool isPointVisitable(QPointF point);
-        void addPoints();
-        void cleanPoints();
-        QPolygonF getRobotPolygon();
-        void updateLaserPolygon(const RoboCompLaser::TLaserData &lData);
-        QPointF getRobotNose();
-        void drawRoad();
-    // Target
+
+        // Target
         struct Target : public std::mutex
         {
             QPointF p;
@@ -78,7 +67,6 @@ class Navigation
         float KE;
         float KI;
 
-
     private:
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<Collisions> collisions;
@@ -86,6 +74,13 @@ class Navigation
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> configparams;
 
         //typedef struct { float dist; float angle;} LocalPointPol;
+
+        //laser
+        using dists = std::vector<float>;
+        using angles = std::vector<float>;
+        using LaserData = std::tuple<angles, dists>;
+        LaserData read_laser_from_G();
+        std::tuple<QPolygonF, std::vector<QPointF>> updateLaserPolygon(const LaserData &lData);
 
         TMap grid;
         TController controller;
@@ -103,15 +98,26 @@ class Navigation
         //Draw
         QTime reloj = QTime::currentTime();
         QPointF lastPointInPath, currentRobotNose;
-        QPolygonF currentRobotPolygon, laser_poly;
-        std::vector<QPointF> laser_cart;
+        QPolygonF currentRobotPolygon;
+        //laser_poly;
+        //std::vector<QPointF> laser_cart;
         QVec currentRobotPose;
         float robotXWidth, robotZLong; //robot dimensions read from config
         QVec robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         bool gridChanged = false;
         std::map<float, vector<QPolygonF>> mapCostObjects;
         std::vector<QGraphicsLineItem *> scene_road_points;
+        void drawRoad(const QPolygonF &laser_poly);
 
+        void updateFreeSpaceMap(bool drawGrid = true);
+        bool findNewPath();
+        bool isVisible(QPointF p, const QPolygonF &laser_poly);
+        void computeForces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart, const QPolygonF &laser_poly);
+        bool isPointVisitable(QPointF point);
+        void addPoints(const QPolygonF &laser_poly);
+        void cleanPoints(const QPolygonF &laser_poly);
+        QPolygonF getRobotPolygon();
+        QPointF getRobotNose();
 };
 
 #endif //PROJECT_NAVIGATION_H

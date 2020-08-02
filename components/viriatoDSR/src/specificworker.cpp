@@ -195,12 +195,12 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
 //            {
                 omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
 
-                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
-                          << " Rot: " << ref_rot_speed.value()
-                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
-                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
-                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
-                          << std::endl;
+//                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
+//                          << " Rot: " << ref_rot_speed.value()
+//                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
+//                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
+//                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
+//                          << std::endl;
  //           }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)

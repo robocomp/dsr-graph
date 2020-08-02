@@ -34,7 +34,7 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 };
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning)
+void Navigation<TMap, TController>::update()
 {
     //qInfo() << "Navigation - " << __FUNCTION__;
     //static QTime reloj = QTime::currentTime();
@@ -43,10 +43,10 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
         return;
 
     currentRobotPose = innerModel->transformS6D("world", robot_name).value();
-    auto rn_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
-    rn_3d.print("NOSE: ");
-    currentRobotNose = QPointF(rn_3d.x(), rn_3d.z());
-    updateLaserPolygon(laserData_);
+    auto nose_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
+    currentRobotNose = QPointF(nose_3d.x(), nose_3d.z());
+    LaserData laser_data = read_laser_from_G();
+    const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);
     currentRobotPolygon = getRobotPolygon();
 
     auto state = checkPathState();
@@ -56,11 +56,11 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
         return;
     }
 
-    computeForces(pathPoints, laserData_);
-    cleanPoints();
-    addPoints();
-    drawRoad();
-    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose,  currentRobotNose );
+    computeForces(pathPoints, laser_cart, laser_poly);
+    cleanPoints(laser_poly);
+    addPoints(laser_poly);
+    drawRoad(laser_poly);
+    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laser_data, current_target.p, currentRobotPose,  currentRobotNose );
 
     if (blocked)
     {
@@ -82,11 +82,13 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
     float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
     static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
     static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
+    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
     if (!blocked and active)
         if(moveRobot)
         {
             zVel = (adv_conv * QVec::vec2(zVel,1.0))[0];
             rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
+            xVel = (side_conv * QVec::vec2(xVel, 1.0))[0];
             qInfo()<< __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel;
             auto robot_node = G->get_node(robot_name);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
@@ -95,6 +97,29 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
             G->update_node(robot_node.value());
         }
 };
+
+template<typename TMap, typename TController>
+typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>::read_laser_from_G()
+{
+    qDebug() << __FUNCTION__ << "reading from DSR laser node";
+    LaserData laserData;
+    auto laser_node = G->get_node("laser");
+    if (laser_node.has_value())
+    {
+        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
+        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
+        if (lAngles.has_value() and lDists.has_value())
+        {
+            LaserData laserData = std::make_tuple(lAngles.value(), lDists.value());
+            return laserData;
+        }
+        else
+            qFatal("Terminate due to attributes angles or dists not found");
+    }
+    else
+        qFatal("Terminate due to laser node not found ");
+    return LaserData();
+}
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::stopRobot()
@@ -191,13 +216,6 @@ void Navigation<TMap, TController>::updateFreeSpaceMap(bool drawGrid)
 {
 }
 
-////////// CONTROLLER RELATED METHODS //////////
-template<typename TMap, typename TController>
-RoboCompLaser::TLaserData Navigation<TMap, TController>::computeLaser(RoboCompLaser::TLaserData laserData)
-{
-    return RoboCompLaser::TLaserData();
-}
-
 /// wrapper for grif.computePath()
 template<typename TMap, typename TController>
 bool Navigation<TMap, TController>::findNewPath()
@@ -232,23 +250,22 @@ bool Navigation<TMap, TController>::findNewPath()
 }
 
 template<typename TMap, typename TController>
-bool Navigation<TMap, TController>::isVisible(QPointF p)
+bool Navigation<TMap, TController>::isVisible(QPointF p, const QPolygonF &laser_poly)
 {
     std::optional<QVec> pointInLaser = innerModel->transform("laser", QVec::vec3(p.x(),0, p.y()),"world");
     return laser_poly.containsPoint(QPointF(pointInLaser.value().x(), pointInLaser.value().z()), Qt::OddEvenFill);
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &path, const RoboCompLaser::TLaserData &lData)
+void Navigation<TMap, TController>::computeForces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart, const QPolygonF &laser_poly)
 {
     if (path.size() < 3)
         return;
 
-    int pointIndex = 0;
     int nonVisiblePointsComputed = 0;
 
     // Go through points using a sliding windows of 3
-    for (auto &group : iter::sliding_window(path, 3))
+    for (auto &&[i, group] : iter::enumerate(iter::sliding_window(path, 3)))
     {
         if (group.size() < 3)
             break; // break if too short
@@ -259,7 +276,8 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         auto p1 = QVector2D(group[0]);
         auto p2 = QVector2D(group[1]);
         auto p3 = QVector2D(group[2]);
-        auto p = group[1];
+        QPointF p = group[1];
+        int index_of_p_in_path = i+1;  //index of p in path
 
         ////////////////////////////////
         /// INTERNAL curvature forces on p2. Stretches the path locally
@@ -275,7 +293,7 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
 
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
         // compute forces from map on not visible points
-        if ((isVisible(p) == false))
+        if ((isVisible(p, laser_poly ) == false))
         {
             auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
             if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
@@ -300,9 +318,9 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
             // vector holding a) distance from laser tip to p, vector from laser tip to p, laser tip plane coordinates
             std::vector<std::tuple<float, QVector2D, QPointF>> distances;
             // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
-            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, this](QPointF &laser)
+            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, RL=ROBOT_LENGTH](const QPointF &laser)
                     {   // compute distance from laser measure to point minus RLENGTH/2 or 0 and keep it positive
-                        float dist = (QVector2D(p) - QVector2D(laser)).length() - (ROBOT_LENGTH / 2);
+                        float dist = (QVector2D(p) - QVector2D(laser)).length() - (RL / 2);
                         if (dist <= 0)
                             dist = 0.01;
                         return std::make_tuple(dist,  QVector2D(p)-QVector2D(laser), laser);
@@ -331,7 +349,7 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
         f_force = f_force - itangential;
 
-        // update node pos. KI and KE are approximating inverse Jacobians modules.
+        // update node pos. KI and KE are approximating inverse Jacobians modules. This should be CHANGED
         // Directions are taken as the vector going from p to closest obstacle.
         auto total = (KI * iforce) + (KE * f_force);
         //
@@ -343,27 +361,26 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
 
         /// Compute additional restrictions to be forced in the minimization process
             // A) Check boundaries for final displacements
-                // A.1) Move node only if they do not exit the laser polygon
-                // A.2) Does not move inside objects
-                // A.3) Does not move underneath the robot.
+                // A.1) Move nodes only if it does not move inside objects
+                // A.2) Does not move underneath the robot.
+                // A.3) Does not exit the laser polygon
         QPointF temp_p = p + total.toPointF();
         qDebug()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
-        if (isPointVisitable(temp_p) and (!currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
+        if (isPointVisitable(temp_p) and (not currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             )
         {
-           if( auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s) { return (s.x() == p.x() and s.y() == p.y() );});
-               it != pathPoints.end())
-            {
-                int index = std::distance(pathPoints.begin(), it);
-                pathPoints[index] = temp_p;
-            }
+            path[index_of_p_in_path] = temp_p;
         }
-        pointIndex++;
+//            if( auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s){ return (s.x() == p.x() and s.y() == p.y() );}); it != pathPoints.end())
+//            {
+//                int index = std::distance(pathPoints.begin(), it);
+//                pathPoints[index] = temp_p;
+//            }
     }
-
-    if(isVisible(currentRobotNose))
+    // Check if robot nose is inside the laser polygon
+    if(isVisible(currentRobotNose, laser_poly))
         pathPoints[0] = currentRobotNose;
     else
     {
@@ -386,7 +403,7 @@ bool Navigation<TMap, TController>::isPointVisitable(QPointF point)
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::addPoints()
+void Navigation<TMap, TController>::addPoints(const QPolygonF &laser_poly)
 {
     // qDebug()<<"Navigation - "<< __FUNCTION__;
     std::vector<std::tuple<int, QPointF>> points_to_insert;
@@ -395,7 +412,7 @@ void Navigation<TMap, TController>::addPoints()
         auto &p1 = group[0];
         auto &p2 = group[1];
 
-        if (isVisible(p1) == false or isVisible(p2) == false) //not visible
+        if (isVisible(p1, laser_poly) == false or isVisible(p2, laser_poly) == false) //not visible
             continue;
 
         float dist = QVector2D(p1 - p2).length();
@@ -415,7 +432,7 @@ void Navigation<TMap, TController>::addPoints()
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::cleanPoints()
+void Navigation<TMap, TController>::cleanPoints(const QPolygonF &laser_poly)
 {
     //        qDebug()<<"Navigation - "<< __FUNCTION__;
 
@@ -425,7 +442,7 @@ void Navigation<TMap, TController>::cleanPoints()
         const auto &p1 = group[0];
         const auto &p2 = group[1];
 
-        if ((!isVisible(p1)) or (!isVisible(p2))) //not visible
+        if ((!isVisible(p1, laser_poly)) or (!isVisible(p2, laser_poly))) //not visible
             continue;
 
         if (p2 == lastPointInPath)
@@ -470,18 +487,24 @@ QPolygonF Navigation<TMap, TController>::getRobotPolygon()
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
+std::tuple<QPolygonF, std::vector<QPointF>> Navigation<TMap, TController>::updateLaserPolygon(const std::tuple<std::vector<float>, std::vector<float>> &lData)
 {
-    laser_poly.clear(); //stores the points of the laser in lasers refrence system
-    laser_cart.clear();
-    for (const auto &l : lData)
+    QPolygonF laser_poly;
+    std::vector<QPointF> laser_cart;
+
+    //laser_poly.clear(); //stores the points of the laser in laser reference system
+    //laser_cart.clear();
+
+    const auto &[angles, dists] = lData;
+    for (const auto &[angle, dist] : iter::zip(angles, dists))
     {
         //convert laser polar coordinates to cartesian
-        float x = l.dist*sin(l.angle); float z = l.dist*cos(l.angle);
+        float x = dist*sin(angle); float z = dist*cos(angle);
         QVec laserWorld = innerModel->transform("world", QVec::vec3(x, 0, z), "laser").value(); //OJO CON LOS NOMBRES
         laser_poly << QPointF(x, z);
         laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.z()));
     }
+    return std::make_tuple(laser_poly, laser_cart);
 }
 
 template<typename TMap, typename TController>
@@ -497,7 +520,7 @@ QPointF Navigation<TMap, TController>::getRobotNose()
 
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::drawRoad()
+void Navigation<TMap, TController>::drawRoad(const QPolygonF &laser_poly)
 {
     qDebug() << "Navigation - "<< __FUNCTION__;
     ///////////////////////
@@ -531,7 +554,7 @@ void Navigation<TMap, TController>::drawRoad()
         if(i == 1 or i == pathPoints.size()-1)
             color = "#FF0000"; //Red
         else
-            if (isVisible(w))
+            if (isVisible(w, laser_poly))
                 color = "#00FFF0"; //Blue
             else
                 color = "#A200FF"; //Purple
