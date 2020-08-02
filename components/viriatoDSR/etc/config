@@ -5,6 +5,7 @@ CameraRGBDSimplePubTopic.Endpoints=tcp -p 11111
 LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
 
+#Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004
 
 agent_id = 10
@@ -12,7 +13,7 @@ agent_name = viriato
 #dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
 tree_view = false
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 
 # This property is used by the clients to connect to IceStorm.

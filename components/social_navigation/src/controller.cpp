@@ -4,6 +4,7 @@
 
 #include "controller.h"
 #include <algorithm>
+#include <cppitertools/zip.hpp>
 
 void Controller::initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_)
 {
@@ -27,14 +28,14 @@ void Controller::initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, s
     }
 }
 
-Controller::retUpdate Controller::update(std::vector<QPointF> points, const RoboCompLaser::TLaserData &laserData, const QPointF &target, const QVec &robotPose, const QPointF &robotNose)
+Controller::retUpdate Controller::update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const QVec &robotPose, const QPointF &robotNose)
 {
     qDebug() << "Controller - "<< __FUNCTION__;
     if(points.size() < 2)
         return retUpdate{false, false, false, 0, 0, 0};
 
     float advVelx = 0.f, advVelz = 0.f, rotVel = 0.f;
-    auto firstPointInPath = points.front();
+    //auto firstPointInPath = points.front();
     bool active = true;
     bool blocked = false;
     QPointF robot = QPointF(robotPose.x(), robotPose.z());
@@ -75,12 +76,13 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Robo
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};
-    for (const auto &l : laserData)
+    const auto &[angles, dists] = laser_data;
+    for (const auto &[angle, dist] : iter::zip(angles, dists))
     {
-        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(l.angle)) + fabs(ROBOT_LENGTH / 2.f * cos(l.angle))) + 200;
-        float diff = limit - l.dist;
+        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
+        float diff = limit - dist;
         if (diff >= 0)
-            total = total + QVector2D(-diff * sin(l.angle), -diff * cos(l.angle));
+            total = total + QVector2D(-diff * sin(angle), -diff * cos(angle));
     }
     QVector2D bumperVel = total * KB;  // Parameter set in slidebar
     if (abs(bumperVel.x()) < MAX_SIDE_SPEED)
