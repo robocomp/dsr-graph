@@ -32,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
+	// G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -48,13 +48,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 //	}
 //	catch(const std::exception &e) { qFatal("Error reading config params"); }
 
-
-
-
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
-
 	tree_view = params["tree_view"].value == "true";
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
@@ -68,9 +63,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 	this->Period = period;
 	if(this->startup_check_flag)
-	{
 		this->startup_check();
-	}
 	else
 	{
 		timer.start(Period);
@@ -79,28 +72,19 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
-		if(tree_view)
-		{
-		    current_opts = current_opts | opts::tree;
-		}
-		if(graph_view)
-		{
-		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
-		}
-		if(qscene_2d_view)
-		{
-		    current_opts = current_opts | opts::scene;
-		}
-		if(osg_3d_view)
-		{
-		    current_opts = current_opts | opts::osg;
-		}
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + agent_id));
+        if(tree_view)
+            current_opts = current_opts | opts::tree;
+        if(graph_view)
+            current_opts = current_opts | opts::graph;
+        if(qscene_2d_view)
+            current_opts = current_opts | opts::scene;
+        if(osg_3d_view)
+            current_opts = current_opts | opts::osg;
+        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+        setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
 		this->Period = period;
 		timer.start(Period);
@@ -110,21 +94,56 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+    // check if there is an active command
+    RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
+    try
+    {
+        RoboCompCameraRGBDSimple::TDepth depth;
+        RoboCompObjectPoseEstimationRGBD::PoseType pose = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
+    }
+    catch (const Ice::Exception &e)
+    {
+        std::cout << e << " No RoboCompPoseEstimation component found" << std::endl;
+    }
+    // Move arm
+        // compute arm pose from object pose
+        // G->ass
+    // Check if target reached
 }
+
+RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
+{
+    auto cam = G->get_node("Viriato_head_camera_front_sensor");
+    if (cam.has_value())
+    {
+        RoboCompCameraRGBDSimple::TImage rgb;
+        const auto rgb_data = G->get_attrib_by_name<vector<uint8_t>>(cam.value(), "rgb");
+        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
+        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
+        const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "depth");
+        rgb.cameraID = 0;
+        rgb.width = width.value();
+        rgb.height = height.value();
+        rgb.focalx = 450;
+        rgb.focaly = 450;
+        rgb.alivetime = 0;
+        rgb.image = rgb_data.value();
+
+        if (depth.value() == 3)
+        {
+            cv::Mat image_rgb(height.value(), width.value(), CV_8UC3);
+            memcpy(image_rgb.data, &rgb_data.value()[0],
+                   width.value() * height.value() * sizeof(std::uint8_t) * depth.value());
+            cv::imshow("Head", image_rgb);
+            cv::waitKey(1);
+        }
+        return rgb;
+    }
+    else
+        qFatal("Terminate in Compute. No node rgbd found");
+}
+
+////////////////////////////////////////////////////////////////////////
 
 int SpecificWorker::startup_check()
 {

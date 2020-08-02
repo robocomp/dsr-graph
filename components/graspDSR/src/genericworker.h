@@ -31,6 +31,7 @@
 #include <ui_mainUI.h>
 #include <CommonBehavior.h>
 
+#include <CameraRGBDSimple.h>
 #include <ObjectPoseEstimationRGBD.h>
 
 

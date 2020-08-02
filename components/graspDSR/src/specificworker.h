@@ -22,14 +22,14 @@
 	@author authorname
 */
 
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -45,8 +45,8 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+
 private:
-	std::shared_ptr<InnerModel> innerModel;
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 
@@ -59,11 +59,14 @@ private:
 	bool qscene_2d_view;
 	bool osg_3d_view;
 
-	// DSR graph viewer
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
-	QHBoxLayout mainLayout;
-	bool startup_check_flag;
+    // DSR graph viewer
+    std::unique_ptr<DSR::DSRViewer> graph_viewer;
+    QHBoxLayout mainLayout;
+    QWidget window;
+    bool startup_check_flag;
 
+	// grasping
+    RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
 };
 
 #endif
