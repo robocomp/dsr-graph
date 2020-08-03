@@ -212,6 +212,11 @@ void Navigation<TMap, TController>::newTarget(QPointF newT)
     this->current_target.lock();
         current_target.p = newT;
     this->current_target.unlock();
+    //insert target as robot node attribute
+    auto robot_node = G->get_node(robot_name);
+    G->add_or_modify_attrib_local(robot_node.value(), "target_z_pos", (float)newT.x());
+    G->add_or_modify_attrib_local(robot_node.value(), "target_x_pos", (float)newT.y());
+    G->update_node(robot_node.value());
 }
 
 
