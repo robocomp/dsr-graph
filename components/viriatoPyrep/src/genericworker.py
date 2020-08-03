@@ -43,16 +43,20 @@ import RoboCompLaser
 Ice.loadSlice("-I ./src/ --all ./src/LaserPub.ice")
 import RoboCompLaserPub 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobot.ice")
-import RoboCompOmniRobot 
+import RoboCompOmniRobot
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobotPub.ice")
-import RoboCompOmniRobotPub 
+import RoboCompOmniRobotPub
+Ice.loadSlice("-I ./src/ --all ./src/CoppeliaUtils.ice")
+import RoboCompCoppeliaUtils
 Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
-import RoboCompHumanToDSRPub 
+import RoboCompHumanToDSRPub
+
 
 import camerargbdsimpleI 
 import laserI 
 import omnirobotI 
-import joystickadapterI 
+import joystickadapterI
+import coppeliautilsI
 
 class GenericWorker():
 

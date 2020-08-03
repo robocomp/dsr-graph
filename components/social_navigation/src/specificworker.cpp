@@ -98,15 +98,31 @@ void SpecificWorker::initialize(int period)
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
-		this->Period = 160;
+		this->Period = 200;
 		timer.start(Period);
 	}
 }
 
 void SpecificWorker::compute()
 {
-	//bool needsReplaning = false;
-    navigation.update();
+    auto robot = G->get_node(robot_name);
+    if(robot.has_value())
+    {
+        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        if(x.has_value() and y.has_value())
+            if( not (navigation.current_target == QPointF(x.value(), y.value())))
+                navigation.newTarget(QPointF(x.value(), y.value()));
+    }
+    else
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+        return;
+    }
+
+    auto state = navigation.update();
+    navigation.print_state(state);
+
 }
 
 void  SpecificWorker::moveRobot()
@@ -146,10 +162,20 @@ void  SpecificWorker::checkRobotAutoMovState()
     }
 }
 
+///////////////////////////////////////////////////////
+
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
     std::cout << "New target:" << pos_x << " " << pos_y << " " << id << std::endl;
-    navigation.newTarget(QPointF(pos_x, pos_y));
+    auto robot = G->get_node(robot_name);
+    if(robot.has_value())
+    {
+        G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float)pos_x);
+        G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float)pos_y);
+        G->update_node(robot.value());
+    }
+    else
+        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
 }
 
 ///////////////////////////////////////////////////

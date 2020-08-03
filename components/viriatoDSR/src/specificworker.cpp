@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
         if (graph_view)
             main = opts::graph;
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+		setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
         timer.start(100);
     }
 }
@@ -78,16 +78,40 @@ void SpecificWorker::compute()
 {
     static RoboCompGenericBase::TBaseState my_bstate;
 
+    // read laser
     if (auto ldata = laser_buffer.get(); ldata.has_value())
         update_laser(ldata.value());
+    // read robot state
     if (auto bState = omnirobot_buffer.get(); bState.has_value())
     {
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
+    // read rgb data
+    if(auto rgb = rgb_buffer.get(); rgb.has_value())
+        update_rgb(rgb.value());
+
+    // check for new target values in robot node
+    static float current_base_target_x = 0;
+    static float current_base_target_y = 0;
+    if( auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        if( x.has_value() and y.has_value())
+            if(x.value() != current_base_target_x or y.value() != current_base_target_y)
+            {
+                RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->addOrModifyDummy("base_dummy", dummy_pose); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+                current_base_target_x = x.value();
+                current_base_target_y = y.value();
+            }
+    }
+    // check for changes in base speed references
     checkNewCommand(my_bstate);
-	if(auto rgb = rgb_buffer.get(); rgb.has_value())
-		update_rgb(rgb.value());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

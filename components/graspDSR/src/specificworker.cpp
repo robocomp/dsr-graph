@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -38,16 +39,6 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
 	tree_view = params["tree_view"].value == "true";
@@ -117,27 +108,34 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
     if (cam.has_value())
     {
         RoboCompCameraRGBDSimple::TImage rgb;
-        const auto rgb_data = G->get_attrib_by_name<vector<uint8_t>>(cam.value(), "rgb");
-        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
-        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
-        const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "depth");
-        rgb.cameraID = 0;
-        rgb.width = width.value();
-        rgb.height = height.value();
-        rgb.focalx = 450;
-        rgb.focaly = 450;
-        rgb.alivetime = 0;
-        rgb.image = rgb_data.value();
-
-        if (depth.value() == 3)
+        try
         {
-            cv::Mat image_rgb(height.value(), width.value(), CV_8UC3);
-            memcpy(image_rgb.data, &rgb_data.value()[0],
-                   width.value() * height.value() * sizeof(std::uint8_t) * depth.value());
-            cv::imshow("Head", image_rgb);
-            cv::waitKey(1);
+            const std::vector<uint8_t> rgb_data = G->get_rgb_image(cam.value()); // reference to image in cam
+            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
+            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
+            const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "depth");
+            rgb.cameraID = 0;
+            rgb.width = width.value();
+            rgb.height = height.value();
+            rgb.focalx = 450;
+            rgb.focaly = 450;
+            rgb.alivetime = 0;
+            rgb.image = rgb_data;
+
+            if (depth.value() == 3)
+            {
+                cv::Mat image_rgb(height.value(), width.value(), CV_8UC3, (uchar *) &rgb_data[0]);
+                //memcpy(image_rgb.data, &rgb_data[0], width.value() * height.value() * sizeof(std::uint8_t) * depth.value());
+                cv::imshow("Head", image_rgb);
+                cv::waitKey(1);
+            }
+            return rgb;
         }
-        return rgb;
+        catch (const std::exception &e)
+        {
+            std::cout << __FILE__ << __FUNCTION__ << __LINE__ << " " << e.what() << std::endl;
+            std::terminate();
+        }
     }
     else
         qFatal("Terminate in Compute. No node rgbd found");
