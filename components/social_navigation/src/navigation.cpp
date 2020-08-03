@@ -43,7 +43,7 @@ void Navigation<TMap, TController>::update()
         return;
 
     currentRobotPose = innerModel->transformS6D("world", robot_name).value();
-    auto nose_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
+    auto nose_3d = innerModel->transformS("world", QVec::vec3(0, 0, 250), robot_name).value();
     currentRobotNose = QPointF(nose_3d.x(), nose_3d.z());
     LaserData laser_data = read_laser_from_G();
     const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);

@@ -174,15 +174,12 @@ void SpecificWorker::forcesSliderChanged(int value)
     navigation.KE = (float) custom_widget.ke_slider -> sliderPosition();
 }
 
-
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
-
-
 
 /**************************************/
 // From the RoboCompSocialRules you can use this types:
