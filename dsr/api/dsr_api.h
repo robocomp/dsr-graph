@@ -195,50 +195,100 @@ namespace DSR {
         struct is_attr_name<T, std::void_t<decltype(T::attr_type), decltype(T::attr_name)>, typename std::enable_if<T::attr_type >::type > : std::true_type {};
 
 
+        template<typename T>
+        struct is_reference_wrapper : false_type {};
+
+        template<typename T>
+        struct is_reference_wrapper<reference_wrapper<T>> : true_type{};
 
         template<typename name, class Ta>
-        constexpr bool valid_type ()
+        static constexpr bool valid_type ()
         {
-            using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
-            return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>> >;
+            if constexpr(is_reference_wrapper<decltype(name::type)>::value) {
+                using ref_type = typename decltype(name::type)::type;
+                using Selected_Type = std::remove_reference_t<std::remove_cv_t<ref_type>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
+                return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+            } else {
+                using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
+                return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+            }
         }
 
 
         template <typename name, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>> >
         inline std::optional<decltype(name::type)> get_attrib_by_name(const Type &n)
         {
-            using name_type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>;
-            static_assert(is_attr_name<name>::value, "No es un tipo nativo");
-            std::cout << "tipo : " << name::attr_name <<  " "<<  typeid(name_type).name() << std::endl;
-            std::optional<CRDTAttribute> av = get_attrib_by_name_( n , name::attr_name);
-            if (!av.has_value()) return {};
-            if constexpr (std::is_same_v< name_type, float>)
-                return av->val().fl();
-            else if constexpr (std::is_same_v< name_type, std::string>) //TODO: Cambiar string vire por algo que identifique todos los strings
-                return av->val().str();
-            else if constexpr (std::is_same_v< name_type,  std::int32_t>)
-                return av->val().dec();
-            else if constexpr (std::is_same_v< name_type, std::uint32_t>)
-                return av->val().uint();
-            else if constexpr (std::is_same_v< name_type, bool>)
-                return av->val().bl();
-            else if constexpr (std::is_same_v< name_type, std::vector<float>>)
-                return av->val().float_vec();
-            else if constexpr (std::is_same_v< name_type, std::vector<byte>>)
-                return av->val().byte_vec();
-            else if constexpr (std::is_same_v< name_type, QVec>) {
-                const auto &val = av->val().float_vec();
-                if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
-                    and (val.size() == 3 or val.size() == 6))
-                    return QVec{val};
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }
-            else if constexpr (std::is_same_v<name_type, QMat>) {
-                if (av->val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
-                    const auto &val = av->val().float_vec();
-                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+            static_assert(is_attr_name<name>::value, "Invalid object type.");
+            using name_type = typename std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>;
+
+            //std::cout << "tipo : " << name::attr_name <<  " "<<  typeid(name_type).name() << std::endl;
+            //std::optional<CRDTAttribute> av = get_attrib_by_name_( n , name::attr_name);
+            auto &attrs = n.attrs();
+            auto value = attrs.find(name::attr_name.data());
+            if (value == attrs.end()) return {};
+
+
+
+            if constexpr(node_or_edge<Type>) {
+                const auto &av = value->second;
+                if constexpr (std::is_same_v< name_type, float>)
+                    return av.fl();
+                else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
+                    return av.str();
+                else if constexpr (std::is_same_v< name_type,  std::int32_t>)
+                    return av.dec();
+                else if constexpr (std::is_same_v< name_type, std::uint32_t>)
+                    return av.uint();
+                else if constexpr (std::is_same_v< name_type, bool>)
+                    return av.bl();
+                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
+                    return av.float_vec();
+                else if constexpr (std::is_same_v< std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
+                    return av.byte_vec();
+                else if constexpr (std::is_same_v< name_type, QVec>) {
+                    const auto &val = av.float_vec();
+                    if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
+                        and (val.size() == 3 or val.size() == 6))
+                        return QVec{val};
+                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
                 }
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                else if constexpr (std::is_same_v<name_type, QMat>) {
+                    if (av.selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
+                        const auto &val = av.float_vec();
+                        return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                    }
+                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                }
+            } else {
+                auto av = value->second.read().begin();
+                if constexpr (std::is_same_v< name_type, float>)
+                    return av->val().fl();
+                else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
+                    return av->val().str();
+                else if constexpr (std::is_same_v< name_type,  std::int32_t>)
+                    return av->val().dec();
+                else if constexpr (std::is_same_v< name_type, std::uint32_t>)
+                    return av->val().uint();
+                else if constexpr (std::is_same_v< name_type, bool>)
+                    return av->val().bl();
+                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
+                    return av->val().float_vec();
+                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
+                    return av->val().byte_vec();
+                else if constexpr (std::is_same_v< name_type, QVec>) {
+                    const auto &val = av->val().float_vec();
+                    if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
+                        and (val.size() == 3 or val.size() == 6))
+                        return QVec{val};
+                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                }
+                else if constexpr (std::is_same_v<name_type, QMat>) {
+                    if (av->val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
+                        const auto &val = av->val().float_vec();
+                        return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                    }
+                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+                }
             }
             //else {
             //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
@@ -303,7 +353,7 @@ namespace DSR {
             if constexpr(result) {
                 if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
                     Attribute at(att_value, get_unix_timestamp(), agent_id);
-                    elem.attrs().insert_or_assign(name::attr_name, at);
+                    elem.attrs().insert_or_assign(name::attr_name.data(), at);
                 } else {
                     CRDTAttribute at;
                     CRDTValue value;
@@ -333,11 +383,11 @@ namespace DSR {
 
                     at.val(std::move(value));
                     at.timestamp(get_unix_timestamp());
-                    if (elem.attrs().find(name::attr_name) == elem.attrs().end()) {
+                    if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) {
                         mvreg<CRDTAttribute, uint32_t> mv;
                         elem.attrs().insert(make_pair(name::attr_name, mv));
                     }
-                    elem.attrs()[name::attr_name].write(at);
+                    elem.attrs()[name::attr_name.data()].write(at);
                 }
             }  else {
                 static_assert(result, "Error, tipo incorrecto");
@@ -389,7 +439,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool add_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) != elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) != elem.attrs().end()) return false;
             add_or_modify_attrib_local<name>(elem, att_value);
             return true;
         };
@@ -397,7 +447,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool add_attrib_local(Type &elem, Attribute &attr) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) != elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) != elem.attrs().end()) return false;
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[name::attr_name] = attr;
             return true;
@@ -407,7 +457,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool modify_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             add_or_modify_attrib_local<name>(elem, att_value);
             return true;
@@ -416,7 +466,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool modify_attrib_local(Type &elem,  CRDTAttribute &attr) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
             //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[name::attr_name] = attr;
@@ -427,7 +477,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool remove_attrib_local(Type &elem) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
             elem.attrs().erase(name::attr_name);
             return true;
         }
@@ -539,7 +589,7 @@ namespace DSR {
         template<typename name, typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
         bool remove_attrib_by_name(Type &elem) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name) == elem.attrs().end()) return false;
+            if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
             elem.attrs().erase(name::attr_name);
 
             // insert in node
@@ -676,10 +726,11 @@ namespace DSR {
             return static_cast<uint64_t>(secs);
         }
 
+        /*
         template<typename T, typename = std::enable_if_t<any_node_or_edge<T>>>
-        std::optional<CRDTAttribute> get_attrib_by_name_(const T &n, const std::string &key) {
+        std::optional<CRDTAttribute> get_attrib_by_name_(const T &n, const std::string_view &key) {
             auto attrs = n.attrs();
-            auto value = attrs.find(key);
+            auto value = attrs.find(key.data());
             if (value != attrs.end()) {
                 if constexpr(std::is_same_v<T, Node> || std::is_same_v<T, Edge>)
                     return user_attribute_to_crdt(value->second);
@@ -695,7 +746,7 @@ namespace DSR {
             }
             return {};
         }
-
+        */
         //////////////////////////////////////////////////////////////////////////
         // CRDT join operations
         ///////////////////////////////////////////////////////////////////////////

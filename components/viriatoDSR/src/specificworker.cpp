@@ -98,14 +98,14 @@ void SpecificWorker::update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb)
 	auto node = G->get_node("Viriato_head_camera_front_sensor");
 	if (node.has_value())
 	{
-		G->add_or_modify_attrib_local(node.value(), "rgb", rgb.image);
-		G->add_or_modify_attrib_local(node.value(), "width", rgb.width);
-		G->add_or_modify_attrib_local(node.value(), "height", rgb.height);
-		G->add_or_modify_attrib_local(node.value(), "depth", rgb.depth);
-		G->add_or_modify_attrib_local(node.value(), "cameraID", rgb.cameraID);
-		G->add_or_modify_attrib_local(node.value(), "focalx", rgb.focalx);
-		G->add_or_modify_attrib_local(node.value(), "focaly", rgb.focaly);
-		G->add_or_modify_attrib_local(node.value(), "alivetime", rgb.alivetime);		
+		G->add_or_modify_attrib_local<rgb_att>(node.value(),  rgb.image);
+		G->add_or_modify_attrib_local<width_att>(node.value(),  rgb.width);
+		G->add_or_modify_attrib_local<height_att>(node.value(),  rgb.height);
+		G->add_or_modify_attrib_local<depth_att>(node.value(),  rgb.depth);
+		G->add_or_modify_attrib_local<cameraID_att>(node.value(),  rgb.cameraID);
+		G->add_or_modify_attrib_local<focalx_att>(node.value(),  rgb.focalx);
+		G->add_or_modify_attrib_local<focaly_att>(node.value(), rgb.focaly);
+		G->add_or_modify_attrib_local<alivetime_att>(node.value(),  rgb.alivetime);
 		G->update_node(node.value());
 	}
 }
@@ -122,8 +122,8 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 	auto node = G->get_node("laser");
 	if (node.has_value())
 	{
-		G->add_or_modify_attrib_local(node.value(), "dists", dists);
-		G->add_or_modify_attrib_local(node.value(), "angles", angles);
+		G->add_or_modify_attrib_local<dists_att>(node.value(),  dists);
+		G->add_or_modify_attrib_local<angles_att>(node.value(),  angles);
 		G->update_node(node.value());
 	}
 }
@@ -147,10 +147,10 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
 		auto edge = G->get_edge_RT(parent.value(), robot->id());
-		G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
-        G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
-        G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
-        G->modify_attrib_local(edge, "angular_speed", std::vector<float>{0, bState.rotV, 0});
+		G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., bState.alpha, 0.});
+        G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x, 0., bState.z});
+        G->modify_attrib_local<linear_speed_att>(edge,  std::vector<float>{bState.advVx, 0 , bState.advVz});
+        G->modify_attrib_local<angular_speed_att>(edge,  std::vector<float>{0, bState.rotV, 0});
         G->insert_or_assign_edge(edge);
         last_state = bState;
 	}
@@ -166,9 +166,9 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
         std::cout << __FUNCTION__ << " No node " <<  "this->robot_name" << std::endl;
         return;
     }
-    auto ref_adv_speed = G->get_attrib_by_name<float>(robot.value(), "ref_adv_speed");
-    auto ref_rot_speed = G->get_attrib_by_name<float>(robot.value(), "ref_rot_speed");
-    auto ref_side_speed = G->get_attrib_by_name<float>(robot.value(), "ref_side_speed");
+    auto ref_adv_speed = G->get_attrib_by_name<ref_adv_speed_att>(robot.value());
+    auto ref_rot_speed = G->get_attrib_by_name<ref_rot_speed_att>(robot.value());
+    auto ref_side_speed = G->get_attrib_by_name<ref_side_speed_att>(robot.value());
     if(not ref_adv_speed.has_value() or not ref_rot_speed.has_value() or not ref_side_speed.has_value())
     {
         std::cout << __FUNCTION__ << " No valid attributes for robot speed" << std::endl;

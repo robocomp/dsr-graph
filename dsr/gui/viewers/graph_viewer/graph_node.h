@@ -72,13 +72,13 @@ class DoLaserStuff : public QGraphicsView
         std::optional<Node> n = graph->get_node(id);
         if (n.has_value()) 
         {
-            const auto lAngles = graph->get_attrib_by_name<vector<float>>(n.value(),"angles");
-            const auto lDists = graph->get_attrib_by_name<vector<float>>(n.value(), "dists");
+            const auto lAngles = graph->get_attrib_by_name<angles_att>(n.value());
+            const auto lDists = graph->get_attrib_by_name<dists_att>(n.value());
             if (lAngles.has_value() and lDists.has_value()) 
             {
                 QPolygonF polig;
                 polig << QPointF(0,150);
-                for (const auto &[dist, angle] : iter::zip(lDists.value(), lAngles.value())) 
+                for (const auto &[dist, angle] : iter::zip(lDists.value().get(), lAngles.value().get()))
                 {
                     //std::cout << dist << "," << angle << std::endl;
                     polig << QPointF(dist * sin(angle), dist * cos(angle));
@@ -124,26 +124,32 @@ class DoRGBDStuff : public QLabel
       std::optional<Node> n = graph->get_node(id);
       if (n.has_value())
       {
-        const auto rgb_data = graph->get_attrib_by_name<vector<uint8_t>>(n.value(),"rgb");
-        const auto width = graph->get_attrib_by_name<int32_t>(n.value(),"width");
-        const auto height = graph->get_attrib_by_name<int32_t>(n.value(),"height");
-        // if depth == 3
-        //image_rgb.create(height.value(), width.value(), CV_8UC3);
-        //QImage image((const unsigned char*)pixels, width, height, QImage::Format_RGB32);
-        //memcpy(image_rgb.data, &rgb_data.value()[0], width.value()*height.value()*sizeof(std::uint8_t)*3);   
-        //imshow("RGB", image_rgb);
-        //cv::waitKey(1);
-        //label.setPixmap(QImage());     
-       
-        //QImage image((const unsigned char*)&rgb_data.value()[0], width.value(), height.value(), QImage::Format_RGB888);
-        //QImage image(width.value(), height.value(), QImage::Format_RGB888);
-        //memcpy(image.data, &rgb_data.value()[0], width.value()*height.value()*sizeof(std::uint8_t)*3);   
-      
-        auto pix = QPixmap::fromImage(QImage(&rgb_data.value()[0], width.value(), height.value(), QImage::Format_RGB888));
-        resize(width.value(), height.value());
-        setPixmap(pix);
-        show();                     
-        qDebug() << "hola";
+        Node node = n.value();
+        const auto rgb_data = graph->get_attrib_by_name<rgb_att>(node);
+        const auto width = graph->get_attrib_by_name<width_att>(node);
+        const auto height = graph->get_attrib_by_name<height_att>(node);
+
+        if (rgb_data.has_value() and width.has_value() and height.has_value()) {
+            // if depth == 3
+            //image_rgb.create(height.value(), width.value(), CV_8UC3);
+            //QImage image((const unsigned char*)pixels, width, height, QImage::Format_RGB32);
+            //memcpy(image_rgb.data, &rgb_data.value()[0], width.value()*height.value()*sizeof(std::uint8_t)*3);
+            //imshow("RGB", image_rgb);
+            //cv::waitKey(1);
+            //label.setPixmap(QImage());
+
+            //QImage image((const unsigned char*)&rgb_data.value()[0], width.value(), height.value(), QImage::Format_RGB888);
+            //QImage image(width.value(), height.value(), QImage::Format_RGB888);
+            //memcpy(image.data, &rgb_data.value()[0], width.value()*height.value()*sizeof(std::uint8_t)*3);
+
+            const std::vector<uint8_t>& img = rgb_data.value();
+            auto pix = QPixmap::fromImage(
+                    QImage(&img[0], width.value(), height.value(), QImage::Format_RGB888));
+            resize(width.value(), height.value());
+            setPixmap(pix);
+            show();
+            qDebug() << "hola";
+        }
       }
     };
 

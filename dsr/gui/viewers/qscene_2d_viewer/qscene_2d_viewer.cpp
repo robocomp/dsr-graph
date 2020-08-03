@@ -182,11 +182,13 @@ qDebug() << __FUNCTION__ ;
         return;
     }
 
-    std::string color = G->get_attrib_by_name<std::string>(node, "color").value_or("orange");
-    std::string texture = G->get_attrib_by_name<std::string>(node, "texture").value_or("");
-    int width = G->get_attrib_by_name<std::int32_t>(node, "width").value_or(0);
-    int height = G->get_attrib_by_name<std::int32_t>(node, "height").value_or(0);
-    int depth = G->get_attrib_by_name<std::int32_t>(node, "depth").value_or(0);
+    std::string color = "orange";
+    color = G->get_attrib_by_name<color_att>(node).value_or(color).get();
+    std::string texture;
+    texture = G->get_attrib_by_name<texture_att>(node).value_or(texture).get();
+    int width = G->get_attrib_by_name<width_att>(node).value_or(0);
+    int height = G->get_attrib_by_name<height_att>(node).value_or(0);
+    int depth = G->get_attrib_by_name<depth_att>(node).value_or(0);
 
     qDebug()<<"Draw plane"<<QString::fromStdString(node.name())<<"("<<width<<","<<height<<","<<depth<<")";
      
@@ -241,11 +243,11 @@ qDebug() << __FUNCTION__ ;
         qDebug()<<"Node is not drawable => check parent list";
         return;
     }
-
-    std::string color = G->get_attrib_by_name<std::string>(node, "color").value_or("orange");
-    int width = G->get_attrib_by_name<std::int32_t>(node, "scalex").value_or(0);
-    int height = G->get_attrib_by_name<std::int32_t>(node, "scaley").value_or(0);
-    int depth = G->get_attrib_by_name<std::int32_t>(node, "scalez").value_or(0);
+    std::string color = "orange";
+    color = G->get_attrib_by_name<color_att>(node).value_or(color);
+    int width = G->get_attrib_by_name<scalex_att>(node).value_or(0);
+    int height = G->get_attrib_by_name<scaley_att>(node).value_or(0);
+    int depth = G->get_attrib_by_name<scalez_att>(node).value_or(0);
 
 qDebug()<<"Draw mesh"<<QString::fromStdString(node.name())<<"("<<width<<","<<height<<","<<depth<<")"<<"color"<<QString::fromStdString(color);
 

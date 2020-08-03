@@ -180,8 +180,8 @@ void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
             float posx = 10;
             float posy = 10;
             try {
-                posx = G->get_attrib_by_name<float>(n.value(), "pos_x").value_or(10);
-                posy = G->get_attrib_by_name<float>(n.value(), "pos_y").value_or(10);
+                posx = G->get_attrib_by_name<pos_x_att>(n.value()).value_or(10);
+                posy = G->get_attrib_by_name<pos_y_att>(n.value()).value_or(10);
             }
             catch (const std::exception &e) {
                 auto rd = QVec::uniformVector(2, -200, 200);

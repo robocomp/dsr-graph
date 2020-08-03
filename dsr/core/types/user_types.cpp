@@ -116,7 +116,7 @@ namespace DSR {
         m_value = std::move(_float_vec);
     }
 
-    [[nodiscard]] const std::vector<float> &Attribute::float_vec() const {
+    const std::vector<float> &Attribute::float_vec() const {
         if (auto pval = std::get_if<vector<float>>(&m_value)) {
             return *pval;
         }
