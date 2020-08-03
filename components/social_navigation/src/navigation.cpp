@@ -34,13 +34,13 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 };
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::update()
+typename Navigation<TMap, TController>::State Navigation<TMap, TController>::update()
 {
     //qInfo() << "Navigation - " << __FUNCTION__;
-    //static QTime reloj = QTime::currentTime();
+    static QTime reloj = QTime::currentTime();
 
     if(current_target.active.load() == false)
-        return;
+        return State::IDLE;
 
     currentRobotPose = innerModel->transformS6D("world", robot_name).value();
     auto nose_3d = innerModel->transformS("world", QVec::vec3(0, 0, 250), robot_name).value();
@@ -53,7 +53,7 @@ void Navigation<TMap, TController>::update()
     if(state == "PATH_NOT_FOUND")
     {
         qWarning(state.c_str());
-        return;
+        return State::PATH_NOT_FOUND;
     }
 
     computeForces(pathPoints, laser_cart, laser_poly);
@@ -66,6 +66,7 @@ void Navigation<TMap, TController>::update()
     {
         stopRobot();
         current_target.blocked.store(true);
+        return State::BLOCKED;
     }
     if (!active)
     {
@@ -74,27 +75,30 @@ void Navigation<TMap, TController>::update()
         pathPoints.clear();
         if(stopMovingRobot)
             moveRobot = false;
-        if(robotAutoMov)
-            newRandomTarget();
+        //if(robotAutoMov)
+        //    newRandomTarget();
+        return State::AT_TARGET;
     }
-    float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
-    float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
-    float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
+    static float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
+    static float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
+    static float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
     static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
     static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
     static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
+
     if (!blocked and active)
         if(moveRobot)
         {
             zVel = (adv_conv * QVec::vec2(zVel,1.0))[0];
             rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
             xVel = (side_conv * QVec::vec2(xVel, 1.0))[0];
-            qInfo()<< __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel;
             auto robot_node = G->get_node(robot_name);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)xVel);
             G->update_node(robot_node.value());
+            qInfo() << __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel << "Elapsed time" << reloj.restart() << "ms";
+            return State::RUNNING;
         }
 };
 
@@ -209,6 +213,7 @@ void Navigation<TMap, TController>::newTarget(QPointF newT)
         current_target.p = newT;
     this->current_target.unlock();
 }
+
 
 ////////// GRID RELATED METHODS //////////
 template<typename TMap, typename TController>
@@ -565,6 +570,23 @@ void Navigation<TMap, TController>::drawRoad(const QPolygonF &laser_poly)
         line2->setZValue(2000);
         scene_road_points.push_back(line1);
         scene_road_points.push_back(line2);
+    }
+}
+
+template<typename TMap, typename TController>
+void Navigation<TMap, TController>::print_state( State state) const
+{
+    switch (state)
+    {
+        case State::BLOCKED: qInfo() << "Nav state: BLOCKED"; break;
+        case State::PATH_NOT_FOUND: qInfo() << "Nav state: PATH_NOT_FOUND"; break;
+        case State::RUNNING: qInfo() << "Nav state: RUNNING"; break;
+        case State::IDLE: qInfo() << "Nav state: IDLE"; break;
+        case State::AT_TARGET:
+            auto p = QPointF(currentRobotPose.x(), currentRobotPose.z());
+            qInfo() << "Nav state: *** TARGET ACHIEVED ***  Target -> " << current_target.p << " Current pose -> "
+                    <<  p << "Error -> " << QVector2D(p - current_target.p).length();
+            break;
     }
 }
 

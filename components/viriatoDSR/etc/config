@@ -7,6 +7,8 @@ OmniRobotPubTopic.Endpoints=tcp -p 11113
 
 #Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004
+CoppeliaUtilsProxy = coppeliautils:tcp -p 10666
+
 
 agent_id = 10
 agent_name = viriato

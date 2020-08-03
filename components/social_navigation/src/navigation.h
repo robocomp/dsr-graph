@@ -46,10 +46,12 @@ class Navigation
                          std::string file_name = std::string());
         void stopRobot();
         bool isCurrentTargetActive();
-        void update();
+        enum class State{BLOCKED, PATH_NOT_FOUND, RUNNING, AT_TARGET, IDLE};
+        State update();
         std::string checkPathState();
         void newRandomTarget();
         void newTarget(QPointF newT);
+        void print_state(State state) const;
 
         // Target
         struct Target : public std::mutex
@@ -58,6 +60,7 @@ class Navigation
             std::atomic_bool active = false;
             std::atomic_bool blocked = true;
             std::atomic_bool humanBlock = false;
+            bool operator==(const QPointF &t) const { return p==t; };
         };
         Target current_target;
         bool robotAutoMov = false;

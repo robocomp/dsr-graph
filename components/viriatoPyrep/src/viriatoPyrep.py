@@ -154,7 +154,6 @@ if __name__ == '__main__':
     laserpubTopic = RoboCompLaserPub.LaserPubPrx.uncheckedCast(pub)
     mprx["LaserPubPub"] = laserpubTopic
 
-
     # Create a proxy to publish a OmniRobotPub topic
     topic = False
     try:
@@ -173,7 +172,7 @@ if __name__ == '__main__':
     omnirobotpubTopic = RoboCompOmniRobotPub.OmniRobotPubPrx.uncheckedCast(pub)
     mprx["OmniRobotPubPub"] = omnirobotpubTopic
 
-    # Create a proxy to publish a LaserPub topic
+    # Create a proxy to publish a HumanToDSRPub topic
     topic = False
     try:
         topic = topicManager.retrieve("HumanToDSRPub")
@@ -210,6 +209,9 @@ if __name__ == '__main__':
     adapter.add(omnirobotI.OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
     adapter.activate()
 
+    adapter = ic.createObjectAdapter('CoppeliaUtils')
+    adapter.add(coppeliautilsI.CoppeliaUtilsI(worker), ic.stringToIdentity('coppeliautils'))
+    adapter.activate()
 
     JoystickAdapter_adapter = ic.createObjectAdapter("JoystickAdapterTopic")
     joystickadapterI_ = joystickadapterI.JoystickAdapterI(worker)

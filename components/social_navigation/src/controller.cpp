@@ -39,10 +39,8 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     bool active = true;
     bool blocked = false;
     QPointF robot = QPointF(robotPose.x(), robotPose.z());
-
     // Compute euclidean distance to target
     float euc_dist_to_target = QVector2D(robot - target).length();
-    // qDebug()<< "DISTANCE TO TARGET " << euc_dist_to_target << "NUM POINTS "<< points.size();
 
     auto is_increasing = [](float new_val)
             { static float ant_value = 0.f;
@@ -55,13 +53,9 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     if ( (points.size() < 3 and euc_dist_to_target < FINAL_DISTANCE_TO_TARGET) or
          (points.size() < 3 and is_increasing(euc_dist_to_target)) )
     {
-        qInfo()<< "·························";
-        qInfo()<< "···· TARGET ACHIEVED ····";
-        qInfo()<< "·························";
-        advVelz = 0;
-        rotVel = 0;
+        advVelz = 0;  rotVel = 0;
         active = false;
-        return std::make_tuple(true, blocked, active, advVelx, advVelz,rotVel);
+        return std::make_tuple(true, blocked, active, advVelx, advVelz, rotVel);
     }
 
     /// Compute rotational speed
@@ -69,7 +63,6 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robotNose, points[1]))));
     if(angle >= 0) rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
     else rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
-    std::cout << __FUNCTION__ << " " << angle << std::endl;
 
     /// Compute advance speed
     std::min(advVelz = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);

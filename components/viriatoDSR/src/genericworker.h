@@ -33,6 +33,7 @@
 
 #include <CameraRGBDSimple.h>
 #include <CameraRGBDSimplePub.h>
+#include <CoppeliaUtils.h>
 #include <GenericBase.h>
 #include <Laser.h>
 #include <LaserPub.h>
@@ -44,7 +45,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompOmniRobot::OmniRobotPrxPtr>;
+using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -60,6 +61,7 @@ public:
 	QMutex *mutex;
 
 
+	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;
