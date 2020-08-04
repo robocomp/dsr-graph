@@ -522,12 +522,12 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
 
 
             to_n = get_(to).value();
-            if (auto x = get_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
+            if (auto x = get_crdt_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
                 bool res1 = modify_attrib_local<parent_att>(to_n.value(), n.id());
                 if (!res1) (void) add_attrib_local<parent_att>(to_n.value(), n.id());
                 no_send = false;
             }
-            if (auto x = get_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+            if (auto x = get_crdt_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
                 bool res2 = modify_attrib_local<level_att>(to_n.value(),  get_node_level(n).value() + 1 );
                 if (!res2) (void) add_attrib_local<level_att>(to_n.value(),  get_node_level(n).value() + 1 );
                 no_send = false;
@@ -605,12 +605,12 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<
             }
 
             to_n = get_(to).value();
-            if (auto x = get_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
+            if (auto x = get_crdt_attrib_by_name<parent_att>(to_n.value()); x.has_value() and x.value() != n.id()) {
                 bool res1 = modify_attrib_local<parent_att>(to_n.value(),  n.id());
                 if (!res1) (void) add_attrib_local<parent_att>(to_n.value(), n.id());
                 no_send = false;
             }
-            if (auto x = get_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
+            if (auto x = get_crdt_attrib_by_name<level_att>(to_n.value()); x.has_value() and x.value() != get_node_level(n).value() + 1) {
                 bool res2 = modify_attrib_local<level_att>(to_n.value(),   get_node_level(n).value() + 1 );
                 if (!res2) (void) add_attrib_local<level_att>(to_n.value(),   get_node_level(n).value() + 1 );
                 no_send = false;
