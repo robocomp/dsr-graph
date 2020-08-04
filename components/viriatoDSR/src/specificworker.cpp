@@ -79,16 +79,16 @@ void SpecificWorker::compute()
     static RoboCompGenericBase::TBaseState my_bstate;
 
     // read laser
-    if (auto ldata = laser_buffer.get(); ldata.has_value())
+    if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
     // read robot state
-    if (auto bState = omnirobot_buffer.get(); bState.has_value())
+    if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
     {
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
     // read rgb data
-    if(auto rgb = rgb_buffer.get(); rgb.has_value())
+    if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
         update_rgb(rgb.value());
 
     // check for new target values in robot node

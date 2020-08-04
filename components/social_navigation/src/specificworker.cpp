@@ -105,9 +105,11 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+    // check for base_target_values
     auto robot = G->get_node(robot_name);
     if(robot.has_value())
     {
+        // auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_node");
         auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
         auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
         if(x.has_value() and y.has_value())
@@ -166,16 +168,35 @@ void  SpecificWorker::checkRobotAutoMovState()
 
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
-    std::cout << "New target:" << pos_x << " " << pos_y << " " << id << std::endl;
-    auto robot = G->get_node(robot_name);
-    if(robot.has_value())
+    std::cout << __FUNCTION__ << " New target:" << pos_x << " " << pos_y << " " << id << std::endl;
+    if( auto target_node = G->get_node(id); target_node.has_value())
     {
-        G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float)pos_x);
-        G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float)pos_y);
-        G->update_node(robot.value());
+        if (auto robot = G->get_node(robot_name); robot.has_value())
+        {
+            if (id != 11)  // floor
+            {
+                if( std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value()); candidate.has_value())
+                {
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
+                }
+            }
+            else
+            {
+                G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
+                G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
+            }
+            G->update_node(robot.value());
+        }
+        else
+        {
+            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+        }
     }
     else
-        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << " No node  " << QString::number(id) << " found";
+    }
 }
 
 ///////////////////////////////////////////////////
