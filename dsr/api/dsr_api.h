@@ -215,7 +215,7 @@ namespace DSR {
         }
 
 
-        template <typename name, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>> >
+        template <typename name, typename Type, typename =  std::enable_if_t<node_or_edge<Type>> >
         inline std::optional<decltype(name::type)> get_attrib_by_name(const Type &n)
         {
             static_assert(is_attr_name<name>::value, "Invalid object type.");
@@ -227,69 +227,36 @@ namespace DSR {
             auto value = attrs.find(name::attr_name.data());
             if (value == attrs.end()) return {};
 
-
-
-            if constexpr(node_or_edge<Type>) {
-                const auto &av = value->second;
-                if constexpr (std::is_same_v< name_type, float>)
-                    return av.fl();
-                else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
-                    return av.str();
-                else if constexpr (std::is_same_v< name_type,  std::int32_t>)
-                    return av.dec();
-                else if constexpr (std::is_same_v< name_type, std::uint32_t>)
-                    return av.uint();
-                else if constexpr (std::is_same_v< name_type, bool>)
-                    return av.bl();
-                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
-                    return av.float_vec();
-                else if constexpr (std::is_same_v< std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
-                    return av.byte_vec();
-                else if constexpr (std::is_same_v< name_type, QVec>) {
-                    const auto &val = av.float_vec();
-                    if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
-                        and (val.size() == 3 or val.size() == 6))
-                        return QVec{val};
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-                }
-                else if constexpr (std::is_same_v<name_type, QMat>) {
-                    if (av.selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
-                        const auto &val = av.float_vec();
-                        return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
-                    }
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-                }
-            } else {
-                auto av = value->second.read().begin();
-                if constexpr (std::is_same_v< name_type, float>)
-                    return av->val().fl();
-                else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
-                    return av->val().str();
-                else if constexpr (std::is_same_v< name_type,  std::int32_t>)
-                    return av->val().dec();
-                else if constexpr (std::is_same_v< name_type, std::uint32_t>)
-                    return av->val().uint();
-                else if constexpr (std::is_same_v< name_type, bool>)
-                    return av->val().bl();
-                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
-                    return av->val().float_vec();
-                else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
-                    return av->val().byte_vec();
-                else if constexpr (std::is_same_v< name_type, QVec>) {
-                    const auto &val = av->val().float_vec();
-                    if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
-                        and (val.size() == 3 or val.size() == 6))
-                        return QVec{val};
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-                }
-                else if constexpr (std::is_same_v<name_type, QMat>) {
-                    if (av->val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
-                        const auto &val = av->val().float_vec();
-                        return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
-                    }
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-                }
+            const auto &av = value->second;
+            if constexpr (std::is_same_v< name_type, float>)
+                return av.fl();
+            else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
+                return av.str();
+            else if constexpr (std::is_same_v< name_type,  std::int32_t>)
+                return av.dec();
+            else if constexpr (std::is_same_v< name_type, std::uint32_t>)
+                return av.uint();
+            else if constexpr (std::is_same_v< name_type, bool>)
+                return av.bl();
+            else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
+                return av.float_vec();
+            else if constexpr (std::is_same_v< std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
+                return av.byte_vec();
+            else if constexpr (std::is_same_v< name_type, QVec>) {
+                const auto &val = av.float_vec();
+                if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
+                    and (val.size() == 3 or val.size() == 6))
+                    return QVec{val};
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
             }
+            else if constexpr (std::is_same_v<name_type, QMat>) {
+                if (av.selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
+                    const auto &val = av.float_vec();
+                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                }
+                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            }
+
             //else {
             //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
             //}
@@ -747,6 +714,57 @@ namespace DSR {
             return {};
         }
         */
+
+
+
+        template <typename name, typename Type, typename =  std::enable_if_t<crdt_node_or_edge<Type>> >
+        inline std::optional<decltype(name::type)> get_crdt_attrib_by_name(const Type &n)
+        {
+            static_assert(is_attr_name<name>::value, "Invalid object type.");
+            using name_type = typename std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>;
+
+            //std::cout << "tipo : " << name::attr_name <<  " "<<  typeid(name_type).name() << std::endl;
+            //std::optional<CRDTAttribute> av = get_attrib_by_name_( n , name::attr_name);
+            auto &attrs = n.attrs();
+            auto value = attrs.find(name::attr_name.data());
+            if (value == attrs.end()) return {};
+
+
+            auto av = value->second.read().begin();
+            if constexpr (std::is_same_v< name_type, float>)
+                return av->val().fl();
+            else if constexpr (std::is_same_v< name_type, std::string> ) //TODO: Cambiar string vire por algo que identifique todos los strings
+                return av->val().str();
+            else if constexpr (std::is_same_v< name_type,  std::int32_t>)
+                return av->val().dec();
+            else if constexpr (std::is_same_v< name_type, std::uint32_t>)
+                return av->val().uint();
+            else if constexpr (std::is_same_v< name_type, bool>)
+                return av->val().bl();
+            else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<float>>)
+                return av->val().float_vec();
+            else if constexpr (std::is_same_v<  std::remove_reference_t<std::remove_cv_t<typename name_type::type>>, std::vector<uint8_t>>)
+                return av->val().byte_vec();
+            else if constexpr (std::is_same_v< name_type, QVec>) {
+                const auto &val = av->val().float_vec();
+                if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
+                    and (val.size() == 3 or val.size() == 6))
+                    return QVec{val};
+                throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
+            }
+            else if constexpr (std::is_same_v<name_type, QMat>) {
+                if (av->val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
+                    const auto &val = av->val().float_vec();
+                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
+                }
+                throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
+            }
+
+            //else {
+            //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
+            //}
+        }
+
         //////////////////////////////////////////////////////////////////////////
         // CRDT join operations
         ///////////////////////////////////////////////////////////////////////////
