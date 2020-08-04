@@ -89,7 +89,6 @@ void SpecificWorker::initialize(int period)
 		if(graph_view)
 		{
 		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
 		}
 		if(qscene_2d_view)
 		{
@@ -101,6 +100,10 @@ void SpecificWorker::initialize(int period)
 		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+
+		// custom_widget
+		graph_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
+
 
 		this->Period = period;
 		timer.start(Period);
