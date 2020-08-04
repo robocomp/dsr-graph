@@ -24,50 +24,32 @@
 
 
 
-#ifndef SPECIFICWORKER_H
-#define SPECIFICWORKER_H
+#ifndef CUSTOMWIDGET_H
+#define CUSTOMWIDGET_H
 
-#include <genericworker.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
 
-#include <custom_widget.h>
+#include <ui_localUI.h>
 
-class SpecificWorker : public GenericWorker
+
+class Custom_widget : public QWidget, public Ui_local_guiDlg
 {
 Q_OBJECT
 public:
-	SpecificWorker(TuplePrx tprx, bool startup_check);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
+    Custom_widget() : Ui_local_guiDlg()
+    {
+        setupUi(this);
+    }
+	~Custom_widget()
+    {
+
+    }
 
 
-
-public slots:
-	void compute();
-	int startup_check();
-	void initialize(int period);
-private:
-	// DSR graph
-	std::shared_ptr<DSR::DSRGraph> G;
-
-	//DSR params
-	std::string agent_name;
-	int agent_id;
-
-	bool tree_view;
-	bool graph_view;
-	bool qscene_2d_view;
-	bool osg_3d_view;
-
-	// DSR graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
-	QHBoxLayout mainLayout;
-	bool startup_check_flag;
-
-    //local widget
-    Custom_widget custom_widget;
 
 };
-
 #endif
