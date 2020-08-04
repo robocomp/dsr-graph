@@ -52,6 +52,7 @@ class Navigation
         void newRandomTarget();
         void newTarget(QPointF newT);
         void print_state(State state) const;
+        std::optional<QVector2D> search_a_feasible_target(const Node &target, const Node &robot);
 
         // Target
         struct Target : public std::mutex

@@ -100,6 +100,7 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
             qInfo() << __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel << "Elapsed time" << reloj.restart() << "ms";
             return State::RUNNING;
         }
+    return State::IDLE; // to remove warning
 };
 
 template<typename TMap, typename TController>
@@ -212,11 +213,6 @@ void Navigation<TMap, TController>::newTarget(QPointF newT)
     this->current_target.lock();
         current_target.p = newT;
     this->current_target.unlock();
-    //insert target as robot node attribute
-    auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local(robot_node.value(), "target_z_pos", (float)newT.x());
-    G->add_or_modify_attrib_local(robot_node.value(), "target_x_pos", (float)newT.y());
-    G->update_node(robot_node.value());
 }
 
 
@@ -593,6 +589,60 @@ void Navigation<TMap, TController>::print_state( State state) const
                     <<  p << "Error -> " << QVector2D(p - current_target.p).length();
             break;
     }
+}
+
+// Search for a target that is:
+// - in free space
+// - close to target
+// - close to current robot pose, i.e. to the approaching path
+
+template<typename TMap, typename TController>
+std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot)
+{
+    // get an inactive copy of G so I can move the robot around
+    auto G_copy = G->G_copy();
+    // get target coordinates in world
+    auto tc = innerModel->transformS("world", target.name()).value();
+    QVector2D target_center(tc.x(), tc.z());
+    // get robot coordinates in world
+    auto rc = innerModel->transformS("world", robot_name).value();
+    QVector2D robot_center(rc.x(), rc.z());
+    // define a sampling strategy in increasing radius away from target
+    // get 8 neighbours from grid
+
+    std::cout << __FUNCTION__ << std::endl;
+    auto dim = grid.getDim();
+    std::vector<QVector2D> candidates;
+    float x = target_center.x();
+    float y = target_center.y();
+    long int t = 0;
+    long int dx = dim.TILE_SIZE;
+    long int dy = -dim.TILE_SIZE;
+    for(auto i : iter::range(grid.size()))
+    {
+        if (grid.isFree(grid.pointToGrid(x, y)))
+            candidates.push_back(QVector2D(x, y));
+        if(candidates.size() > 20)
+            break;
+        if(x == y or (x < 0 and x == -y) or (x > 0 and x == dim.TILE_SIZE-y))
+        {
+            t = dx; dx = -dy; dy = t;
+        }
+        x = x + dx;
+        y = y + dy;
+    }
+
+     std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+    // sort by distances to target
+    if(candidates.size() > 0)
+    {
+        std::sort(std::begin(candidates), std::end(candidates), [target_center](const auto &p1, const auto &p2) {
+            return (target_center - p1).length() < (target_center - p2).length();
+        });
+        return candidates.front();
+    }
+    else
+        return {};
 }
 
 
