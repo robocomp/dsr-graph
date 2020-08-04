@@ -1,0 +1,13 @@
+import "SocialNavigationGaussian.idsl";
+
+Component social_rules
+{
+    Communications
+    {
+        requires SocialNavigationGaussian;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options DSR;
+};
+
