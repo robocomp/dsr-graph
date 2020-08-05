@@ -34,38 +34,39 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 };
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &laserData_, bool needsReplaning)
+typename Navigation<TMap, TController>::State Navigation<TMap, TController>::update()
 {
     //qInfo() << "Navigation - " << __FUNCTION__;
-    //static QTime reloj = QTime::currentTime();
+    static QTime reloj = QTime::currentTime();
 
     if(current_target.active.load() == false)
-        return;
+        return State::IDLE;
 
     currentRobotPose = innerModel->transformS6D("world", robot_name).value();
-    auto rn_3d = innerModel->transformS6D("world", QVec::vec3(0, 0, 250), robot_name).value();
-    rn_3d.print("NOSE: ");
-    currentRobotNose = QPointF(rn_3d.x(), rn_3d.z());
-    updateLaserPolygon(laserData_);
+    auto nose_3d = innerModel->transformS("world", QVec::vec3(0, 0, 250), robot_name).value();
+    currentRobotNose = QPointF(nose_3d.x(), nose_3d.z());
+    LaserData laser_data = read_laser_from_G();
+    const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);
     currentRobotPolygon = getRobotPolygon();
 
     auto state = checkPathState();
     if(state == "PATH_NOT_FOUND")
     {
         qWarning(state.c_str());
-        return;
+        return State::PATH_NOT_FOUND;
     }
 
-    computeForces(pathPoints, laserData_);
-    cleanPoints();
-    addPoints();
-    drawRoad();
-    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laserData_, current_target.p, currentRobotPose,  currentRobotNose );
+    computeForces(pathPoints, laser_cart, laser_poly);
+    cleanPoints(laser_poly);
+    addPoints(laser_poly);
+    drawRoad(laser_poly);
+    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laser_data, current_target.p, currentRobotPose,  currentRobotNose );
 
     if (blocked)
     {
         stopRobot();
         current_target.blocked.store(true);
+        return State::BLOCKED;
     }
     if (!active)
     {
@@ -74,27 +75,56 @@ void Navigation<TMap, TController>::update(const RoboCompLaser::TLaserData &lase
         pathPoints.clear();
         if(stopMovingRobot)
             moveRobot = false;
-        if(robotAutoMov)
-            newRandomTarget();
+        //if(robotAutoMov)
+        //    newRandomTarget();
+        return State::AT_TARGET;
     }
-    float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
-    float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
-    float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
+    static float MAX_ADV_SPEED = QString::fromStdString(configparams->at("MaxZSpeed").value).toFloat();
+    static float MAX_ROT_SPEED = QString::fromStdString(configparams->at("MaxRotationSpeed").value).toFloat();
+    static float MAX_SIDE_SPEED = QString::fromStdString(configparams->at("MaxXSpeed").value).toFloat();
     static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
     static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
+    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
+
     if (!blocked and active)
         if(moveRobot)
         {
             zVel = (adv_conv * QVec::vec2(zVel,1.0))[0];
             rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
-            qInfo()<< __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel;
+            xVel = (side_conv * QVec::vec2(xVel, 1.0))[0];
             auto robot_node = G->get_node(robot_name);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
             G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
-            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)0);
+            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)xVel);
             G->update_node(robot_node.value());
+            qInfo() << __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel << "Elapsed time" << reloj.restart() << "ms";
+            return State::RUNNING;
         }
+    return State::IDLE; // to remove warning
 };
+
+template<typename TMap, typename TController>
+typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>::read_laser_from_G()
+{
+    qDebug() << __FUNCTION__ << "reading from DSR laser node";
+    LaserData laserData;
+    auto laser_node = G->get_node("laser");
+    if (laser_node.has_value())
+    {
+        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
+        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
+        if (lAngles.has_value() and lDists.has_value())
+        {
+            LaserData laserData = std::make_tuple(lAngles.value(), lDists.value());
+            return laserData;
+        }
+        else
+            qFatal("Terminate due to attributes angles or dists not found");
+    }
+    else
+        qFatal("Terminate due to laser node not found ");
+    return LaserData();
+}
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::stopRobot()
@@ -185,17 +215,11 @@ void Navigation<TMap, TController>::newTarget(QPointF newT)
     this->current_target.unlock();
 }
 
+
 ////////// GRID RELATED METHODS //////////
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::updateFreeSpaceMap(bool drawGrid)
 {
-}
-
-////////// CONTROLLER RELATED METHODS //////////
-template<typename TMap, typename TController>
-RoboCompLaser::TLaserData Navigation<TMap, TController>::computeLaser(RoboCompLaser::TLaserData laserData)
-{
-    return RoboCompLaser::TLaserData();
 }
 
 /// wrapper for grif.computePath()
@@ -232,23 +256,22 @@ bool Navigation<TMap, TController>::findNewPath()
 }
 
 template<typename TMap, typename TController>
-bool Navigation<TMap, TController>::isVisible(QPointF p)
+bool Navigation<TMap, TController>::isVisible(QPointF p, const QPolygonF &laser_poly)
 {
     std::optional<QVec> pointInLaser = innerModel->transform("laser", QVec::vec3(p.x(),0, p.y()),"world");
     return laser_poly.containsPoint(QPointF(pointInLaser.value().x(), pointInLaser.value().z()), Qt::OddEvenFill);
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &path, const RoboCompLaser::TLaserData &lData)
+void Navigation<TMap, TController>::computeForces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart, const QPolygonF &laser_poly)
 {
     if (path.size() < 3)
         return;
 
-    int pointIndex = 0;
     int nonVisiblePointsComputed = 0;
 
     // Go through points using a sliding windows of 3
-    for (auto &group : iter::sliding_window(path, 3))
+    for (auto &&[i, group] : iter::enumerate(iter::sliding_window(path, 3)))
     {
         if (group.size() < 3)
             break; // break if too short
@@ -259,76 +282,81 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         auto p1 = QVector2D(group[0]);
         auto p2 = QVector2D(group[1]);
         auto p3 = QVector2D(group[2]);
-        auto p = group[1];
+        QPointF p = group[1];
+        int index_of_p_in_path = i+1;  //index of p in path
 
+        ////////////////////////////////
+        /// INTERNAL curvature forces on p2. Stretches the path locally
+        /// Approximates the angle between adjacent segments: p2->p1, p2->p3
+        ////////////////////////////////
+        QVector2D iforce = ((p1 - p2) / (p1 - p2).length() + (p3 - p2) / (p3 - p2).length());
+
+        ////////////////////////////////////////////
+        /// External forces caused by obstacles repulsion field
+        ///////////////////////////////////////////7
         float min_dist;
-        QVector2D force;
+        QVector2D eforce;
 
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
-        if ((isVisible(p) == false))// if not visible (computed before) continue
+        // compute forces from map on not visible points
+        if ((isVisible(p, laser_poly ) == false))
         {
             auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
-            if ((!obstacleFound) or (nonVisiblePointsComputed > 10))
+            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
             {
-                qDebug ()  << __FUNCTION__ << "No obstacles found ";
+                qDebug ()  << __FUNCTION__ << "No obstacles found in map for not visible point or it is more than 10 not visible points away";
                 nonVisiblePointsComputed++;
                 continue;
             }
             else
             {
                 qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
-                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);
-                if (min_dist <= 0)
+                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
+                if (min_dist <= 0)    // hard limit to close obstables
                     min_dist = 0.01;
-                force = vectorForce;
+                eforce = vectorForce;
             }
             nonVisiblePointsComputed++;
         }
+        // compute forces from laser on visible points
         else
         {
+            // vector holding a) distance from laser tip to p, vector from laser tip to p, laser tip plane coordinates
             std::vector<std::tuple<float, QVector2D, QPointF>> distances;
-            // Apply to all laser points a functor to compute the distances to point p2
-            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, this](QPointF &t) { //lasercart is updated in UpdateLaserPolygon
-                // compute distante from laser tip to point minus RLENGTH/2 or 0 and keep it positive
-                float dist = (QVector2D(p) - QVector2D(t)).length() - (ROBOT_LENGTH / 2);
-                if (dist <= 0)
-                    dist = 0.01;
-                return std::make_tuple(dist,  QVector2D(p)-QVector2D(t), t);
-            });
-
-            // compute min distance
+            // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
+            std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, RL=ROBOT_LENGTH](const QPointF &laser)
+                    {   // compute distance from laser measure to point minus RLENGTH/2 or 0 and keep it positive
+                        float dist = (QVector2D(p) - QVector2D(laser)).length() - (RL / 2);
+                        if (dist <= 0)
+                            dist = 0.01;
+                        return std::make_tuple(dist,  QVector2D(p)-QVector2D(laser), laser);
+                    });
+            // compute min of all laser to p distances
             auto min = std::min_element(std::begin(distances), std::end(distances), [](auto &a, auto &b)
-            {
-                return std::get<float>(a) < std::get<float>(b);
-            });
+                    {
+                        return std::get<float>(a) < std::get<float>(b);
+                    });
             min_dist = std::get<float>(*min);
-            //QPointF min_angle = std::get<QPointF>(*min);
-            //          qDebug()<< "Point "<< p << " --  min dist " << min_dist << "--- min angle "<< min_angle;
-            force = std::get<QVector2D>(*min);
+            eforce = std::get<QVector2D>(*min);
         }
-
-
-        // INTERNAL curvature forces on p2
-        QVector2D iforce = ((p1 - p2) / (p1 - p2).length() + (p3 - p2) / (p3 - p2).length());
-
-        // EXTERNAL forces. We need the minimun distance from each point to the obstacle(s). we compute the shortest laser ray to each point in the path
-        // compute minimun distances to each point within the laser field
+        /// Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
+        /// a logarithmic law can be used to compute de force from the distance.
+        /// To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
 
         // rescale min_dist so 1 is ROBOT_LENGTH
         float magnitude = (1.f / ROBOT_LENGTH) * min_dist;
         // compute inverse square law
         magnitude = 10.f / (magnitude * magnitude);
         //if(magnitude > 25) magnitude = 25.;
-        QVector2D f_force = magnitude * force.normalized();
-        //qDebug() << magnitude << f_force;
+        QVector2D f_force = magnitude * eforce.normalized();
 
         // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
         QVector2D base_line = (p1 - p3).normalized();
         const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
         f_force = f_force - itangential;
 
-        //        qDebug()<< "[NAVIGATION]"<< __FUNCTION__<< " --- i force " << iforce << "f force "<< f_force;
-        // update node pos
+        // update node pos. KI and KE are approximating inverse Jacobians modules. This should be CHANGED
+        // Directions are taken as the vector going from p to closest obstacle.
         auto total = (KI * iforce) + (KE * f_force);
         //
         // limiters CHECK!!!!!!!!!!!!!!!!!!!!!!
@@ -337,41 +365,34 @@ void Navigation<TMap, TController>::computeForces(const std::vector<QPointF> &pa
         if (total.length() < -30)
             total = -8 * total.normalized();
 
-        //        qDebug()<< "[NAVIGATION]"<< __FUNCTION__<< "---total forces = " << total;
-        // move node only if they do not exit the laser polygon and do not get inside objects or underneath the robot.
+        /// Compute additional restrictions to be forced in the minimization process
+            // A) Check boundaries for final displacements
+                // A.1) Move nodes only if it does not move inside objects
+                // A.2) Does not move underneath the robot.
+                // A.3) Does not exit the laser polygon
         QPointF temp_p = p + total.toPointF();
-
         qDebug()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
-
-        if (isPointVisitable(temp_p)
-            and (!currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
+        if (isPointVisitable(temp_p) and (not currentRobotPolygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             )
         {
-            auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s) {
-                return (s.x() == p.x() and s.y() == p.y() );
-            } );
-            if (it != pathPoints.end())
-            {
-                int index = std::distance(pathPoints.begin(), it);
-                pathPoints[index] = temp_p;
-            }
+            path[index_of_p_in_path] = temp_p;
         }
-        pointIndex++;
+//            if( auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s){ return (s.x() == p.x() and s.y() == p.y() );}); it != pathPoints.end())
+//            {
+//                int index = std::distance(pathPoints.begin(), it);
+//                pathPoints[index] = temp_p;
+//            }
     }
-
-    if(isVisible(currentRobotNose))
-    {
+    // Check if robot nose is inside the laser polygon
+    if(isVisible(currentRobotNose, laser_poly))
         pathPoints[0] = currentRobotNose;
-        //drawRoad();
-    }
     else
     {
         current_target.blocked.store(true);
-        qWarning()<< "Robot Nose not visible -- NEEDS REPLANNING ";
+        qWarning() << __FUNCTION__  << "Robot Nose not visible -- NEEDS REPLANNING ";
     }
-    return;
 }
 
 template<typename TMap, typename TController>
@@ -388,7 +409,7 @@ bool Navigation<TMap, TController>::isPointVisitable(QPointF point)
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::addPoints()
+void Navigation<TMap, TController>::addPoints(const QPolygonF &laser_poly)
 {
     // qDebug()<<"Navigation - "<< __FUNCTION__;
     std::vector<std::tuple<int, QPointF>> points_to_insert;
@@ -397,7 +418,7 @@ void Navigation<TMap, TController>::addPoints()
         auto &p1 = group[0];
         auto &p2 = group[1];
 
-        if (isVisible(p1) == false or isVisible(p2) == false) //not visible
+        if (isVisible(p1, laser_poly) == false or isVisible(p2, laser_poly) == false) //not visible
             continue;
 
         float dist = QVector2D(p1 - p2).length();
@@ -417,7 +438,7 @@ void Navigation<TMap, TController>::addPoints()
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::cleanPoints()
+void Navigation<TMap, TController>::cleanPoints(const QPolygonF &laser_poly)
 {
     //        qDebug()<<"Navigation - "<< __FUNCTION__;
 
@@ -427,7 +448,7 @@ void Navigation<TMap, TController>::cleanPoints()
         const auto &p1 = group[0];
         const auto &p2 = group[1];
 
-        if ((!isVisible(p1)) or (!isVisible(p2))) //not visible
+        if ((!isVisible(p1, laser_poly)) or (!isVisible(p2, laser_poly))) //not visible
             continue;
 
         if (p2 == lastPointInPath)
@@ -472,18 +493,24 @@ QPolygonF Navigation<TMap, TController>::getRobotPolygon()
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::updateLaserPolygon(const RoboCompLaser::TLaserData &lData)
+std::tuple<QPolygonF, std::vector<QPointF>> Navigation<TMap, TController>::updateLaserPolygon(const std::tuple<std::vector<float>, std::vector<float>> &lData)
 {
-    laser_poly.clear(); //stores the points of the laser in lasers refrence system
-    laser_cart.clear();
-    for (const auto &l : lData)
+    QPolygonF laser_poly;
+    std::vector<QPointF> laser_cart;
+
+    //laser_poly.clear(); //stores the points of the laser in laser reference system
+    //laser_cart.clear();
+
+    const auto &[angles, dists] = lData;
+    for (const auto &[angle, dist] : iter::zip(angles, dists))
     {
         //convert laser polar coordinates to cartesian
-        float x = l.dist*sin(l.angle); float z = l.dist*cos(l.angle);
+        float x = dist*sin(angle); float z = dist*cos(angle);
         QVec laserWorld = innerModel->transform("world", QVec::vec3(x, 0, z), "laser").value(); //OJO CON LOS NOMBRES
         laser_poly << QPointF(x, z);
         laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.z()));
     }
+    return std::make_tuple(laser_poly, laser_cart);
 }
 
 template<typename TMap, typename TController>
@@ -499,7 +526,7 @@ QPointF Navigation<TMap, TController>::getRobotNose()
 
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::drawRoad()
+void Navigation<TMap, TController>::drawRoad(const QPolygonF &laser_poly)
 {
     qDebug() << "Navigation - "<< __FUNCTION__;
     ///////////////////////
@@ -533,7 +560,7 @@ void Navigation<TMap, TController>::drawRoad()
         if(i == 1 or i == pathPoints.size()-1)
             color = "#FF0000"; //Red
         else
-            if (isVisible(w))
+            if (isVisible(w, laser_poly))
                 color = "#00FFF0"; //Blue
             else
                 color = "#A200FF"; //Purple
@@ -545,6 +572,77 @@ void Navigation<TMap, TController>::drawRoad()
         scene_road_points.push_back(line1);
         scene_road_points.push_back(line2);
     }
+}
+
+template<typename TMap, typename TController>
+void Navigation<TMap, TController>::print_state( State state) const
+{
+    switch (state)
+    {
+        case State::BLOCKED: qInfo() << "Nav state: BLOCKED"; break;
+        case State::PATH_NOT_FOUND: qInfo() << "Nav state: PATH_NOT_FOUND"; break;
+        case State::RUNNING: qInfo() << "Nav state: RUNNING"; break;
+        case State::IDLE: qInfo() << "Nav state: IDLE"; break;
+        case State::AT_TARGET:
+            auto p = QPointF(currentRobotPose.x(), currentRobotPose.z());
+            qInfo() << "Nav state: *** TARGET ACHIEVED ***  Target -> " << current_target.p << " Current pose -> "
+                    <<  p << "Error -> " << QVector2D(p - current_target.p).length();
+            break;
+    }
+}
+
+// Search for a target that is:
+// - in free space
+// - close to target
+// - close to current robot pose, i.e. to the approaching path
+
+template<typename TMap, typename TController>
+std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot)
+{
+    // get an inactive copy of G so I can move the robot around
+    auto G_copy = G->G_copy();
+    // get target coordinates in world
+    auto tc = innerModel->transformS("world", target.name()).value();
+    QVector2D target_center(tc.x(), tc.z());
+    // get robot coordinates in world
+    auto rc = innerModel->transformS("world", robot_name).value();
+    QVector2D robot_center(rc.x(), rc.z());
+    // define a sampling strategy in increasing radius away from target
+    // get 8 neighbours from grid
+
+    std::cout << __FUNCTION__ << std::endl;
+    auto dim = grid.getDim();
+    std::vector<QVector2D> candidates;
+    float x = target_center.x();
+    float y = target_center.y();
+    long int t = 0;
+    long int dx = dim.TILE_SIZE;
+    long int dy = -dim.TILE_SIZE;
+    for(auto i : iter::range(grid.size()))
+    {
+        if (grid.isFree(grid.pointToGrid(x, y)))
+            candidates.push_back(QVector2D(x, y));
+        if(candidates.size() > 20)
+            break;
+        if(x == y or (x < 0 and x == -y) or (x > 0 and x == dim.TILE_SIZE-y))
+        {
+            t = dx; dx = -dy; dy = t;
+        }
+        x = x + dx;
+        y = y + dy;
+    }
+
+     std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+    // sort by distances to target
+    if(candidates.size() > 0)
+    {
+        std::sort(std::begin(candidates), std::end(candidates), [target_center](const auto &p1, const auto &p2) {
+            return (target_center - p1).length() < (target_center - p2).length();
+        });
+        return candidates.front();
+    }
+    else
+        return {};
 }
 
 

@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
-	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
-	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
-	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
+	tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
+	graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
 	return true;
 }
 
@@ -78,16 +78,40 @@ void SpecificWorker::compute()
 {
     static RoboCompGenericBase::TBaseState my_bstate;
 
+    // read laser
     if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
+    // read robot state
     if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
     {
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
+    // read rgb data
+    if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
+        update_rgb(rgb.value());
+
+    // check for new target values in robot node
+    static float current_base_target_x = 0;
+    static float current_base_target_y = 0;
+    if( auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        if( x.has_value() and y.has_value())
+            if(x.value() != current_base_target_x or y.value() != current_base_target_y)
+            {
+                RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->addOrModifyDummy("base_dummy", dummy_pose); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+                current_base_target_x = x.value();
+                current_base_target_y = y.value();
+            }
+    }
+    // check for changes in base speed references
     checkNewCommand(my_bstate);
-	if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
-		update_rgb(rgb.value());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,12 +219,12 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
 //            {
                 omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
 
-                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
-                          << " Rot: " << ref_rot_speed.value()
-                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
-                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
-                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
-                          << std::endl;
+//                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
+//                          << " Rot: " << ref_rot_speed.value()
+//                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
+//                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
+//                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
+//                          << std::endl;
  //           }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)

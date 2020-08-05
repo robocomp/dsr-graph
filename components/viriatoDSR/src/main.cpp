@@ -135,10 +135,27 @@ int ::viriatoDSR::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
 	initialize();
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "CoppeliaUtilsProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy CoppeliaUtilsProxy\n";
+		}
+		coppeliautils_proxy = Ice::uncheckedCast<RoboCompCoppeliaUtils::CoppeliaUtilsPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy CoppeliaUtils: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("CoppeliaUtilsProxy initialized Ok!");
+
 
 	try
 	{
@@ -167,7 +184,7 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(omnirobot_proxy);
+	tprx = std::make_tuple(coppeliautils_proxy,omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
