@@ -201,7 +201,7 @@ void Navigation<TMap, TController>::newRandomTarget()
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::newTarget(QPointF newT)
 {
-    std::cout << __FUNCTION__  << " New Target arrived " << newT << std::endl;
+    std::cout << "Navigation:" << __FUNCTION__  << " arrived " << newT << std::endl;
     if(stopMovingRobot)
     {
         stopRobot();
@@ -577,19 +577,28 @@ void Navigation<TMap, TController>::drawRoad(const QPolygonF &laser_poly)
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::print_state( State state) const
 {
+    static State state_ant = State::DUMMY;
+    if( state == state_ant)
+    {
+        state_ant = state;
+        return;
+    }
     switch (state)
     {
         case State::BLOCKED: qInfo() << "Nav state: BLOCKED"; break;
         case State::PATH_NOT_FOUND: qInfo() << "Nav state: PATH_NOT_FOUND"; break;
         case State::RUNNING: qInfo() << "Nav state: RUNNING"; break;
         case State::IDLE: qInfo() << "Nav state: IDLE"; break;
+        case State::DUMMY: break;
         case State::AT_TARGET:
             auto p = QPointF(currentRobotPose.x(), currentRobotPose.z());
             qInfo() << "Nav state: *** TARGET ACHIEVED ***  Target -> " << current_target.p << " Current pose -> "
                     <<  p << "Error -> " << QVector2D(p - current_target.p).length();
             break;
     }
+    state_ant = state;
 }
+
 
 // Search for a target that is:
 // - in free space
@@ -597,41 +606,57 @@ void Navigation<TMap, TController>::print_state( State state) const
 // - close to current robot pose, i.e. to the approaching path
 
 template<typename TMap, typename TController>
-std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot)
+std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
 {
-    // get an inactive copy of G so I can move the robot around
-    auto G_copy = G->G_copy();
+    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
+    // if valid x,y coordinates
+    if(x.has_value() and y.has_value())
+    {
+        // if already in current_target return
+        if (this->current_target.p == QPointF(x.value(), y.value()))
+        {
+            //qInfo() << __FUNCTION__  << "Exit same point";
+            return {};
+        }
+        // if node is floor_plane take coordinates directly
+        if (target.id() == 11) // floor
+        {
+            this->newTarget(QPointF(x.value(), y.value()));
+            return QVector2D(x.value(), y.value());
+        }
+    }
     // get target coordinates in world
     auto tc = innerModel->transformS("world", target.name()).value();
     QVector2D target_center(tc.x(), tc.z());
     // get robot coordinates in world
     auto rc = innerModel->transformS("world", robot_name).value();
     QVector2D robot_center(rc.x(), rc.z());
-    // define a sampling strategy in increasing radius away from target
-    // get 8 neighbours from grid
-
-    std::cout << __FUNCTION__ << std::endl;
+    // sample the grid using a spiral trajectory away from target
     auto dim = grid.getDim();
     std::vector<QVector2D> candidates;
-    float x = target_center.x();
-    float y = target_center.y();
-    long int t = 0;
-    long int dx = dim.TILE_SIZE;
-    long int dy = -dim.TILE_SIZE;
-    for(auto i : iter::range(grid.size()))
+    long int x_pos = (long int)target_center.x();
+    long int y_pos = (long int)target_center.y();
+    int d = dim.TILE_SIZE;
+    int m = 1;
+    for(auto &&i : iter::range(grid.size()))
     {
-        if (grid.isFree(grid.pointToGrid(x, y)))
-            candidates.push_back(QVector2D(x, y));
-        if(candidates.size() > 20)
-            break;
-        if(x == y or (x < 0 and x == -y) or (x > 0 and x == dim.TILE_SIZE-y))
+        while (2 * x_pos * d < m)
         {
-            t = dx; dx = -dy; dy = t;
+            const auto &k = Grid<>::Key(x_pos, y_pos);
+            if (grid.isFree(k) and grid.isNearOccupied(k))
+                candidates.push_back(QVector2D(x_pos, y_pos));
+            x_pos = x_pos + d;
         }
-        x = x + dx;
-        y = y + dy;
+        while (2 * y_pos * d < m)
+        {
+            const auto &k = Grid<>::Key(x_pos, y_pos);
+            if (grid.isFree(k) and grid.isNearOccupied(k))
+                candidates.push_back(QVector2D(x_pos, y_pos));
+            y_pos = y_pos + d;
+        }
+        d = -1 * d;
+        m = m + 1;
     }
-
      std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
     // sort by distances to target
     if(candidates.size() > 0)
@@ -639,6 +664,7 @@ std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target
         std::sort(std::begin(candidates), std::end(candidates), [target_center](const auto &p1, const auto &p2) {
             return (target_center - p1).length() < (target_center - p2).length();
         });
+        this->newTarget(candidates.front().toPointF());
         return candidates.front();
     }
     else

@@ -56,9 +56,10 @@ class Grid
             long int z;
             public:
                 Key() : x(0), z(0){};
-                Key(long int &&x, long int &&z) : x(std::move(x)), z(std::move(z)){};
-                Key(long int &x, long int &z) : x(x), z(z){};
-                Key(const long int &x, const long int &z) : x(x), z(z){};
+                Key(long int &&x, long int &&z) : x(std::move(x)), z(std::move(z))
+                    {  };
+                Key(long int &x, long int &z) : x(x), z(z){  };
+                Key(const long int &x, const long int &z) : x(x), z(z){ };
                 Key(const QPointF &p)
                 {
                     x = p.x();
@@ -113,13 +114,16 @@ class Grid
         std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
         Key pointToGrid(long int x, long int z) const;
         void setFree(const Key &k);
-        bool isFree(const Key &k) const;
+        bool isFree(const Key &k) ;
+        bool isNearOccupied(const Key &k);
         void setOccupied(const Key &k);
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> xincs,const std::vector<int> zincs, bool all = false);
+        std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
+        std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);
         void draw(QGraphicsScene* scene);
         Dimensions getDim() const { return dim;};
 

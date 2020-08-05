@@ -94,7 +94,7 @@ void SpecificWorker::initialize(int period)
     	moveRobot();
 
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
-		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato.grid");
+		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato-250.grid");
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
@@ -103,24 +103,31 @@ void SpecificWorker::initialize(int period)
 	}
 }
 
-void SpecificWorker::compute()
-{
+ccgit{
     // check for base_target_values
     auto robot = G->get_node(robot_name);
     if(robot.has_value())
     {
-        // auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_node");
-        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
-        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
-        if(x.has_value() and y.has_value())
-            if( not (navigation.current_target == QPointF(x.value(), y.value())))
-                navigation.newTarget(QPointF(x.value(), y.value()));
+        if(auto target_id = G->get_attrib_by_name<int>(robot.value(), "target_node_id"); target_id.has_value())
+        {
+            if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
+            {
+                auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+                auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+                if (std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y); candidate.has_value())
+                {
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
+                    G->update_node(robot.value());
+                }
+            } else
+                qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
+        }
+        else
+            qWarning() << __FILE__ << __FUNCTION__ << " No target node id found in G";
     }
     else
-    {
-        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
-        return;
-    }
+        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found in G";
 
     auto state = navigation.update();
     navigation.print_state(state);
@@ -173,19 +180,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
-            if (id != 11)  // floor
-            {
-                if( std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value()); candidate.has_value())
-                {
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
-                }
-            }
-            else
-            {
-                G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
-                G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
-            }
+            G->add_or_modify_attrib_local(robot.value(), "target_node_id", (int) target_node.value().id());
+            G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
+            G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
             G->update_node(robot.value());
         }
         else
@@ -195,7 +192,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     }
     else
     {
-        qWarning() << __FILE__ << __FUNCTION__ << " No node  " << QString::number(id) << " found";
+        qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
     }
 }
 
