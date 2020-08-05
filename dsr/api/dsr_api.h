@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <optional>
 #include <type_traits>
+#include <exception>
 
 #include <DSRGetID.h>
 
@@ -255,57 +256,10 @@ namespace DSR {
                     return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
                 }
                 throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
+            } else {
+                throw std::logic_error("Unreachable");
             }
-
-            //else {
-            //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
-            //}
         }
-
-
-        /*
-        template<typename Ta, typename = std::enable_if_t<allowed_return_types<Ta>>, typename Type, typename =  std::enable_if_t<any_node_or_edge<Type>>>
-        std::optional<Ta> get_attrib_by_name(const Type &n, const std::string &key) {
-            std::optional<CRDTAttribute> av = get_attrib_by_name_(n, key);
-            if (!av.has_value()) return {};
-            if constexpr (std::is_same<Ta, std::string>::value) {
-                return av->val().str();
-            }
-            if constexpr (std::is_same<Ta, std::int32_t>::value) {
-                return av->val().dec();
-            }
-            if constexpr (std::is_same<Ta, float>::value) {
-                return av->val().fl();
-            }
-            if constexpr (std::is_same<Ta, std::vector<float>>::value) {
-                return av->val().float_vec();
-            }
-            if constexpr (std::is_same<Ta, bool>::value) {
-                return av->val().bl();
-            }
-            if constexpr (std::is_same<Ta, std::vector<uint8_t>>::value) {
-                return av->val().byte_vec();
-            }
-            if constexpr (std::is_same<Ta, std::uint32_t>::value) {
-                return av->val().uint();
-            }
-            if constexpr (std::is_same<Ta, QVec>::value) {
-                const auto &val = av->val().float_vec();
-                if ((key == "translation" or key == "rotation_euler_xyz")
-                    and (val.size() == 3 or val.size() == 6))
-                    return QVec{val};
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }
-            if constexpr (std::is_same<Ta, QMat>::value) {
-                if (av->val().selected() == FLOAT_VEC and key == "rotation_euler_xyz") {
-                    const auto &val = av->val().float_vec();
-                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
-                }
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }  //else
-            //throw std::runtime_error("Illegal return type in get_attrib_by_name()");
-        }
-        */
 
 
         /**
@@ -360,48 +314,7 @@ namespace DSR {
                 static_assert(result, "Error, tipo incorrecto");
             }
         }
-        /*template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
-        void add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
 
-            if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
-                Attribute at(att_value, get_unix_timestamp(), agent_id);
-                elem.attrs().insert_or_assign(att_name, at);
-            } else {
-                CRDTAttribute at;
-                CRDTValue value;
-                if constexpr (std::is_same<std::string, Ta>::value || std::is_same<std::string_view, Ta>::value ||
-                              std::is_same<const string &, Ta>::value) {
-                    at.type(STRING);
-                    value.str(att_value);
-                } else if constexpr (std::is_same<std::int32_t, Ta>::value) {
-                    at.type(INT);
-                    value.dec(att_value);
-                } else if constexpr (std::is_same<float, Ta>::value || std::is_same<double, Ta>::value) {
-                    at.type(FLOAT);
-                    value.fl(att_value);
-                } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
-                    at.type(FLOAT_VEC);
-                    value.float_vec(att_value);
-                } else if constexpr (std::is_same<std::vector<uint8_t>, Ta>::value) {
-                    at.type(BYTE_VEC);
-                    value.byte_vec(att_value);
-                } else if constexpr (std::is_same<bool, Ta>::value) {
-                    at.type(BOOL);
-                    value.bl(att_value);
-                } else if constexpr (std::is_same<std::uint32_t, Ta>::value) {
-                    at.type(UINT);
-                    value.uint(att_value);
-                }
-
-                at.val(std::move(value));
-                at.timestamp(get_unix_timestamp());
-                if (elem.attrs().find(att_name) == elem.attrs().end()) {
-                    mvreg<CRDTAttribute, uint32_t> mv;
-                    elem.attrs().insert(make_pair(att_name, mv));
-                }
-                elem.attrs()[att_name].write(at);
-            }
-        }*/
 
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool add_attrib_local(Type &elem, const Ta &att_value) {
@@ -758,11 +671,9 @@ namespace DSR {
                     return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
                 }
                 throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
+            } else {
+                throw std::logic_error("Unreachable");
             }
-
-            //else {
-            //    static_assert(allowed_types<std::remove_cv_t<std::remove_reference_t<decltype(name::type)>>>, "Error, se intenta obtener un tipo inválido");
-            //}
         }
 
         //////////////////////////////////////////////////////////////////////////
