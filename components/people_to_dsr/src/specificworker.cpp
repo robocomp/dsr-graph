@@ -59,7 +59,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    if(auto pdata = people_data_buffer.get(); pdata.has_value())
+    if(auto pdata = people_data_buffer.try_get(); pdata.has_value())
         process_people_data(pdata.value());
     //check people thas has not been seen
     check_unseen_people();
