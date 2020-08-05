@@ -81,7 +81,7 @@ private:
 	bool osg_3d_view;
 
 	// DSR graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
