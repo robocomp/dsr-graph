@@ -53,7 +53,7 @@ Q_OBJECT
 		std::string test_output_file;
 		
 		// graph viewer
-		std::unique_ptr<DSR::DSRViewer> graph_viewer;
+		std::unique_ptr<DSR::DSRViewer> dsr_viewer;
         std::map<int, QString> node_combo_names;
         std::map<std::string, QString> edge_combo_names;
 	public:

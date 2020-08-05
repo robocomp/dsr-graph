@@ -74,8 +74,10 @@ void SpecificWorker::initialize(int period)
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
         opts main = opts::none;
         if (graph_view)
+		{
         	main = opts::graph;
-        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		}
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         connect(actionSaveToFile, &QAction::triggered, [this]() {
             auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"),

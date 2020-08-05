@@ -84,7 +84,7 @@ private:
 public:
     std::string agent_name;
     std::shared_ptr<DSR::DSRGraph> G;
-    std::unique_ptr<DSR::DSRViewer> graph_viewer;
+    std::unique_ptr<DSR::DSRViewer> dsr_viewer;
     QHBoxLayout mainLayout;
     QWidget window;
     
