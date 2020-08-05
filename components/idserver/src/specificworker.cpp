@@ -74,7 +74,9 @@ void SpecificWorker::initialize(int period)
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
         opts main = opts::none;
         if (graph_view)
+		{
         	main = opts::graph;
+		}
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         connect(actionSaveToFile, &QAction::triggered, [this]() {
@@ -85,7 +87,6 @@ void SpecificWorker::initialize(int period)
             G->write_to_json_file(file_name.toStdString());
             qDebug() << __FUNCTION__ << "Written";
         });
-		dsr_viewer->add_custom_widget_to_dock(QString("The Button"), new QPushButton("HelloWorld"));
         this->Period = 100;
 
         // Compute max Id in G
