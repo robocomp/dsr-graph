@@ -99,8 +99,8 @@ public:
     void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);    
 
 private: 
-    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  int parent_idz);
-    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, int parent_id);
+    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_idz);
+    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
     void check_unseen_people();
 
