@@ -141,7 +141,7 @@ int ::idserver::run(int argc, char* argv[])
 	initialize();
 
 	tprx = std::tuple<>();
-	SpecificWorker *worker = new SpecificWorker(tprx);
+	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
     //Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
 	QObject::connect(monitor, SIGNAL(kill()), &a, SLOT(quit()));

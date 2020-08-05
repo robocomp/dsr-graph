@@ -35,7 +35,7 @@ class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 public:
-	SpecificWorker(TuplePrx tprx);
+	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void initialize();
@@ -43,6 +43,7 @@ public:
 	 // DSR
     std::shared_ptr<DSR::DSRGraph> G;
     std::string agent_name;
+    bool startup_check_flag;
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
@@ -50,6 +51,7 @@ public:
 public slots:
 	void compute();
 	void initialize(int period);
+    int startup_check();
 
 private:
 
@@ -70,6 +72,10 @@ private:
 	QGraphicsScene scene;
 	QGraphicsView gv;
 
+    int tree_view;
+    int graph_view;
+    int qscene_2d_view;
+    int osg_3d_view;
 };
 
 #endif
