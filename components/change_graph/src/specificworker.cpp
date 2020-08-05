@@ -327,9 +327,9 @@ void SpecificWorker::new_node_slot()
 
     Node node;
     node.type(node_type.toStdString());
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0f);
-    G->add_or_modify_attrib_local(node, "pos_y", 130.0f);
-    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
+    G->add_or_modify_attrib_local<pos_x_att>(node, 100.0f);
+    G->add_or_modify_attrib_local<pos_y_att>(node, 130.0f);
+    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
     try
     {
         G->insert_node(node);
@@ -424,6 +424,7 @@ void SpecificWorker::new_edge_attrib_slot()
 void SpecificWorker::del_node_attrib_slot() {
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
     std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
+    G->remove_attrib_by_name<name_att>(node);
     if(G->remove_attrib_by_name(node, attrib_name))
     {
         fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
