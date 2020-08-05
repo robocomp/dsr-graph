@@ -69,7 +69,7 @@ struct Attr {
 REGISTER_TYPE(pos_x, float);
 REGISTER_TYPE(pos_y, float);
 REGISTER_TYPE(level, int);
-REGISTER_TYPE(name, const std::string&);
+REGISTER_TYPE(name, std::reference_wrapper<const std::string>);
 REGISTER_TYPE(parent, std::uint32_t);
 REGISTER_TYPE(rotation_euler_xyz, std::reference_wrapper<const std::vector<float>>);
 REGISTER_TYPE(translation, std::reference_wrapper<const std::vector<float>>);
@@ -94,6 +94,7 @@ REGISTER_TYPE(angular_speed, std::reference_wrapper<const std::vector<float>>);
 REGISTER_TYPE(ref_adv_speed, float);
 REGISTER_TYPE(ref_rot_speed, float);
 REGISTER_TYPE(ref_side_speed, float);
-
+REGISTER_TYPE(base_target_x, float);
+REGISTER_TYPE(base_target_y, float);
 
 #endif //IDSERVER_DSR_ATTR_NAME_H
