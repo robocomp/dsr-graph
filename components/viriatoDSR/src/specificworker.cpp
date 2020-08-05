@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
-	graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
-	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
-	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
+	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
+	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
 	return true;
 }
 
@@ -96,8 +96,8 @@ void SpecificWorker::compute()
     static float current_base_target_y = 0;
     if( auto robot = G->get_node(robot_name); robot.has_value())
     {
-        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
-        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        auto x = G->get_attrib_by_name<base_target_x_att>(robot.value());
+        auto y = G->get_attrib_by_name<base_target_y_att>(robot.value());
         if( x.has_value() and y.has_value())
             if(x.value() != current_base_target_x or y.value() != current_base_target_y)
             {
