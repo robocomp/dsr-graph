@@ -52,7 +52,7 @@ private:
     std::shared_ptr<DSR::DSRGraph> G;
     std::string agent_name;
     bool startup_check_flag;
-    std::unique_ptr<DSR::DSRViewer> graph_viewer;
+    std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	int node_id = -9999;
