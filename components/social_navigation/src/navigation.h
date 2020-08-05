@@ -46,13 +46,13 @@ class Navigation
                          std::string file_name = std::string());
         void stopRobot();
         bool isCurrentTargetActive();
-        enum class State{BLOCKED, PATH_NOT_FOUND, RUNNING, AT_TARGET, IDLE};
+        enum class State{BLOCKED, PATH_NOT_FOUND, RUNNING, AT_TARGET, IDLE, DUMMY};
         State update();
         std::string checkPathState();
         void newRandomTarget();
         void newTarget(QPointF newT);
         void print_state(State state) const;
-        std::optional<QVector2D> search_a_feasible_target(const Node &target, const Node &robot);
+        std::optional<QVector2D> search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y);
 
         // Target
         struct Target : public std::mutex

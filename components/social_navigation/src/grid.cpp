@@ -42,6 +42,7 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, std::shar
     }
 }
 
+
 template <typename T>
 std::tuple<bool, T &> Grid<T>::getCell(long int x, long int z)
 {
@@ -125,7 +126,13 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
     // vector de distancias inicializado a DBL_MAX
     std::vector<double> min_distance(fmap.size(),std::numeric_limits<double>::max());
     // std::uint32_t id with source value
-    auto id = std::get<T &>(getCell(source)).id;
+    const auto &[success, val] = getCell(source);
+    if(not success)
+    {
+        qWarning() << "Could not find source position in Grid";
+        return std::list<QPointF>();
+    }
+    auto id = val.id;
     // initialize source position to 0
     min_distance[id] = 0;
     // vector de pares<std::uint32_t,Key> initialized to (-1, Key())
@@ -157,12 +164,7 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
                 return std::list<QPointF>();
         }
         active_vertices.erase(active_vertices.begin());
-
-        const int &I = dim.TILE_SIZE;
-        static const std::vector<int> xincs = {I, I, I, 0, -I, -I, -I, 0};
-        static const std::vector<int> zincs = {I, 0, -I, -I, -I, 0, I, I};
-
-        for (auto ed : neighboors(where,xincs,zincs))
+        for (auto ed : neighboors_8(where))
         {
 //				qDebug() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
             if (min_distance[ed.second.id] > min_distance[fmap[where].id] + ed.second.cost)
@@ -180,11 +182,13 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
 };
 
 template <typename T>
-bool Grid<T>::isFree(const Key &k) const
+bool Grid<T>::isFree(const Key &k)
 {
-    qInfo() << k.x << k.z ;
     if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-        return fmap.at(k).free;
+    {
+        const auto &[success, v] = getCell(k);
+        return v.free;
+    }
     else
         return false;
 }
@@ -193,7 +197,23 @@ template <typename T>
 void Grid<T>::setFree(const Key &k)
 {
     if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-        fmap.at(k).free = true;
+    {
+        auto &[success, v] = getCell(k);
+        v.free = true;
+    }
+}
+
+template <typename T>
+bool Grid<T>::isNearOccupied(const Key &k)
+{
+    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
+    {
+        auto neigh = this->neighboors_8(k, true);
+        for(const auto &[key, val] : neigh)
+            if(val.free)
+                return true;
+    }
+    return false;
 }
 
 template <typename T>
@@ -256,17 +276,13 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
     QVector2D closestVector;
     bool obstacleFound = false;
 
-    const int &I = dim.TILE_SIZE;
-    static const std::vector<int> xincs = {I, I, I, 0, -I, -I, -I, 0};
-    static const std::vector<int> zincs = {I, 0, -I, -I, -I, 0, I, I};
-    auto neigh = neighboors(k,xincs,zincs, true);
+    auto neigh = neighboors_8(k, true);
     float dist = std::numeric_limits<float>::max();
     for (auto n : neigh)
     {
         if (n.second.free == false)
         {
-//                qDebug() << "Neigh "<< QPointF(n.first.x,n.first.z);
-            QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x,n.first.z)) ;
+           QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x,n.first.z)) ;
             if (vec.length() < dist)
             {
                 dist = vec.length();
@@ -279,10 +295,7 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
 
     if (!obstacleFound)
     {
-        const int &I = dim.TILE_SIZE;
-        static const std::vector<int> xincs = {0,   I,   2*I,  2*I, 2*I, 2*I, 2*I, I, 0, -I, -2*I, -2*I,-2*I,-2*I,-2*I, -I};
-        static const std::vector<int> zincs = {2*I, 2*I, 2*I,  I,   0 , -I , -2*I, -2*I,-2*I,-2*I,-2*I, -I, 0,I, 2*I, 2*I};
-        auto DistNeigh = neighboors(k,xincs,zincs, true);
+        auto DistNeigh = neighboors_16(k, true);
         for (auto n : DistNeigh)
         {
             if (n.second.free == false)
@@ -314,31 +327,46 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors(const Grid<
         Key lk{k.x + itx, k.z + itz};
         try
         {
-            T p = fmap.at(Key(lk.x, lk.z));
-            T &p_aux = fmap_aux.at(Key(lk.x, lk.z));
+            const auto &[success, p] = getCell(lk);
+            if(not success) continue;
+
             // check that incs are not both zero but have the same abs value, i.e. a diagonal
             if (itx != 0 and itz != 0 and (fabs(itx) == fabs(itz)) and p.cost==1)
                 p.cost = 1.41; 								// if neighboor in diagonal, cost is sqrt(2)
-            if(all == false)
-            {
-                if (p.free and p_aux.free)
-                {
-                    neigh.emplace_back(std::make_pair(lk, p));
-                }
-            }
-            else
-            {
+
+            if(all)
                 neigh.emplace_back(std::make_pair(lk, p));
-            }
+            else
+                if (p.free)
+                    neigh.emplace_back(std::make_pair(lk, p));
         }
         catch (const std::exception &e)
         {
-            //std::cout << e.what() << " neighbour not found in grid " << lk.x << " " << lk.z << '\n';
+//            std::cout << e.what() << " neighbour not found in grid " << lk.x << " " << lk.z << '\n';
+//            throw e;
         }
     }
-    //qDebug() << neigh.size();
     return neigh;
 }
+
+template <typename T>
+std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_8(const Grid<T>::Key &k, bool all)
+{
+    const int &I = dim.TILE_SIZE;
+    static const std::vector<int> xincs = {I, I, I, 0, -I, -I, -I, 0};
+    static const std::vector<int> zincs = {I, 0, -I, -I, -I, 0, I, I};
+    return this->neighboors(k, xincs, zincs, all);
+}
+
+template <typename T>
+std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_16(const Grid<T>::Key &k, bool all)
+{
+    const int &I = dim.TILE_SIZE;
+    static const std::vector<int> xincs = {0,   I,   2*I,  2*I, 2*I, 2*I, 2*I, I, 0, -I, -2*I, -2*I,-2*I,-2*I,-2*I, -I};
+    static const std::vector<int> zincs = {2*I, 2*I, 2*I,  I,   0 , -I , -2*I, -2*I,-2*I,-2*I,-2*I, -I, 0,I, 2*I, 2*I};
+    return this->neighboors(k, xincs, zincs, all);
+}
+
 /**
 		* @brief Recovers the optimal path from the list of previous nodes
 		*
