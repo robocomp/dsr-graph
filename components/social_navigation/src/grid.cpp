@@ -180,6 +180,16 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
 };
 
 template <typename T>
+bool Grid<T>::isFree(const Key &k) const
+{
+    qInfo() << k.x << k.z ;
+    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
+        return fmap.at(k).free;
+    else
+        return false;
+}
+
+template <typename T>
 void Grid<T>::setFree(const Key &k)
 {
     if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
@@ -299,7 +309,6 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors(const Grid<
 {
     std::vector<std::pair<Key, T>> neigh;
     // list of increments to access the neighboors of a given position
-
     for (auto &&[itx, itz] : iter::zip(xincs, zincs))
     {
         Key lk{k.x + itx, k.z + itz};

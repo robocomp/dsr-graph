@@ -113,6 +113,7 @@ class Grid
         std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
         Key pointToGrid(long int x, long int z) const;
         void setFree(const Key &k);
+        bool isFree(const Key &k) const;
         void setOccupied(const Key &k);
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
@@ -120,6 +121,7 @@ class Grid
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> xincs,const std::vector<int> zincs, bool all = false);
         void draw(QGraphicsScene* scene);
+        Dimensions getDim() const { return dim;};
 
     private:
         FMap fmap, fmap_aux;

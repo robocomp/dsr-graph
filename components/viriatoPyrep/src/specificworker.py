@@ -105,12 +105,12 @@ class SpecificWorker(GenericWorker):
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
         self.hokuyo_base_back_left = VisionSensor("hokuyo_base_back_left")
 
-        # 
-        # self.people = {}
-        # for i in range(1,5):
-        #     name = "Bill#" + str(i)
-        #     if Dummy.exists(name):
-        #         self.people["name"] = Dummy(name)
+        # Read existing people
+        self.people = {}
+        for i in range(1,5):
+            name = "Bill#" + str(i)
+            if Dummy.exists(name):
+                self.people[name] = Dummy(name)
 
         self.joystick_newdata = []
         self.speed_robot = []
@@ -135,23 +135,22 @@ class SpecificWorker(GenericWorker):
                 except Ice.Exception as e:
                     print(e)
 
-                # get People position
-        #         people_data = RoboCompHumanToDSRPub.PeopleData()
-        #         people_data.timestamp = time.time()
-        #         people = [] #RoboCompHumanToDSRPub.People()
-        #         for name, handle in self.people.items():
-        #             pos = handle.get_position()
-        #             rot = handle.get_orientation()
-        #             person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
-        #             people.append(person)
-        #         try:
-        #             people_data.peoplelist = people
-        #             self.humantodsrpub_proxy.newPeopleData(people_data)
-        #         except Ice.Exception as e:
-        #             print(e)
-        # 
-        #         # compute TLaserData and publish
+                # get and publish people position
+                people_data = RoboCompHumanToDSRPub.PeopleData()
+                people_data.timestamp = time.time()
+                people = [] #RoboCompHumanToDSRPub.People()
+                for name, handle in self.people.items():
+                    pos = handle.get_position()
+                    rot = handle.get_orientation()
+                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
+                    people.append(person)
+                try:
+                    people_data.peoplelist = people
+                    self.humantodsrpub_proxy.newPeopleData(people_data)
+                except Ice.Exception as e:
+                    print(e)
 
+            # compute TLaserData and publish
             ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
                                               self.hokuyo_base_front_left,
                                               self.hokuyo_base_back_left,
@@ -161,12 +160,12 @@ class SpecificWorker(GenericWorker):
                 self.laserpub_proxy.pushLaserData(ldata)
             except Ice.Exception as e:
                 print(e)
-        #         
+
             # Move robot from data in joystick buffer
             if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
                 self.update_joystick(self.joystick_newdata[0])
                 self.joystick_newdata = None
-        # 
+
             # Get and publish robot pose
             pose = self.robot.get_2d_pose()
             linear_vel, ang_vel = self.robot_object.get_velocity()
@@ -190,7 +189,7 @@ class SpecificWorker(GenericWorker):
                 print("Velocities sent to robot:", self.speed_robot)
                 self.speed_robot_ant = self.speed_robot
 
-            time.sleep(0.08)
+            time.sleep(0.070)
         #         #print(time.time()-start)
         #     except KeyboardInterrupt:
         #         break
@@ -356,8 +355,20 @@ class SpecificWorker(GenericWorker):
         pass
 
     # ===================================================================
+    # CoppeliaUtils
     # ===================================================================
+    def CoppeliaUtils_addOrModifyDummy(self, name, pose):
+        if not Dummy.exists(name):
+            dummy = Dummy.create(0.1)
+            dummy.set_name(name)
+        else:
+            dummy = Dummy(name)
+        # change from RoboComp to Coppelia coordinate system
+        # print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
+        dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
+        dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
 
+    ######################################################################
    #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
         #self.hokuyo_base_front_left_semiwidth = self.hokuyo_base_front_left.get_resolution()[0]/2
         #self.hokuyo_base_front_left_focal = self.hokuyo_base_front_left_semiwidth/np.tan(self.hokuyo_base_front_left_semiangle)

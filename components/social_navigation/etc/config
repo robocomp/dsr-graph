@@ -2,7 +2,6 @@ CommonBehavior.Endpoints=tcp -p 17700
 
 # Proxies for required interfaces
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
-OmniRobotProxy = omnirobot:tcp -p 10004
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
@@ -14,9 +13,9 @@ graph_view = true
 2d_view = true
 3d_view = false
 
-NavigationAgent.MaxZSpeed = 450
-NavigationAgent.MaxXSpeed = 350
-NavigationAgent.MaxRotationSpeed = 0.75
+NavigationAgent.MaxZSpeed = 650
+NavigationAgent.MaxXSpeed = 450
+NavigationAgent.MaxRotationSpeed = 2
 
 NavigationAgent.RobotName = omnirobot
 NavigationAgent.RobotXWidth = 540
@@ -33,10 +32,10 @@ NavigationAgent.MinimunDetectableRotation = 0.03			# to accept a new target
 NavigationAgent.MinimunDetectableTranslation = 7 			# to accept a new target
 
 #world region definition
-NavigationAgent.OuterRegionLeft = -3000
-NavigationAgent.OuterRegionRight = 7000
-NavigationAgent.OuterRegionBottom = -3000
-NavigationAgent.OuterRegionTop = 7000
+#NavigationAgent.OuterRegionLeft = -3000
+#NavigationAgent.OuterRegionRight = 7000
+#NavigationAgent.OuterRegionBottom = -4000
+#NavigationAgent.OuterRegionTop = 4000
 
 
 Ice.Warn.Connections=0

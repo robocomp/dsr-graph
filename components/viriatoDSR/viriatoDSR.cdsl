@@ -2,12 +2,13 @@ import "CameraRGBDSimplePub.idsl";
 import "OmniRobotPub.idsl";
 import "LaserPub.idsl";
 import "OmniRobot.idsl";
+import "CoppeliaUtils.idsl";
 
 Component viriatoDSR
 {
     Communications
     {
-        requires OmniRobot;
+        requires OmniRobot, CoppeliaUtils;
         subscribesTo CameraRGBDSimplePub, OmniRobotPub, LaserPub;
     };
     language Cpp11;

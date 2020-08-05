@@ -98,36 +98,34 @@ void SpecificWorker::initialize(int period)
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
-		this->Period = 160;
+		this->Period = 200;
 		timer.start(Period);
 	}
 }
 
 void SpecificWorker::compute()
 {
-	bool needsReplaning = false; 
-    RoboCompLaser::TLaserData laserData = updateLaser();
-	navigation.update(laserData, needsReplaning);
-}
-
-RoboCompLaser::TLaserData  SpecificWorker::updateLaser()
-{
-	qDebug()<<__FUNCTION__<<"reading from DSR laser node";
-	RoboCompLaser::TLaserData laserData;
-
-	//TODO: Change on next version: not using RoboCompLaser::TLaserData
-	//Converting graph laser data to RoboCompLaser
-	auto laser_node = G->get_node("laser");
-	if(laser_node.has_value()) {
-        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
-        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
-        if (lAngles.has_value() and lDists.has_value()) 
-            for( auto &&[angle, dist] : iter::zip(lAngles.value(), lDists.value()))
-                laserData.push_back(RoboCompLaser::TData{angle, dist});
+    // check for base_target_values
+    auto robot = G->get_node(robot_name);
+    if(robot.has_value())
+    {
+        // auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_node");
+        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        if(x.has_value() and y.has_value())
+            if( not (navigation.current_target == QPointF(x.value(), y.value())))
+                navigation.newTarget(QPointF(x.value(), y.value()));
     }
-    return laserData;
-}
+    else
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+        return;
+    }
 
+    auto state = navigation.update();
+    navigation.print_state(state);
+
+}
 
 void  SpecificWorker::moveRobot()
 {
@@ -166,10 +164,39 @@ void  SpecificWorker::checkRobotAutoMovState()
     }
 }
 
+///////////////////////////////////////////////////////
+
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
-    std::cout << "New target:" << pos_x << " " << pos_y << " " << id << std::endl;
-    navigation.newTarget(QPointF(pos_x, pos_y));
+    std::cout << __FUNCTION__ << " New target:" << pos_x << " " << pos_y << " " << id << std::endl;
+    if( auto target_node = G->get_node(id); target_node.has_value())
+    {
+        if (auto robot = G->get_node(robot_name); robot.has_value())
+        {
+            if (id != 11)  // floor
+            {
+                if( std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value()); candidate.has_value())
+                {
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
+                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
+                }
+            }
+            else
+            {
+                G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
+                G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
+            }
+            G->update_node(robot.value());
+        }
+        else
+        {
+            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+        }
+    }
+    else
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << " No node  " << QString::number(id) << " found";
+    }
 }
 
 ///////////////////////////////////////////////////
@@ -194,15 +221,12 @@ void SpecificWorker::forcesSliderChanged(int value)
     navigation.KE = (float) custom_widget.ke_slider -> sliderPosition();
 }
 
-
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
-
-
 
 /**************************************/
 // From the RoboCompSocialRules you can use this types:

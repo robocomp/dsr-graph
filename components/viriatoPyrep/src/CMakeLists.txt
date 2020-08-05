@@ -3,5 +3,5 @@ PROJECT(  viriatoPyrep )
 
 INCLUDE( $ENV{ROBOCOMP}/cmake/robocomp.cmake )
 
-ROBOCOMP_IDSL_TO_ICE( CommonBehavior CameraRGBDSimple CameraRGBDSimple CameraRGBDSimplePub GenericBase JoystickAdapter Laser LaserPub OmniRobot OmniRobotPub HumanToDSRPub)
+ROBOCOMP_IDSL_TO_ICE( CommonBehavior CameraRGBDSimple CameraRGBDSimple CameraRGBDSimplePub GenericBase JoystickAdapter Laser LaserPub OmniRobot OmniRobotPub HumanToDSRPub CoppeliaUtils)
 

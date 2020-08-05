@@ -7,6 +7,7 @@ add_subdirectory( viriatoDSR )
 add_subdirectory( people_to_dsr )
 add_subdirectory( change_graph )
 add_subdirectory( social_navigation )
+add_subdirectory( watcherDSR )
 
 
 
