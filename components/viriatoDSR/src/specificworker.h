@@ -69,7 +69,7 @@ private:
 	int osg_3d_view;
 
 	// graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 
