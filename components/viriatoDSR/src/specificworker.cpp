@@ -78,15 +78,15 @@ void SpecificWorker::compute()
 {
     static RoboCompGenericBase::TBaseState my_bstate;
 
-    if (auto ldata = laser_buffer.get(); ldata.has_value())
+    if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
-    if (auto bState = omnirobot_buffer.get(); bState.has_value())
+    if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
     {
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
     checkNewCommand(my_bstate);
-	if(auto rgb = rgb_buffer.get(); rgb.has_value())
+	if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
 		update_rgb(rgb.value());
 }
 
