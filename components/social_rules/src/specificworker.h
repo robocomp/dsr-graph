@@ -47,9 +47,20 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+
+	//custom_widget
+    void drawPersonalSpace();
+
+private:
+    void updatePeopleInModel();
+    void checkInteractions();
+    void applySocialRules();
+    void updatePersonalSpacesInGraph();
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
+
+    std::shared_ptr<DSR::InnerAPI> inner_api;
 
 	//DSR params
 	std::string agent_name;
@@ -67,6 +78,21 @@ private:
 
     //local widget
     Custom_widget custom_widget;
+
+
+    std::map<int32_t, RoboCompSocialNavigationGaussian::SNGPerson> map_people;
+    //groups
+    std::map<int32_t, int32_t> person_to_group;
+    struct group_space
+    {
+        std::vector<int32_t> people_ids;
+        RoboCompSocialNavigationGaussian::SNGPersonSeq people_seq;
+        RoboCompSocialNavigationGaussian::SNGPolylineSeq intimatePolylines;
+        RoboCompSocialNavigationGaussian::SNGPolylineSeq personalPolylines;
+        RoboCompSocialNavigationGaussian::SNGPolylineSeq socialPolylines;
+    };
+    std::map<int32_t, group_space> people_groups; //People grouped on interactions
+
 
 };
 
