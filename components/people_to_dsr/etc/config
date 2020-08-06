@@ -9,12 +9,12 @@ DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
 
-InnerModelPath = innermodel.xml
-
 agent_id = 9
 agent_name = people_to_dsr
-dsr_output_path = /home/robocomp/robocomp/components/dsr-graph/etc/
-
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = true
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0

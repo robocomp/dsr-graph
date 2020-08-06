@@ -46,8 +46,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
-
-
 	return true;
 }
 

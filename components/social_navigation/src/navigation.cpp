@@ -17,10 +17,38 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 
     stopRobot();
     //grid can't be initialized if the robot is moving
+    std::optional<Node> world_node = G->get_node("world");
+    if(not world_node.has_value())
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << "World node not found in G. Aborting";
+        std::terminate();
+    }
+    QRectF outerRegion;
+    outerRegion.setLeft(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionLeft").value());
+    outerRegion.setRight(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionRight").value());
+    outerRegion.setBottom(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionBottom").value());
+    outerRegion.setTop(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionTop").value());
+    if(outerRegion.isNull())
+    {
+        qWarning() << __FILE__ << __FUNCTION__ << "Outer region of the scene could not be found in G. Aborting";
+        std::terminate();
+    }
+
+    // if read_from_file is true we should read the parameters from the file to guarantee consistency
+    Grid<>::Dimensions dim;
+    dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
+    dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
+    dim.VMIN = std::min(outerRegion.top(), outerRegion.bottom());
+    dim.HEIGHT = std::max(outerRegion.top(), outerRegion.bottom()) - dim.VMIN;
+    std::cout << __FUNCTION__ << "TileSize is " << configparams_->at("TileSize").value << std::endl;
+    dim.TILE_SIZE = stoi(configparams_->at("TileSize").value);
+
     collisions =  std::make_shared<Collisions>();
     collisions->initialize(G, configparams);
-    grid.initialize(G, collisions, read_from_file, file_name);
+
+    grid.initialize(G, collisions, dim, read_from_file, file_name);
     grid.draw(viewer_2d);
+
     controller.initialize(innerModel,configparams);
 
     robotXWidth = std::stof(configparams->at("RobotXWidth").value);
@@ -29,8 +57,6 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     robotBottomRight    = QVec::vec3( + robotXWidth / 2 + 100, 0, - robotZLong / 2 - 100);
     robotTopRight       = QVec::vec3( + robotXWidth / 2 + 100, 0, + robotZLong / 2 + 100);
     robotTopLeft        = QVec::vec3( - robotXWidth / 2 - 100, 0, + robotZLong / 2 + 100);
-
-    //    reloj.restart();
 };
 
 template<typename TMap, typename TController>
@@ -125,6 +151,78 @@ typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>:
         qFatal("Terminate due to laser node not found ");
     return LaserData();
 }
+
+// Search for a target that is:
+// - in free space
+// - close to target
+// - close to current robot pose, i.e. to the approaching path
+
+template<typename TMap, typename TController>
+std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
+{
+    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
+    // if valid x,y coordinates
+    if(x.has_value() and y.has_value())
+    {
+        // if already in current_target return
+        if (this->current_target.p == QPointF(x.value(), y.value()))
+        {
+            //qInfo() << __FUNCTION__  << "Exit same point";
+            return {};
+        }
+        // if node is floor_plane take coordinates directly
+        if (target.id() == 11) // floor
+        {
+            this->newTarget(QPointF(x.value(), y.value()));
+            return QVector2D(x.value(), y.value());
+        }
+    }
+    // get target coordinates in world
+    auto tc = innerModel->transformS("world", target.name()).value();
+    QVector2D target_center(tc.x(), tc.z());
+    // get robot coordinates in world
+    auto rc = innerModel->transformS("world", robot_name).value();
+    QVector2D robot_center(rc.x(), rc.z());
+    // sample the grid using a spiral trajectory away from target
+    auto dim = grid.getDim();
+    std::vector<QVector2D> candidates;
+    long int x_pos = (long int)target_center.x();
+    long int y_pos = (long int)target_center.y();
+    int d = dim.TILE_SIZE;
+    int m = 1;
+    for(auto &&i : iter::range(grid.size()))
+    {
+        while (2 * x_pos * d < m)
+        {
+            const auto &k = Grid<>::Key(x_pos, y_pos);
+            if (grid.isFree(k) and grid.isNearOccupied(k))
+                candidates.push_back(QVector2D(x_pos, y_pos));
+            x_pos = x_pos + d;
+        }
+        while (2 * y_pos * d < m)
+        {
+            const auto &k = Grid<>::Key(x_pos, y_pos);
+            if (grid.isFree(k) and grid.isNearOccupied(k))
+                candidates.push_back(QVector2D(x_pos, y_pos));
+            y_pos = y_pos + d;
+        }
+        d = -1 * d;
+        m = m + 1;
+    }
+    std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+    // sort by distances to target
+    if(candidates.size() > 0)
+    {
+        std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
+            return (robot_center - p1).length() < (robot_center - p2).length();
+        });
+        this->newTarget(candidates.front().toPointF());
+        return candidates.front();
+    }
+    else
+        return {};
+}
+
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::stopRobot()
@@ -600,76 +698,6 @@ void Navigation<TMap, TController>::print_state( State state) const
 }
 
 
-// Search for a target that is:
-// - in free space
-// - close to target
-// - close to current robot pose, i.e. to the approaching path
-
-template<typename TMap, typename TController>
-std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
-{
-    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
-    // if valid x,y coordinates
-    if(x.has_value() and y.has_value())
-    {
-        // if already in current_target return
-        if (this->current_target.p == QPointF(x.value(), y.value()))
-        {
-            //qInfo() << __FUNCTION__  << "Exit same point";
-            return {};
-        }
-        // if node is floor_plane take coordinates directly
-        if (target.id() == 11) // floor
-        {
-            this->newTarget(QPointF(x.value(), y.value()));
-            return QVector2D(x.value(), y.value());
-        }
-    }
-    // get target coordinates in world
-    auto tc = innerModel->transformS("world", target.name()).value();
-    QVector2D target_center(tc.x(), tc.z());
-    // get robot coordinates in world
-    auto rc = innerModel->transformS("world", robot_name).value();
-    QVector2D robot_center(rc.x(), rc.z());
-    // sample the grid using a spiral trajectory away from target
-    auto dim = grid.getDim();
-    std::vector<QVector2D> candidates;
-    long int x_pos = (long int)target_center.x();
-    long int y_pos = (long int)target_center.y();
-    int d = dim.TILE_SIZE;
-    int m = 1;
-    for(auto &&i : iter::range(grid.size()))
-    {
-        while (2 * x_pos * d < m)
-        {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k))
-                candidates.push_back(QVector2D(x_pos, y_pos));
-            x_pos = x_pos + d;
-        }
-        while (2 * y_pos * d < m)
-        {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k))
-                candidates.push_back(QVector2D(x_pos, y_pos));
-            y_pos = y_pos + d;
-        }
-        d = -1 * d;
-        m = m + 1;
-    }
-     std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
-    // sort by distances to target
-    if(candidates.size() > 0)
-    {
-        std::sort(std::begin(candidates), std::end(candidates), [target_center](const auto &p1, const auto &p2) {
-            return (target_center - p1).length() < (target_center - p2).length();
-        });
-        this->newTarget(candidates.front().toPointF());
-        return candidates.front();
-    }
-    else
-        return {};
-}
 
 
 //template<typename TMap, typename TController>

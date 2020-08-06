@@ -5,20 +5,15 @@
 template <typename T>
 void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                          std::shared_ptr<Collisions> collisions_,
-                         int TILE_SIZE_,
+                         Dimensions dim_,
                          bool read_from_file,
                          const std::string &file_name)
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
     G = graph_;
     uint count = 0;
-    dim.TILE_SIZE = int(TILE_SIZE_);
-    dim.HMIN = std::min(collisions_->outerRegion.left(), collisions_->outerRegion.right());
-    dim.WIDTH = std::max(collisions_->outerRegion.left(), collisions_->outerRegion.right()) - dim.HMIN;
-    dim.VMIN = std::min(collisions_->outerRegion.top(), collisions_->outerRegion.bottom());
-    dim.HEIGHT = std::max(collisions_->outerRegion.top(), collisions_->outerRegion.bottom()) - dim.VMIN;
+    dim = dim_;
     qDebug() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
-
     fmap.clear();
     fmap_aux.clear();
 
@@ -210,13 +205,10 @@ void Grid<T>::setFree(const Key &k)
 template <typename T>
 bool Grid<T>::isNearOccupied(const Key &k)
 {
-    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-    {
-        auto neigh = this->neighboors_8(k, true);
+    auto neigh = this->neighboors_8(k, true);
         for(const auto &[key, val] : neigh)
-            if(val.free)
+            if(not val.free)
                 return true;
-    }
     return false;
 }
 

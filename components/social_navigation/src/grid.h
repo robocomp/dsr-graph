@@ -27,7 +27,6 @@
 #include <collisions.h>
 #include <QGraphicsScene>
 
-#define TILE_SIZE_ 250
 
 struct TCellDefault
 {
@@ -88,8 +87,9 @@ class Grid
             };
         };
         using FMap = std::unordered_map<Key, T, KeyHasher>;
+        Dimensions dim;
 
-        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
+    void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                         std::shared_ptr<Collisions> collisions_,
                         Dimensions dim_,
                         bool read_from_file = true,
@@ -127,11 +127,10 @@ class Grid
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);
         void draw(QGraphicsScene* scene);
-        Dimensions getDim() const                           { return dim;};
+        Dimensions getDim() const                           { return dim;};  //deprecated
 
     private:
         FMap fmap, fmap_aux;
-        Dimensions dim;
         std::shared_ptr<DSR::DSRGraph> G;
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);

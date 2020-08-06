@@ -39,13 +39,10 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
-
 public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
-  
 
 private:
 	// DSR graph

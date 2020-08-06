@@ -22,7 +22,10 @@
 * \brief Default constructor
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
-{}
+{
+    this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
+}
 
 /**
 * \brief Default destructor
@@ -35,7 +38,6 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    confParams  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
     agent_name = params["agent_name"].value;
     agent_id = stoi(params["agent_id"].value);
     tree_view = params["tree_view"].value == "true";
@@ -56,7 +58,7 @@ void SpecificWorker::initialize(int period)
     else
     {
         // create graph
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
 
         // Graph viewer
