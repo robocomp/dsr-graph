@@ -189,32 +189,6 @@ namespace DSR {
 
 
 
-        //Comprueba si en el tipo T existen los attributos attr_type y attr_name
-        template <typename, typename = void, typename = void>
-        struct is_attr_name : std::false_type {};
-        template <typename T>
-        struct is_attr_name<T, std::void_t<decltype(T::attr_type), decltype(T::attr_name)>, typename std::enable_if<T::attr_type >::type > : std::true_type {};
-
-
-        template<typename T>
-        struct is_reference_wrapper : false_type {};
-
-        template<typename T>
-        struct is_reference_wrapper<reference_wrapper<T>> : true_type{};
-
-        template<typename name, class Ta>
-        static constexpr bool valid_type ()
-        {
-            if constexpr(is_reference_wrapper<decltype(name::type)>::value) {
-                using ref_type = typename decltype(name::type)::type;
-                using Selected_Type = std::remove_reference_t<std::remove_cv_t<ref_type>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
-                return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
-            } else {
-                using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
-                return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
-            }
-        }
-
 
         template <typename name, typename Type, typename =  std::enable_if_t<node_or_edge<Type>> >
         inline std::optional<decltype(name::type)> get_attrib_by_name(const Type &n)
@@ -315,12 +289,67 @@ namespace DSR {
             }
         }
 
+        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, class Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        inline void runtime_checked_add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
+
+            if (!TYPES::CHECKTYPE(att_name.data(), att_value)) {
+                throw std::runtime_error("Invalid type");
+            };
+
+            if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
+                Attribute at(att_value, get_unix_timestamp(), agent_id);
+                elem.attrs().insert_or_assign(att_name, at);
+            } else {
+                CRDTAttribute at;
+                CRDTValue value;
+                if constexpr (std::is_same<std::string, Ta>::value || std::is_same<std::string_view, Ta>::value ||
+                              std::is_same<const string &, Ta>::value) {
+                    at.type(STRING);
+                    value.str(att_value);
+                } else if constexpr (std::is_same<std::int32_t, Ta>::value) {
+                    at.type(INT);
+                    value.dec(att_value);
+                } else if constexpr (std::is_same<float, Ta>::value || std::is_same<double, Ta>::value) {
+                    at.type(FLOAT);
+                    value.fl(att_value);
+                } else if constexpr (std::is_same<std::vector<float_t>, Ta>::value) {
+                    at.type(FLOAT_VEC);
+                    value.float_vec(att_value);
+                } else if constexpr (std::is_same<std::vector<uint8_t>, Ta>::value) {
+                    at.type(BYTE_VEC);
+                    value.byte_vec(att_value);
+                } else if constexpr (std::is_same<bool, Ta>::value) {
+                    at.type(BOOL);
+                    value.bl(att_value);
+                } else if constexpr (std::is_same<std::uint32_t, Ta>::value) {
+                    at.type(UINT);
+                    value.uint(att_value);
+                }
+
+                at.val(std::move(value));
+                at.timestamp(get_unix_timestamp());
+                if (elem.attrs().find(att_name) == elem.attrs().end()) {
+                    mvreg<CRDTAttribute, uint32_t> mv;
+                    elem.attrs().insert(make_pair(att_name, mv));
+                }
+                elem.attrs()[att_name].write(at);
+            }
+
+        }
+
 
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool add_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
             if (elem.attrs().find(name::attr_name.data()) != elem.attrs().end()) return false;
             add_or_modify_attrib_local<name>(elem, att_value);
+            return true;
+        };
+
+        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        bool runtime_checked_add_attrib_local(Type &elem, const std::string& att_name, const Ta &att_value) {
+            if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
+            runtime_checked_add_or_modify_attrib_local(elem, att_name, att_value);
             return true;
         };
 
@@ -333,27 +362,47 @@ namespace DSR {
             return true;
         };
 
+        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool runtime_checked_add_attrib_local(Type &elem, const std::string& att_name,  Attribute &attr) {
+            if (elem.attrs().find(att_name) != elem.attrs().end()) return false;
+            attr.timestamp(get_unix_timestamp());
+            elem.attrs()[att_name] = attr;
+            return true;
+        };
 
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool modify_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
             if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
-            //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             add_or_modify_attrib_local<name>(elem, att_value);
             return true;
         };
 
+        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
+        bool runtime_checked_modify_attrib_local(Type &elem,  const std::string& att_name, const Ta &att_value) {
+            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+            runtime_checked_add_or_modify_attrib_local(elem, att_name, att_value);
+            return true;
+        };
+              /*
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool modify_attrib_local(Type &elem,  CRDTAttribute &attr) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
             if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
-            //throw DSRException(("Cannot update attribute. Attribute: " + att_name + " does not exist. " + __FUNCTION__).data());
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[name::attr_name] = attr;
             return true;
         };
 
 
+        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool runtime_checked_modify_attrib_local(Type &elem, const std::string& att_name, CRDTAttribute &attr) {
+            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+            attr.timestamp(get_unix_timestamp());
+            elem.attrs()[att_name] = attr;
+            return true;
+        };
+                         */
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool remove_attrib_local(Type &elem) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
@@ -362,137 +411,91 @@ namespace DSR {
             return true;
         }
 
+        template< typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
+        bool remove_attrib_local(Type &elem, const std::string& att_name) {
+            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+            elem.attrs().erase(att_name);
+            return true;
+        }
 
 
 
         // ******************************************************************
         //  DISTRIBUTED ATTRIBUTE MODIFICATION METHODS (for nodes and edges)
         // ******************************************************************
+
         template<typename name,
                 typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
-        void insert_or_assign_attrib_by_name(Ta &elem,  const Va &att_value) {
+        void insert_or_assign_attrib(Ta &elem,  const Va &att_value) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
             add_or_modify_attrib_local<name>(elem, att_value);
 
-            // insert in node
-            if constexpr (std::is_same<Node, Ta>::value) {
-                if (update_node(elem))
-                    return;
-                else
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(elem.id()) + " in G in add_attrib_by_name()");
-            }
-                // insert in edge
-            else if constexpr (std::is_same<Edge, Ta>::value) {
-                //auto node = get_node(elem.from());
-                //if (node.has_value()) {
-                    if (insert_or_assign_edge(elem))
-                        return;
-                    else
-                        throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
-                                                 " in G in add_attrib_by_name()");
-                //} else
-                //    throw std::runtime_error("Node " + std::to_string(elem.from()) + " not found in attrib_by_name()");
-            }
-            //else
-            //    throw std::runtime_error("Node or Edge type not valid for add_attrib_by_name()");
+            return reinsert_element(elem, "insert_or_assign_attrib()");
+
+        }
+        template<typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
+                typename Va, typename = std::enable_if_t<allowed_types<Va>>>
+        void runtime_checked_insert_or_assign_attrib_by_name(Ta &elem,  const std::string& att_name, const Va &att_value) {
+            runtime_checked_add_or_modify_attrib_local(elem, att_name, att_value);
+            reinsert_element(elem, "runtime_checked_insert_or_assign_attrib()");
         }
 
         template<typename name,
                 typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         bool insert_attrib_by_name(Type &elem,  const Va &new_val) {
-            //if (elem.attrs().find(new_name) != elem.attrs().end()) return false;
-            //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
 
             bool res = add_attrib_local<name>(elem, new_val);
             if (!res) return false;
-            // insert in node
-            if constexpr (std::is_same<Node, Type>::value) {
-                if (update_node(elem))
-                    return true;
-                else
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(elem.id()) + " in G in add_attrib_by_name()");
-            }
-                // insert in edge
-            else if constexpr (std::is_same<Edge, Type>::value) {
-                auto node = get_node(elem.from());
-                if (node.has_value()) {
-                    if (insert_or_assign_edge(elem))
-                        return true;
-                    else
-                        throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
-                                                 " in G in add_attrib_by_name()");
-                } else
-                    throw std::runtime_error("Node " + std::to_string(elem.from()) + " not found in attrib_by_name()");
-            }
-            return false;
+            return reinsert_element(elem, "insert_attrib_by_name()");
         }
 
+        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
+                typename Va, typename = std::enable_if_t<allowed_types<Va>>>
+        bool runtime_checked_insert_attrib_by_name(Type &elem, const std::string& att_name,  const Va &new_val) {
+            bool res = runtime_checked_add_attrib_local(elem,att_name, new_val);
+            if (!res) return false;
+            return reinsert_element(elem, "unsafe_insert_attrib_by_name()");
+        }
 
         template<typename name,
                 typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         bool update_attrib_by_name(Type &elem,  const Va &new_val) {
-            //if (elem.attrs().find(new_name) == elem.attrs().end()) return false;
-            //throw DSRException(("Cannot update attribute. Attribute: " + elem + " does not exist. " + __FUNCTION__).data());
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
 
             bool res = modify_attrib_local<name>(elem, new_val);
             if (!res) return false;
-            // insert in node
-            if constexpr (std::is_same<Node, Type>::value) {
-                if (update_node(elem))
-                    return true;
-                else
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(elem.id()) + " in G in add_attrib_by_name()");
-            }
-                // insert in edge
-            else if constexpr (std::is_same<Edge, Type>::value) {
-                auto node = get_node(elem.from());
-                if (node.has_value()) {
-                    if (insert_or_assign_edge(elem))
-                        return true;
-                    else
-                        throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
-                                                 " in G in add_attrib_by_name()");
-                } else
-                    throw std::runtime_error("Node " + std::to_string(elem.from()) + " not found in attrib_by_name()");
-            }
+
+            return reinsert_element(elem, "update_attrib()");
         }
 
+        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>,
+                typename Va, typename = std::enable_if_t<allowed_types<Va>>>
+        bool runtime_checked_update_attrib_by_name(Type &elem, const std::string& att_name, const Va &new_val) {
+            bool res = runtime_checked_modify_attrib_local(elem, att_name, new_val);
+            if (!res) return false;
+
+            return reinsert_element(elem, "runtime_checked_update_attrib_by_name()");
+        }
 
         template<typename name, typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
         bool remove_attrib_by_name(Type &elem) {
             static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
             if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
-            elem.attrs().erase(name::attr_name);
+            elem.attrs().erase(name::attr_name.data());
 
-            // insert in node
-            if constexpr (std::is_same<Node, Type>::value) {
-                if (update_node(elem))
-                    return true;
-                else
-                    throw std::runtime_error(
-                            "Could not insert Node " + std::to_string(elem.id()) + " in G in remove_attrib_by_name()");
-            }
-                // insert in edge
-            else if constexpr (std::is_same<Edge, Type>::value) {
-                //auto node = get_node(elem.from());
-                //if (node.has_value()) {
-                    if (insert_or_assign_edge(elem))
-                        return true;
-                    else
-                        throw std::runtime_error("Could not insert Node " + std::to_string(elem.from()) +
-                                                 " in G in add_attrib_by_name()");
-            } else
-                    throw std::runtime_error(
-                            "Node " + std::to_string(elem.from()) + " not found in remove_attrib_by_name()");
-            //}
+            return reinsert_element(elem, "remove_attrib_by_name()");
+        }
+
+        template<typename Type, typename = std::enable_if_t<node_or_edge<Type>>>
+        bool remove_attrib_by_name(Type &elem, const string& att_name) {
+            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
+            elem.attrs().erase(att_name);
+
+            return reinsert_element(elem, "remove_attrib_by_name()");
         }
 
         // Mixed
@@ -606,29 +609,6 @@ namespace DSR {
             return static_cast<uint64_t>(secs);
         }
 
-        /*
-        template<typename T, typename = std::enable_if_t<any_node_or_edge<T>>>
-        std::optional<CRDTAttribute> get_attrib_by_name_(const T &n, const std::string_view &key) {
-            auto attrs = n.attrs();
-            auto value = attrs.find(key.data());
-            if (value != attrs.end()) {
-                if constexpr(std::is_same_v<T, Node> || std::is_same_v<T, Edge>)
-                    return user_attribute_to_crdt(value->second);
-                else
-                    return value->second.read_reg();
-            } else {
-                if constexpr (std::is_same<CRDTNode, T>::value)
-                    std::cout << "ERROR: " << __FUNCTION__ << ":" << __LINE__ << " "
-                              << "Attribute " << key << " not found in node  -> " << n.id() << std::endl;
-                if constexpr (std::is_same<CRDTEdge, T>::value)
-                    std::cout << "ERROR: " << __FUNCTION__ << ":" << __LINE__ << " "
-                              << "Atribute " << key << " not found in edge -> " << n.to() << std::endl;
-            }
-            return {};
-        }
-        */
-
-
 
         template <typename name, typename Type, typename =  std::enable_if_t<crdt_node_or_edge<Type>> >
         inline std::optional<decltype(name::type)> get_crdt_attrib_by_name(const Type &n)
@@ -674,6 +654,29 @@ namespace DSR {
             } else {
                 throw std::logic_error("Unreachable");
             }
+        }
+
+
+
+        template<typename Type>
+        inline constexpr bool reinsert_element(Type elem, const std::string &s) {
+            // insert in node
+            if constexpr (std::is_same<Node, Type>::value) {
+                if (update_node(elem))
+                    return true;
+                else
+                    throw std::runtime_error(
+                            "Could not insert Node " + std::to_string(elem.id()) + " in G in " + s);
+            }
+                // insert in edge
+            else if constexpr (std::is_same<Edge, Type>::value) {
+                if (insert_or_assign_edge(elem))
+                    return true;
+                else
+                    throw std::runtime_error("Could not insert edge " + std::to_string(elem.from()) +
+                                             " in G " + s);
+            } else
+                throw std::logic_error("Unreachable");
         }
 
         //////////////////////////////////////////////////////////////////////////

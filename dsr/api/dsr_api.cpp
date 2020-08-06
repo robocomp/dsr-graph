@@ -13,12 +13,15 @@
 
 using namespace DSR;
 
+std::unordered_map<std::string_view, std::function<bool(const std::any&)>> TYPES::map_fn_;
 
 /////////////////////////////////////////////////
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
 DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) , copy(false) {
+
+
     dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);

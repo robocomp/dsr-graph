@@ -355,13 +355,13 @@ void SpecificWorker::new_node_attrib_slot()
 
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
     if(attrib_type == "int")
-        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
+        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
+        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
-        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
+        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
-        G->insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
+        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
 
     fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
 }
@@ -408,16 +408,16 @@ void SpecificWorker::new_edge_attrib_slot()
 
     Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
     if(attrib_type == "int")
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
+        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
+        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
+        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
+        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
     else if(attrib_type == "vector") {
         std::vector<float> zeros{0.f,0.f,0.f};
-        G->insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
+        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
     }
     fill_table(edge_attrib_tw, std::map(edge.attrs().begin(), edge.attrs().end()));
 }
