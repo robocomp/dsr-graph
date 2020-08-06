@@ -137,14 +137,19 @@ class SpecificWorker(GenericWorker):
                 except Ice.Exception as e:
                     print(e)
 
-                # get and publish people position
+                ### PEOPLE get and publish people position
                 people_data = RoboCompHumanToDSRPub.PeopleData()
                 people_data.timestamp = time.time()
                 people = [] #RoboCompHumanToDSRPub.People()
                 for name, handle in self.people.items():
                     pos = handle.get_position()
                     rot = handle.get_orientation()
-                    person = RoboCompHumanToDSRPub.Person(0, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
+                    idx = name.find("#")
+                    if idx == -1:
+                        person_id = 0
+                    else:
+                        person_id = int(name[idx+1])+1
+                    person = RoboCompHumanToDSRPub.Person(person_id, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
                     people.append(person)
                 try:
                     people_data.peoplelist = people
@@ -239,11 +244,11 @@ class SpecificWorker(GenericWorker):
 
         for x in datos.axes:
             if x.name == "advance":
-                adv = x.value if np.abs(x.value) > 0.4 else 0
+                adv = x.value if np.abs(x.value) > 0.5 else 0
             if x.name == "rotate":
-                rot = x.value if np.abs(x.value) > 0.1 else 0
+                rot = x.value if np.abs(x.value) > 0.5 else 0
             if x.name == "side":
-                side = x.value if np.abs(x.value) > 0.4 else 0
+                side = x.value if np.abs(x.value) > 0.5 else 0
         print("Joystick ", adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 

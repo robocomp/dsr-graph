@@ -3,7 +3,11 @@
 #include <QGraphicsRectItem>
 
 template <typename T>
-void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, std::shared_ptr<Collisions> collisions_, bool read_from_file, const std::string &file_name)
+void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
+                         std::shared_ptr<Collisions> collisions_,
+                         int TILE_SIZE_,
+                         bool read_from_file,
+                         const std::string &file_name)
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
     G = graph_;
