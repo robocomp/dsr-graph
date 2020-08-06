@@ -2,12 +2,25 @@
 // Created by juancarlos on 31/7/20.
 //
 
-#ifndef IDSERVER_DSR_ATTR_NAME_H
-#define IDSERVER_DSR_ATTR_NAME_H
-
-#include <concepts>
+#ifndef DSR_ATTR_NAME_H
+#define DSR_ATTR_NAME_H
 
 
+#include <typeindex>
+#include <tuple>
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <type_traits>
+#include <functional>
+#include <unordered_map>
+#include <any>
+#include <cmath>
+#include <memory>
+#include "../core/types/crdt_types.h"
+#include "../core/types/user_types.h"
+#include "../core/types/type_checker.h"
+#include <qmat/QMatAll>
 
 template<typename Va>
 static bool constexpr allowed_types = std::is_same<std::int32_t, Va>::value ||
@@ -51,6 +64,33 @@ static bool constexpr allowed_return_types = std::is_same<std::int32_t, Va>::val
                                              std::is_same<QMat, Va>::value;
 
 
+
+//Comprueba si en el tipo T existen los attributos attr_type y attr_name
+template <typename, typename = void, typename = void>
+struct is_attr_name : std::false_type {};
+template <typename T>
+struct is_attr_name<T, std::void_t<decltype(T::attr_type), decltype(T::attr_name)>, typename std::enable_if<T::attr_type >::type > : std::true_type {};
+
+
+template<typename T>
+struct is_reference_wrapper : false_type {};
+template<typename T>
+struct is_reference_wrapper<reference_wrapper<T>> : true_type{};
+
+template<typename name, class Ta>
+static constexpr bool valid_type ()
+{
+    if constexpr(is_reference_wrapper<decltype(name::type)>::value) {
+        using ref_type = typename decltype(name::type)::type;
+        using Selected_Type = std::remove_reference_t<std::remove_cv_t<ref_type>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
+        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+    } else {
+        using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
+        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+    }
+}
+
+
 // Attributes
 //Define el tipo utilizado para validar los tipos de atributos durante la compilación
 template<const std::string_view& n, typename Tn>
@@ -62,9 +102,24 @@ struct Attr {
 
 
 
+
 #define REGISTER_TYPE(x, t) \
                             static constexpr auto    x ##_str = std::string_view(#x ); \
                             using x ##_att = Attr< x##_str, t>;                        \
+                            \
+                            static bool x ##_b =  TYPES::REGISTER( x##_str, []<typename tp = t>() -> tp {\
+                                if constexpr(std::is_trivially_default_constructible_v<tp>){                                   \
+                                    return tp();\
+                                } else {                                               \
+                                    using tp_ = typename tp::type;                    \
+                                    tp_ aux;\
+                                    return tp(aux);                                     \
+                                }\
+                            }() );     \
+                            \
+
+
+
 
 REGISTER_TYPE(pos_x, float);
 REGISTER_TYPE(pos_y, float);
@@ -97,4 +152,4 @@ REGISTER_TYPE(ref_side_speed, float);
 REGISTER_TYPE(base_target_x, float);
 REGISTER_TYPE(base_target_y, float);
 
-#endif //IDSERVER_DSR_ATTR_NAME_H
+#endif //DSR_ATTR_NAME_H
