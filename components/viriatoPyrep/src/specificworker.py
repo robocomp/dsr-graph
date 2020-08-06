@@ -144,12 +144,7 @@ class SpecificWorker(GenericWorker):
                 for name, handle in self.people.items():
                     pos = handle.get_position()
                     rot = handle.get_orientation()
-                    idx = name.find("#")
-                    if idx == -1:
-                        person_id = 0
-                    else:
-                        person_id = int(name[idx+1])+1
-                    person = RoboCompHumanToDSRPub.Person(person_id, -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
+                    person = RoboCompHumanToDSRPub.Person(len(people), -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
                     people.append(person)
                 try:
                     people_data.peoplelist = people
