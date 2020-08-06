@@ -48,7 +48,7 @@ class SpecificWorker(GenericWorker):
     def setParams(self, params):
         
         SCENE_FILE = '../../etc/autonomy-lab.ttt'
-        SCENE_FILE = '../../etc/youbot.ttt'
+        #SCENE_FILE = '../../etc/youbot.ttt'
         #SCENE_FILE = '/home/pbustos/software/PyRep/examples/scene_youbot_navigation.ttt'
 
         self.pr = PyRep()
@@ -107,7 +107,9 @@ class SpecificWorker(GenericWorker):
 
         # Read existing people
         self.people = {}
-        for i in range(1,5):
+        if Dummy.exists("Bill"):
+            self.people["Bill"] = Dummy("Bill")
+        for i in range(0,2):
             name = "Bill#" + str(i)
             if Dummy.exists(name):
                 self.people[name] = Dummy(name)
