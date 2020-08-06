@@ -13,7 +13,6 @@
 
 using namespace DSR;
 
-std::unordered_map<std::string_view, std::function<bool(const std::any&)>> TYPES::map_fn_;
 
 /////////////////////////////////////////////////
 ///// PUBLIC METHODS

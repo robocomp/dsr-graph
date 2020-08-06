@@ -87,55 +87,33 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
 
                 switch (attr_type) {
                     case 0: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().toStdString(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().toStdString());
+                        G->runtime_checked_add_attrib_local(n,  attr_key, attr_value.toString().toStdString());
                         break;
                     }
                     case 1: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toInt(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge, attr_value.toInt());
+                        G->runtime_checked_add_attrib_local(n, attr_key,  attr_value.toInt());
                         break;
                     }
                     case 2: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().replace(",", ".").toFloat(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().replace(",", ".").toFloat());
+                        G->runtime_checked_add_attrib_local(n,  attr_key,  attr_value.toString().replace(",", ".").toFloat());
                         break;
                     }
                     case 3: {
                         std::vector<float> v;
                                 foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(v, t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  v);
+                        G->runtime_checked_add_attrib_local(n,  attr_key,  v);
                         break;
                     }
                     case 4: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toBool(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toBool());
+                        G->runtime_checked_add_attrib_local(n, attr_key,   attr_value.toBool());
                         break;
                     }
                     case 6: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toUInt(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  static_cast<std::uint32_t>(attr_value.toUInt()));
+                        G->runtime_checked_add_attrib_local(n,  attr_key,  static_cast<std::uint32_t>(attr_value.toUInt()));
                         break;
                     }
                     default:
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().toStdString(), t, G->get_agent_id());
-                        n.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().toStdString());
+                        G->runtime_checked_add_attrib_local(n,  attr_key,  attr_value.toString().toStdString());
                 }
             }
             //n.attrs(attrs);
@@ -174,55 +152,34 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
 
                 switch (attr_type) {
                     case 0: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().toStdString(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().toStdString());
+                        G->runtime_checked_add_attrib_local(edge, attr_key,  attr_value.toString().toStdString());
                         break;
                     }
                     case 1: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toInt(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge, attr_value.toInt());
+                        G->runtime_checked_add_attrib_local(edge, attr_key,  attr_value.toInt());
                         break;
                     }
                     case 2: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().replace(",", ".").toFloat(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().replace(",", ".").toFloat());
+                        G->runtime_checked_add_attrib_local(edge,  attr_key,  attr_value.toString().replace(",", ".").toFloat());
                         break;
                     }
                     case 3: {
                         std::vector<float> v;
                                 foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(v, t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                                //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  v);
+
+                        G->runtime_checked_add_attrib_local(edge, attr_key,   v);
                         break;
                     }
                     case 4: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toBool(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toBool());
+                        G->runtime_checked_add_attrib_local(edge,  attr_key,  attr_value.toBool());
                         break;
                     }
                     case 6: {
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toUInt(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  static_cast<std::uint32_t>(attr_value.toUInt()));
+                        G->runtime_checked_add_attrib_local(edge,  attr_key,   static_cast<std::uint32_t>(attr_value.toUInt()));
                         break;
                     }
                     default:
-                        auto t = static_cast<uint64_t>(static_cast<std::chrono::seconds>(std::time(nullptr)).count());
-                        Attribute at(attr_value.toString().toStdString(), t, G->get_agent_id());
-                        edge.attrs().insert_or_assign(attr_key, at);
-                        //G->add_attrib_local<decltype(ATT_MAP.at(attr_key))>(edge,  attr_value.toString().toStdString());
+                        G->runtime_checked_add_attrib_local(edge,   attr_key, attr_value.toString().toStdString());
                 }
             }
             std::cout << __FILE__ << " " << __FUNCTION__ << "Edge from " << std::to_string(srcn) << " to "
