@@ -47,7 +47,7 @@ class Grid
     public:
         struct Dimensions
         {
-            int TILE_SIZE = 10;
+            int TILE_SIZE = 100;
             float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
         };
         struct Key
@@ -88,21 +88,23 @@ class Grid
             };
         };
         using FMap = std::unordered_map<Key, T, KeyHasher>;
+
         void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                         std::shared_ptr<Collisions> collisions_,
+                        Dimensions dim_,
                         bool read_from_file = true,
                         const std::string &file_name = std::string());
         std::tuple<bool, T &> getCell(long int x, long int z);
         std::tuple<bool, T &> getCell(const Key &k);
-        T at(const Key &k) const                    { return fmap.at(k);};
-        T &at(const Key &k)                         { return fmap.at(k);};
-        typename FMap::iterator begin()             { return fmap.begin(); };
-        typename FMap::iterator end()               { return fmap.end(); };
-        typename FMap::const_iterator begin() const { return fmap.begin(); };
-        typename FMap::const_iterator end() const   { return fmap.begin(); };
-        size_t size() const                         { return fmap.size(); };
-        FMap getMap()                               { return fmap_aux; }
-        void resetGrid()                            { fmap = fmap_aux; }
+        T at(const Key &k) const                            { return fmap.at(k);};
+        T &at(const Key &k)                                 { return fmap.at(k);};
+        typename FMap::iterator begin()                     { return fmap.begin(); };
+        typename FMap::iterator end()                       { return fmap.end(); };
+        typename FMap::const_iterator begin() const         { return fmap.begin(); };
+        typename FMap::const_iterator end() const           { return fmap.begin(); };
+        size_t size() const                                 { return fmap.size(); };
+        FMap getMap()                                       { return fmap_aux; }
+        void resetGrid()                                    { fmap = fmap_aux; }
         template <typename Q>
         void insert(const Key &key, const Q &value)
         {
@@ -125,7 +127,7 @@ class Grid
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);
         void draw(QGraphicsScene* scene);
-        Dimensions getDim() const { return dim;};
+        Dimensions getDim() const                           { return dim;};
 
     private:
         FMap fmap, fmap_aux;
