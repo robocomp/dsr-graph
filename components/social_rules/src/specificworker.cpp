@@ -190,7 +190,7 @@ void SpecificWorker::updatePeopleInModel(){
     for (auto p: vectorPersons) {
         RoboCompSocialNavigationGaussian::SNGPerson person;
 
-        std::optional<QVec> pose = inner_api->transformS("world", p.name());
+        std::optional<QVec> pose = inner_api->transformS6D("world", p.name());
         if(pose.has_value()) {
             person.id = p.id();
             person.x = pose.value().x();

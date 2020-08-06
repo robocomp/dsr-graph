@@ -127,6 +127,7 @@ int SpecificWorker::DSRGetID_getID()
 {
 	QMutexLocker locker(mutex);
 	node_id++;
+	std::cout << "Request served with id: " << node_id << std::endl;
 	return node_id;
 }
 

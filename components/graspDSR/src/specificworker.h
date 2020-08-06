@@ -45,6 +45,7 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+    int startup_check();
 
 private:
 	// DSR graph
