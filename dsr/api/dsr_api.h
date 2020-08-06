@@ -293,7 +293,8 @@ namespace DSR {
         inline void runtime_checked_add_or_modify_attrib_local(Type &elem, const std::string &att_name, const Ta &att_value) {
 
             if (!TYPES::CHECKTYPE(att_name.data(), att_value)) {
-                throw std::runtime_error("Invalid type");
+                throw std::runtime_error(std::string("Invalid type in attribute ") + att_name + " - " + typeid(att_value).name() + " in: " + __FILE__  " "
+                    + __FUNCTION__ + " " + std::to_string(__LINE__));
             };
 
             if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
