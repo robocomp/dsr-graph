@@ -107,7 +107,7 @@ void SpecificWorker::get_max_id_from_G()
 	for (const auto &[key, node] : G->getCopy())
         if (node.id() > node_id)
             node_id = node.id();
-    qDebug() << "MAX ID from file:" << node_id;
+    qInfo() << "MAX ID from file:" << node_id;
 }
 
 //////////////////////////////////////////////////////////////////////////

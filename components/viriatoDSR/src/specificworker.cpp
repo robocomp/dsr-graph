@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
         if (graph_view)
             main = opts::graph;
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+		setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
         timer.start(100);
     }
 }
