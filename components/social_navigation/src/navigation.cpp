@@ -190,19 +190,20 @@ std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target
     long int y_pos = (long int)target_center.y();
     int d = dim.TILE_SIZE;
     int m = 1;
+    std::string target_name = target.name();
     for(auto &&i : iter::range(grid.size()))
     {
         while (2 * x_pos * d < m)
         {
             const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k))
+            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
                 candidates.push_back(QVector2D(x_pos, y_pos));
             x_pos = x_pos + d;
         }
         while (2 * y_pos * d < m)
         {
             const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k))
+            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
                 candidates.push_back(QVector2D(x_pos, y_pos));
             y_pos = y_pos + d;
         }

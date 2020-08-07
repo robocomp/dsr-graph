@@ -30,8 +30,8 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
         for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
             for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
             {
-                bool free = collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
-                fmap.emplace(Key(i, j), T{count++, free, false, 1.f});
+                auto [free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
+                fmap.emplace(Key(i, j), T{count++, free, false, 1.f, node_name});
             }
         // return the robot to position 0,0 SHOULD BE TO CURRENT POSITION
         collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{0.0, 10.0, 0.0}, std::vector<float>{0.0, 0.0,0.0});
@@ -203,12 +203,12 @@ void Grid<T>::setFree(const Key &k)
 }
 
 template <typename T>
-bool Grid<T>::isNearOccupied(const Key &k)
+bool Grid<T>::isNearOccupied(const Key &k, const std::string &target_name)
 {
     auto neigh = this->neighboors_8(k, true);
-        for(const auto &[key, val] : neigh)
-            if(not val.free)
-                return true;
+    for(const auto &[key, val] : neigh)
+        if(not val.free and val.node_name==target_name)
+            return true;
     return false;
 }
 
