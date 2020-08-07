@@ -24,10 +24,6 @@ The Figure below shows an artist view of a CORTEX instantiation.
 
 ![alt text](https://github.com/robocomp/dsr-graph/blob/development/dsr-graph.png "CORTEX")
 
-## Basic use case
-
-We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
-
 ### Definitions:
 
 - CORTEX, a Robotics Cognitive Architecture based on the idea of a set of software modules sharing a common representation or working memory. 
@@ -49,9 +45,56 @@ We are working on an initial use-case that involves RoboLab's adapted aparment A
 - _RT edges_ are edges of type _RT_ that code a geometric relation between two nodes. RT edges have two atributes _rotation_euler_xyz_ and _translation_ that hold    the euler angles and translation coordinates of the R|t 4x4 matrix that represents a rotation followed by a translation pose of the child with respect to the parent's reference frame. There are methods in the G-API to directly recover the Rt matrix from the edge as a RoboComp RTMat.
 - There is a singular node in G named, "world", that representes the origin of the current reference frame for the robot. This node is the root of a kinematic tree       linked by RT edges. This tree is embedded in G and represent the set of physical elements believed to exist in the world. This tree is called _innermodel_ and can be automatically drawn in 3D using OpenSceneGraph and in 2D using Qt. Both representation are included in the UI off all generated agents.
 - An agent generated with _robocompdsl_ includes the object _G_ that can be accessed using its public API
-  
-  ### Installation
-  To install the software in Ubuntu 18.04, install RoboComp first. Then follow the instruccions to clone and install this repository under the ~/robocomp/components folder.
+    
+## Dependencies and Installation
+
+You need the following third-party software:
+
+- CoppeliaSim. Follow the instructions in their site: https://www.coppeliarobotics.com/ and make sure you choose the latest EDU version
+
+- cppitertools 
+      sudo git clone https://github.com/ryanhaining/cppitertools /usr/local/include/cppitertools
+      
+- gcc >= 9
+      sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+      sudo apt update
+      sudo apt install gcc-9  
+      (you might want to update the default version: https://stackoverflow.com/questions/7832892/how-to-change-the-default-gcc-compiler-in-ubuntu)
+      
+- Fast-RTPS (aka Fast-DDS) from https://www.eprosima.com/. Follow these steps:
+
+      mkdir software
+      cd software
+      git clone https://github.com/eProsima/Fast-CDR.git
+      mkdir Fast-CDR/build 
+      cd Fast-CDR/build
+      export MAKEFLAGS=-j$(($(grep -c ^processor /proc/cpuinfo) - 0))
+      cmake ..
+      cmake --build . 
+      sudo make install 
+      cd ~/software
+      git clone https://github.com/eProsima/foonathan_memory_vendor.git
+      cd foonathan_memory_vendor
+      mkdir build 
+      cd build
+      cmake ..
+      cmake --build . 
+      sudo make install 
+      cd ~/software
+      git clone https://github.com/eProsima/Fast-DDS.git
+      mkdir Fast-DDS/build 
+      cd Fast-DDS/build
+      cmake ..
+      cmake --build . 
+      sudo make install
+      sudo apt install libasio-dev libtinyxml2-dev libqglviewer-dev-qt5
+      sudo ldconfig
+
+## Basic use case
+
+We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
+
+
   
   ### Running
   To start the basic configuration for this use case:
