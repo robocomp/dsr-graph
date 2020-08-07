@@ -37,8 +37,8 @@ struct TCellDefault
     std::string node_name;
 
     // method to save the value
-    void save(std::ostream &os) const {	os << free << " " << visited; };
-    void read(std::istream &is) {	is >> free >> visited ;};
+    void save(std::ostream &os) const {	os << free << " " << visited << " " << node_name; };
+    void read(std::istream &is) {	is >> free >> visited >> node_name;};
 };
 
 template <typename T = TCellDefault>
@@ -118,7 +118,7 @@ class Grid
         Key pointToGrid(long int x, long int z) const;
         void setFree(const Key &k);
         bool isFree(const Key &k) ;
-        bool isNearOccupied(const Key &k, const std::string &target_name);
+        bool cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name);
         void setOccupied(const Key &k);
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free

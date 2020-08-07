@@ -129,6 +129,63 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     return State::IDLE; // to remove warning
 };
 
+// Search for a target that is:
+// - in free space
+// - close to target
+// - close to current robot pose, i.e. to the approaching path
+
+template<typename TMap, typename TController>
+std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
+{
+    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
+    // if valid x,y coordinates
+    if(x.has_value() and y.has_value())
+    {
+        // if already in current_target return
+        if (this->current_target.p == QPointF(x.value(), y.value()))
+        {
+            //qInfo() << __FUNCTION__  << "Exit same point";
+            return std::make_tuple(SearchState::AT_TARGET, QVector2D());
+        }
+        // if node is floor_plane take coordinates directly
+        if (target.id() == 11) // floor
+        {
+            this->newTarget(QPointF(x.value(), y.value()));
+            return std::make_tuple(SearchState::NEW_TARGET, QVector2D(x.value(), y.value()));
+        }
+    }
+    // get target coordinates in world
+    auto tc = innerModel->transformS("world", target.name()).value();
+    QVector2D target_center(tc.x(), tc.z());
+    // get robot coordinates in world
+    auto rc = innerModel->transformS("world", robot_name).value();
+    QVector2D robot_center(rc.x(), rc.z());
+    // sample the grid using a spiral trajectory away from target
+    std::vector<QVector2D> candidates;
+    std::string target_name = target.name();
+    // search the whole grid. It could be
+    for( const auto &[key, val] : grid)
+        if(val.free and grid.cellNearToOccupiedCellByObject(key, target_name))
+        {
+            candidates.push_back(QVector2D(key.x, key.z));
+            if(candidates.size() > 10)
+                break;
+        }
+    std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+    // sort by distances to target
+    if(candidates.size() > 0)
+    {
+        std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
+            return (robot_center - p1).length() < (robot_center - p2).length();
+        });
+        this->newTarget(candidates.front().toPointF());
+        return std::make_tuple(SearchState::NEW_TARGET, candidates.front());
+    }
+    else
+        return std::make_tuple(SearchState::NO_TARGET_FOUND, QVector2D());
+}
+
+
 template<typename TMap, typename TController>
 typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>::read_laser_from_G()
 {
@@ -151,79 +208,6 @@ typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>:
         qFatal("Terminate due to laser node not found ");
     return LaserData();
 }
-
-// Search for a target that is:
-// - in free space
-// - close to target
-// - close to current robot pose, i.e. to the approaching path
-
-template<typename TMap, typename TController>
-std::optional<QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
-{
-    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
-    // if valid x,y coordinates
-    if(x.has_value() and y.has_value())
-    {
-        // if already in current_target return
-        if (this->current_target.p == QPointF(x.value(), y.value()))
-        {
-            //qInfo() << __FUNCTION__  << "Exit same point";
-            return {};
-        }
-        // if node is floor_plane take coordinates directly
-        if (target.id() == 11) // floor
-        {
-            this->newTarget(QPointF(x.value(), y.value()));
-            return QVector2D(x.value(), y.value());
-        }
-    }
-    // get target coordinates in world
-    auto tc = innerModel->transformS("world", target.name()).value();
-    QVector2D target_center(tc.x(), tc.z());
-    // get robot coordinates in world
-    auto rc = innerModel->transformS("world", robot_name).value();
-    QVector2D robot_center(rc.x(), rc.z());
-    // sample the grid using a spiral trajectory away from target
-    auto dim = grid.getDim();
-    std::vector<QVector2D> candidates;
-    long int x_pos = (long int)target_center.x();
-    long int y_pos = (long int)target_center.y();
-    int d = dim.TILE_SIZE;
-    int m = 1;
-    std::string target_name = target.name();
-    for(auto &&i : iter::range(grid.size()))
-    {
-        while (2 * x_pos * d < m)
-        {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
-                candidates.push_back(QVector2D(x_pos, y_pos));
-            x_pos = x_pos + d;
-        }
-        while (2 * y_pos * d < m)
-        {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
-            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
-                candidates.push_back(QVector2D(x_pos, y_pos));
-            y_pos = y_pos + d;
-        }
-        d = -1 * d;
-        m = m + 1;
-    }
-    std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
-    // sort by distances to target
-    if(candidates.size() > 0)
-    {
-        std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
-            return (robot_center - p1).length() < (robot_center - p2).length();
-        });
-        this->newTarget(candidates.front().toPointF());
-        return candidates.front();
-    }
-    else
-        return {};
-}
-
 
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::stopRobot()
@@ -752,3 +736,50 @@ void Navigation<TMap, TController>::print_state( State state) const
     //        qDebug()<<"END "<<__FUNCTION__;*/
 //};
 
+//ESPIRAL
+
+//    for(auto &&i : iter::range(grid.size()))
+//    {
+//        while (2 * x_pos * d < m)
+//        {
+//            const auto &k = Grid<>::Key(x_pos, y_pos);
+//            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
+//                candidates.push_back(QVector2D(x_pos, y_pos));
+//            x_pos = x_pos + d;
+//        }
+//        while (2 * y_pos * d < m)
+//        {
+//            const auto &k = Grid<>::Key(x_pos, y_pos);
+//            if (grid.isFree(k) and grid.isNearOccupied(k, target_name))
+//                candidates.push_back(QVector2D(x_pos, y_pos));
+//            y_pos = y_pos + d;
+//        }
+//        d = -1 * d;
+//        m = m + 1;
+//    }
+
+
+// search in a spiral pattern away from object for free spots near an occupied spot by target object
+//    long int x_pos = target_center.x();
+//    long int y_pos = target_center.y();
+//    int d = dim.TILE_SIZE;
+//    for(int i : iter::range(grid.size()))
+//    {
+//        while (2 * x_pos * d < i)
+//        {
+//            const auto &k = Grid<>::Key(x_pos, y_pos);
+//            if (grid.isFree(k) and grid.cellNearToOccupiedCellByObject(k, target_name))
+//                candidates.push_back(QVector2D(x_pos, y_pos));
+//            x_pos = x_pos + d;
+//        }
+//        while (2 * y_pos * d < i)
+//        {
+//           const auto &k = Grid<>::Key(x_pos, y_pos);
+//           if (grid.isFree(k) and grid.cellNearToOccupiedCellByObject(k, target_name))
+//                candidates.push_back(QVector2D(x_pos, y_pos));
+//            y_pos = y_pos + d;
+//        }
+//        d = -1 * d;
+//        if(candidates.size() > 10)   // arbitrary number hard to fix
+//            break;
+//    }

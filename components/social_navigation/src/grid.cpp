@@ -33,8 +33,6 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                 auto [free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
                 fmap.emplace(Key(i, j), T{count++, free, false, 1.f, node_name});
             }
-        // return the robot to position 0,0 SHOULD BE TO CURRENT POSITION
-        collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{0.0, 10.0, 0.0}, std::vector<float>{0.0, 0.0,0.0});
         fmap_aux = fmap;
         if(not file_name.empty())
             saveToFile(file_name);
@@ -93,8 +91,9 @@ void Grid<T>::readFromFile(const std::string &fich)
         stringstream ss(line);
         int x, z;
         bool free, visited;
-        ss >> x >> z >> free >> visited;
-        fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f});
+        std::string node_name;
+        ss >> x >> z >> free >> visited >> node_name;
+        fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f, node_name});
     }
     std::cout << __FUNCTION__ << " " << fmap.size() << " elements read from " << fich << std::endl;
 }
@@ -203,11 +202,11 @@ void Grid<T>::setFree(const Key &k)
 }
 
 template <typename T>
-bool Grid<T>::isNearOccupied(const Key &k, const std::string &target_name)
+bool Grid<T>::cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name)
 {
     auto neigh = this->neighboors_8(k, true);
     for(const auto &[key, val] : neigh)
-        if(not val.free and val.node_name==target_name)
+        if(val.free==false and val.node_name==target_name)
             return true;
     return false;
 }
@@ -321,26 +320,18 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors(const Grid<
     for (auto &&[itx, itz] : iter::zip(xincs, zincs))
     {
         Key lk{k.x + itx, k.z + itz};
-        try
-        {
-            const auto &[success, p] = getCell(lk);
-            if(not success) continue;
+        const auto &[success, p] = getCell(lk);
+        if(not success) continue;
 
-            // check that incs are not both zero but have the same abs value, i.e. a diagonal
-            if (itx != 0 and itz != 0 and (fabs(itx) == fabs(itz)) and p.cost==1)
-                p.cost = 1.41; 								// if neighboor in diagonal, cost is sqrt(2)
+        // check that incs are not both zero but have the same abs value, i.e. a diagonal
+        if (itx != 0 and itz != 0 and (fabs(itx) == fabs(itz)) and p.cost==1)
+            p.cost = 1.41; 								// if neighboor in diagonal, cost is sqrt(2)
 
-            if(all)
+        if(all)
+            neigh.emplace_back(std::make_pair(lk, p));
+        else
+            if (p.free)
                 neigh.emplace_back(std::make_pair(lk, p));
-            else
-                if (p.free)
-                    neigh.emplace_back(std::make_pair(lk, p));
-        }
-        catch (const std::exception &e)
-        {
-//            std::cout << e.what() << " neighbour not found in grid " << lk.x << " " << lk.z << '\n';
-//            throw e;
-        }
     }
     return neigh;
 }
@@ -422,8 +413,10 @@ void Grid<T>::draw(QGraphicsScene* scene)
         else
             color = "#B40404";
 
-        QGraphicsRectItem* aux = scene->addRect(key.x, key.z, 50, 50, QPen(QString::fromStdString(color)), QBrush(QColor(QString::fromStdString(color))));
-        aux->setZValue(2000);
+        QColor my_color = QColor(QString::fromStdString(color));
+        my_color.setAlpha(60);
+        QGraphicsRectItem* aux = scene->addRect(key.x, key.z, 50, 50, QPen(my_color), QBrush(my_color));
+        aux->setZValue(1);
         scene_grid_points.push_back(aux);
     }
 }

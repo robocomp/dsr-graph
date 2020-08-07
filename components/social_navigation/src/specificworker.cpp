@@ -94,7 +94,7 @@ void SpecificWorker::initialize(int period)
     	moveRobot();
 
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
-		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato-250.grid");
+		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato-200.grid");
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
@@ -115,13 +115,23 @@ void SpecificWorker::compute()
             {
                 auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
                 auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
-                if (std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y); candidate.has_value())
+                const auto &[state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
+                switch (state)
                 {
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
-                    G->update_node(robot.value());
+                    case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
+                        G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.x());
+                        G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.y());
+                        G->update_node(robot.value());
+                        break;
+                    case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
+                        qInfo() << __FUNCTION__ << "At target";
+                        break;
+                    case Navigation<Grid<>,Controller>::SearchState::NO_TARGET_FOUND:
+                        qInfo() << __FUNCTION__ << "No feasible target found";
+                        break;
                 }
-            } else
+            }
+            else
                 qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
         }
         else
