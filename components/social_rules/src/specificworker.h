@@ -56,6 +56,10 @@ private:
     void checkInteractions();
     void applySocialRules();
     void updatePersonalSpacesInGraph();
+
+    //utils
+    void convert_polyline_to_vector(const RoboCompSocialNavigationGaussian::SNGPolyline &poly, std::vector<float> &x_values, std::vector<float> &z_values);
+
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;

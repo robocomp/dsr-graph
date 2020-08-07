@@ -282,53 +282,65 @@ void SpecificWorker::applySocialRules(){
     }
 }
 
+// Transform Polylines into two std::vector<float>
+void SpecificWorker::convert_polyline_to_vector(const RoboCompSocialNavigationGaussian::SNGPolyline &poly, std::vector<float> &x_values, std::vector<float> &z_values)
+{
+    x_values.clear();
+    z_values.clear();
+    for (const auto &value: poly) {
+        x_values.push_back(value.x);
+        z_values.push_back(value.z);
+    }
+}
+
 //insert data on G
 void SpecificWorker::updatePersonalSpacesInGraph() {
     qDebug() << __FUNCTION__;
-
+    std::vector<float> x_values, z_values;
     std::optional<Node> person_node;
+    int polyline_position;
     for(const auto &group: people_groups)
     {
+        int cont = 0;
         for(const int &person_id: group.second.people_ids)
         {
             person_node = G->get_node(person_id);
             if(not person_node.has_value())
                 return;
-            // Transform intimatePolylines into two std::vector<float>
-            std::vector<float> aux1, aux2;
-            //TODO: personal space could have more than one polyline for each space??¿¿
-            if(group.second.intimatePolylines.size() > 0) {
-                for (const auto &value: group.second.intimatePolylines[0]) {
-                    aux1.push_back(value.x);
-                    aux2.push_back(value.z);
-                }
-                G->add_or_modify_attrib_local(person_node.value(), "intimate_x_pos", aux1);
-                G->add_or_modify_attrib_local(person_node.value(), "intimate_y_pos", aux2);
-                aux1.clear();
-                aux2.clear();
+//if each person has it own polyline that one is assigned, otherwise, first polyline is assigned to all
+            if(group.second.intimatePolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.intimatePolylines.size() > polyline_position)
+                convert_polyline_to_vector(group.second.intimatePolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "intimate_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "intimate_y_pos", z_values);
+
+            if(group.second.personalPolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.personalPolylines.size() > polyline_position) {
+                convert_polyline_to_vector(group.second.personalPolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "personal_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "personal_y_pos", z_values);
             }
-            if(group.second.personalPolylines.size() > 0) {
-                for (const auto &value: group.second.personalPolylines[0]) {
-                    aux1.push_back(value.x);
-                    aux2.push_back(value.z);
-                }
-                G->add_or_modify_attrib_local(person_node.value(), "personal_x_pos", aux1);
-                G->add_or_modify_attrib_local(person_node.value(), "personal_y_pos", aux2);
-                aux1.clear();
-                aux2.clear();
+
+            if(group.second.socialPolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.socialPolylines.size() > polyline_position) {
+                convert_polyline_to_vector(group.second.socialPolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "social_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "social_y_pos", z_values);
             }
-            if(group.second.socialPolylines.size() > 0) {
-                for (const auto &value: group.second.socialPolylines[0]) {
-                    aux1.push_back(value.x);
-                    aux2.push_back(value.z);
-                }
-                G->add_or_modify_attrib_local(person_node.value(), "social_x_pos", aux1);
-                G->add_or_modify_attrib_local(person_node.value(), "social_y_pos", aux2);
-            }
-            aux1.clear();
-            std::transform(group.second.people_ids.begin(), group.second.people_ids.end(), std::back_inserter(aux1), [](const auto &value) { return (float)value; });
-            G->add_or_modify_attrib_local(person_node.value(), "sharedWith", aux1);
+            x_values.clear();
+            std::transform(group.second.people_ids.begin(), group.second.people_ids.end(), std::back_inserter(x_values), [](const auto &value) { return (float)value; });
+            G->add_or_modify_attrib_local(person_node.value(), "sharedWith", x_values);
             G->update_node(person_node.value());
+            cont++;
         }
     }
 }
