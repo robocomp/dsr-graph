@@ -359,7 +359,7 @@ void SpecificWorker::new_edge_slot() {
     int from = QInputDialog::getInt(this, tr("New edge"), "From  node id:", 0, 1, 50000, 1, &ok1);
     int to = QInputDialog::getInt(this, tr("New edge"), "To  node id:", 0, 1, 50000, 1, &ok2);
     QStringList items;
-    items << tr("RT");
+    items << tr("RT") << tr("interacting");
     QString edge_type = QInputDialog::getItem(this, tr("New edge"), tr("Edge type:"), items, 0, false, &ok3);
 
     if (not ok1 or not ok2 or not ok3 or edge_type.isEmpty())
@@ -368,13 +368,26 @@ void SpecificWorker::new_edge_slot() {
     std::optional<Node> from_node = G->get_node(from);
     std::optional<Node> to_node = G->get_node(to);
     if (from_node.has_value() and to_node.has_value()) {
-        try {
-            std::vector<float> trans{0.f, 0.f, 0.f};
-            std::vector<float> rot{0, 0.f, 0};
-            G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+        if(edge_type == "RT")
+        {
+            try {
+                std::vector<float> trans{0.f, 0.f, 0.f};
+                std::vector<float> rot{0, 0.f, 0};
+                G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+            }
+            catch (const std::exception &e) {
+                std::cout << __FUNCTION__ << e.what() << std::endl;
+            }
         }
-        catch (const std::exception &e) {
-            std::cout << __FUNCTION__ << e.what() << std::endl;
+        else if(edge_type == "interacting")
+        {
+            Edge edge;
+            edge.type(edge_type.toStdString());
+            //get two ids
+            edge.from(from);
+            edge.to(to);
+            if(not G->insert_or_assign_edge(edge))
+                std::cout<<"Error inserting new edge: "<<from<<"->"<<to<<" type: "<<edge_type.toStdString()<<std::endl;
         }
     }
     else{
