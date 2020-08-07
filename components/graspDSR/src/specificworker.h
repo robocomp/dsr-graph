@@ -65,6 +65,7 @@ private:
 
 	// grasping
     RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
+    RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
 };
 
 #endif

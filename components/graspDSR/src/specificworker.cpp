@@ -80,16 +80,15 @@ void SpecificWorker::initialize(int period)
 		this->Period = period;
 		timer.start(Period);
 	}
-
 }
 
 void SpecificWorker::compute()
 {
     // check if there is an active command
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
+    RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
     try
     {
-        RoboCompCameraRGBDSimple::TDepth depth;
         RoboCompObjectPoseEstimationRGBD::PoseType pose = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
     }
     catch (const Ice::Exception &e)
@@ -122,13 +121,10 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             rgb.alivetime = 0;
             rgb.image = rgb_data;
 
-            if (depth.value() == 3)
-            {
-                cv::Mat image_rgb(height.value(), width.value(), CV_8UC3, (uchar *) &rgb_data[0]);
-                //memcpy(image_rgb.data, &rgb_data[0], width.value() * height.value() * sizeof(std::uint8_t) * depth.value());
-                cv::imshow("Head", image_rgb);
-                cv::waitKey(1);
-            }
+            cv::Mat image_rgb(height.value(), width.value(), CV_8UC3, (uchar *) &rgb_data[0]);
+            cv::imshow("RGB from Head Camera", image_rgb);
+            cv::waitKey(1);
+
             return rgb;
         }
         catch (const std::exception &e)
@@ -138,7 +134,37 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
         }
     }
     else
+    {
         qFatal("Terminate in Compute. No node rgbd found");
+    }
+}
+
+RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
+{
+    auto cam = G->get_node("Viriato_head_camera_front_sensor");
+    if (cam.has_value())
+    {
+        RoboCompCameraRGBDSimple::TDepth depth;
+
+        const std::vector<float> depth_data = G->get_depth_image(cam.value()); // reference to depth in cam
+        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
+        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
+
+        depth.cameraID = 0;
+        depth.width = width.value();
+        depth.height = height.value();
+        depth.alivetime = 0;
+        depth.focalx = 450;
+        depth.focaly = 450;
+        depth.depthFactor = 1.0;
+        depth.depth = depth_data;
+
+        return depth;
+    }
+    else
+    {
+        qFatal("Terminate in Compute. No node rgbd found");
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -150,9 +176,6 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
-
-
-
 /**************************************/
 // From the RoboCompObjectPoseEstimationRGBD you can call this methods:
 // this->objectposeestimationrgbd_proxy->getObjectPose(...)
@@ -162,4 +185,3 @@ int SpecificWorker::startup_check()
 // RoboCompObjectPoseEstimationRGBD::TImage
 // RoboCompObjectPoseEstimationRGBD::TDepth
 // RoboCompObjectPoseEstimationRGBD::ObjectPose
-
