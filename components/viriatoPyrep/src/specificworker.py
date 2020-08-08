@@ -31,6 +31,7 @@ from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.objects.shape import Object
+from pyrep.objects.shape import Joint
 
 import numpy as np
 import numpy_indexed as npi
@@ -88,7 +89,8 @@ class SpecificWorker(GenericWorker):
         #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
         #                                             "rgb": np.array(0), 
         #                                             "depth": np.ndarray(0) }
-        # 
+        #
+        # robot head camera
         cam = VisionSensor("Viriato_head_camera_front_sensor")
         self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam,
                                                                 "id": 0,
@@ -99,7 +101,10 @@ class SpecificWorker(GenericWorker):
                                                                 "rgb": np.array(0),
                                                                 "depth": np.ndarray(0) }
 
+        # camera tilt motor
+        self.camera_tilt_motor = Joint("Viriato_camera_tilt_joint")
 
+        # Each laser is composed of two cameras. They are converted into a 360 virtual laser
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
         self.hokuyo_base_front_right = VisionSensor("hokuyo_base_front_right")
         self.hokuyo_base_back_right = VisionSensor("hokuyo_base_back_right")
@@ -124,6 +129,9 @@ class SpecificWorker(GenericWorker):
         #     try:
         #         #start = time.time()
             self.pr.step()
+            ###########################################
+            ### Cameras get and publish people position
+            ###########################################
             for name,cam in self.cameras.items():
                 cam = self.cameras["Viriato_head_camera_front_sensor"]
                 image_float = cam["handle"].capture_rgb()
@@ -137,22 +145,26 @@ class SpecificWorker(GenericWorker):
                 except Ice.Exception as e:
                     print(e)
 
-                ### PEOPLE get and publish people position
-                people_data = RoboCompHumanToDSRPub.PeopleData()
-                people_data.timestamp = time.time()
-                people = [] #RoboCompHumanToDSRPub.People()
-                for name, handle in self.people.items():
-                    pos = handle.get_position()
-                    rot = handle.get_orientation()
-                    person = RoboCompHumanToDSRPub.Person(len(people), -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
-                    people.append(person)
-                try:
-                    people_data.peoplelist = people
-                    self.humantodsrpub_proxy.newPeopleData(people_data)
-                except Ice.Exception as e:
-                    print(e)
+            ###########################################
+            ### PEOPLE get and publish people position
+            ###########################################
+            people_data = RoboCompHumanToDSRPub.PeopleData()
+            people_data.timestamp = time.time()
+            people = [] #RoboCompHumanToDSRPub.People()
+            for name, handle in self.people.items():
+                pos = handle.get_position()
+                rot = handle.get_orientation()
+                person = RoboCompHumanToDSRPub.Person(len(people), -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
+                people.append(person)
+            try:
+                people_data.peoplelist = people
+                self.humantodsrpub_proxy.newPeopleData(people_data)
+            except Ice.Exception as e:
+                print(e)
 
-            # compute TLaserData and publish
+            ###########################################
+            ### PEOPLE get and publish people position
+            ###########################################
             ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
                                               self.hokuyo_base_front_left,
                                               self.hokuyo_base_back_left,
@@ -163,12 +175,16 @@ class SpecificWorker(GenericWorker):
             except Ice.Exception as e:
                 print(e)
 
-            # Move robot from data in joystick buffer
+            ###########################################
+            ### JOYSITCK get and publish people position
+            ###########################################
             if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
                 self.update_joystick(self.joystick_newdata[0])
                 self.joystick_newdata = None
 
-            # Get and publish robot pose
+            ###########################################
+            ### ROBOT POSE get and publish people position
+            ###########################################
             pose = self.robot.get_2d_pose()
             linear_vel, ang_vel = self.robot_object.get_velocity()
             #print("Veld:", linear_vel, ang_vel)
@@ -184,14 +200,22 @@ class SpecificWorker(GenericWorker):
                 self.omnirobotpub_proxy.pushBaseState(self.bState)
             except Ice.Exception as e:
                 print(e)
-        # 
-            # Move robot from data in setSpeedBase
+
+            ###########################################
+            ### MOVE ROBOT from Omnirobot interface
+            ###########################################
             if self.speed_robot != self.speed_robot_ant:#or (isMoving and self.speed_robot == [0,0,0]):
                 self.robot.set_base_angular_velocites(self.speed_robot)
                 print("Velocities sent to robot:", self.speed_robot)
                 self.speed_robot_ant = self.speed_robot
 
+            ###########################################
+            ### Viriato head camera tilt motor. Command from JointMotor interface
+            ############################################
+
+            ############################################
             time.sleep(0.070)
+
         #         #print(time.time()-start)
         #     except KeyboardInterrupt:
         #         break
