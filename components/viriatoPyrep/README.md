@@ -1,5 +1,8 @@
 # viriatoPyrep
 
+This is a pseudo-component, a Python adapter, that used the PyRep module to start CoppeliaSim and access the simulated scene. This method is much faster that the remote communcation through middlewares.
+The main limitation is that it cannot be regenerated using RoboComp's code generator, because it is Qt-free. The reason is the incompatibility between the CoppeliaSim own version of Qt and the version usually installed in the machine.
+
 Please follow these steps:
 
 - Install https://github.com/stepjam/PyRep
