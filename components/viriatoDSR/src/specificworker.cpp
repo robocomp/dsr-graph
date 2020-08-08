@@ -105,7 +105,7 @@ void SpecificWorker::compute()
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
                 try
-                { coppeliautils_proxy->addOrModifyDummy("base_dummy", dummy_pose); }
+                { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
                 catch (const Ice::Exception &e)
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
                 current_base_target_x = x.value();
@@ -219,15 +219,8 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
     if( areDifferent(bState.advVz, ref_adv_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, ref_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, ref_side_speed.value(), FLT_EPSILON))
     {
         qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
-        // Proportinal controller
         try
         {
-//            const float KA = 0.04; const float KS = 0.01; const float KR = 3;
-//            const float side_error = KS * (ref_side_speed.value()-bState.advVx);
-//            const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
-//            const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
-//            if(fabs(side_error)>0.1 or fabs(adv_error)>0.1 or fabs(rot_error)>0.01)
-//            {
                 omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
 
 //                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
@@ -236,7 +229,6 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
 //                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
 //                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
 //                          << std::endl;
- //           }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}

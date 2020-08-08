@@ -383,9 +383,16 @@ class SpecificWorker(GenericWorker):
     # ===================================================================
     # CoppeliaUtils
     # ===================================================================
-    def CoppeliaUtils_addOrModifyDummy(self, name, pose):
+    def CoppeliaUtils_addOrModifyDummy(self, type, name, pose):
         if not Dummy.exists(name):
             dummy = Dummy.create(0.1)
+            # one color for each type of dummy
+            if type==RoboCompCoppeliaUtils.TargetTypes.Info:
+                pass
+            if type == RoboCompCoppeliaUtils.TargetTypes.Hand:
+                pass
+            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+                pass
             dummy.set_name(name)
         else:
             dummy = Dummy(name)
