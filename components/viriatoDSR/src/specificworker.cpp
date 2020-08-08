@@ -87,9 +87,11 @@ void SpecificWorker::compute()
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
-    // read rgb data
-    if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
-        update_rgb(rgb.value());
+    // read camera head rgb data
+    auto rgb = rgb_buffer.try_get();
+    auto depth = depth_buffer.try_get();
+    if( rgb.has_value() and depth.has_value())
+        update_rgbd(rgb.value(), depth.value());
 
     // check for new target values in robot node
     static float current_base_target_x = 0;
@@ -116,22 +118,31 @@ void SpecificWorker::compute()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SpecificWorker::update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb)
+void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &depth)
 {
 	qDebug() << __FUNCTION__; 
 	auto node = G->get_node("Viriato_head_camera_front_sensor");
 	if (node.has_value())
 	{
 		G->add_or_modify_attrib_local(node.value(), "rgb", rgb.image);
-		G->add_or_modify_attrib_local(node.value(), "width", rgb.width);
-		G->add_or_modify_attrib_local(node.value(), "height", rgb.height);
-		G->add_or_modify_attrib_local(node.value(), "depth", rgb.depth);
-		G->add_or_modify_attrib_local(node.value(), "cameraID", rgb.cameraID);
-		G->add_or_modify_attrib_local(node.value(), "focalx", rgb.focalx);
-		G->add_or_modify_attrib_local(node.value(), "focaly", rgb.focaly);
-		G->add_or_modify_attrib_local(node.value(), "alivetime", rgb.alivetime);		
-		G->update_node(node.value());
-	}
+		G->add_or_modify_attrib_local(node.value(), "rgb_width", rgb.width);
+		G->add_or_modify_attrib_local(node.value(), "rgb_height", rgb.height);
+		G->add_or_modify_attrib_local(node.value(), "rgb_depth", rgb.depth);
+		G->add_or_modify_attrib_local(node.value(), "rgb.cameraID", rgb.cameraID);
+		G->add_or_modify_attrib_local(node.value(), "rgb_focalx", rgb.focalx);
+		G->add_or_modify_attrib_local(node.value(), "rgb_focaly", rgb.focaly);
+		G->add_or_modify_attrib_local(node.value(), "rgb_alivetime", rgb.alivetime);
+		// depth
+		G->add_or_modify_attrib_local(node.value(), "depth", depth.depth);
+        G->add_or_modify_attrib_local(node.value(), "depth_width", depth.width);
+        G->add_or_modify_attrib_local(node.value(), "depth_height", depth.height);
+        G->add_or_modify_attrib_local(node.value(), "focalx", depth.focalx);
+        G->add_or_modify_attrib_local(node.value(), "focaly", depth.focaly);
+        G->add_or_modify_attrib_local(node.value(), "depth.cameraID", depth.cameraID);
+        G->add_or_modify_attrib_local(node.value(), "depthFactor", depth.depthFactor);
+        G->add_or_modify_attrib_local(node.value(), "alivetime", depth.alivetime);
+        G->update_node(node.value());
+    }
 }
 
 void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
