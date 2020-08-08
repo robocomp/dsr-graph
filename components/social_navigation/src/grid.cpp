@@ -66,6 +66,8 @@ typename Grid<T>::Key Grid<T>::pointToGrid(long int x, long int z) const
     return Key(dim.HMIN + kx * dim.TILE_SIZE, dim.VMIN + kz * dim.TILE_SIZE);
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void Grid<T>::saveToFile(const std::string &fich)
 {
@@ -182,23 +184,19 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
 template <typename T>
 bool Grid<T>::isFree(const Key &k)
 {
-    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-    {
-        const auto &[success, v] = getCell(k);
-        return v.free;
-    }
-    else
+   const auto &[success, v] = getCell(k);
+   if(success)
+       return v.free;
+   else
         return false;
 }
 
 template <typename T>
 void Grid<T>::setFree(const Key &k)
 {
-    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-    {
-        auto &[success, v] = getCell(k);
+    auto &[success, v] = getCell(k);
+    if(success)
         v.free = true;
-    }
 }
 
 template <typename T>
@@ -214,15 +212,17 @@ bool Grid<T>::cellNearToOccupiedCellByObject(const Key &k, const std::string &ta
 template <typename T>
 void Grid<T>::setOccupied(const Key &k)
 {
-    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-        fmap.at(k).free = false;
+    auto &[success, v] = getCell(k);
+    if(success)
+        v.free = false;
 }
 
 template <typename T>
 void Grid<T>::setCost(const Key &k,float cost)
 {
-    if((k.x >= dim.HMIN and k.x < dim.HMIN + dim.WIDTH and k.z >= dim.VMIN and k.z < dim.VMIN + dim.HEIGHT))
-        fmap.at(k).cost = cost;
+    auto &[success, v] = getCell(k);
+    if(success)
+        v.cost = cost;
 }
 
 // if true area becomes free
@@ -251,12 +251,8 @@ void Grid<T>::modifyCostInGrid(const QPolygonF &poly, float cost)
     QRectF box = poly.boundingRect();
     for (auto &&x : iter::range(box.x() - step / 2, box.x() + box.width() + step / 2, step))
         for (auto &&y : iter::range(box.y() - step / 2, box.y() + box.height() + step / 2, step))
-        {
             if (poly.containsPoint(QPointF(x, y), Qt::OddEvenFill))
-            {
                 setCost(pointToGrid(x, y),cost);
-            }
-        }
 }
 
 template <typename T>
@@ -266,8 +262,6 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
     qDebug()<<" reloj "<< reloj.restart();
     qDebug()<< "Computing neighboors of " << center;
     auto k = pointToGrid(center.x(),center.y());
-//	    qDebug() << "point in grid "<< k.x << k.z;
-
     QVector2D closestVector;
     bool obstacleFound = false;
 
@@ -295,20 +289,16 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
         {
             if (n.second.free == false)
             {
-//                qDebug() << "Neigh "<< QPointF(n.first.x,n.first.z);
                 QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x,n.first.z)) ;
                 if (vec.length() < dist)
                 {
                     dist = vec.length();
                     closestVector = vec;
                 }
-
-                qDebug()<< "Obstacle found";
                 obstacleFound = true;
             }
         }
     }
-    qDebug()<<" reloj "<< reloj.restart();
     return std::make_tuple(obstacleFound,closestVector);
 }
 
@@ -355,9 +345,8 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_16(const Gr
 }
 
 /**
-		* @brief Recovers the optimal path from the list of previous nodes
-		*
-		*/
+ @brief Recovers the optimal path from the list of previous nodes
+*/
 template <typename T>
 std::list<QPointF> Grid<T>::orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target)
 {
