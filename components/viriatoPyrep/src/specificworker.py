@@ -31,7 +31,7 @@ from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.objects.shape import Object
-from pyrep.objects.shape import Joint
+from pyrep.objects.joint import Joint
 
 import numpy as np
 import numpy_indexed as npi
