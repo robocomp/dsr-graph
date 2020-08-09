@@ -121,9 +121,9 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
         try
         {
             const std::vector<uint8_t> rgb_data = G->get_rgb_image(cam.value()); // reference to image in cam
-            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
-            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
-            const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "depth");
+            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
+            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
+            const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
             rgb.cameraID = 0;
             rgb.width = width.value();
             rgb.height = height.value();
@@ -158,8 +158,8 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
         RoboCompCameraRGBDSimple::TDepth depth;
 
         const std::vector<float> depth_data = G->get_depth_image(cam.value()); // reference to depth in cam
-        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "width");
-        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "height");
+        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
+        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
 
         depth.cameraID = 0;
         depth.width = width.value();
