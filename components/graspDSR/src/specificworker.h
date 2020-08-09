@@ -60,11 +60,12 @@ private:
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
+	QWidget window;
 	bool startup_check_flag;
 
 	// pose estimation
-    RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
-    RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
+	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
+	RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
 };
 
 #endif

@@ -23,8 +23,8 @@
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
-	this->startup_check_flag = startup_check;
-	QLoggingCategory::setFilterRules("*.debug=false\n");
+    this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -32,70 +32,70 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
-	G.reset();
+    std::cout << "Destroying SpecificWorker" << std::endl;
+    G->write_to_json_file("./"+agent_name+".json");
+    G.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	agent_name = params["agent_name"].value;
-	agent_id = stoi(params["agent_id"].value);
-	tree_view = params["tree_view"].value == "true";
-	graph_view = params["graph_view"].value == "true";
-	qscene_2d_view = params["2d_view"].value == "true";
-	osg_3d_view = params["3d_view"].value == "true";
+    agent_name = params["agent_name"].value;
+    agent_id = stoi(params["agent_id"].value);
+    tree_view = params["tree_view"].value == "true";
+    graph_view = params["graph_view"].value == "true";
+    qscene_2d_view = params["2d_view"].value == "true";
+    osg_3d_view = params["3d_view"].value == "true";
 
-	return true;
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-	{
-		this->startup_check();
-	}
-	else
-	{
-		timer.start(Period);
-		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+    std::cout << "Initialize worker" << std::endl;
+    this->Period = period;
+    if(this->startup_check_flag)
+    {
+        this->startup_check();
+    }
+    else
+    {
+        timer.start(Period);
+        // create graph
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
-		// Graph viewer
-		using opts = DSR::DSRViewer::view;
-		int current_opts = 0;
-		opts main = opts::none;
-		if(tree_view)
-		{
-		    current_opts = current_opts | opts::tree;
-		}
-		if(graph_view)
-		{
-		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
-		}
-		if(qscene_2d_view)
-		{
-		    current_opts = current_opts | opts::scene;
-		}
-		if(osg_3d_view)
-		{
-		    current_opts = current_opts | opts::osg;
-		}
-		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+        // Graph viewer
+        using opts = DSR::DSRViewer::view;
+        int current_opts = 0;
+        opts main = opts::none;
+        if(tree_view)
+        {
+            current_opts = current_opts | opts::tree;
+        }
+        if(graph_view)
+        {
+            current_opts = current_opts | opts::graph;
+            main = opts::graph;
+        }
+        if(qscene_2d_view)
+        {
+            current_opts = current_opts | opts::scene;
+        }
+        if(osg_3d_view)
+        {
+            current_opts = current_opts | opts::osg;
+        }
+        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+        setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-		this->Period = period;
-		timer.start(Period);
-	}
+        this->Period = period;
+        timer.start(Period);
+    }
 }
 
 void SpecificWorker::compute()
 {
-	// check if there is an active command
+    // check if there is an active command
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
     try
@@ -180,9 +180,9 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 
 int SpecificWorker::startup_check()
 {
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
 }
 
 /**************************************/

@@ -1,3 +1,5 @@
+INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
+
 # Sources set
 SET ( SOURCES
   specificworker.cpp
