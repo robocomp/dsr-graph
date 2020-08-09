@@ -24,7 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
-    QLoggingCategory::setFilterRules("*.debug=false\n");
+	QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -33,7 +33,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	// G->write_to_json_file("./"+agent_name+".json");
+	G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -54,7 +54,9 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 	this->Period = period;
 	if(this->startup_check_flag)
+	{
 		this->startup_check();
+	}
 	else
 	{
 		timer.start(Period);
@@ -66,16 +68,25 @@ void SpecificWorker::initialize(int period)
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
-        if(tree_view)
-            current_opts = current_opts | opts::tree;
-        if(graph_view)
-            current_opts = current_opts | opts::graph;
-        if(qscene_2d_view)
-            current_opts = current_opts | opts::scene;
-        if(osg_3d_view)
-            current_opts = current_opts | opts::osg;
-        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
-        setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
+		if(tree_view)
+		{
+		    current_opts = current_opts | opts::tree;
+		}
+		if(graph_view)
+		{
+		    current_opts = current_opts | opts::graph;
+		    main = opts::graph;
+		}
+		if(qscene_2d_view)
+		{
+		    current_opts = current_opts | opts::scene;
+		}
+		if(osg_3d_view)
+		{
+		    current_opts = current_opts | opts::osg;
+		}
+		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
 		this->Period = period;
 		timer.start(Period);
@@ -84,7 +95,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // check if there is an active command
+	// check if there is an active command
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
     try
@@ -167,8 +178,6 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     }
 }
 
-////////////////////////////////////////////////////////////////////////
-
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
@@ -182,6 +191,4 @@ int SpecificWorker::startup_check()
 
 /**************************************/
 // From the RoboCompObjectPoseEstimationRGBD you can use this types:
-// RoboCompObjectPoseEstimationRGBD::TImage
-// RoboCompObjectPoseEstimationRGBD::TDepth
 // RoboCompObjectPoseEstimationRGBD::ObjectPose
