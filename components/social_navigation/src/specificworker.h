@@ -35,8 +35,8 @@
 #include <controller.h>
 #include <custom_widget.h>
 
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 #include "dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h"
 
 #include <localPerson.h>
@@ -81,7 +81,7 @@ private:
 	bool osg_3d_view;
 
 	// DSR graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
