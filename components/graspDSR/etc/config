@@ -1,0 +1,20 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+# Proxies for required interfaces
+ObjectPoseEstimationRGBDProxy = objectposeestimationrgbd:tcp -h localhost -p 10121
+
+
+agent_id = 17
+agent_name = graspDSR
+tree_view = false
+graph_view = true
+2d_view = false
+3d_view = false
+
+InnerModelPath = innermodel.xml
+
+Ice.MessageSizeMax=20004800
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
