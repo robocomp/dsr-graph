@@ -102,17 +102,22 @@ struct Attr {
 
 
 #define REGISTER_FN(x, it)  \
-                            inline bool x ##_b =  TYPES::REGISTER( x##_str, []<typename tp = it>() -> tp {\
-                                static_assert(std::is_constructible_v<tp>, #x "is not constructible without arguments, define your function manually");\
-                                return tp();\
+                            inline bool x ##_b =  TYPES::REGISTER( x##_str, []<typename tp = it>() -> auto {\
+                                if constexpr (is_reference_wrapper<tp>::value) {                           \
+                                    using tp_c = std::remove_const_t<typename tp::type>;                                      \
+                                    return tp_c();\
+                                } else {\
+                                    static_assert(std::is_constructible_v<tp>, #x "is not constructible without arguments, define your function manually");\
+                                    return tp();                                                              \
+                                }\
                             }() );     \
                             \
 
 
-#define REGISTER_TYPE(x, ot, it) \
+#define REGISTER_TYPE(x, ot) \
                             static constexpr auto    x ##_str = std::string_view(#x ); \
                             using x ##_att = Attr< x##_str, ot>;                        \
-                            REGISTER_FN(x, it) \
+                            REGISTER_FN(x, ot) \
                             \
 
 
@@ -120,36 +125,35 @@ struct Attr {
 inline std::unordered_map<std::string_view, std::function<bool(const std::any&)>> TYPES::map_fn_;
 
 
-
-REGISTER_TYPE(pos_x, float, float);
-REGISTER_TYPE(pos_y, float, float);
-REGISTER_TYPE(level, int, int);
-REGISTER_TYPE(name, std::reference_wrapper<const std::string>,  std::string);
-REGISTER_TYPE(parent, std::uint32_t, std::uint32_t);
-REGISTER_TYPE(rotation_euler_xyz, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(translation, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(color, std::reference_wrapper<const std::string>,  std::string);
-REGISTER_TYPE(texture, std::reference_wrapper<const std::string>,  std::string);
-REGISTER_TYPE(width, int, int);
-REGISTER_TYPE(height, int, int);
-REGISTER_TYPE(depth, int, int);
-REGISTER_TYPE(scalex, int, int);
-REGISTER_TYPE(scaley, int, int);
-REGISTER_TYPE(scalez, int, int);
-REGISTER_TYPE(path, std::reference_wrapper<const std::string>, std::string);
-REGISTER_TYPE(angles, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(dists, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(rgb, std::reference_wrapper<const std::vector<uint8_t>>, std::vector<uint8_t>);
-REGISTER_TYPE(cameraID, int, int);
-REGISTER_TYPE(focalx, int, int);
-REGISTER_TYPE(focaly, int, int);
-REGISTER_TYPE(alivetime, int, int);
-REGISTER_TYPE(linear_speed, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(angular_speed, std::reference_wrapper<const std::vector<float>>, std::vector<float>);
-REGISTER_TYPE(ref_adv_speed, float, float);
-REGISTER_TYPE(ref_rot_speed, float, float);
-REGISTER_TYPE(ref_side_speed, float, float);
-REGISTER_TYPE(base_target_x, float, float);
-REGISTER_TYPE(base_target_y, float, float);
+REGISTER_TYPE(pos_x, float);
+REGISTER_TYPE(pos_y, float);
+REGISTER_TYPE(level, int);
+REGISTER_TYPE(name, std::reference_wrapper<const std::string>);
+REGISTER_TYPE(parent, std::uint32_t);
+REGISTER_TYPE(rotation_euler_xyz, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(translation, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(color, std::reference_wrapper<const std::string>);
+REGISTER_TYPE(texture, std::reference_wrapper<const std::string>);
+REGISTER_TYPE(width, int);
+REGISTER_TYPE(height, int);
+REGISTER_TYPE(depth, int);
+REGISTER_TYPE(scalex, int);
+REGISTER_TYPE(scaley, int);
+REGISTER_TYPE(scalez, int);
+REGISTER_TYPE(path, std::reference_wrapper<const std::string>);
+REGISTER_TYPE(angles, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(dists, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(rgb, std::reference_wrapper<const std::vector<uint8_t>>);
+REGISTER_TYPE(cameraID, int);
+REGISTER_TYPE(focalx, int);
+REGISTER_TYPE(focaly, int);
+REGISTER_TYPE(alivetime, int);
+REGISTER_TYPE(linear_speed, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(angular_speed, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(ref_adv_speed, float);
+REGISTER_TYPE(ref_rot_speed, float);
+REGISTER_TYPE(ref_side_speed, float);
+REGISTER_TYPE(base_target_x, float);
+REGISTER_TYPE(base_target_y, float);
 
 #endif //DSR_ATTR_NAME_H
