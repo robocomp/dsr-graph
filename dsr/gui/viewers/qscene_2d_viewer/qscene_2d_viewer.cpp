@@ -83,20 +83,20 @@ qDebug() << __FUNCTION__ ;
 }
 void DSRtoGraphicsceneViewer::add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type)
 {
-qDebug()<<__FUNCTION__;
+//    qDebug()<<__FUNCTION__;
     //check if new edge connected any orphan nodes
     std::map<int, std::string>::iterator it = orphand_nodes.find(to);
 
     if(it != orphand_nodes.end())
     {
-qDebug()<<"ORPHAND NODE FOUND"<<to;
-        orphand_nodes.erase(it);
-        add_or_assign_node_slot(it->first, /*it->second*/ type);
+//        qDebug()<<"ORPHAND NODE FOUND"<<to;
+        add_or_assign_node_slot(it->first, it->second);
+        it = orphand_nodes.erase(it);
     }
     std::string edge_key = std::to_string(from) + "_" + std::to_string(to);
     for (int node_id : edge_map[edge_key])
     {
-qDebug() << "******UPDATE EDGE "<<from << " " << to <<" update node " << node_id;
+//        qDebug() << "******UPDATE EDGE "<<from << " " << to <<" update node " << node_id;
         update_scene_object_pose(node_id);
     }
 }
@@ -183,9 +183,9 @@ qDebug() << __FUNCTION__ ;
     }
 
     std::string color = "orange";
-    color = G->get_attrib_by_name<color_att>(node).value_or(color).get();
+    color = G->get_attrib_by_name<color_att>(node).value_or(color);
     std::string texture;
-    texture = G->get_attrib_by_name<texture_att>(node).value_or(texture).get();
+    texture = G->get_attrib_by_name<texture_att>(node).value_or(texture);
     int width = G->get_attrib_by_name<width_att>(node).value_or(0);
     int height = G->get_attrib_by_name<height_att>(node).value_or(0);
     int depth = G->get_attrib_by_name<depth_att>(node).value_or(0);
@@ -256,40 +256,40 @@ qDebug()<<"Draw mesh"<<QString::fromStdString(node.name())<<"("<<width<<","<<hei
 }
 
 void  DSRtoGraphicsceneViewer::add_or_assign_person(Node &node)
-{   
-qDebug() << "********************************";
-qDebug() << __FUNCTION__ ;
+{
+//qDebug() << "********************************";
+//qDebug() << __FUNCTION__ ;
     std::optional<QVec> pose;
-    try
-    {
+    try{
         pose = innermodel->transformS6D("world", node.name());
     }catch(...){}
-    if (pose.has_value())
-    {
+    if (pose.has_value()){
 //pose.value().print(QString::fromStdString(node.name()));
 
         //check if person already exists
         QGraphicsPixmapItem * scenePixmap;
-        if (scene_map.find(node.id()) == scene_map.end())
-        {
+        if (scene_map.find(node.id()) == scene_map.end()){
             QPixmap pixmap = QPixmap::fromImage(QImage("/home/robocomp/robocomp/components/dsr-graph/etc/person.png")).scaled(600,300);
+            pixmap = pixmap.transformed(QTransform().scale(1, -1));
             scenePixmap = scene.addPixmap(pixmap);
+            scenePixmap->setTransformOriginPoint(scenePixmap->boundingRect().center());
             scenePixmap->setZValue(pose.value().y());
             scene_map[node.id()] = (QGraphicsItem*) scenePixmap;
             std::list<int> parent_list = get_parent_list(node.id());
-            update_edge_chain(parent_list);  
+            update_edge_chain(parent_list);
         }
-        else
-        {
+        else{
             scenePixmap = (QGraphicsPixmapItem*) scene_map[node.id()];
-
         }
-//qDebug()<<"angle"<<pose.value().ry()<<qRadiansToDegrees(pose.value().ry());        
-        scenePixmap->setPos(pose.value().x() - 300, pose.value().z() - 150);
-        scenePixmap->setRotation(qRadiansToDegrees(pose.value().ry())+180);    
+//qDebug()<<"angle"<<pose.value().ry()<<qRadiansToDegrees(pose.value().ry());
+        scenePixmap->setPos(pose.value().x() - scenePixmap->boundingRect().center().x(), pose.value().z() - scenePixmap->boundingRect().center().y());
+        scenePixmap->setRotation(-qRadiansToDegrees(pose.value().ry()));
+        //update person spaces
+        //if(drawpeople_space) {
+        //    draw_person_space((QGraphicsItem *) scenePixmap, node);
+        //}
     }
-    else
-    {
+    else{
         qDebug()<<"Error getting transformation from person"<<QString::fromStdString(node.name())<<"to world";
     }
 }
