@@ -10,4 +10,3 @@ Component graspDSR
     gui Qt(QMainWindow);
     options dsr;
 };
-

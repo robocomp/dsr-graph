@@ -1,15 +1,16 @@
 # graspDSR
-Intro to component here
 
+This component is responsible for planning targets for the robot arm, enabling it to grasp a specific object in the scene. It estimnates poses using `objectPoseEstimation` component, which uses DNN-based methods to estimate poses from RGBD data.
 
 ## Configuration parameters
+
 As any other component, *graspDSR* needs a configuration file to start. In
 ```
 etc/config
 ```
 you can find an example of a configuration file. We can find there the following lines:
 ```
-EXAMPLE HERE
+etc/config
 ```
 
 ## Starting the component
