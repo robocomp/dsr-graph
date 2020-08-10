@@ -120,21 +120,23 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
-            const std::vector<uint8_t> rgb_data = G->get_rgb_image(cam.value()); // reference to image in cam
+            const auto rgb_data = G->get_attrib_by_name<std::vector<uint8_t>>(cam.value(), "rgb");
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
             const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
-            rgb.cameraID = 0;
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb.cameraID");
+            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
+            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
+            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
+
+            rgb.image = rgb_data.value();
             rgb.width = width.value();
             rgb.height = height.value();
-            rgb.focalx = 450;
-            rgb.focaly = 450;
-            rgb.alivetime = 0;
-            rgb.image = rgb_data;
-
-            cv::Mat image_rgb(height.value(), width.value(), CV_8UC3, (uchar *) &rgb_data[0]);
-            cv::imshow("RGB from Head Camera", image_rgb);
-            cv::waitKey(1);
+            rgb.depth = depth.value();
+            rgb.cameraID = cam_id.value();
+            rgb.focalx = focalx.value();
+            rgb.focaly = focaly.value();
+            rgb.alivetime = alivetime.value();
 
             return rgb;
         }
@@ -156,21 +158,33 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     if (cam.has_value())
     {
         RoboCompCameraRGBDSimple::TDepth depth;
+        try
+        {
+            const auto depth_data = G->get_attrib_by_name<std::vector<uint8_t>>(cam.value(), "depth");
+            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
+            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth.cameraID");
+            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "focalx");
+            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "focaly");
+            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
+            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
 
-        const std::vector<float> depth_data = G->get_depth_image(cam.value()); // reference to depth in cam
-        const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
-        const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
+            depth.depth = depth_data.value();
+            depth.width = width.value();
+            depth.height = height.value();
+            depth.cameraID = cam_id.value();
+            depth.focalx = focalx.value();
+            depth.focaly = focaly.value();
+            depth.depthFactor = depth_factor.value();
+            depth.alivetime = alivetime.value();
 
-        depth.cameraID = 0;
-        depth.width = width.value();
-        depth.height = height.value();
-        depth.alivetime = 0;
-        depth.focalx = 450;
-        depth.focaly = 450;
-        depth.depthFactor = 1.0;
-        depth.depth = depth_data;
-
-        return depth;
+            return depth;
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << __FILE__ << __FUNCTION__ << __LINE__ << " " << e.what() << std::endl;
+            std::terminate();
+        }
     }
     else
     {
