@@ -28,8 +28,8 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/dsr_gui.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -65,7 +65,7 @@ private:
 	bool osg_3d_view;
 
 	// DSR graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	std::unique_ptr<DSR::GraphViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	bool startup_check_flag;
 	QByteArray compress(const QByteArray& data);

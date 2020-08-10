@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
-		using opts = DSR::DSRViewer::view;
+		using opts = DSR::GraphViewer::view;
 		int current_opts = 0;
 		//opts main = opts::none;
 		if(tree_view)
@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
 		//Inner Api

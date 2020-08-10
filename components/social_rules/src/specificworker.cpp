@@ -79,7 +79,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		using opts = DSR::DSRViewer::view;
+		using opts = DSR::GraphViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
