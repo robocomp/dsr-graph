@@ -50,6 +50,6 @@ class CoppeliaUtilsI(CoppeliaUtils):
     def __init__(self, worker):
         self.worker = worker
 
-    def addOrModifyDummy(self, name, pose, c):
-        return self.worker.CoppeliaUtils_addOrModifyDummy(name, pose)
+    def addOrModifyDummy(self, type, name, pose, c):
+        return self.worker.CoppeliaUtils_addOrModifyDummy(type, name, pose)
 
