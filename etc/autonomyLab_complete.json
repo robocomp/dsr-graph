@@ -46,15 +46,7 @@
                         "dst": 2,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    1.5700000524520874,
-                                    0
-                                ]
-                            },
-                            "translation": {
+                            "angular_speed": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -70,7 +62,15 @@
                                     0
                                 ]
                             },
-                            "angular_speed": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1.5700000524520874,
+                                    0
+                                ]
+                            },
+                            "translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -948,15 +948,15 @@
                     },
                     "ref_adv_speed": {
                         "type": 2,
-                        "value": 0.0
+                        "value": 0
                     },
                     "ref_rot_speed": {
                         "type": 2,
-                        "value": 0.0
+                        "value": 0
                     },
                     "ref_side_speed": {
                         "type": 2,
-                        "value": 0.0
+                        "value": 0
                     }
                 },
                 "id": 2,
@@ -1008,7 +1008,7 @@
                         "src": 2
                     },
                     {
-                        "dst": 8,
+                        "dst": 80,
                         "label": "RT",
                         "linkAttribute": {
                             "rotation_euler_xyz": {
@@ -5281,7 +5281,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 5
                     },
                     "mass": {
                         "type": 1,
@@ -5289,15 +5289,15 @@
                     },
                     "parent": {
                         "type": 1,
-                        "value": 2
+                        "value": 82
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -294.827911
+                        "value": -403.429169
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -215.127319
+                        "value": -52.065125
                     }
                 },
                 "id": 8,
@@ -5329,6 +5329,186 @@
                 "name": "camera_pose",
                 "type": "transform"
             },
+            "80": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -357.970642
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -231.077576
+                    }
+                },
+                "id": 80,
+                "links": [
+                    {
+                        "dst": 81,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 80
+                    }
+                ],
+                "name": "viriato_head_camera_pan_tilt",
+                "type": "transform"
+            },
+            "81": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 80
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -373.471283
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -162.293488
+                    }
+                },
+                "id": 81,
+                "links": [
+                    {
+                        "dst": 82,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 81
+                    }
+                ],
+                "name": "viriato_head_camera_pan_joint",
+                "type": "transform"
+            },
+            "82": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 4
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 81
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -386.632111
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -107.49485
+                    }
+                },
+                "id": 82,
+                "links": [
+                    {
+                        "dst": 8,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 82
+                    }
+                ],
+                "name": "viriato_head_camera_tilt_joint",
+                "type": "transform"
+            },
             "9": {
                 "attribute": {
                     "color": {
@@ -5349,7 +5529,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 6
                     },
                     "noise": {
                         "type": 1,
@@ -5365,11 +5545,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -356.584686
+                        "value": -437.235199
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -170.942169
+                        "value": 14.53627
                     },
                     "width": {
                         "type": 1,
@@ -5379,7 +5559,7 @@
                 "id": 9,
                 "links": [
                 ],
-                "name": "Viriato_head_camera_front_sensor",
+                "name": "viriato_head_camera_sensor",
                 "type": "rgbd"
             }
         }
