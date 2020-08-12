@@ -13,7 +13,9 @@
 #include <iostream>
 #include <string>
 
-using namespace CRDT;
+CATCH_CONFIG_MAIN
+
+using namespace DSR;
 
 class Graph {
     public:
@@ -25,7 +27,7 @@ class Graph {
         shared_ptr<DSR::DSRGraph> get_G() { return G;}
     private:
         Graph () {
-            G = make_shared<DSR::DSRGraph>(0, "test", 54000, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json");
+            G = make_shared<DSR::DSRGraph>(0, "test", 1550, "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/empty_file.json");
         }
 
         std::shared_ptr<DSR::DSRGraph> G;
@@ -37,52 +39,39 @@ TEST_CASE("Node operations", "[NODE]") {
 
     SECTION("Get a node that does not exists by id") {
         G->reset();
-
         std::optional<Node> n_id = G->get_node(666666);
-
         REQUIRE_FALSE(n_id.has_value());
-
     }
     SECTION("Get a node that does not exists by name") {
         G->reset();
-
         std::optional<Node> n_name = G->get_node("no existe");
-
         REQUIRE_FALSE(n_name.has_value());
-
     }
 
     SECTION("Insert a new node") {
 
-        Node n;
-        n.name("test");
-        n.id(75000);
-        n.type("testtype");
+        Node n(0, "testtype", "test", {}, {}, 1550);
         std::optional<int> r  = G->insert_node(n);
         REQUIRE(r.has_value());
-        REQUIRE(r == 75000);
+        REQUIRE(r == G->size());
     }
 
     SECTION("Get an existing node by id") {
-
-        std::optional<Node> n_id = G->get_node(75000);
+        std::optional<Node> n_id = G->get_node(G->size());
         REQUIRE(n_id.has_value());
-
     }
 
     SECTION("Get an existing node by name") {
-
         std::optional<Node> n_name = G->get_node("test");
         REQUIRE(n_name.has_value());
     }
 
     SECTION("Update existing node") {
 
-        std::optional<Node> n_id = G->get_node(75000);
+        std::optional<Node> n_id = G->get_node(G->size());
         REQUIRE(n_id.has_value());
 
-        G->add_attrib(n_id.value(), "level", 1);
-        //bool r = G->insert_or_assign_node(n_id.value());
+        G->add_attrib_local<level_att>(n_id.value(), 1);
         bool r = G->update_node(n_id.value());
 
         REQUIRE(r);
@@ -91,28 +80,25 @@ TEST_CASE("Node operations", "[NODE]") {
 
     SECTION("Remove an attribute") {
 
-        std::optional<Node> n_id = G->get_node(75000);
+        std::optional<Node> n_id = G->get_node(G->size());
         REQUIRE(n_id.has_value());
-
         G->remove_attrib_by_name(n_id.value(), "level");
         REQUIRE(n_id->attrs().find("level") == n_id->attrs().end());
     }
 
 
-
     SECTION("Insert an existent node") {
         Node n;
-        n.id(75000);
+        n.name("test");
         REQUIRE_THROWS(G->insert_node(n));
     }
 
     SECTION("Update an existent node with different name") {
 
-        Node n;
-        n.name("test2");
-        n.id(75000);
-        n.type("testtype");
-        REQUIRE_THROWS(G->update_node(n));
+        std::optional<Node> n_ = G->get_node("test");
+        REQUIRE(n_.has_value());
+        n_->name("test2");
+        REQUIRE_THROWS(G->update_node(n_.value()));
     }
 
     SECTION("Update an existent node with different id") {

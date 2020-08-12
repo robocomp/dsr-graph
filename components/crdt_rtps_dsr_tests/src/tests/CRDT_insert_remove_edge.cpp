@@ -8,6 +8,8 @@
 #include <thread>
 #include <fstream>
 
+#include <type_traits>
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
 
 void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
@@ -24,8 +26,8 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<DSR
             //get two ids
             edge.from(getID());
             edge.to(getID());
-            G->add_attrib_local(edge, "name", std::string("fucking_plane"));
-            G->add_attrib_local(edge, "color", std::string("SteelBlue"));
+            G->add_attrib_local<name_att>(edge,  std::string("fucking_plane"));
+            G->add_attrib_local<color_att>(edge,  std::string("SteelBlue"));
 
             r = G->insert_or_assign_edge(edge);
             if (r) {
@@ -58,11 +60,11 @@ void CRDT_insert_remove_edge::run_test()
             DSR::Node node;
             node.type("other");
             node.agent_id(0);
-            G->add_attrib_local(node, "name", std::string("fucking_plane"));
-            G->add_attrib_local(node, "color", std::string("SteelBlue"));
-            G->add_attrib_local(node, "pos_x", rnd_float());
-            G->add_attrib_local(node, "pos_y", rnd_float());
-            G->add_attrib_local(node, "parent", static_cast<uint32_t>(100));
+            G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
+            G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
+            G->add_attrib_local<pos_x_att>(node,  rnd_float());
+            G->add_attrib_local<pos_y_att>(node,  rnd_float());
+            G->add_attrib_local<parent_att>(node,  100u);
 
             // insert node
             auto id = G->insert_node(node);

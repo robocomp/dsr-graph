@@ -9,6 +9,9 @@
 #include <random>
 #include <fstream>
 
+#include <type_traits>
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+
 void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it = 0;
@@ -27,8 +30,8 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_p
         DSR::Attribute ab (str, 0, agent_id);
         node.value().attrs()["testattrib"] = ab;
 
-        G->add_or_modify_attrib_local(node.value(), "pos_x", rnd_float());
-        G->add_or_modify_attrib_local(node.value(), "pos_y", rnd_float());
+        G->add_or_modify_attrib_local<pos_x_att>(node.value(), rnd_float());
+        G->add_or_modify_attrib_local<pos_y_att>(node.value(), rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {

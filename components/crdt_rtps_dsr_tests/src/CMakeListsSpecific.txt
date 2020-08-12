@@ -37,43 +37,30 @@ SET ( HEADERS
   ../../../dsr/gui/dsr_gui.h
 )
 
-set(CMAKE_CXX_STANDARD 17)
-
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
-
 SET ( TEST_SOURCES
-  ../../../dsr/api/dsr_api.cpp
   ../../../dsr/api/dsr_api.cpp
   ../../../dsr/core/types/crdt_types.cpp
   ../../../dsr/core/types/user_types.cpp
   ../../../dsr/core/rtps/dsrpublisher.cpp
   ../../../dsr/core/rtps/dsrsubscriber.cpp
   ../../../dsr/core/rtps/dsrparticipant.cpp
-  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
-  ../../../dsr/core/topics/DSRGraph.cxx
+  ../../../dsr/core/topics/IDLGraphPubSubTypes.cxx
+  ../../../dsr/core/topics/IDLGraph.cxx
   ../../../dsr/api/dsr_inner_api.cpp
   ../../../dsr/api/dsr_utils.cpp
-  tests/CRDT_G_api_test.cpp
-  DSRGetID.cpp
+  unittests/CRDT_G_api_test.cpp
 )
-
-
 
 # Headers set
 SET ( TEST_HEADERS
   ../../../dsr/api/dsr_api.h
-  ../../../dsr/api/dsr_utils.h
-  tests/CRDT_G_api_test.h
-  tests/catch.hpp
-  DSRGetID.h
+  unittests/catch.hpp
 )
 
 
-find_package(LibXml2 REQUIRED)
-include_directories(${LIBXML2_INCLUDE_DIR})
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-g  -fmax-errors=1 -std=c++2a)
-SET(SPECIFIC_LIBS ${LIBXML2_LIBRARIES}  fastcdr fastrtps osgDB)
+SET(SPECIFIC_LIBS fastcdr fastrtps osgDB)
 set(CMAKE_BUILD_TYPE Debug)
 
 
