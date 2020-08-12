@@ -263,7 +263,7 @@ class SpecificWorker(GenericWorker):
 
         for x in datos.axes:
             if x.name == "advance":
-                adv = x.value if np.abs(x.value) > 0.5 else 0
+                adv = x.value if np.abs(x.value) > 1 else 0
             if x.name == "rotate":
                 rot = x.value if np.abs(x.value) > 0.5 else 0
             if x.name == "side":

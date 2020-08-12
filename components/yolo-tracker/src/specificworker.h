@@ -65,6 +65,7 @@ class SpecificWorker : public GenericWorker
 		
 		// DSR graph
 		std::shared_ptr<DSR::DSRGraph> G;
+        std::shared_ptr<DSR::InnerAPI> innermodel;
 
         //DSR params
         std::string agent_name;
@@ -92,19 +93,24 @@ class SpecificWorker : public GenericWorker
 			int bot;
 			float prob;
 		};
-		yolo::image createImage(const cv::Mat &src);
+        std::vector<Box> process_image_with_yolo(const cv::Mat& img);
+        yolo::image createImage(const cv::Mat &src);
 		yolo::image createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
 		network* init_detector(std::string path_to_yolodata_);
 		std::vector<Box> detectLabels(yolo::network *ynet, const yolo::image &img, float thresh, float hier_thresh);
 		char** names;
 		clock_t ytime1;
-		//yolo::network *ynet;
 		std::vector<yolo::network*> ynets;
 		const std::size_t YOLO_INSTANCES = 1;
 		bool SHOW_IMAGE = false;
 		bool READY_TO_GO = false;
 		std::string path_to_yolodata;
 		FPSCounter fps;
+
+        void show_image(cv::Mat &imgdst, const vector<SpecificWorker::Box> &boxes, const std::vector<SpecificWorker::Box> synth_boxes);
+        cv::Mat get_rgb_image(const Node &rgb_node);
+        vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const Node& rgb_cam);
+         void compute_prediction_error(const vector<SpecificWorker::Box> &real_boxes, const vector<Box> synth_boxes);
 };
 
 #endif
