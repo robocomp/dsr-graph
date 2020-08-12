@@ -181,7 +181,7 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		auto edge = G->get_edge_RT(parent.value(), robot->id());
+		auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
 		G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
         G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
         G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
