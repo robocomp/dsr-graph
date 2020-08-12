@@ -57,14 +57,15 @@ private:
 	bool qscene_2d_view;
 	bool osg_3d_view;
 
-    // DSR graph viewer
-    std::unique_ptr<DSR::DSRViewer> graph_viewer;
-    QHBoxLayout mainLayout;
-    QWidget window;
-    bool startup_check_flag;
+	// DSR graph viewer
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	QHBoxLayout mainLayout;
+	QWidget window;
+	bool startup_check_flag;
 
-	// grasping
-    RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
+	// pose estimation
+	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
+	RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
 };
 
 #endif
