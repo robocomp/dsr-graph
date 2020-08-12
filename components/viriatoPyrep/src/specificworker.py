@@ -91,8 +91,8 @@ class SpecificWorker(GenericWorker):
         #                                             "depth": np.ndarray(0) }
         #
         # robot head camera
-        cam = VisionSensor("Viriato_head_camera_front_sensor")
-        self.cameras["Viriato_head_camera_front_sensor"] = {    "handle": cam,
+        cam = VisionSensor("viriato_head_camera_sensor")
+        self.cameras["viriato_head_camera_sensor"] = {    "handle": cam,
                                                                 "id": 0,
                                                                 "angle": np.radians(cam.get_perspective_angle()),
                                                                 "width": cam.get_resolution()[0],
@@ -102,7 +102,7 @@ class SpecificWorker(GenericWorker):
                                                                 "depth": np.ndarray(0) }
 
         # camera tilt motor
-        self.camera_tilt_motor = Joint("Viriato_camera_tilt_joint")
+        self.camera_tilt_motor = Joint("viriato_camera_tilt_joint")
 
         # Each laser is composed of two cameras. They are converted into a 360 virtual laser
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
@@ -133,7 +133,7 @@ class SpecificWorker(GenericWorker):
             ### Cameras get and publish people position
             ###########################################
             for name,cam in self.cameras.items():
-                cam = self.cameras["Viriato_head_camera_front_sensor"]
+                cam = self.cameras["viriato_head_camera_sensor"]
                 image_float = cam["handle"].capture_rgb()
                 depth = cam["handle"].capture_depth()
                 image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
