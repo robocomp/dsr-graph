@@ -120,8 +120,9 @@ void SpecificWorker::compute()
 
 void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &depth)
 {
-	qDebug() << __FUNCTION__; 
-	auto node = G->get_node("Viriato_head_camera_front_sensor");
+	qDebug() << __FUNCTION__;
+	std::string camera_name = "viriato_head_camera_sensor";
+	auto node = G->get_node(camera_name);
 	if (node.has_value())
 	{
 		G->add_or_modify_attrib_local(node.value(), "rgb", rgb.image);

@@ -103,6 +103,29 @@
                             }
                         },
                         "src": 1
+                    },
+                    {
+                        "dst": 83,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    3.1592,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -628,
+                                    1000,
+                                    2622
+                                ]
+                            }
+                        },
+                        "src": 1
                     }
                 ],
                 "name": "world",
@@ -1015,7 +1038,7 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    1.5700000524520874,
+                                    0,
                                     0
                                 ]
                             },
@@ -5358,6 +5381,14 @@
                     "pos_y": {
                         "type": 2,
                         "value": -231.077576
+                    },
+                    "viriato_pan_tilt_nose_target": {
+                        "type": 3,
+                        "value": [
+                            0,
+                            0,
+                            10
+                        ]
                     }
                 },
                 "id": 80,
@@ -5508,6 +5539,67 @@
                 ],
                 "name": "viriato_head_camera_tilt_joint",
                 "type": "transform"
+            },
+            "83": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 182.019562
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -299.624329
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/pbustos/robocomp/components/dsr-graph/etc/alab/objects/mug.ive"
+                    },
+                    "render": {
+                        "type": 0,
+                        "value": "NormalRendering"
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    }
+                },
+                "id": 83,
+                "links": [
+                ],
+                "name": "glass_1",
+                "type": "mesh"
             },
             "9": {
                 "attribute": {
