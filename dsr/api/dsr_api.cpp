@@ -126,6 +126,10 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
                     int new_node_id = dsr_getid_proxy->getID();
                     node.id(new_node_id);
                     node.name(node.type() + "_" + std::to_string(new_node_id));
+                } else
+                {
+                    qWarning() << __FILE__ << __FUNCTION__ << "Cannot connect to idserver. Aborting";
+                    std::terminate();
                 }
             }
             catch(const std::exception& e)
@@ -772,7 +776,7 @@ std::vector<DSR::Edge> DSRGraph::get_edges_to_id(uint32_t id) {
     return edges_;
 }
 
-std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> DSRGraph::get_edges(uint32_t id) {
+    std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> DSRGraph::get_edges(uint32_t id) {
     //std::unordered_map<std::pair<uint32_t, std::string>, CRDTEdge, pair_hash> pa;
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<Node> n = get_node(id);
@@ -1485,12 +1489,12 @@ void DSRGraph::fullgraph_server_thread() {
         //readNextData o takeNextData
         if (sub->takeNextData(&sample, &m_info)) { // Get sample
             if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
-                if (m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
+                if (/*m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false*/static_cast<uint32_t>(std::stoi(sample.from())) != agent_id) {
                     std::cout << " Received Full Graph request: from " << m_info.sample_identity.writer_guid()
                               << std::endl;
                     *work = false;
                     IDL::OrMap mp;
-                    mp.id(graph->id());
+                    mp.id(graph->get_agent_id());
                     mp.m(graph->Map());
                     mp.cbase(graph->context());
                     std::cout << "nodos enviados: " << mp.m().size() << std::endl;
@@ -1520,7 +1524,7 @@ bool DSRGraph::fullgraph_request_thread() {
         std::cout << "Grafo completo - Mensajes sin leer " << sub->get_unread_count() << std::endl;
         if (sub->takeNextData(&sample, &m_info)) { // Get sample
             if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
-                if (m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
+                if (/*m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false*/ sample.id() != graph->get_agent_id()) {
                     std::cout << " Received Full Graph from " << m_info.sample_identity.writer_guid() << " whith "
                               << sample.m().size() << " elements" << std::endl;
                     graph->join_full_graph(sample);
@@ -1539,15 +1543,17 @@ bool DSRGraph::fullgraph_request_thread() {
 
     std::cout << " Requesting the complete graph " << std::endl;
     IDL::GraphRequest gr;
-    gr.from(agent_name);
+    gr.from(std::to_string(agent_id));
     dsrpub_graph_request.write(&gr);
 
     bool timeout = false;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     while (!sync and !timeout) {
-        std::this_thread::sleep_for(500ms);
+        std::this_thread::sleep_for(1000ms);
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        timeout = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > TIMEOUT * 5;
+        timeout = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > TIMEOUT*3;
+        std::cout  << " Waiting for the graph ... seconds to timeout [" << std::ceil(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()/10)/100.0  << "/"<< TIMEOUT/1000*3<<"] " << std::endl;
+        dsrpub_graph_request.write(&gr);
     }
     eprosima::fastrtps::Domain::removeSubscriber(dsrsub_request_answer.getSubscriber());
     return sync;

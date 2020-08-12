@@ -208,6 +208,7 @@ namespace DSR {
                 return av.float_vec();
             else if constexpr (std::is_same_v< name_type,  std::reference_wrapper<const std::vector<uint8_t>>>)
                 return av.byte_vec();
+            /*
             else if constexpr (std::is_same_v< name_type, QVec>) {
                 const auto &val = av.float_vec();
                 if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
@@ -221,7 +222,7 @@ namespace DSR {
                     return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
                 }
                 throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            } else {
+            } */else {
                 throw std::logic_error("Unreachable");
             }
         }
@@ -638,6 +639,7 @@ namespace DSR {
                     return ret_type(av.val().uint());
                 else if constexpr (std::is_same_v< name_type, bool>)
                     return ret_type(av.val().bl());
+                /*
                 else if constexpr (std::is_same_v< name_type, QVec>) {
                     const auto &val = av.val().float_vec();
                     if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
@@ -651,7 +653,7 @@ namespace DSR {
                         return ret_type(QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])});
                     }
                     throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
-                } else {
+                }*/ else {
                     throw std::logic_error("Unreachable");
                 }
             }
