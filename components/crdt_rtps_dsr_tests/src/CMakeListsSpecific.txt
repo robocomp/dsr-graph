@@ -49,12 +49,14 @@ SET ( TEST_SOURCES
   ../../../dsr/api/dsr_inner_api.cpp
   ../../../dsr/api/dsr_utils.cpp
   unittests/CRDT_G_api_test.cpp
+  DSRGetID.cpp
 )
 
 # Headers set
 SET ( TEST_HEADERS
   ../../../dsr/api/dsr_api.h
   unittests/catch.hpp
+  DSRGetID.h
 )
 
 
