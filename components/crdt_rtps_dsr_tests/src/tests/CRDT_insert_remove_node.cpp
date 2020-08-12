@@ -25,11 +25,11 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR
             //node.id( id );
             node.agent_id(0);
             //node.name("plane" + std::to_string(id));
-            G->add_attrib_local(node, "name", std::string("fucking_plane"));
-            G->add_attrib_local(node, "color", std::string("SteelBlue"));
-            G->add_attrib_local(node, "pos_x", rnd_float());
-            G->add_attrib_local(node, "pos_y", rnd_float());
-            G->add_attrib_local(node, "parent", 100);
+            G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
+            G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
+            G->add_attrib_local<pos_x_att>(node,  rnd_float());
+            G->add_attrib_local<pos_y_att>(node,  rnd_float());
+            G->add_attrib_local<parent_att>(node,  100u);
 
             //node.attrs(attrs);
 
