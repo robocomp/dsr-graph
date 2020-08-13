@@ -160,7 +160,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
-            const std::vector<float> depth_data = G->get_depth_image(cam.value());
+            const std::vector<uint8_t> depth_data = G->get_depth_image(cam.value());
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
             const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth.cameraID");
@@ -169,10 +169,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
 
-            std::vector<uint8_t> conv_depth_data;
-            memcpy(&conv_depth_data[0], &depth_data[0], width.value() * height.value() * sizeof(std::uint8_t));
-
-            depth.depth = conv_depth_data;
+            depth.depth = depth_data;
             depth.width = width.value();
             depth.height = height.value();
             depth.cameraID = cam_id.value();
