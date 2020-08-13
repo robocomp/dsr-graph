@@ -547,12 +547,13 @@ namespace DSR {
         std::unordered_map<string, uint32_t> name_map;     // mapping between name and id of nodes.
         std::unordered_map<uint32_t, string> id_map;       // mapping between id and name of nodes.
         std::unordered_map<pair<uint32_t, uint32_t>, std::unordered_set<std::string>, hash_tuple> edges;      // collection with all graph edges. ((from, to), key)
+        std::unordered_map<uint32_t , std::unordered_set<pair<uint32_t, std::string>,hash_tuple>> to_edges;      // collection with all graph edges. (to, (from, key))
         std::unordered_map<std::string, std::unordered_set<pair<uint32_t, uint32_t>, hash_tuple>> edgeType;  // collection with all edge types.
         std::unordered_map<std::string, std::unordered_set<uint32_t>> nodeType;  // collection with all node types.
 
         void update_maps_node_delete(uint32_t id, const CRDTNode &n);
         void update_maps_node_insert(uint32_t id, const CRDTNode &n);
-        void update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key);
+        void update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key = "");
         void update_maps_edge_insert(uint32_t from, uint32_t to, const std::string &key);
 
 

@@ -138,7 +138,7 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
                                           + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
             }
 
-            std::tie(r, aw) = insert_node_(user_node_to_crdt(std::move(node)));
+            std::tie(r, aw) = insert_node_(user_node_to_crdt(node));
         }// else
         //    throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
         //                              + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
@@ -268,12 +268,12 @@ DSRGraph::delete_node_(uint32_t id) {
             visited_node.fano().erase({k, key});
             edges_.emplace_back(make_tuple(visited_node.id(), id, key));
 
-            edgeType[key].erase({visited_node.id(), id});
         }
 
 
         //Remove all from cache
-        edges.erase({visited_node.id(), id});
+        update_maps_edge_delete(k, id);
+
     }
     return make_tuple(true, edges_, delta_remove, aw);
 
@@ -461,7 +461,7 @@ DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t 
             mvreg<CRDTEdge, uint32_t> mv;
             node.fano().insert({{to, attrs.type()}, mv});
             auto delta = node.fano()[{to, attrs.type()}].write(attrs);
-            update_maps_node_insert(from, node);
+            update_maps_edge_insert(from, to, attrs.type());
             return {true, translateEdgeMvCRDTtoIDL(agent_id, from, to, attrs.type(), delta), {}};
         }
     }
@@ -763,21 +763,17 @@ std::vector<DSR::Edge> DSRGraph::get_edges_by_type(const std::string &type) {
 std::vector<DSR::Edge> DSRGraph::get_edges_to_id(uint32_t id) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::vector<Edge> edges_;
-    for (const auto &[key, types] : edges) {
-        auto[from, to] = key;
-        if (to == id) {
-            for (const std::string &type : types) {
-                auto n = get_edge_(from, to, type);
-                if (n.has_value())
-                    edges_.emplace_back(Edge(n.value()));
-            }
-        }
+    for (const auto &[k, v] : to_edges[id]) {
+        auto n = get_edge_(k, id, v);
+        if (n.has_value())
+            edges_.emplace_back(Edge(n.value()));
+
     }
+
     return edges_;
 }
 
-    std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> DSRGraph::get_edges(uint32_t id) {
-    //std::unordered_map<std::pair<uint32_t, std::string>, CRDTEdge, pair_hash> pa;
+std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> DSRGraph::get_edges(uint32_t id) {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     std::optional<Node> n = get_node(id);
     if (n.has_value()) {
@@ -788,9 +784,9 @@ std::vector<DSR::Edge> DSRGraph::get_edges_to_id(uint32_t id) {
 };
 
 DSR::Edge DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
-    auto edges = n.fano();
-    auto res = edges.find({to, "RT"});
-    if (res != edges.end())
+    auto edges_ = n.fano();
+    auto res = edges_.find({to, "RT"});
+    if (res != edges_.end())
         return res->second;
     else
         throw std::runtime_error("Could not find edge " + std::to_string(to) + " in node " + std::to_string(n.id()) +
@@ -900,6 +896,8 @@ inline void DSRGraph::update_maps_node_delete(uint32_t id, const CRDTNode &n) {
         edges[{id, v.read().begin()->to()}].erase(k.second);
         if (edges[{id, k.first}].empty()) edges.erase({id, k.first});
         edgeType[k.second].erase({id, k.first});
+        to_edges[k.first].erase({id, k.second});
+        if (to_edges[k.first].empty()) to_edges.erase(k.first);
     }
 }
 
@@ -911,18 +909,33 @@ inline void DSRGraph::update_maps_node_insert(uint32_t id, const CRDTNode &n) {
     for (const auto &[k, v] : n.fano()) {
         edges[{id, k.first}].insert(k.second);
         edgeType[k.second].insert({id, k.first});
+        to_edges[k.first].insert({id, k.second});
     }
 }
 
 
 inline void DSRGraph::update_maps_edge_delete(uint32_t from, uint32_t to, const std::string &key) {
-    edges[{from, to}].erase(key);
-    if (edges[{from, to}].empty()) edges.erase({from, to});
-    edgeType[key].erase({from, to});
+
+    if (key.empty()) {
+        edges.erase({from, to});
+        edgeType[key].erase({from, to});
+        auto ed = to_edges[to];
+        for (auto [t, k] : ed) {
+            if (t == from)
+                to_edges[to].erase({from, k});
+        }
+    } else {
+        edges[{from, to}].erase(key);
+        if (edges[{from, to}].empty()) edges.erase({from, to});
+        to_edges[to].erase({from, key});
+        if (to_edges[to].empty()) to_edges.erase(to);
+        edgeType[key].erase({from, to});
+    }
 }
 
 inline void DSRGraph::update_maps_edge_insert(uint32_t from, uint32_t to, const std::string &key) {
     edges[{from, to}].insert(key);
+    to_edges[to].insert({from, key});
     edgeType[key].insert({from, to});
 }
 
@@ -1149,10 +1162,10 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                 if (mvreg.dk().ds().empty() or n.attrs().find(mvreg.attr_name()) == n.attrs().end()) { //Remove
                     n.attrs().erase(mvreg.attr_name());
                     //Update maps
-                    update_maps_node_insert(mvreg.id(), n);
+                    //update_maps_node_insert(mvreg.id(), n);
                 } else { //Insert
                     //Update maps
-                    update_maps_node_insert(mvreg.id(), n);
+                    //update_maps_node_insert(mvreg.id(), n);
                 }
                 //temp_node_attr.erase(mvreg.id());
             } /*else if (deleted.find(mvreg.id()) == deleted.end()) {
@@ -1208,10 +1221,8 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                 if (mvreg.dk().ds().empty() or n.attrs().find(mvreg.attr_name()) == n.attrs().end()) { //Remove
                     n.attrs().erase(mvreg.attr_name());
                     //Update maps
-                    update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
                 } else { //Insert
                     //Update maps
-                    update_maps_node_insert(mvreg.id(), nodes[mvreg.id()].read_reg());
                 }
             } /*else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
