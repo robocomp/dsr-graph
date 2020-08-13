@@ -78,10 +78,10 @@ Q_OBJECT
         void del_edge_attrib_slot();
 
         //G signals
-        void G_add_or_assign_node_slot(const std::int32_t id, const std::string &type);
-        void G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type);
-        void G_del_node_slot(const std::int32_t id);
-        void G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);
+        void G_add_or_assign_node_slot(const std::uint32_t id, const std::string &type);
+        void G_add_or_assign_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string& type);
+        void G_del_node_slot(const std::uint32_t id);
+        void G_del_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string &edge_tag);
 
 
 	private:

@@ -48,6 +48,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period) 
 {
+    qRegisterMetaType<std::uint32_t>("std::uint32_t");
+    qRegisterMetaType<std::string>("std::string");
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
@@ -444,7 +446,7 @@ void SpecificWorker::del_edge_attrib_slot() {
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
 }
 
-void SpecificWorker::G_add_or_assign_node_slot(const std::int32_t id, const std::string &type) {
+void SpecificWorker::G_add_or_assign_node_slot(const std::uint32_t id, const std::string &type) {
     Node node = G->get_node(id).value();
     QVariant data;
     data.setValue(node);
@@ -456,7 +458,7 @@ void SpecificWorker::G_add_or_assign_node_slot(const std::int32_t id, const std:
     else //update item
         this->node_cb->setItemData(pos, data);
 }
-void SpecificWorker::G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type){
+void SpecificWorker::G_add_or_assign_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string& type){
     Edge edge = G->get_edge(from, to, type).value();
     QVariant edge_data;
     edge_data.setValue(edge);
@@ -473,7 +475,7 @@ void SpecificWorker::G_add_or_assign_edge_slot(const std::int32_t from, const st
         this->edge_cb->setItemData(pos, edge_data);
 
 }
-void SpecificWorker::G_del_node_slot(const std::int32_t id){
+void SpecificWorker::G_del_node_slot(const std::uint32_t id){
     QString combo_name = node_combo_names[id];
     qDebug()<<"G_del_node"<<id<<combo_name;
     int pos = this->node_cb->findText(combo_name);
@@ -482,7 +484,7 @@ void SpecificWorker::G_del_node_slot(const std::int32_t id){
         node_combo_names.erase(id);
     }
 }
-void SpecificWorker::G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type){
+void SpecificWorker::G_del_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string &type){
     QString combo_name = edge_combo_names[std::to_string(from)+"_"+std::to_string(to)+"_"+type];
     int pos = this->edge_cb->findText(combo_name);
     if (pos != -1)
