@@ -84,7 +84,7 @@ TEST_CASE("Node operations", "[NODE]") {
         Node n(0, "testtype", "", {}, {}, 1550);
         std::optional<int> r  = G->insert_node(n);
         REQUIRE(r.has_value());
-        REQUIRE(r.value() == G->size());
+        REQUIRE(r.value() == static_cast<int>(G->size()));
     }
 
     SECTION("Get an existing node by id") {
@@ -117,13 +117,6 @@ TEST_CASE("Node operations", "[NODE]") {
         REQUIRE(n_id->attrs().find("level") == n_id->attrs().end());
     }
 
-
-    SECTION("Insert an existent node") {
-        //TODO: Is this even possible now?
-        Node n;
-        n.name("testtype_"+ std::to_string(G->size()));
-        REQUIRE_THROWS(G->insert_node(n));
-    }
 
     SECTION("Update an existent node with different name") {
 
@@ -204,31 +197,30 @@ TEST_CASE("Edge operations", "[EDGE]") {
 
         Edge e;
         e.type("testtype");
-        e.to(id1.value());
-        e.from(id2.value());
+        e.to(id2.value());
+        e.from(id1.value());
 
         bool r  = G->insert_or_assign_edge(e);
         REQUIRE(r);
 
     }
 
-    //TODO: AQUI
     SECTION("Get an existing edge by id") {
 
-        std::optional<Edge> e = G->get_edge(85000, 87000, "testtype");
+        std::optional<Edge> e = G->get_edge(3, 4, "testtype");
         REQUIRE(e.has_value());
 
     }
 
     SECTION("Get an existing edge by name") {
 
-        std::optional<Edge> e_name = G->get_edge("test", "test2", "testtype");
+        std::optional<Edge> e_name = G->get_edge("testtype_3", "testtype_4", "testtype");
         REQUIRE(e_name.has_value());
 
     }
 
     SECTION("Update existing edge") {
-        std::optional<Edge> e = G->get_edge(85000, 87000, "testtype");
+        std::optional<Edge> e = G->get_edge(3, 4, "testtype");
         REQUIRE(e.has_value());
         G->add_attrib_local<att_att>(e.value(),  std::string("a"));
         bool r = G->insert_or_assign_edge(e.value());
@@ -237,38 +229,42 @@ TEST_CASE("Edge operations", "[EDGE]") {
     }
     SECTION("Delete existing edge by id") {
 
-        bool r = G->delete_edge(85000, 87000, "testtype");
+        bool r = G->delete_edge(3, 4, "testtype");
         REQUIRE(r);
-        REQUIRE(G->get_edge(85000, 87000, "testtype") == std::nullopt);
+        REQUIRE(G->get_edge(3, 4, "testtype") == std::nullopt);
 
     }
 
     SECTION("Delete existing edge by name") {
         Edge e;
         e.type("testtype");
-        e.to(87000);
-        e.from(85000);
+        e.to(3);
+        e.from(4);
 
         bool r  = G->insert_or_assign_edge(e);
         REQUIRE(r);
-        r = G->delete_edge("test", "test2", "testtype");
+        r = G->delete_edge("testtype_4", "testtype_3", "testtype");
         REQUIRE(r);
-        REQUIRE(G->get_edge("test", "test2", "testtype") == std::nullopt);
+        REQUIRE(G->get_edge("testtype_4", "testtype_3", "testtype") == std::nullopt);
 
     }
 
     SECTION("Delete an edge that does not exists") {
-        bool r = G->delete_edge(85000, 87000, "testtype");
+        bool r = G->delete_edge(3, 4, "testtype");
         REQUIRE_FALSE(r);
     }
 
-    SECTION("Get RTMat from edge") {}
+    SECTION("Get RTMat from edge") {
+        //TOOD: implement
+    }
 
-    SECTION("Get edge RT") {}
+    SECTION("Get edge RT") {
+        //TOOD: implement
+    }
 
-
-
-    SECTION("Insert or assign edge RT") {}
+    SECTION("Insert or assign edge RT") {
+        //TOOD: implement
+    }
 
 }
 
@@ -317,7 +313,7 @@ TEST_CASE("File operations (Utilities sub-api)", "[FILE]") {
         REQUIRE(G->size() == 0);
 
         G->read_from_json_file(test_file);
-        REQUIRE(G->size() == 13);
+        REQUIRE(G->size() == 75);
     }
 
     SECTION("Write a file") {
@@ -343,41 +339,41 @@ TEST_CASE("Maps operations", "[UTILS]") {
 
     SECTION("Get id from a name") {
         Node n;
-        n.name("name_node"); n.id(12345); n.type("t");
+        n.name("name_node");  n.type("t");
         std::optional<int> r = G->insert_node(n);
         REQUIRE(r.has_value());
 
-        std::optional<int> id = G->get_id_from_name("name_node");
+        std::optional<int> id = G->get_id_from_name("t_" + std::to_string(r.value()));
         REQUIRE(id.has_value());
-        REQUIRE(id.value() == 12345);
+        REQUIRE(id.value() == 5);
 
     }
 
 
     SECTION("Get id from a name that does not exist") {
-        std::optional<int> id = G->get_id_from_name("name_no");
+        std::optional<int> id = G->get_id_from_name("t_55");
         REQUIRE(!id.has_value());
     }
 
     SECTION("Get name from an id") {
         Node n;
-        n.name("name_node"); n.id(12345); n.type("t");
+        n.name("t_5"); n.id(5); n.type("t");
         bool r = G->update_node(n);
         REQUIRE(r);
 
-        std::optional<std::string> name = G->get_name_from_id(12345);
+        std::optional<std::string> name = G->get_name_from_id(5);
         REQUIRE(name.has_value());
-        REQUIRE(name.value() == "name_node");
+        REQUIRE(name.value() == "t_5");
     }
 
     SECTION("Get name from an id that does not exist") {
-        std::optional<std::string> name = G->get_name_from_id(501245);
+        std::optional<std::string> name = G->get_name_from_id(788987);
         REQUIRE(!name.has_value());
     }
 
     SECTION("Get nodes by type") {
         Node n;
-        n.name("name_node2"); n.id(12346); n.type("t");
+        n.type("t");
         auto r = G->insert_node(n);
         REQUIRE(r.has_value());
 
@@ -389,24 +385,23 @@ TEST_CASE("Maps operations", "[UTILS]") {
     }
     SECTION("Get edges by type") {
         vector<Edge> ve = G->get_edges_by_type("RT");
-        REQUIRE(ve.size() == 12);
+        REQUIRE(ve.size() == 74);
         ve = G->get_edges_by_type("no");
         REQUIRE(ve.empty());
     }
     SECTION("Get edges to a node (id)") {
         vector<Edge> ve = G->get_edges_to_id(100);
         REQUIRE(ve.empty());
-        ve = G->get_edges_to_id(118);
+        ve = G->get_edges_to_id(13);
         REQUIRE(ve.size() == 1);
     }
 
-     //TODO: MODIFICAR CON NUEVA REPRESENTACIÓN del grafo para el usuario.
 
     SECTION("Get edges from a node") {
-        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> ve = G->get_edges(101);
+        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> ve = G->get_edges(1);
         REQUIRE(ve.has_value() == true);
-        REQUIRE(ve->size() == 5);
-        std::optional<Node> n = G->get_node(101);
+        REQUIRE(ve->size() == 2);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         REQUIRE(n->fano() == ve.value());
     }
@@ -417,7 +412,7 @@ TEST_CASE("Maps operations", "[UTILS]") {
     }
 
     SECTION("Get edges from a node that has no edges") {
-        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> ve = G->get_edges(118);
+        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> ve = G->get_edges(13);
         REQUIRE(ve.has_value());
         REQUIRE(ve->empty());
     }
@@ -428,14 +423,14 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Insert attribute by name (node) and insert in G") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<int_att>(n.value(),  123);
         REQUIRE(n->attrs().find("int") != n->attrs().end());
     }
 
     SECTION("Insert an string attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<string_att>(n.value(),  std::string("string att"));
         REQUIRE(n->attrs().find("string") != n->attrs().end());
@@ -444,7 +439,7 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     }
 
     SECTION("Insert attribute by name (edge) and insert in G") {
-        std::optional<Edge> e = G->get_edge(101, 111, "RT");
+        std::optional<Edge> e = G->get_edge(1, 2, "RT");
         REQUIRE(e.has_value());
         G->insert_attrib_by_name<int_att>(e.value(), 123);
         REQUIRE(e->attrs().find("int") != e->attrs().end());
@@ -452,7 +447,7 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
         REQUIRE(r);
     }
     SECTION("Update attribute by name") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->update_attrib_by_name<int_att>(n.value(), 125);
         REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 125);
@@ -461,7 +456,7 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     }
 
     SECTION("Get attribute by name") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<int> att = G->get_attrib_by_name<int_att>(n.value());
         REQUIRE(att.has_value());
@@ -469,110 +464,199 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
 
     }
 
-    //TODO: No hay level?.
+}
+
+TEST_CASE("Convenience methods", "[CONVENIENCE METHODS]") {
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Get node level") {
-        std::optional<Node> n = G->get_node(101);
+        std::optional<Node> n = G->get_node(2);
         REQUIRE(n.has_value());
         std::optional<int> level = G->get_node_level(n.value());
         REQUIRE(level.has_value() == true);
-        REQUIRE(level.value() == 0);
+        REQUIRE(level.value() == 1);
 
-        n = G->get_node(12345);
+
+        Node in;
+        in.type("test");
+        auto id = G->insert_node(in);
+        REQUIRE(id.has_value());
+        n = G->get_node(id.value());
         REQUIRE(n.has_value());
         level = G->get_node_level(n.value());
         REQUIRE(level.has_value() == false);
     }
 
     SECTION("Get node type") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<std::string> type = G->get_node_type(n.value());
         REQUIRE(type.has_value());
         REQUIRE(type.value() == "world");
+    }
 
+    SECTION("Get parent id") {
+        std::optional<Node> n = G->get_node(2);
+        REQUIRE(n.has_value());
+        std::optional<uint32_t> id = G->get_parent_id(n.value());
+        REQUIRE(id.has_value());
+        REQUIRE(id.value() == 1);
+
+        //std::optional<Node> parent =  G->get_node(1);
+        //std::optional<uint32_t> id_empty = G->get_parent_id(parent.value());
+        //REQUIRE_FALSE(id_empty.has_value());
+    }
+
+    SECTION("Get parent node") {
+        std::optional<Node> n = G->get_node(2);
+        REQUIRE(n.has_value());
+        std::optional<Node> p = G->get_parent_node(n.value());
+        REQUIRE(p.has_value());
+        std::optional<Node> parent =  G->get_node(1);
+        REQUIRE(parent.has_value());
+        REQUIRE(p.value() == parent.value());
+
+        std::optional<Node> parent_empty = G->get_parent_node(parent.value());
+        REQUIRE_FALSE(parent_empty.has_value());
+    }
+
+    SECTION("get_node_root") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        std::optional<Node> n2 = G->get_node_root();
+        REQUIRE(n2.has_value());
+        REQUIRE(n2.value() == n.value());
     }
 }
 
+TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIBUTES]") {
+    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
+
+    SECTION("Insert an attribute by name") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        G->runtime_checked_add_or_modify_attrib_local(n.value(), "int", 133);
+        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 133);
+        bool r = G->update_node(n.value());
+        REQUIRE(r);
+        REQUIRE_THROWS(G->runtime_checked_add_or_modify_attrib_local(n.value(), "int", 133.0f));
+    }
+
+    SECTION("Modify an attribute by name") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        REQUIRE(G->runtime_checked_modify_attrib_local(n.value(), "int", 111));
+        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 111);
+        bool r = G->update_node(n.value());
+        REQUIRE(r);
+    }
+
+    SECTION("Update attribute by name") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        REQUIRE(G->runtime_checked_update_attrib_by_name(n.value(), "int", 177));
+        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 177);
+        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == G->get_attrib_by_name<int_att>(n.value()));
+    }
+
+    SECTION("Remove an attribute by name") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        REQUIRE(G->remove_attrib_local(n.value(), "int"));
+        REQUIRE(n->attrs().find("int") == n->attrs().end());
+        bool r = G->update_node(n.value());
+        REQUIRE(r);
+    }
+
+    SECTION("Insert attribute by name (edge) and insert in G") {
+        std::optional<Edge> e = G->get_edge(1, 2, "RT");
+        REQUIRE(e.has_value());
+        REQUIRE(G->runtime_checked_insert_attrib_by_name(e.value(), "new_int", 123));
+        REQUIRE(e->attrs().find("new_int") != e->attrs().end());
+        bool r = G->insert_or_assign_edge(e.value());
+        REQUIRE(r);
+    }
+
+}
 
 TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
     SECTION("Insert a string attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<string_att>(n.value(), std::string("string att"));
         REQUIRE(n->attrs().find("string") != n->attrs().end());
-        std::optional<Node> n2 = G->get_node(100);
+        std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(n.value() == n2.value());
     }
     SECTION("Get a string attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<std::string> st = G->get_attrib_by_name<string_att>(n.value());
         REQUIRE(st.has_value());
     }
 
     SECTION("Insert an int attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<int_att>(n.value(),  11);
         REQUIRE(n->attrs().find("int") != n->attrs().end());
-        std::optional<Node> n2 = G->get_node(100);
+        std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(G->get_attrib_by_name<int_att>( n.value()) == G->get_attrib_by_name<int_att>( n2.value()));
     }
     SECTION("Get an int attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<int> st = G->get_attrib_by_name<int_att>(n.value());
         REQUIRE(st.has_value());
     }
 
     SECTION("Insert a float attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<float_att>(n.value(), static_cast<float>(11.0));
         REQUIRE(n->attrs().find("float") != n->attrs().end());
-        std::optional<Node> n2 = G->get_node(100);
+        std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(G->get_attrib_by_name<float_att>( n.value()) == G->get_attrib_by_name<float_att>( n2.value()));
 
     }
     SECTION("Get a float attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<float> st = G->get_attrib_by_name<float_att>(n.value());
         REQUIRE(st.has_value());
     }
 
     SECTION("Insert a float_vector attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<vec_float_att>(n.value(), vector<float>{11.0, 167.23, 55.66});
-        REQUIRE(n->attrs().find("att") != n->attrs().end());
-        std::optional<Node> n2 = G->get_node(100);
+        REQUIRE(n->attrs().find("vec_float") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(G->get_attrib_by_name<vec_float_att>( n.value()).value().get() == G->get_attrib_by_name<vec_float_att>( n2.value()).value().get());
     }
     SECTION("Get a float_vector attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<vector<float>> st = G->get_attrib_by_name<vec_float_att>(n.value());
         REQUIRE(st.has_value());
     }
     SECTION("Insert a bool attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->insert_attrib_by_name<bool_att>(n.value(), true);
         REQUIRE(n->attrs().find("bool") != n->attrs().end());
-        std::optional<Node> n2 = G->get_node(100);
+        std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(G->get_attrib_by_name<bool_att>( n.value()) == G->get_attrib_by_name<bool_att>( n2.value()));
     }
     SECTION("Get a bool attribute") {
-        std::optional<Node> n = G->get_node(100);
+        std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<bool> st = G->get_attrib_by_name<bool_att>(n.value());
         REQUIRE(st.has_value());
@@ -580,7 +664,6 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
 
 }
 
-//TODO: runtime attributes
 
 
 //Scenarios
@@ -590,39 +673,44 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
     GIVEN("A new Node")
     {
         Node n;
-        n.id(2222);
         n.type("robot");
         n.agent_id(0);
-        n.name("robot2222");
         G->add_attrib_local<att_att>(n, std::string("value"));
 
         WHEN("When we insert a new node")
         {
             THEN("The node is inserted")
             {
+                G->reset();
                 auto r = G->insert_node(n);
                 REQUIRE(r);
             }
             THEN("The graph size is bigger")
             {
-                REQUIRE(15 < G->size());
+                REQUIRE(0 < G->size());
             }
             THEN("You can get the node")
             {
-                std::optional<Node> node = G->get_node(2222);
+                Node n;
+                n.type("robot");
+                n.id(8);
+                n.name("robot_8");
+                n.agent_id(0);
+                G->add_attrib_local<att_att>(n, std::string("value"));
+                std::optional<Node> node = G->get_node(8);
                 REQUIRE(node.has_value());
                 THEN("The requested node is equal to the inserted node") {
                     REQUIRE(node.value() == n);
                 }
-            }
-            THEN ("The node cannot be reinseted") {
-               REQUIRE_THROWS(G->insert_node(n));
             }
         }
 
         AND_WHEN("The node is updated")
         {
             size_t size = G->size();
+            n.type("robot");
+            n.id(8);
+            n.name("robot_8");
             G->add_attrib_local<int_att>(n,  11);
             bool r = G->update_node(n);
             REQUIRE(r);
@@ -633,10 +721,10 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
             }
             THEN("You can get the node")
             {
-                std::optional<Node> node = G->get_node(2222);
+                std::optional<Node> node = G->get_node(8);
                 REQUIRE(node.has_value());
-                THEN("The requested node is equal to the inserted node") {
-                    // REQUIRE(node.value() == n); TODO: change it when the new representation is created
+                THEN("The requested node has the inserted attribute") {
+                     REQUIRE(G->get_attrib_by_name<int_att>(node.value()) == 11);
                 }
             }
         }
@@ -644,49 +732,34 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
         AND_WHEN("The node is deleted")
         {
             size_t size = G->size();
-            G->delete_node(2222);
+            G->delete_node(8);
             THEN("The graph size is smaller")
             {
                 REQUIRE(size > G->size());
             }
             AND_THEN("You can't get the node")
             {
-                std::optional<Node> node = G->get_node(2222);
+                std::optional<Node> node = G->get_node(8);
                 REQUIRE(!node.has_value());
-            }
-            AND_THEN("You can't insert the node again")
-            {
-                auto r = G->insert_node(n);
-                REQUIRE_FALSE(r.has_value());
             }
         }
     }
     GIVEN("A deleted node")
     {
-        //75000
-        std::optional<Node> node = G->get_node(2222);
+        std::optional<Node> node = G->get_node(8);
         THEN("Optional value is empty")
         {
             REQUIRE_FALSE(node.has_value());
         }
-        AND_THEN("You can't insert the node again")
+        AND_THEN("You can't update the node again")
         {
             Node n;
-            n.id(2222);
-            auto r = G->insert_node(n);
-            REQUIRE_FALSE(r.has_value());
-        }
-    }
-    GIVEN("An invalid node")
-    {
-        Node n; n.id(-1);
-        THEN("Can't insert it")
-        {
-            auto r = G->insert_node(n);
-            REQUIRE_FALSE(r.has_value());
+            n.id(8);
+            REQUIRE_THROWS(G->update_node(n));
         }
     }
 }
+
 /*
 TEST_CASE("Join operations", "[JOIN]") {
 

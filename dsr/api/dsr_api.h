@@ -377,25 +377,7 @@ namespace DSR {
             runtime_checked_add_or_modify_attrib_local(elem, att_name, att_value);
             return true;
         };
-              /*
-        template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool modify_attrib_local(Type &elem,  CRDTAttribute &attr) {
-            static_assert(is_attr_name<name>::value, "El parámetro name es inválido");
-            if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
-            attr.timestamp(get_unix_timestamp());
-            elem.attrs()[name::attr_name] = attr;
-            return true;
-        };
 
-
-        template<typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
-        bool runtime_checked_modify_attrib_local(Type &elem, const std::string& att_name, CRDTAttribute &attr) {
-            if (elem.attrs().find(att_name) == elem.attrs().end()) return false;
-            attr.timestamp(get_unix_timestamp());
-            elem.attrs()[att_name] = attr;
-            return true;
-        };
-                         */
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool remove_attrib_local(Type &elem) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");

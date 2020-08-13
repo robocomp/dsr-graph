@@ -103,6 +103,7 @@ void SpecificWorker::get_max_id_from_G()
 {
 	//auto g = G->getCopy();
 	//auto node_id = std::max_element(g.begin(), g.end(), [](const auto &[k1,v1], const auto n1 &[k2,v2]){ return v1.id() > v2.id(); }
+	node_id = 0;
 	for (const auto &[key, node] : G->getCopy())
         if (node.id() > node_id)
             node_id = node.id();
