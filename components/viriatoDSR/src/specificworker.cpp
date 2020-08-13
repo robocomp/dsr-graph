@@ -103,7 +103,7 @@ void SpecificWorker::compute()
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
                 try
-                { coppeliautils_proxy->addOrModifyDummy("base_dummy", dummy_pose); }
+                { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
                 catch (const Ice::Exception &e)
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
                 current_base_target_x = x.value();

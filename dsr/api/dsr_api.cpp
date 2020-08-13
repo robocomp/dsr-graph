@@ -208,16 +208,16 @@ bool DSRGraph::update_node(Node &node) {
 
     {
         std::unique_lock<std::shared_mutex> lock(_mutex);
-        if (nodes.getMapRef().find(node.id()) != nodes.getMapRef().end()) {
-            if (deleted.find(node.id()) != deleted.end())
-                throw std::runtime_error(
-                        (std::string("Cannot update node in G, " + std::to_string(node.id()) + " is deleted")  + __FILE__ + " " +
-                         __FUNCTION__ + " " + std::to_string(__LINE__)).data());
-            if ((id_map.find(node.id()) != id_map.end() and id_map[node.id()] != node.name()) or
-                (name_map.find(node.name()) != name_map.end() and name_map[node.name()] != node.id()))
-                throw std::runtime_error(
-                        (std::string("Cannot update node in G, id and name must be unique") + __FILE__ + " " +
-                         __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+        if (deleted.find(node.id()) != deleted.end())
+            throw std::runtime_error(
+                    (std::string("Cannot update node in G, " + std::to_string(node.id()) + " is deleted")  + __FILE__ + " " +
+                     __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+        else if ((id_map.find(node.id()) != id_map.end() and id_map[node.id()] != node.name()) or
+            (name_map.find(node.name()) != name_map.end() and name_map[node.name()] != node.id()))
+            throw std::runtime_error(
+                    (std::string("Cannot update node in G, id and name must be unique") + __FILE__ + " " +
+                     __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+        else if (nodes.getMapRef().find(node.id()) != nodes.getMapRef().end()) {
             //node.agent_id(agent_id);
             std::tie(r, vec_node_attr) = update_node_(user_node_to_crdt(std::move(node)));
         }
