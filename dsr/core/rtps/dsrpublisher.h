@@ -27,45 +27,34 @@
 #include <fastrtps/publisher/PublisherListener.h>
 #include "../topics/IDLGraphPubSubTypes.h"
 
-class DSRPublisher {
+class DSRPublisher
+{
 public:
     DSRPublisher();
-
     virtual ~DSRPublisher();
-
     bool init(eprosima::fastrtps::Participant *mp_participant_, const char *topicName, const char *topicDataType);
-
     void run();
-
     eprosima::fastrtps::rtps::GUID_t getParticipantID() const;
-
     bool write(IDL::GraphRequest *object);
-
     bool write(IDL::Mvreg *object);
-
     bool write(IDL::OrMap *object);
-
     bool write(IDL::MvregNodeAttr *object);
-
     bool write(IDL::MvregEdge *object);
-
     bool write(IDL::MvregEdgeAttr *object);
 
 private:
-    eprosima::fastrtps::Participant *mp_participant;
-    eprosima::fastrtps::Publisher *mp_publisher;
+	eprosima::fastrtps::Participant *mp_participant;
+	eprosima::fastrtps::Publisher *mp_publisher;
 
-    class PubListener : public eprosima::fastrtps::PublisherListener {
-    public:
-        PubListener() : n_matched(0) {};
-
-        ~PubListener() {};
-
-        void onPublicationMatched(eprosima::fastrtps::Publisher *pub, eprosima::fastrtps::rtps::MatchingInfo &info);
-
-        int n_matched;
-    } m_listener;
-    //DSRGraphTopicPubSubType dsrgraphType;
+	class PubListener : public eprosima::fastrtps::PublisherListener
+	{
+	public:
+		PubListener() : n_matched(0){};
+		~PubListener(){};
+		void onPublicationMatched(eprosima::fastrtps::Publisher* pub,eprosima::fastrtps::rtps::MatchingInfo& info);
+		int n_matched;
+	} m_listener;
+	//DSRGraphTopicPubSubType dsrgraphType;
 };
 
 #endif // _CADENA_PUBLISHER_H_

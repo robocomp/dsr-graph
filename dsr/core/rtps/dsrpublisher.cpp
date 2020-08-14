@@ -20,7 +20,6 @@
  */
 
 #include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
 #include <fastrtps/publisher/Publisher.h>
 #include <fastrtps/attributes/PublisherAttributes.h>
 #include <fastrtps/Domain.h>
@@ -31,17 +30,21 @@
 
 #include "dsrpublisher.h"
 
+
+#include <QDebug>
+
 using namespace eprosima::fastrtps;
 using namespace eprosima::fastrtps::rtps;
 
 DSRPublisher::DSRPublisher() : mp_participant(nullptr), mp_publisher(nullptr) {}
 
-DSRPublisher::~DSRPublisher() {
+DSRPublisher::~DSRPublisher()
+{
     //eprosima::fastrtps::Domain::removeParticipant(mp_participant);
 }
 
-bool
-DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char *topicName, const char *topicDataType) {
+bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType)
+{
     mp_participant = mp_participant_;
 
     // Create Publisher
@@ -74,51 +77,58 @@ DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char 
 
     if (mp_publisher == nullptr)
         return false;
-    std::cout << "Publisher created, waiting for Subscribers." << std::endl;
+    qDebug() << "Publisher created, waiting for Subscribers." ;
     return true;
 }
 
-eprosima::fastrtps::rtps::GUID_t DSRPublisher::getParticipantID() const {
+eprosima::fastrtps::rtps::GUID_t DSRPublisher::getParticipantID() const
+{
     return mp_participant->getGuid();
 }
 
 
-bool DSRPublisher::write(IDL::Mvreg *object) {
+bool DSRPublisher::write(IDL::Mvreg *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
     return true;
 };
 
-bool DSRPublisher::write(IDL::MvregNodeAttr *object) {
+bool DSRPublisher::write(IDL::MvregNodeAttr *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
     return true;
 };
 
-bool DSRPublisher::write(IDL::MvregEdge *object) {
+bool DSRPublisher::write(IDL::MvregEdge *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
     return true;
 };
 
-bool DSRPublisher::write(IDL::MvregEdgeAttr *object) {
+bool DSRPublisher::write(IDL::MvregEdgeAttr *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
     return true;
 };
 
-bool DSRPublisher::write(IDL::OrMap *object) {
+bool DSRPublisher::write(IDL::OrMap *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
     return true;
 };
 
-bool DSRPublisher::write(IDL::GraphRequest *object) {
+bool DSRPublisher::write(IDL::GraphRequest *object)
+{
     while (true) {
         if (mp_publisher->write(object)) break;
     }
@@ -126,30 +136,13 @@ bool DSRPublisher::write(IDL::GraphRequest *object) {
 };
 
 void DSRPublisher::PubListener::onPublicationMatched(eprosima::fastrtps::Publisher *pub,
-                                                     eprosima::fastrtps::rtps::MatchingInfo &info) {
-    (void) pub;
+                                                     eprosima::fastrtps::rtps::MatchingInfo &info)
+{
     if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING) {
         n_matched++;
-        std::cout << "Publisher [" << pub->getAttributes().topic.getTopicName() <<"] matched " << info.remoteEndpointGuid << std::endl;
+        qDebug() << "Publisher [" << pub->getAttributes().topic.getTopicName() <<"] matched " << info.remoteEndpointGuid.entityId.value;
     } else {
         n_matched--;
-        std::cout << "Publisher [" << pub->getAttributes().topic.getTopicName() <<"] unmatched" << info.remoteEndpointGuid << std::endl;
+        qDebug() << "Publisher [" << pub->getAttributes().topic.getTopicName() <<"] unmatched" << info.remoteEndpointGuid.entityId.value;
     }
 }
-/*
-void DSRPublisher::run()
-{
-    while(m_listener.n_matched == 0)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Sleep 250 ms
-    }
-
-
-    do
-    {
-    //     mp_publisher->write(&st);  
-    //     ++msgsent;
-    //     std::cout << "Sending sample, count=" << msgsent << " " << st.load().size() * 4 << std::endl;
-    //     std::this_thread::sleep_for(std::chrono::microseconds(1000000)); // Sleep 250 ms
-    } while(true);
-}*/

@@ -30,25 +30,26 @@
 #ifndef DELTA_CRDT
 #define DELTA_CRDT
 
-#include "set"
-#include "unordered_set"
-#include "map"
-#include "list"
-#include "tuple"
-#include "vector"
-#include "string"
-#include "iostream"
-#include "type_traits"
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <list>
+#include <tuple>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <type_traits>
 #include "../topics/IDLGraph.h"
 
 using namespace std;
 
-template<bool b>
+template< bool b >
 struct join_selector {
-    template<typename T>
-    static T join(const T &l, const T &r) {
+    template< typename T >
+    static T join( const T& l, const T& r )
+    {
         T res;
-        res = l;
+        res=l;
         res.join(r);
         return res;
     }

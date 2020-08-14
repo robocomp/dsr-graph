@@ -17,7 +17,7 @@
 #include "graph_node.h"
 
 
-GraphNode::GraphNode(std::shared_ptr<DSR::DSRtoGraphViewer> graph_viewer_): QGraphicsEllipseItem(0,0,30,30), dsr_to_graph_viewer(graph_viewer_)
+GraphNode::GraphNode(std::shared_ptr<DSR::GraphViewer> graph_viewer_): QGraphicsEllipseItem(0,0,30,30), dsr_to_graph_viewer(graph_viewer_)
 {
     setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
@@ -179,7 +179,6 @@ QVariant GraphNode::itemChange(GraphicsItemChange change, const QVariant &value)
         case ItemPositionChange:
         {
             foreach (GraphEdge *edge, edgeList)
-                if (edge)
                  edge->adjust(this, value.toPointF());
             break;
         }
@@ -226,10 +225,8 @@ void GraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         if (n.has_value()) {
 //            qDebug()<<"ScenePos X"<<(float) event->scenePos().x()<<" Width "<<(this->rect())<<" this "<<this->pos().x();
 //            qDebug()<<"ScenePos Y"<<(float) event->scenePos().y()<<" Height "<<(this->rect())<<" this "<<this->pos().y();
-            bool r = g->modify_attrib_local<pos_x_att>(n.value(), (float) this->pos().x());
-            if (!r) r = g->add_attrib_local<pos_x_att>(n.value(),  (float) this->pos().x());
-            r = g->modify_attrib_local<pos_y_att>(n.value(),  (float) this->pos().y());
-            if (!r) r = g->add_attrib_local<pos_y_att>(n.value(), (float) this->pos().y());
+            g->add_or_modify_attrib_local<pos_x_att>(n.value(), (float) this->pos().x());
+            g->add_or_modify_attrib_local<pos_y_att>(n.value(),  (float) this->pos().y());
             g->update_node(n.value());
         }
 //        this->dsr_to_graph_viewer->itemMoved();
