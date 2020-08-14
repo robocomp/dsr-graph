@@ -3,6 +3,8 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  ../../../dsr/core/types/crdt_types.cpp
+  ../../../dsr/core/types/user_types.cpp
   ../../../dsr/core/rtps/dsrpublisher.cpp
   ../../../dsr/core/rtps/dsrsubscriber.cpp
   ../../../dsr/core/rtps/dsrparticipant.cpp

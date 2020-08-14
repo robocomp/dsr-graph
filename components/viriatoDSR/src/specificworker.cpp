@@ -126,23 +126,23 @@ void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, co
 	if (node.has_value())
 	{
 		G->add_or_modify_attrib_local<rgb_att>(node.value(),  rgb.image);
-		G->add_or_modify_attrib_local<rgb_width_att>(node.value(),  rgb.width);
-		G->add_or_modify_attrib_local<rgb_height_att>(node.value(),  rgb.height);
-		G->add_or_modify_attrib_local<rgb_depth_att>(node.value(),  rgb.depth);
-		G->add_or_modify_attrib_local<rgb_cameraID_att>(node.value(),  rgb.cameraID);
-		G->add_or_modify_attrib_local<rgb_focalx_att>(node.value(),  rgb.focalx);
-		G->add_or_modify_attrib_local<rgb_focaly_att>(node.value(), rgb.focaly);
-		G->add_or_modify_attrib_local<rgb_alivetime_att>(node.value(),  rgb.alivetime);
+		G->add_or_modify_attrib_local<rgb_width>(node.value(),  rgb.width);
+		G->add_or_modify_attrib_local<rgb_height>(node.value(),  rgb.height);
+		G->add_or_modify_attrib_local<rgb_depth>(node.value(),  rgb.depth);
+		G->add_or_modify_attrib_local<rgb_cameraID>(node.value(),  rgb.cameraID);
+		G->add_or_modify_attrib_local<rgb_focalx>(node.value(),  rgb.focalx);
+		G->add_or_modify_attrib_local<rgb_focaly>(node.value(), rgb.focaly);
+		G->add_or_modify_attrib_local<rgb_alivetime>(node.value(),  rgb.alivetime);
 
 		// depth
-		G->add_or_modify_attrib_local<depth_att>(node.value(), depth.depth);
-        G->add_or_modify_attrib_local<depth_width_att>(node.value(), depth.width);
-        G->add_or_modify_attrib_local<depth_height_att>(node.value(), depth.height);
-        G->add_or_modify_attrib_local<focalx_att>(node.value(), depth.focalx);
-        G->add_or_modify_attrib_local<focaly_att>(node.value(), depth.focaly);
-        G->add_or_modify_attrib_local<depth_cameraID_att>(node.value(), depth.cameraID);
-        G->add_or_modify_attrib_local<depthFactor_att>(node.value(), depth.depthFactor);
-        G->add_or_modify_attrib_local<alivetime_att>(node.value(), depth.alivetime);
+		G->add_or_modify_attrib_local<img_depth>(node.value(), depth.depth);
+        G->add_or_modify_attrib_local<depth_width>(node.value(), depth.width);
+        G->add_or_modify_attrib_local<depth_height>(node.value(), depth.height);
+        G->add_or_modify_attrib_local<focalx>(node.value(), depth.focalx);
+        G->add_or_modify_attrib_local<focaly>(node.value(), depth.focaly);
+        G->add_or_modify_attrib_local<depth_cameraID>(node.value(), depth.cameraID);
+        G->add_or_modify_attrib_local<depthFactor>(node.value(), depth.depthFactor);
+        G->add_or_modify_attrib_local<alivetime>(node.value(), depth.alivetime);
 		G->update_node(node.value());
 	}
 }

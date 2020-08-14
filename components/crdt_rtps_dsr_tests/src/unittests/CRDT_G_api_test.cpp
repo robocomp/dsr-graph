@@ -23,11 +23,11 @@ CATCH_CONFIG_MAIN
 
 
 REGISTER_TYPE(att, std::reference_wrapper<const string>)
-REGISTER_TYPE(int, int32_t)
-REGISTER_TYPE(float, float)
-REGISTER_TYPE(bool, bool)
-REGISTER_TYPE(uint, uint32_t)
-REGISTER_TYPE(string, std::reference_wrapper<const string>)
+REGISTER_TYPE(int_, int32_t)
+REGISTER_TYPE(float_, float)
+REGISTER_TYPE(bool_, bool)
+REGISTER_TYPE(uint_, uint32_t)
+REGISTER_TYPE(string_, std::reference_wrapper<const string>)
 REGISTER_TYPE(vec_byte, std::reference_wrapper<const std::vector<uint8_t>>)
 REGISTER_TYPE(vec_float, std::reference_wrapper<const std::vector<float>>)
 
@@ -425,15 +425,15 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     SECTION("Insert attribute by name (node) and insert in G") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<int_att>(n.value(),  123);
-        REQUIRE(n->attrs().find("int") != n->attrs().end());
+        G->insert_attrib_by_name<int_>(n.value(),  123);
+        REQUIRE(n->attrs().find("int_") != n->attrs().end());
     }
 
     SECTION("Insert an string attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<string_att>(n.value(),  std::string("string att"));
-        REQUIRE(n->attrs().find("string") != n->attrs().end());
+        G->insert_attrib_by_name<string_>(n.value(),  std::string("string att"));
+        REQUIRE(n->attrs().find("string_") != n->attrs().end());
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -441,16 +441,16 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     SECTION("Insert attribute by name (edge) and insert in G") {
         std::optional<Edge> e = G->get_edge(1, 2, "RT");
         REQUIRE(e.has_value());
-        G->insert_attrib_by_name<int_att>(e.value(), 123);
-        REQUIRE(e->attrs().find("int") != e->attrs().end());
+        G->insert_attrib_by_name<int_>(e.value(), 123);
+        REQUIRE(e->attrs().find("int_") != e->attrs().end());
         bool r = G->insert_or_assign_edge(e.value());
         REQUIRE(r);
     }
     SECTION("Update attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->update_attrib_by_name<int_att>(n.value(), 125);
-        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 125);
+        G->update_attrib_by_name<int_>(n.value(), 125);
+        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 125);
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -458,7 +458,7 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
     SECTION("Get attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<int> att = G->get_attrib_by_name<int_att>(n.value());
+        std::optional<int> att = G->get_attrib_by_name<int_>(n.value());
         REQUIRE(att.has_value());
         REQUIRE(att.value() == 125);
 
@@ -535,18 +535,18 @@ TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIB
     SECTION("Insert an attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->runtime_checked_add_or_modify_attrib_local(n.value(), "int", 133);
-        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 133);
+        G->runtime_checked_add_or_modify_attrib_local(n.value(), "int_", 133);
+        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 133);
         bool r = G->update_node(n.value());
         REQUIRE(r);
-        REQUIRE_THROWS(G->runtime_checked_add_or_modify_attrib_local(n.value(), "int", 133.0f));
+        REQUIRE_THROWS(G->runtime_checked_add_or_modify_attrib_local(n.value(), "int_", 133.0f));
     }
 
     SECTION("Modify an attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        REQUIRE(G->runtime_checked_modify_attrib_local(n.value(), "int", 111));
-        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 111);
+        REQUIRE(G->runtime_checked_modify_attrib_local(n.value(), "int_", 111));
+        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 111);
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -554,16 +554,16 @@ TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIB
     SECTION("Update attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        REQUIRE(G->runtime_checked_update_attrib_by_name(n.value(), "int", 177));
-        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == 177);
-        REQUIRE(get<std::int32_t>(n->attrs()["int"].value()) == G->get_attrib_by_name<int_att>(n.value()));
+        REQUIRE(G->runtime_checked_update_attrib_by_name(n.value(), "int_", 177));
+        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 177);
+        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == G->get_attrib_by_name<int_>(n.value()));
     }
 
     SECTION("Remove an attribute by name") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        REQUIRE(G->remove_attrib_local(n.value(), "int"));
-        REQUIRE(n->attrs().find("int") == n->attrs().end());
+        REQUIRE(G->remove_attrib_local(n.value(), "int_"));
+        REQUIRE(n->attrs().find("int_") == n->attrs().end());
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -585,8 +585,8 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Insert a string attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<string_att>(n.value(), std::string("string att"));
-        REQUIRE(n->attrs().find("string") != n->attrs().end());
+        G->insert_attrib_by_name<string_>(n.value(), std::string("string att"));
+        REQUIRE(n->attrs().find("string_") != n->attrs().end());
         std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
         REQUIRE(n.value() == n2.value());
@@ -594,40 +594,40 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Get a string attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<std::string> st = G->get_attrib_by_name<string_att>(n.value());
+        std::optional<std::string> st = G->get_attrib_by_name<string_>(n.value());
         REQUIRE(st.has_value());
     }
 
     SECTION("Insert an int attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<int_att>(n.value(),  11);
-        REQUIRE(n->attrs().find("int") != n->attrs().end());
+        G->insert_attrib_by_name<int_>(n.value(),  11);
+        REQUIRE(n->attrs().find("int_") != n->attrs().end());
         std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
-        REQUIRE(G->get_attrib_by_name<int_att>( n.value()) == G->get_attrib_by_name<int_att>( n2.value()));
+        REQUIRE(G->get_attrib_by_name<int_>( n.value()) == G->get_attrib_by_name<int_>( n2.value()));
     }
     SECTION("Get an int attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<int> st = G->get_attrib_by_name<int_att>(n.value());
+        std::optional<int> st = G->get_attrib_by_name<int_>(n.value());
         REQUIRE(st.has_value());
     }
 
     SECTION("Insert a float attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<float_att>(n.value(), static_cast<float>(11.0));
-        REQUIRE(n->attrs().find("float") != n->attrs().end());
+        G->insert_attrib_by_name<float_>(n.value(), static_cast<float>(11.0));
+        REQUIRE(n->attrs().find("float_") != n->attrs().end());
         std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
-        REQUIRE(G->get_attrib_by_name<float_att>( n.value()) == G->get_attrib_by_name<float_att>( n2.value()));
+        REQUIRE(G->get_attrib_by_name<float_>( n.value()) == G->get_attrib_by_name<float_>( n2.value()));
 
     }
     SECTION("Get a float attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<float> st = G->get_attrib_by_name<float_att>(n.value());
+        std::optional<float> st = G->get_attrib_by_name<float_>(n.value());
         REQUIRE(st.has_value());
     }
 
@@ -649,16 +649,16 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Insert a bool attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<bool_att>(n.value(), true);
-        REQUIRE(n->attrs().find("bool") != n->attrs().end());
+        G->insert_attrib_by_name<bool_>(n.value(), true);
+        REQUIRE(n->attrs().find("bool_") != n->attrs().end());
         std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
-        REQUIRE(G->get_attrib_by_name<bool_att>( n.value()) == G->get_attrib_by_name<bool_att>( n2.value()));
+        REQUIRE(G->get_attrib_by_name<bool_>( n.value()) == G->get_attrib_by_name<bool_>( n2.value()));
     }
     SECTION("Get a bool attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<bool> st = G->get_attrib_by_name<bool_att>(n.value());
+        std::optional<bool> st = G->get_attrib_by_name<bool_>(n.value());
         REQUIRE(st.has_value());
     }
 
@@ -711,7 +711,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
             n.type("robot");
             n.id(8);
             n.name("robot_8");
-            G->add_attrib_local<int_att>(n,  11);
+            G->add_attrib_local<int_>(n,  11);
             bool r = G->update_node(n);
             REQUIRE(r);
 
@@ -724,7 +724,7 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
                 std::optional<Node> node = G->get_node(8);
                 REQUIRE(node.has_value());
                 THEN("The requested node has the inserted attribute") {
-                     REQUIRE(G->get_attrib_by_name<int_att>(node.value()) == 11);
+                     REQUIRE(G->get_attrib_by_name<int_>(node.value()) == 11);
                 }
             }
         }

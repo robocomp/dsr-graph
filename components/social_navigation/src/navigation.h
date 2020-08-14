@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <localPerson.h>
 #include <typeinfo>
-#include <dsr/api/dsr_inner_api.h>
+#include <../../../dsr/api/dsr_inner_api.h>
 #include "grid.h"
 #include "controller.h"
 
