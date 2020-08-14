@@ -214,7 +214,7 @@ class DoTableStuff : public  QTableWidget
           }
           horizontalHeader()->setStretchLastSection(true);
           resize_widget();
-          QObject::connect(graph.get(), &DSR::DSRGraph::update_attrs_signal, this, &DoTableStuff::drawSLOT);
+          //TODO: comprobar QObject::connect(graph.get(), &DSR::DSRGraph::update_attrs_signal, this, &DoTableStuff::drawSLOT);
         
           show();
       }

@@ -17,8 +17,8 @@
 #ifndef DSR_TO_GRAPHCISCENE_VIEWER_H
 #define DSR_TO_GRAPHCISCENE_VIEWER_H
 
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/viewers/_abstract_graphic_view.h"
+#include "../../../dsr/api/dsr_api.h"
+#include "../../../dsr/gui/viewers/_abstract_graphic_view.h"
 #include <math.h>
 #include <filesystem>
 		

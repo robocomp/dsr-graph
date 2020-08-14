@@ -18,6 +18,7 @@
  */
 #include "specificworker.h"
 
+using namespace DSR;
 /**
 * \brief Default constructor
 */
@@ -82,7 +83,7 @@ void SpecificWorker::initialize(int period)
         inner_api = G->get_inner_api();
 
 		// Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
@@ -101,11 +102,11 @@ void SpecificWorker::initialize(int period)
 		{
 		    current_opts = current_opts | opts::osg;
 		}
-		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
 		// custom_widget
-		graph_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
+        dsr_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
 
         connect(custom_widget.draw_personalSpace_button,SIGNAL(clicked()),this, SLOT(drawPersonalSpace()));
 /*        connect(custom_widget.save_data_button,SIGNAL(clicked()),this, SLOT(recordData()));
@@ -298,10 +299,10 @@ void SpecificWorker::updatePersonalSpacesInGraph() {
     qDebug() << __FUNCTION__;
     std::vector<float> x_values, z_values;
     std::optional<Node> person_node;
-    int polyline_position;
+    size_t polyline_position;
     for(const auto &group: people_groups)
     {
-        int cont = 0;
+        size_t cont = 0;
         for(const int &person_id: group.second.people_ids)
         {
             person_node = G->get_node(person_id);
@@ -312,19 +313,19 @@ void SpecificWorker::updatePersonalSpacesInGraph() {
                 polyline_position = cont;
             else
                 polyline_position = 0;
-            if(group.second.intimatePolylines.size() > polyline_position)
+            if(group.second.intimatePolylines.size() > polyline_position) { //TODO: va todo en el if?
                 convert_polyline_to_vector(group.second.intimatePolylines[polyline_position], x_values, z_values);
-                G->add_or_modify_attrib_local(person_node.value(), "intimate_x_pos", x_values);
-                G->add_or_modify_attrib_local(person_node.value(), "intimate_y_pos", z_values);
-
+                G->add_or_modify_attrib_local<intimate_x_pos>(person_node.value(), x_values);
+                G->add_or_modify_attrib_local<intimate_y_pos>(person_node.value(), z_values);
+            }
             if(group.second.personalPolylines.size() > cont)
                 polyline_position = cont;
             else
                 polyline_position = 0;
             if(group.second.personalPolylines.size() > polyline_position) {
                 convert_polyline_to_vector(group.second.personalPolylines[polyline_position], x_values, z_values);
-                G->add_or_modify_attrib_local(person_node.value(), "personal_x_pos", x_values);
-                G->add_or_modify_attrib_local(person_node.value(), "personal_y_pos", z_values);
+                G->add_or_modify_attrib_local<personal_x_pos>(person_node.value(), x_values);
+                G->add_or_modify_attrib_local<personal_y_pos>(person_node.value(), z_values);
             }
 
             if(group.second.socialPolylines.size() > cont)
@@ -333,12 +334,12 @@ void SpecificWorker::updatePersonalSpacesInGraph() {
                 polyline_position = 0;
             if(group.second.socialPolylines.size() > polyline_position) {
                 convert_polyline_to_vector(group.second.socialPolylines[polyline_position], x_values, z_values);
-                G->add_or_modify_attrib_local(person_node.value(), "social_x_pos", x_values);
-                G->add_or_modify_attrib_local(person_node.value(), "social_y_pos", z_values);
+                G->add_or_modify_attrib_local<social_x_pos>(person_node.value(),  x_values);
+                G->add_or_modify_attrib_local<social_y_pos>(person_node.value(),  z_values);
             }
             x_values.clear();
             std::transform(group.second.people_ids.begin(), group.second.people_ids.end(), std::back_inserter(x_values), [](const auto &value) { return (float)value; });
-            G->add_or_modify_attrib_local(person_node.value(), "sharedWith", x_values);
+            G->add_or_modify_attrib_local<sharedWidth>(person_node.value(), x_values);
             G->update_node(person_node.value());
             cont++;
         }

@@ -116,7 +116,8 @@ struct Attr {
 
 #define REGISTER_TYPE(x, ot) \
                             static constexpr auto    x ##_str = std::string_view(#x ); \
-                            using x ##_att = Attr< x##_str, ot>;                        \
+                            using x = Attr< x##_str, ot>;                        \
+                            typedef x  x ##_att;                                          \
                             REGISTER_FN(x, ot) \
                             \
 
@@ -136,7 +137,6 @@ REGISTER_TYPE(color, std::reference_wrapper<const std::string>);
 REGISTER_TYPE(texture, std::reference_wrapper<const std::string>);
 REGISTER_TYPE(width, int);
 REGISTER_TYPE(height, int);
-REGISTER_TYPE(depth, int);
 REGISTER_TYPE(scalex, int);
 REGISTER_TYPE(scaley, int);
 REGISTER_TYPE(scalez, int);
@@ -155,5 +155,30 @@ REGISTER_TYPE(ref_rot_speed, float);
 REGISTER_TYPE(ref_side_speed, float);
 REGISTER_TYPE(base_target_x, float);
 REGISTER_TYPE(base_target_y, float);
+REGISTER_TYPE(social_x_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(social_y_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(personal_x_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(personal_y_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(sharedWidth, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(intimate_x_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(intimate_y_pos, std::reference_wrapper<const std::vector<float>>);
+REGISTER_TYPE(rgb_cameraID, int);
+REGISTER_TYPE(rgb_focalx, int);
+REGISTER_TYPE(rgb_focaly, int);
+REGISTER_TYPE(rgb_alivetime, int);
+REGISTER_TYPE(rgb_width, int);
+REGISTER_TYPE(rgb_height, int);
+REGISTER_TYPE(rgb_depth, int);
+REGISTER_TYPE(depth, int);
+REGISTER_TYPE(img_depth, std::reference_wrapper<const std::vector<uint8_t>>);
+REGISTER_TYPE(depth_cameraID, int);
+REGISTER_TYPE(depthFactor, float);
+REGISTER_TYPE(depth_height, int);
+REGISTER_TYPE(depth_width, int);
+REGISTER_TYPE(OuterRegionLeft, int);
+REGISTER_TYPE(OuterRegionRight, int);
+REGISTER_TYPE(OuterRegionBottom, int);
+REGISTER_TYPE(OuterRegionTop, int);
+REGISTER_TYPE(target_node_id, int);
 
 #endif //DSR_ATTR_NAME_H

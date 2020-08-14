@@ -167,17 +167,17 @@ void TreeViewer::create_attribute_widgets(QTreeWidgetItem* parent, Node* node)
 		// check if attribute widget already exists
 		if(attributes_map.count(node->id()) > 0 and attributes_map[node->id()].count(key) > 0)
 			continue;
-		create_attribute_widget(parent, node, key, value.value());
+		create_attribute_widget(parent, node, key, value);
 	}
 
 }
 
-void TreeViewer::create_attribute_widget(QTreeWidgetItem* parent, Node* node, std::string key, Val value)
+void TreeViewer::create_attribute_widget(QTreeWidgetItem* parent, Node* node, std::string key, Attribute value)
 {
 	QTreeWidgetItem* q_attr = new QTreeWidgetItem(parent);
 	attributes_map[node->id()][key] = q_attr;
 	q_attr->setText(0, QString::fromStdString(key));
-	switch (value._d()) {
+	switch (value.selected()) {
 	case 0: {
 		QLineEdit* ledit = new QLineEdit(QString::fromStdString(value.str()));
 		ledit->setReadOnly(true);

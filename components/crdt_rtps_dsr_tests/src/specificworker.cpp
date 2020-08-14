@@ -64,6 +64,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_input_file = params["dsr_input_file"].value;
 
     test_name = params["test_name"].value;
+    return true;
 }
 
 void SpecificWorker::initialize(int period) {
@@ -76,7 +77,7 @@ void SpecificWorker::initialize(int period) {
     // Graph viewer
     using opts = DSR::DSRViewer::view;
 
-    graph_viewer = std::make_unique<DSR::DSRViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
+    dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
     setWindowTitle(QString::fromStdString(agent_name));
     connect(actionSave, &QAction::triggered,  [this]()
     {

@@ -1,5 +1,7 @@
-#include "qscene_2d_viewer.h"
-#include "dsr/gui/viewers/graph_viewer/graph_node.h"
+#include "./qscene_2d_viewer.h"
+#include "../../viewers/graph_viewer/graph_node.h"
+#include "../../../api/dsr_attr_name.h"
+
 using namespace DSR ;
 
 QScene2dViewer::QScene2dViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *parent) : AbstractGraphicViewer(parent)
@@ -536,12 +538,12 @@ void QScene2dViewer::draw_laser()
     auto laser_node = G->get_node("laser");
     if(laser_node.has_value())
     {
-        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
-        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
+        const auto lAngles = G->get_attrib_by_name<angles_att>(laser_node.value());
+        const auto lDists = G->get_attrib_by_name<dists_att>(laser_node.value());
         if (lAngles.has_value() and lDists.has_value())
         {
             QPolygonF poly;
-            for( auto &&[angle, dist] : iter::zip(lAngles.value(), lDists.value()))
+            for( auto &&[angle, dist] : iter::zip(lAngles.value().get(), lDists.value().get()))
                 poly << robot->mapToScene(QPointF(dist * sin(angle), dist * cos(angle)));
 
             QColor color("LightGreen");
@@ -566,11 +568,11 @@ void QScene2dViewer::draw_person_space(QGraphicsItem *sceneItem,Node &node){
 }
 
 void QScene2dViewer::draw_space(std::string name, std::string color_, int zvalue, Node &node, QGraphicsItem* parent){
-    const auto x_pos = G->get_attrib_by_name<vector<float>>(node, name+"_x_pos");
-    const auto y_pos = G->get_attrib_by_name<vector<float>>(node, name+"_y_pos");
-    if (x_pos.has_value() and y_pos.has_value()) {
+    if (node.attrs().find( name+"_x_pos") != node.attrs().end() and node.attrs().find( name+"_y_pos") != node.attrs().end()) {
+    const auto x_pos = node.attrs().at(name+"_x_pos").float_vec();
+    const auto y_pos = node.attrs().at(name+"_y_pos").float_vec();;
         QPolygonF poly;
-        for (auto &&[x, y] : iter::zip(x_pos.value(), y_pos.value()))
+        for (auto &&[x, y] : iter::zip(x_pos, y_pos))
             poly << parent->mapFromScene(QPointF(x, y));
 
         QColor color(color_.c_str());

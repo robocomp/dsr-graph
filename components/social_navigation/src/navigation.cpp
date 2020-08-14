@@ -24,10 +24,10 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
         std::terminate();
     }
     QRectF outerRegion;
-    outerRegion.setLeft(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionLeft").value());
-    outerRegion.setRight(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionRight").value());
-    outerRegion.setBottom(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionBottom").value());
-    outerRegion.setTop(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionTop").value());
+    outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft>(world_node.value()).value());
+    outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight>(world_node.value()).value());
+    outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom>(world_node.value()).value());
+    outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop>(world_node.value()).value());
     if(outerRegion.isNull())
     {
         qWarning() << __FILE__ << __FUNCTION__ << "Outer region of the scene could not be found in G. Aborting";
@@ -119,9 +119,9 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
             rotVel = (rot_conv * QVec::vec2(rotVel,1.0))[0];
             xVel = (side_conv * QVec::vec2(xVel, 1.0))[0];
             auto robot_node = G->get_node(robot_name);
-            G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)zVel);
-            G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)rotVel);
-            G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)xVel);
+            G->add_or_modify_attrib_local<ref_adv_speed>(robot_node.value(),  (float)zVel);
+            G->add_or_modify_attrib_local<ref_rot_speed>(robot_node.value(), (float)rotVel);
+            G->add_or_modify_attrib_local<ref_side_speed>(robot_node.value(),  (float)xVel);
             G->update_node(robot_node.value());
             qInfo() << __FUNCTION__ << "xVel " << xVel << "zVel " << zVel << "rotVel" << rotVel << "Elapsed time" << reloj.restart() << "ms";
             return State::RUNNING;
@@ -194,8 +194,8 @@ typename Navigation<TMap, TController>::LaserData Navigation<TMap, TController>:
     auto laser_node = G->get_node("laser");
     if (laser_node.has_value())
     {
-        const auto lAngles = G->get_attrib_by_name<vector<float>>(laser_node.value(), "angles");
-        const auto lDists = G->get_attrib_by_name<vector<float>>(laser_node.value(), "dists");
+        const auto lAngles = G->get_attrib_by_name<angles_att>(laser_node.value());
+        const auto lDists = G->get_attrib_by_name<dists_att>(laser_node.value());
         if (lAngles.has_value() and lDists.has_value())
         {
             LaserData laserData = std::make_tuple(lAngles.value(), lDists.value());
@@ -213,9 +213,9 @@ template<typename TMap, typename TController>
 void Navigation<TMap, TController>::stopRobot()
 {
     auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local(robot_node.value(), "ref_adv_speed", (float)0);
-    G->add_or_modify_attrib_local(robot_node.value(), "ref_rot_speed", (float)0);
-    G->add_or_modify_attrib_local(robot_node.value(), "ref_side_speed", (float)0);
+    G->add_or_modify_attrib_local<ref_adv_speed>(robot_node.value(),  (float)0);
+    G->add_or_modify_attrib_local<ref_rot_speed>(robot_node.value(),  (float)0);
+    G->add_or_modify_attrib_local<ref_side_speed>(robot_node.value(), (float)0);
     G->update_node(robot_node.value());
     current_target.active.store(false);
 }
