@@ -39,7 +39,7 @@ class Controller
         float ROBOT_RADIUS_MM; //mm
 
         const float ROBOT_LENGTH = 500;
-        const float FINAL_DISTANCE_TO_TARGET = 200; //mm
+        const float FINAL_DISTANCE_TO_TARGET = 100; //mm
         float KB = 2.0;
 
         // compute max de gauss(value) where gauss(x)=y  y min

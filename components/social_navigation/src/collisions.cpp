@@ -35,7 +35,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     qsrand( QTime::currentTime().msec() );
 }
 
-bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
+std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in G_copy to the target coordinates
     std::optional<Node> world = G_copy.get_node("world");
@@ -61,10 +61,10 @@ bool Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const s
             {
                 std::cout << "COLLISION: " << in << " to " << out << " pos: (" << targetPos[0] << "," << targetPos[1]
                           << "," << targetPos[2] << ")" << std::endl;
-                return false;
+                return std::make_tuple(false, out);
             }
         }
-    return true;
+    return std::make_tuple(true, "");;
 }
 
 bool Collisions::collide(std::shared_ptr<DSR::InnerAPI> inner, const std::string &node_a_name, const std::string &node_b_name)

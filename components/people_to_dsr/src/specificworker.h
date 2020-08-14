@@ -78,7 +78,6 @@ private:
     std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
             "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"};
 
-
     struct JOINT_CONNECTION
     {
         std::string parent_name;
@@ -108,10 +107,10 @@ private:
     };
 
     DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
-    std::unordered_map<int, int> G_person_id;
+
     std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_idz);
     std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id);
-    void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
+    void process_people_data(RoboCompHumanToDSRPub::PeopleData people);
     void check_unseen_people();
 
     const std::string person_path = "/home/robocomp/robocomp/components/robocomp-viriato/files/osgModels/";

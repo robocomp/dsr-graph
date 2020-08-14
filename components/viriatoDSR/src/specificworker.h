@@ -69,7 +69,7 @@ private:
 	int osg_3d_view;
 
 	// graph viewer
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
 
@@ -81,7 +81,7 @@ private:
 	
 	void update_laser(const RoboCompLaser::TLaserData& ldata);
 	void update_omirobot(const RoboCompGenericBase::TBaseState& bState);
-	void update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb);
+	void update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &dept);
 	bool areDifferent(float a, float b, float epsilon);
     void checkNewCommand(const RoboCompGenericBase::TBaseState& bState);
 };

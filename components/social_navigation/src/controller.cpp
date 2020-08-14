@@ -5,6 +5,7 @@
 #include "controller.h"
 #include <algorithm>
 #include <cppitertools/zip.hpp>
+#include <iomanip>
 
 void Controller::initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_)
 {
@@ -50,11 +51,13 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
               return res;
             };
 
-    if ( (points.size() < 3 and euc_dist_to_target < FINAL_DISTANCE_TO_TARGET) or
-         (points.size() < 3 and is_increasing(euc_dist_to_target)) )
+    if ( (points.size() < 3) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
     {
         advVelz = 0;  rotVel = 0;
         active = false;
+        std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 3 " << (points.size() < 3)
+                  << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
+                  << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
         return std::make_tuple(true, blocked, active, advVelx, advVelz, rotVel);
     }
 
@@ -63,9 +66,12 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robotNose, points[1]))));
     if(angle >= 0) rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
     else rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
+    if(euc_dist_to_target < 2*FINAL_DISTANCE_TO_TARGET)
+        rotVel = 0.f;
 
     /// Compute advance speed
     std::min(advVelz = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
+
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};

@@ -40,7 +40,7 @@ INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
 set(CMAKE_CXX_STANDARD 17)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
-add_definitions(-g  -fmax-errors=1 -std=c++2a )
+add_definitions(-Og  -fmax-errors=1 -std=c++2a )
 SET(SPECIFIC_LIBS  fastcdr fastrtps osgDB)
 
 

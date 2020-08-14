@@ -44,10 +44,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     agent_id = stoi(params["agent_id"].value);
     read_dsr = params["read_dsr"].value == "true";
     dsr_input_file = params["dsr_input_file"].value;
-	tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
-	graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
-	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
-	osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
+	tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
+	graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
+	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
+	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
 	return true;
 }
 
@@ -63,13 +63,13 @@ void SpecificWorker::initialize(int period)
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
 		opts main = opts::none;
         if (graph_view)
             main = opts::graph;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+		setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
         timer.start(100);
     }
 }
@@ -87,9 +87,11 @@ void SpecificWorker::compute()
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
-    // read rgb data
-    if(auto rgb = rgb_buffer.try_get(); rgb.has_value())
-        update_rgb(rgb.value());
+    // read camera head rgb data
+    auto rgb = rgb_buffer.try_get();
+    auto depth = depth_buffer.try_get();
+    if( rgb.has_value() and depth.has_value())
+        update_rgbd(rgb.value(), depth.value());
 
     // check for new target values in robot node
     static float current_base_target_x = 0;
@@ -103,7 +105,7 @@ void SpecificWorker::compute()
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
                 try
-                { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
+                { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
                 catch (const Ice::Exception &e)
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
                 current_base_target_x = x.value();
@@ -116,20 +118,31 @@ void SpecificWorker::compute()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SpecificWorker::update_rgb(const RoboCompCameraRGBDSimple::TImage& rgb)
+void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &depth)
 {
-	qDebug() << __FUNCTION__; 
-	auto node = G->get_node("Viriato_head_camera_front_sensor");
+	qDebug() << __FUNCTION__;
+	std::string camera_name = "viriato_head_camera_sensor";
+	auto node = G->get_node(camera_name);
 	if (node.has_value())
 	{
 		G->add_or_modify_attrib_local<rgb_att>(node.value(),  rgb.image);
-		G->add_or_modify_attrib_local<width_att>(node.value(),  rgb.width);
-		G->add_or_modify_attrib_local<height_att>(node.value(),  rgb.height);
-		G->add_or_modify_attrib_local<depth_att>(node.value(),  rgb.depth);
-		G->add_or_modify_attrib_local<cameraID_att>(node.value(),  rgb.cameraID);
-		G->add_or_modify_attrib_local<focalx_att>(node.value(),  rgb.focalx);
-		G->add_or_modify_attrib_local<focaly_att>(node.value(), rgb.focaly);
-		G->add_or_modify_attrib_local<alivetime_att>(node.value(),  rgb.alivetime);
+		G->add_or_modify_attrib_local<rgb_width_att>(node.value(),  rgb.width);
+		G->add_or_modify_attrib_local<rgb_height_att>(node.value(),  rgb.height);
+		G->add_or_modify_attrib_local<rgb_depth_att>(node.value(),  rgb.depth);
+		G->add_or_modify_attrib_local<rgb_cameraID_att>(node.value(),  rgb.cameraID);
+		G->add_or_modify_attrib_local<rgb_focalx_att>(node.value(),  rgb.focalx);
+		G->add_or_modify_attrib_local<rgb_focaly_att>(node.value(), rgb.focaly);
+		G->add_or_modify_attrib_local<rgb_alivetime_att>(node.value(),  rgb.alivetime);
+
+		// depth
+		G->add_or_modify_attrib_local<depth_att>(node.value(), depth.depth);
+        G->add_or_modify_attrib_local<depth_width_att>(node.value(), depth.width);
+        G->add_or_modify_attrib_local<depth_height_att>(node.value(), depth.height);
+        G->add_or_modify_attrib_local<focalx_att>(node.value(), depth.focalx);
+        G->add_or_modify_attrib_local<focaly_att>(node.value(), depth.focaly);
+        G->add_or_modify_attrib_local<depth_cameraID_att>(node.value(), depth.cameraID);
+        G->add_or_modify_attrib_local<depthFactor_att>(node.value(), depth.depthFactor);
+        G->add_or_modify_attrib_local<alivetime_att>(node.value(), depth.alivetime);
 		G->update_node(node.value());
 	}
 }
@@ -170,7 +183,7 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
-		auto edge = G->get_edge_RT(parent.value(), robot->id());
+		auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
 		G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., bState.alpha, 0.});
         G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x, 0., bState.z});
         G->modify_attrib_local<linear_speed_att>(edge,  std::vector<float>{bState.advVx, 0 , bState.advVz});
@@ -208,15 +221,8 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
     if( areDifferent(bState.advVz, ref_adv_speed.value(), FLT_EPSILON) or areDifferent(bState.rotV, ref_rot_speed.value(), FLT_EPSILON) or areDifferent(bState.advVx, ref_side_speed.value(), FLT_EPSILON))
     {
         qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
-        // Proportinal controller
         try
         {
-//            const float KA = 0.04; const float KS = 0.01; const float KR = 3;
-//            const float side_error = KS * (ref_side_speed.value()-bState.advVx);
-//            const float adv_error = KA * (ref_adv_speed.value()-bState.advVz);
-//            const float rot_error = KR * (ref_rot_speed.value()-bState.rotV);
-//            if(fabs(side_error)>0.1 or fabs(adv_error)>0.1 or fabs(rot_error)>0.01)
-//            {
                 omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
 
 //                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
@@ -225,7 +231,6 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
 //                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
 //                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
 //                          << std::endl;
- //           }
         }
         catch(const RoboCompGenericBase::HardwareFailedException &re)
         { std::cout << re << '\n';}
