@@ -2,8 +2,8 @@
 // Created by juancarlos on 7/5/20.
 //
 
-#ifndef CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
-#define CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
+#ifndef DSR_TEST_BASE_H
+#define DSR_TEST_BASE_H
 
 #include <DSRGetID.h>
 #include <random>
@@ -40,7 +40,6 @@ protected:
     std::pair<int, int> removeEdgeIDs();
     std::pair<int, int> getEdgeIDs();
 
-    int newID();
     int removeID();
     int getID();
 
@@ -73,4 +72,4 @@ protected:
 };
 
 
-#endif //CRDT_RTPS_DSR_STRINGS_DSR_TEST_H
+#endif //DSR_TEST_BASE_H

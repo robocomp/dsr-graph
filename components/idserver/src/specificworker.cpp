@@ -38,21 +38,21 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    try
-    {
-        agent_name = params["agent_name"].value;
-        agent_id = stoi(params["agent_id"].value);
-        dsr_input_file = params["dsr_input_file"].value;
-        dsr_output_path = params["dsr_output_path"].value;
-        dsr_write_to_file = params["dsr_write_to_file"].value == "true";
-        this->Period = stoi(params["period"].value);
-        tree_view = (params["tree_view"].value == "true") ? DSR::GraphViewer::view::tree : 0;
-        graph_view = (params["graph_view"].value == "true") ? DSR::GraphViewer::view::graph : 0;
-        qscene_2d_view = (params["2d_view"].value == "true") ? DSR::GraphViewer::view::scene : 0;
-        osg_3d_view = (params["3d_view"].value == "true") ? DSR::GraphViewer::view::osg : 0;
-    }
-    catch(const std::exception &e) { qFatal("Error reading config params"); }
-    return true;
+	try
+	{
+		agent_name = params["agent_name"].value;
+    	agent_id = stoi(params["agent_id"].value);
+    	dsr_input_file = params["dsr_input_file"].value;
+   	 	dsr_output_path = params["dsr_output_path"].value;
+		dsr_write_to_file = params["dsr_write_to_file"].value == "true";
+    	this->Period = stoi(params["period"].value);
+		tree_view = (params["tree_view"].value == "true") ? DSR::DSRViewer::view::tree : 0;
+		graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
+		qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
+		osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
+	}
+	catch(const std::exception &e) { qFatal("Error reading config params"); }
+	return true;
 }
 
 void SpecificWorker::initialize(int period)
@@ -63,34 +63,37 @@ void SpecificWorker::initialize(int period)
     {
         this->startup_check();
     }
+    else
+    {
+        // create graph
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
+        std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
 
-	// create graph
-    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
-    std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-    G->print();
-    using opts = DSR::GraphViewer::view;
-    int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
+        // Graph viewer
+        using opts = DSR::DSRViewer::view;
+		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
+        opts main = opts::none;
+        if (graph_view)
+		{
+        	main = opts::graph;
+		}
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+        connect(actionSaveToFile, &QAction::triggered, [this]() {
+            auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"),
+                                                          "/home/robocomp/robocomp/components/dsr-graph/etc",
+                                                          tr("JSON Files (*.json)"), nullptr,
+                                                          QFileDialog::Option::DontUseNativeDialog);
+            G->write_to_json_file(file_name.toStdString());
+            qDebug() << __FUNCTION__ << "Written";
+        });
+        this->Period = 100;
 
-    opts main = opts::none;
-    if (graph_view)
-        main = opts::graph;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
-    setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
-    connect(actionSaveToFile, &QAction::triggered, [this]() {
-        auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"),
-                                                      "/home/robocomp/robocomp/components/dsr-graph/etc",
-                                                      tr("JSON Files (*.json)"), nullptr,
-                                                      QFileDialog::Option::DontUseNativeDialog);
-        G->write_to_json_file(file_name.toStdString());
-        qDebug() << __FUNCTION__ << "Written";
-    });
-    this->Period = 100;
-
-    // Compute max Id in G
-    get_max_id_from_G();
-    if (dsr_write_to_file)
-        timer.start(Period);
-	
+        // Compute max Id in G
+        get_max_id_from_G();
+        if (dsr_write_to_file)
+            timer.start(Period);
+    }
 }
 
 void SpecificWorker::compute()
@@ -101,13 +104,11 @@ void SpecificWorker::compute()
 
 void SpecificWorker::get_max_id_from_G()
 {
-	//auto g = G->getCopy();
-	//auto node_id = std::max_element(g.begin(), g.end(), [](const auto &[k1,v1], const auto n1 &[k2,v2]){ return v1.id() > v2.id(); }
 	node_id = 0;
 	for (const auto &[key, node] : G->getCopy())
         if (node.id() > node_id)
             node_id = node.id();
-    qDebug() << "MAX ID from file:" << node_id;
+    qInfo() << "MAX ID from file:" << node_id;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,6 +119,7 @@ int SpecificWorker::startup_check()
     return 0;
 }
 
+
 ////////////////////////////////////////////////////////
 //// IMPLEMENTS SECTION
 ///////////////////////////////////////////////////////
@@ -126,6 +128,7 @@ int SpecificWorker::DSRGetID_getID()
 {
 	QMutexLocker locker(mutex);
 	node_id++;
+	std::cout << "Request served with id: " << node_id << std::endl;
 	return node_id;
 }
 

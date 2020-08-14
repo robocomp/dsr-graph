@@ -41,12 +41,40 @@ using namespace DSR;
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
-private: 
+
+public:
+    SpecificWorker(TuplePrx tprx, bool startup_check);
+    ~SpecificWorker();
+    bool setParams(RoboCompCommonBehavior::ParameterList params);
+    void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);
+
+    std::map<int, std::chrono::system_clock::time_point> people_last_seen;
+
+public slots:
+    void compute();
+    void initialize(int period);
+    int startup_check();
+
+private:
+    //DSR params
     std::unique_ptr<DSR::InnerAPI> innermodel;
-
-
+    std::shared_ptr<DSR::DSRGraph> G;
+    std::string agent_name;
     int agent_id;
+    bool read_dsr;
+    std::string dsr_input_file;
+    bool tree_view;
+    bool graph_view;
+    bool qscene_2d_view;
+    bool osg_3d_view;
     std::string dsr_output_path;
+
+    // DSR graph viewer
+    std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+    QHBoxLayout mainLayout;
+    QWidget window;
+    bool startup_check_flag;
+
     std::vector<std::string> COCO_IDS{"nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
             "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"};
 
@@ -78,27 +106,9 @@ private:
         {"right_knee", JOINT_CONNECTION{"right_hip",{0.0, -400.0, 0.0}}},
         {"right_ankle", JOINT_CONNECTION{"right_knee",{0.0, -400.0, 0.0}}}
     };
+
     DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
-
-
     std::unordered_map<int, int> G_person_id;
-
-public:
-    std::string agent_name;
-    std::shared_ptr<DSR::DSRGraph> G;
-    std::unique_ptr<DSR::GraphViewer> graph_viewer;
-    QHBoxLayout mainLayout;
-    QWidget window;
-    
-    std::map<int, std::chrono::system_clock::time_point> people_last_seen; 
-
-	SpecificWorker(TuplePrx tprx, bool startup_check);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
-    void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);    
-
-private: 
     std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_idz);
     std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
@@ -108,12 +118,7 @@ private:
     const std::string person1_path = person_path + "human04.3ds";
     const std::string person2_path = person_path + "human02.3ds";
     const std::string abuelito_path = "/home/pbustos/robocomp/components/robocomp-viriato/files/osgModels/abuelito.ive";
-    
 
-public slots:
-	void compute();
-	void initialize(int period);
-	    
 };
 
 #endif

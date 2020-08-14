@@ -22,7 +22,10 @@
 * \brief Default constructor
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
-{}
+{
+    this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
+}
 
 /**
 * \brief Default destructor
@@ -35,26 +38,51 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    agent_id = stoi(params["agent_id"].value);
-    dsr_output_path = params["dsr_output_path"].value;
     agent_name = params["agent_name"].value;
+    agent_id = stoi(params["agent_id"].value);
+    tree_view = params["tree_view"].value == "true";
+    graph_view = params["graph_view"].value == "true";
+    qscene_2d_view = params["2d_view"].value == "true";
+    osg_3d_view = params["3d_view"].value == "true";
     return true;
 }
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
+    std::cout << "Initialize worker" << std::endl;
+    this->Period = period;
+    if(this->startup_check_flag)
+    {
+        this->startup_check();
+    }
+    else
+    {
+        // create graph
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+        std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
 
-    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-    innermodel = G->get_inner_api();
+        // Graph viewer
+        using opts = DSR::DSRViewer::view;
+        int current_opts = 0;
+        //opts main = opts::none;
+        if (tree_view)
+            current_opts = current_opts | opts::tree;
+        if (graph_view)
+            current_opts = current_opts | opts::graph;
+        if (qscene_2d_view)
+            current_opts = current_opts | opts::scene;
+        if (osg_3d_view)
+            current_opts = current_opts | opts::osg;
+        dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+        setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
-    // DSRViewer creation
-    using opts = DSR::GraphViewer::view;
-	graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::graph|opts::osg,  opts::graph);
-    
-    this->Period = 100;
-    timer.start(Period);
-    
+        //Inner Api
+        innermodel = G->get_inner_api();
+        std::cout << "Initialize worker" << std::endl;
+
+        this->Period = 100;
+        timer.start(Period);
+    }
 }
 
 void SpecificWorker::compute()
@@ -85,7 +113,7 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
         std::optional<Node> person_n = G->get_node(G_id);
         if(person_n.has_value()) //update edges
         {
-            qDebug() << __FUNCTION__ << " update person:" << person_n->id();
+            qInfo() << __FUNCTION__ << " update person:" << person_n->id();
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
             G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
@@ -120,7 +148,6 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
         else //create nodes
         {
             //qDebug() << __FUNCTION__ << "Person does not exist => Creation";
-       
             person_n = create_node("person", person_name, person.id, world_n->id());
             if (not person_n.has_value()) 
                 std::terminate();
@@ -255,6 +282,14 @@ std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, co
         std::terminate();
     }
 }
+
+int SpecificWorker::startup_check()
+{
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////
 // SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface

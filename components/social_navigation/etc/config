@@ -21,7 +21,7 @@ NavigationAgent.RobotName = omnirobot
 NavigationAgent.RobotXWidth = 540
 NavigationAgent.RobotZLong = 460
 NavigationAgent.RobotRadius = 400
-
+NavigationAgent.TileSize = 200
 NavigationAgent.MinControllerPeriod = 100
 
 NavigationAgent.PlannerGraphPoints = 400
