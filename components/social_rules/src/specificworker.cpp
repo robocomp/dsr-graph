@@ -76,7 +76,10 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
+
+        //Inner Api
+        inner_api = G->get_inner_api();
 
 		// Graph viewer
 		using opts = DSR::GraphViewer::view;
@@ -104,6 +107,26 @@ void SpecificWorker::initialize(int period)
 		// custom_widget
 		graph_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
 
+        connect(custom_widget.draw_personalSpace_button,SIGNAL(clicked()),this, SLOT(drawPersonalSpace()));
+/*        connect(custom_widget.save_data_button,SIGNAL(clicked()),this, SLOT(recordData()));
+        connect(custom_widget.object_slider, SIGNAL (valueChanged(int)),this,SLOT(affordanceSliderChanged(int)));
+        connect(custom_widget.currentTime_timeEdit, SIGNAL (timeChanged(const QTime)),this,SLOT(affordanceTimeEditChanged(const QTime)));
+        connect(custom_widget.setTherapy_button, SIGNAL (clicked()),this,SLOT(programTherapy()));
+        connect(custom_widget.removeT_button, SIGNAL (clicked()),this,SLOT(removeTherapy()));
+        connect(custom_widget.currtime_slider, SIGNAL (valueChanged(int)),this,SLOT(affordanceTimeSliderChanged(int)));
+
+        checkObjectAffordance();
+
+        auto timeValue = custom_widget.currtime_slider->value();
+        QTime currentTime = QTime(timeValue / 60, timeValue % 60);
+        custom_widget.currentTime_timeEdit->setTime(currentTime);
+
+        QString hour = currentTime.toString(Qt::SystemLocaleShortDate);
+        for (auto const &map : mapIdObjects)
+        {
+            mapCostsPerHour[hour].push_back(map.second.cost);
+        }
+*/
 
 		this->Period = period;
 		timer.start(Period);
@@ -113,19 +136,31 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
+ //   if (worldModelChanged)
+    {
+        updatePeopleInModel();
+        checkInteractions();
+//        checkObjectAffordance();
+        applySocialRules();
+
+        updatePersonalSpacesInGraph();
+//        updateAffordancesInGraph();
+
+//        worldModelChanged = false;
+//        costChanged = false;
+    }
+
+ /*   else if (costChanged)
+    {
+        updateAffordancesInGraph();
+
+//        publishAffordances();
+
+        costChanged = false;
+    }*/
+
+//    checkRobotmov();
+
 	
 }
 
@@ -136,20 +171,176 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
+void SpecificWorker::drawPersonalSpace(){
+    if (!people_groups.empty()){
+        for (auto per: people_groups){
+            RoboCompSocialNavigationGaussian::SNGPolylineSeq intimate_result, personal_result, social_result;
+            socialnavigationgaussian_proxy->getAllPersonalSpaces(per.second.people_seq, true, intimate_result, personal_result, social_result);
+        }
+    }
+}
 
 
+void SpecificWorker::updatePeopleInModel(){
+    qDebug()<< __FUNCTION__;
 
-/**************************************/
-// From the RoboCompSocialNavigationGaussian you can call this methods:
-// this->socialnavigationgaussian_proxy->getAllPersonalSpaces(...)
-// this->socialnavigationgaussian_proxy->getObjectInteraction(...)
-// this->socialnavigationgaussian_proxy->getPassOnRight(...)
-// this->socialnavigationgaussian_proxy->getPersonalSpace(...)
+    map_people.clear();
 
-/**************************************/
-// From the RoboCompSocialNavigationGaussian you can use this types:
-// RoboCompSocialNavigationGaussian::Pose2D
-// RoboCompSocialNavigationGaussian::SNGPoint2D
-// RoboCompSocialNavigationGaussian::SNGPerson
-// RoboCompSocialNavigationGaussian::SNGObject
+    auto vectorPersons = G->get_nodes_by_type("person");
+    for (auto p: vectorPersons) {
+        RoboCompSocialNavigationGaussian::SNGPerson person;
 
+        std::optional<QVec> pose = inner_api->transformS6D("world", p.name());
+        if(pose.has_value()) {
+            person.id = p.id();
+            person.x = pose.value().x();
+            person.z = pose.value().z();
+            person.angle = pose.value().ry();
+            cout << "[FOUND] Person " << person.id << " x = " << person.x << " z = " << person.z << " rot "
+                 << person.angle << endl;
+
+            map_people[person.id] = person;
+        }
+    }
+}
+
+// evaluate person interaction
+// alone person are evaluated as single group
+//TODO: evaluate with several people groups
+void SpecificWorker::checkInteractions(){
+    qDebug()<< __FUNCTION__;
+    //clear previous data
+    //TODO: check if something could be reused => node signals
+    people_groups.clear();
+    person_to_group.clear();
+
+    std::vector<std::vector<int32_t>> interactingId;
+    for (const auto &[id, sng] : map_people){
+        std::vector<int32_t> people_to_include={id};
+        Node p1 = G->get_node(id).value();
+        std::vector<Edge> edges = G->get_node_edges_by_type(p1, "interacting");
+        if(edges.size() > 0){
+            for(Edge edge: edges){
+                Node to_node = G->get_node(edge.to()).value();
+                if(to_node.type() == "person")
+                {
+                    people_to_include.push_back(to_node.id());
+                }
+            }
+        }
+        //check where to include
+        //People are included in the same slot as already one of them has been included
+        //If there is not any of them already included, new slot is created
+        bool found = false;
+        for(const int32_t &new_id: people_to_include){
+            std::map<int32_t, int32_t>::iterator  it = person_to_group.find(new_id);
+            if( it != person_to_group.end() ){
+                found = true;
+                //include new people ids
+                for(const int32_t &new_id: people_to_include)
+                {
+                    //check if person is already included
+                    if(std::find(people_groups[it->second].people_ids.begin(),
+                                 people_groups[it->second].people_ids.end(), new_id)
+                                 == people_groups[it->second].people_ids.end())
+                    {
+                        people_groups[it->second].people_ids.push_back(new_id);
+                        people_groups[it->second].people_seq.push_back(map_people[new_id]);
+                    }
+                }
+                break;
+            }
+        }
+        if(not found){ //create new slot
+            int group_id = people_groups.size();
+            group_space new_group;
+            new_group.people_ids = people_to_include;
+            for(const int32_t &new_id: people_to_include){
+                person_to_group[new_id] = group_id;
+                new_group.people_seq.push_back(map_people[new_id]);
+            }
+            people_groups[group_id] = new_group;
+        }
+    }
+}
+
+void SpecificWorker::applySocialRules(){
+    qDebug()<< __FUNCTION__;
+    for (auto &group: people_groups) {
+        RoboCompSocialNavigationGaussian::SNGPolylineSeq intimateResult, personalResult, socialResult;
+        try {
+            socialnavigationgaussian_proxy->getAllPersonalSpaces(group.second.people_seq, false, intimateResult, personalResult, socialResult);
+        }
+        catch( const Ice::Exception &e)
+        {
+            std::cout << e << std::endl;
+        }
+
+        for (auto s:intimateResult) {group.second.intimatePolylines.push_back(s);}
+        for (auto s:personalResult) {group.second.personalPolylines.push_back(s);}
+        for (auto s:socialResult) {group.second.socialPolylines.push_back(s);}
+    }
+}
+
+// Transform Polylines into two std::vector<float>
+void SpecificWorker::convert_polyline_to_vector(const RoboCompSocialNavigationGaussian::SNGPolyline &poly, std::vector<float> &x_values, std::vector<float> &z_values)
+{
+    x_values.clear();
+    z_values.clear();
+    for (const auto &value: poly) {
+        x_values.push_back(value.x);
+        z_values.push_back(value.z);
+    }
+}
+
+//insert data on G
+void SpecificWorker::updatePersonalSpacesInGraph() {
+    qDebug() << __FUNCTION__;
+    std::vector<float> x_values, z_values;
+    std::optional<Node> person_node;
+    int polyline_position;
+    for(const auto &group: people_groups)
+    {
+        int cont = 0;
+        for(const int &person_id: group.second.people_ids)
+        {
+            person_node = G->get_node(person_id);
+            if(not person_node.has_value())
+                return;
+//if each person has it own polyline that one is assigned, otherwise, first polyline is assigned to all
+            if(group.second.intimatePolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.intimatePolylines.size() > polyline_position)
+                convert_polyline_to_vector(group.second.intimatePolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "intimate_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "intimate_y_pos", z_values);
+
+            if(group.second.personalPolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.personalPolylines.size() > polyline_position) {
+                convert_polyline_to_vector(group.second.personalPolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "personal_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "personal_y_pos", z_values);
+            }
+
+            if(group.second.socialPolylines.size() > cont)
+                polyline_position = cont;
+            else
+                polyline_position = 0;
+            if(group.second.socialPolylines.size() > polyline_position) {
+                convert_polyline_to_vector(group.second.socialPolylines[polyline_position], x_values, z_values);
+                G->add_or_modify_attrib_local(person_node.value(), "social_x_pos", x_values);
+                G->add_or_modify_attrib_local(person_node.value(), "social_y_pos", z_values);
+            }
+            x_values.clear();
+            std::transform(group.second.people_ids.begin(), group.second.people_ids.end(), std::back_inserter(x_values), [](const auto &value) { return (float)value; });
+            G->add_or_modify_attrib_local(person_node.value(), "sharedWith", x_values);
+            G->update_node(person_node.value());
+            cont++;
+        }
+    }
+}

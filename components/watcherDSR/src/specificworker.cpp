@@ -94,7 +94,7 @@ void SpecificWorker::initialize(int period)
 		G->write_to_json_file("./"+agent_name+"_initial.json");
 
 		// Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
@@ -114,7 +114,7 @@ void SpecificWorker::initialize(int period)
 		{
 		    current_opts = current_opts | opts::osg;
 		}
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts, main);
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
 		this->Period = period;

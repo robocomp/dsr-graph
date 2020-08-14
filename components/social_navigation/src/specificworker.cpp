@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
-		using opts = DSR::GraphViewer::view;
+		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		//opts main = opts::none;
 		if(tree_view)
@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, current_opts);
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
 		//Inner Api
@@ -93,8 +93,8 @@ void SpecificWorker::initialize(int period)
         forcesSliderChanged();
     	moveRobot();
 
-		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
-		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato.grid");
+		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
+		navigation.initialize(G, confParams, &widget_2d->scene, true, "viriato-200.grid");
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
@@ -109,18 +109,36 @@ void SpecificWorker::compute()
     auto robot = G->get_node(robot_name);
     if(robot.has_value())
     {
-        // auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_node");
-        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
-        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
-        if(x.has_value() and y.has_value())
-            if( not (navigation.current_target == QPointF(x.value(), y.value())))
-                navigation.newTarget(QPointF(x.value(), y.value()));
+        if(auto target_id = G->get_attrib_by_name<int>(robot.value(), "target_node_id"); target_id.has_value())
+        {
+            if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
+            {
+                auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
+                auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+                const auto &[state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
+                switch (state)
+                {
+                    case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
+                        G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.x());
+                        G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.y());
+                        G->update_node(robot.value());
+                        break;
+                    case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
+                        qInfo() << __FUNCTION__ << "At target";
+                        break;
+                    case Navigation<Grid<>,Controller>::SearchState::NO_TARGET_FOUND:
+                        qInfo() << __FUNCTION__ << "No feasible target found";
+                        break;
+                }
+            }
+            else
+                qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
+        }
+        else
+            qWarning() << __FILE__ << __FUNCTION__ << " No target node id found in G";
     }
     else
-    {
-        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
-        return;
-    }
+        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found in G";
 
     auto state = navigation.update();
     navigation.print_state(state);
@@ -173,19 +191,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
-            if (id != 11)  // floor
-            {
-                if( std::optional<QVector2D> candidate = navigation.search_a_feasible_target(target_node.value(), robot.value()); candidate.has_value())
-                {
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.value().x());
-                    G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.value().y());
-                }
-            }
-            else
-            {
-                G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
-                G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
-            }
+            G->add_or_modify_attrib_local(robot.value(), "target_node_id", (int) target_node.value().id());
+            G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
+            G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
             G->update_node(robot.value());
         }
         else
@@ -195,7 +203,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     }
     else
     {
-        qWarning() << __FILE__ << __FUNCTION__ << " No node  " << QString::number(id) << " found";
+        qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
     }
 }
 
