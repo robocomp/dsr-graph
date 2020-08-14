@@ -20,26 +20,28 @@
  */
 
 #include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
 #include <fastrtps/subscriber/Subscriber.h>
 #include <fastrtps/attributes/SubscriberAttributes.h>
-#include <fastrtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/Domain.h>
 
 #include "dsrsubscriber.h"
+
+#include <QDebug>
 
 using namespace eprosima::fastrtps;
 using namespace eprosima::fastrtps::rtps;
 
 DSRSubscriber::DSRSubscriber() : mp_participant(nullptr), mp_subscriber(nullptr) {}
 
-DSRSubscriber::~DSRSubscriber() {
-    //Domain::removeParticipant(mp_participant);
+DSRSubscriber::~DSRSubscriber()
+{
+    	//Domain::removeParticipant(mp_participant);
 }
 
 bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
-                         const char *topicName, const char *topicDataType,
-                         std::function<void(Subscriber *sub)> f_) {
+                        const char* topicName, const char* topicDataType,
+                        std::function<void(Subscriber* sub)>  f_)
+{
     mp_participant = mp_participant_;
 
     // Create Subscriber
@@ -58,7 +60,8 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
     if (std::string_view(topicName) == "DSR") {
         // This would be better, but we sent a lots of messages to use it.
         //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
-
+        Rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
+        Rparam.topic.historyQos.depth = 50; // Adjust this value if we are losing  messages
     }
      */
     Rparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
@@ -69,14 +72,14 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
     m_listener.participant_ID = mp_participant->getGuid();
     m_listener.f = f_;
 
-    mp_subscriber = Domain::createSubscriber(mp_participant, Rparam, static_cast<SubscriberListener *>(&m_listener));
-    if (mp_subscriber == nullptr)
+    mp_subscriber = Domain::createSubscriber(mp_participant, Rparam, static_cast<SubscriberListener*>(&m_listener));
+    if(mp_subscriber == nullptr)
         return false;
     return true;
 }
 
 
-eprosima::fastrtps::Subscriber *DSRSubscriber::getSubscriber() {
+eprosima::fastrtps::Subscriber * DSRSubscriber::getSubscriber(){
     return mp_subscriber;
 }
 
@@ -85,23 +88,25 @@ eprosima::fastrtps::Subscriber *DSRSubscriber::getSubscriber() {
 /// Callbacks
 ///////////////////////////////////////////
 
-void DSRSubscriber::SubListener::onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) {
-    (void) sub;
-    if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING) {
+void DSRSubscriber::SubListener::onSubscriptionMatched(Subscriber* sub, MatchingInfo& info)
+{
+    if (info.status == eprosima::fastrtps::rtps::MATCHED_MATCHING)
+    {
         n_matched++;
-        std::cout << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] matched " << info.remoteEndpointGuid << std::endl;
+        qDebug() << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] matched " << info.remoteEndpointGuid.entityId.value;
     } else {
         n_matched--;
-        std::cout << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] unmatched "  << info.remoteEndpointGuid << std::endl;
+        qDebug() << "Publisher[" << sub->getAttributes().topic.getTopicName() <<"] unmatched "  << info.remoteEndpointGuid.entityId.value;
     }
 }
 
-void DSRSubscriber::SubListener::onNewDataMessage(Subscriber *sub) {
+void DSRSubscriber::SubListener::onNewDataMessage(Subscriber* sub)
+{
     f(sub);
 }
 
-void DSRSubscriber::run() {
-    std::cout << "Waiting for Data, press Enter to stop the Subscriber. " << std::endl;
-    while (true);
+void DSRSubscriber::run()
+{
+   while (true);
 }
 

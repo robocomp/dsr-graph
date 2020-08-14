@@ -11,6 +11,10 @@
 #include <fastrtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/Domain.h>
 
+
+#include <QtCore/qlogging.h>
+#include <QtCore/qdebug.h>
+
 using namespace DSR;
 
 
@@ -18,14 +22,13 @@ using namespace DSR;
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id), agent_name(name) , copy(false) {
-
-
+DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id) , agent_name(name), copy(false)
+{
     dsr_getid_proxy = dsr_getid_proxy_;
     graph_root = root;
     nodes = Nodes(graph_root);
     utils = std::make_unique<Utilities>(this);
-    std::cout << "Agent name: " << agent_name << std::endl;
+    qDebug() << "Agent name: " << QString::fromStdString(agent_name);
     work = true;
 
     // RTPS Create participant 
@@ -41,23 +44,27 @@ DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_fil
     dsrpub_request_answer.init(participant_handle, "DSR_GRAPH_ANSWER", dsrparticipant.getAnswerTopicName());
 
     // RTPS Initialize comms threads
-    if (dsr_input_file != std::string()) {
-        try {
-            utils->read_from_json_file(dsr_input_file, insert_node_read_file);
+    if (dsr_input_file != std::string())
+    {
+        try
+        {
+            read_from_json_file(dsr_input_file);
             qDebug() << __FUNCTION__ << "Warning, graph read from file " << QString::fromStdString(dsr_input_file);
         }
-        catch (const DSR::DSRException &e) {
+        catch(const DSR::DSRException& e)
+        {
             std::cout << e.what() << '\n';
             qFatal("Aborting program. Cannot continue without intial file");
         }
         start_fullgraph_server_thread();
-        start_subscription_threads(true);
-    } else {
-        start_subscription_threads(true);     // regular subscription to deltas
+        start_subscription_threads(false);
+    }
+    else
+    {
+        start_subscription_threads(false);     // regular subscription to deltas
         bool res = start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-        if (res == false) {
-            eprosima::fastrtps::Domain::removeParticipant(
-                    participant_handle); // Remove a Participant and all associated publishers and subscribers.
+        if(res == false) {
+            eprosima::fastrtps::Domain::removeParticipant(participant_handle); // Remove a Participant and all associated publishers and subscribers.
             qFatal("DSRGraph aborting: could not get DSR from the network after timeout");  //JC ¿se pueden limpiar aquí cosas antes de salir?
 
         }
@@ -66,14 +73,16 @@ DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_fil
 }
 
 DSRGraph::~DSRGraph() {
-    qDebug() << "Removing rtps participant";
-    eprosima::fastrtps::Domain::removeParticipant(
-            dsrparticipant.getParticipant()); // Remove a Participant and all associated publishers and subscribers.
-    if (fullgraph_thread.joinable()) fullgraph_thread.join();
-    if (delta_node_thread.joinable()) delta_node_thread.join();
-    if (delta_edge_thread.joinable()) delta_edge_thread.join();
-    if (delta_node_attrs_thread.joinable()) delta_node_attrs_thread.join();
-    if (delta_edge_attrs_thread.joinable()) delta_edge_attrs_thread.join();
+    if (!copy) {
+        qDebug() << "Removing rtps participant";
+        eprosima::fastrtps::Domain::removeParticipant(
+                dsrparticipant.getParticipant()); // Remove a Participant and all associated publishers and subscribers.
+        if (fullgraph_thread.joinable()) fullgraph_thread.join();
+        if (delta_node_thread.joinable()) delta_node_thread.join();
+        if (delta_edge_thread.joinable()) delta_edge_thread.join();
+        if (delta_node_attrs_thread.joinable()) delta_node_attrs_thread.join();
+        if (delta_edge_attrs_thread.joinable()) delta_edge_attrs_thread.join();
+    }
 }
 
 //////////////////////////////////////
@@ -113,7 +122,6 @@ std::tuple<bool, std::optional<IDL::Mvreg>> DSRGraph::insert_node_(const CRDTNod
 
 
 std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
-    if (node.id() == -1u) return {};
     std::optional<IDL::Mvreg> aw;
 
     bool r = false;
@@ -126,7 +134,8 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
                     int new_node_id = dsr_getid_proxy->getID();
                     node.id(new_node_id);
                     node.name(node.type() + "_" + std::to_string(new_node_id));
-                } else
+                }
+                else
                 {
                     qWarning() << __FILE__ << __FUNCTION__ << "Cannot connect to idserver. Aborting";
                     std::terminate();
@@ -783,40 +792,51 @@ std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> DSRGraph::g
 
 };
 
-DSR::Edge DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
+std::optional<Edge> DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
     auto edges_ = n.fano();
     auto res = edges_.find({to, "RT"});
     if (res != edges_.end())
         return res->second;
     else
-        throw std::runtime_error("Could not find edge " + std::to_string(to) + " in node " + std::to_string(n.id()) +
-                                 " in edge_to_RTMat() " + __FILE__ + " " + __FUNCTION__ + " " +
-                                 std::to_string(__LINE__));
+        //throw std::runtime_error("Could not find edge " + std::to_string(key.to()) + " in node " + std::to_string(n.id()) + " in edge_to_RTMat() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+        return {};
 }
 
-RTMat DSRGraph::get_edge_RT_as_RTMat(const Edge &edge) {
+std::optional<RTMat>  DSRGraph::get_edge_RT_as_RTMat(const Edge &edge) {
     auto r = get_attrib_by_name<rotation_euler_xyz_att>(edge);
     auto t =  get_attrib_by_name<translation_att>(edge);
     if (r.has_value() and t.has_value())
         return RTMat{r->get()[0], r->get()[1], r->get()[2], t->get()[0], t->get()[1], t->get()[2]};
     else
-        throw std::runtime_error(
-                "Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) +
-                " in get_edge_RT as_RTMat() " + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-
+        //throw std::runtime_error("Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) + " in get_edge_RT as_RTMat() " +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+        return {};
 }
 
-RTMat DSRGraph::get_edge_RT_as_RTMat(Edge &&edge) {
+std::optional<RTMat>  DSRGraph::get_edge_RT_as_RTMat(Edge &&edge) {
     auto r = get_attrib_by_name<rotation_euler_xyz_att>(edge);
     auto t =  get_attrib_by_name<translation_att>(edge);
     if (r.has_value() and t.has_value())
         return RTMat{r->get()[0], r->get()[1], r->get()[2], t->get()[0], t->get()[1], t->get()[2]};
     else
-        throw std::runtime_error(
-                "Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) +
-                " in get_edge_RT as_RTMat() " + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
-}
+        //throw std::runtime_error("Could not find required attributes in node " + edge.type() + " " + std::to_string(edge.to()) + " in get_edge_RT as_RTMat() "  +  __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__));
+        return {};
+ }
 
+std::optional<RTMat> DSRGraph::get_RT_pose_from_parent(const Node &n) {
+    auto p = get_parent_node(n);
+    if (p.has_value()) {
+        auto edges_ = p->fano();
+        auto res = edges_.find({n.id(),"RT"});
+        if (res != edges_.end()) {
+            auto r = get_attrib_by_name<rotation_euler_xyz_att>(res);
+            auto t =  get_attrib_by_name<translation_att>(res);
+            if (r.has_value() && t.has_value() ) {
+ 		return RTMat { r.value()[0], r.value()[1], r.value()[2], t.value()[0], t.value()[1], t.value()[2] } ;
+	    }
+        }
+    }
+    return {};
+}
 
 /////////////////////////////////////////////////
 ///// Utils
@@ -881,6 +901,38 @@ std::optional<DSR::Node> DSRGraph::get_parent_node(const Node &n) {
 
 std::string DSRGraph::get_node_type(Node &n) {
     return n.type();
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+/// Image subAPI
+////////////////////////////////////////////////////////////////////////////
+
+const std::vector<uint8_t>& DSRGraph::get_rgb_image(const Node &n) const
+{
+    auto& attrs = n.attrs();
+    if (auto value  = attrs.find("rgb"); value != attrs.end())
+        return value->second.byte_vec();
+    else throw std::runtime_error((std::string("Attribute rgb does not exist in node: " + std::to_string(n.id()) + ". ") + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+}
+
+std::vector<float> DSRGraph::get_depth_image(const Node &n)
+{
+    auto& attrs = n.attrs();
+    if (auto value  = attrs.find("depth"); value != attrs.end()) {
+        const auto &tmp = value->second.byte_vec();
+        return std::vector<float>(tmp.begin(), tmp.end());
+    }
+    else throw std::runtime_error((std::string("Attribute depth does not exist in node: " + std::to_string(n.id()) + ". ") + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+}
+
+const std::vector<uint8_t>& DSRGraph::get_depth_image(const Node &n) const
+{
+    auto& attrs = n.attrs();
+    if (auto value  = attrs.find("depth"); value != attrs.end()) {
+        return value->second.byte_vec();
+    }
+    else throw std::runtime_error((std::string("Attribute depth does not exist in node: " + std::to_string(n.id()) + ". ") + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
 }
 
 inline void DSRGraph::update_maps_node_delete(uint32_t id, const CRDTNode &n) {
@@ -1221,9 +1273,10 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                 if (mvreg.dk().ds().empty() or n.attrs().find(mvreg.attr_name()) == n.attrs().end()) { //Remove
                     n.attrs().erase(mvreg.attr_name());
                     //Update maps
-                } else { //Insert
+                } /*else { //Insert
                     //Update maps
-                }
+                }*/
+                //temp_edge_attr.erase({mvreg.from(), mvreg.to(), mvreg.type()};
             } /*else if (deleted.find(mvreg.id()) == deleted.end()) {
                 //If the node is not found but it is not deleted, we save de delta for later.
                 //We use a CRDT because we can receive multiple deltas for the same edge unordered before we get the node.

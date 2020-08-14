@@ -12,47 +12,56 @@
 
 using namespace DSR;
 
-Utilities::Utilities(DSR::DSRGraph *G_) { G = G_; }
+Utilities::Utilities(DSR::DSRGraph *G_)
+{ G = G_; }
 
-void Utilities::read_from_json_file(const std::string &json_file_path, std::function<std::optional<int>(const Node&)> insert_node) {
-    std::cout << __FUNCTION__ << " Reading json file: " << json_file_path << std::endl;
 
-    // Open file and make initial checks
-    QFile file;
-    file.setFileName(QString::fromStdString(json_file_path));
-    if (not file.open(QIODevice::ReadOnly | QIODevice::Text))
-        throw std::runtime_error("File " + json_file_path + " not found. Cannot continue.");
+QJsonDocument Utilities::file_to_QJsonDocument(const std::string &json_file_path)
+{
+	// Open file and make initial checks
+	QFile file;
+	file.setFileName(QString::fromStdString(json_file_path));
+	if (not file.open(QIODevice::ReadOnly | QIODevice::Text))
+		throw std::runtime_error("File " + json_file_path + " not found. Cannot continue.");
 
-    QString val = file.readAll();
-    file.close();
+	QString val = file.readAll();
+	file.close();
 
-    QJsonDocument doc = QJsonDocument::fromJson(val.toUtf8());
+	QJsonDocument doc = QJsonDocument::fromJson(val.toUtf8());
+	return doc;
+}
+
+void Utilities::read_from_json_file(const std::string &json_file_path,  std::function<std::optional<int>(const Node&)> insert_node)
+{
+    qDebug() << __FUNCTION__ << " Reading json file: " << QString::fromStdString(json_file_path);
+
+	QJsonDocument doc = Utilities::file_to_QJsonDocument(json_file_path);
     QJsonObject jObject = doc.object();
 
     QJsonObject dsrobject = jObject.value("DSRModel").toObject();
-    QJsonObject symbolMap = dsrobject.value("symbols").toObject();
+	QJsonObject symbolMap = dsrobject.value("symbols").toObject();
     QJsonArray linksArray;
     // Read symbols (just symbols, then links in other loop)
-            foreach (const QString &key, symbolMap.keys()) {
-            QJsonObject sym_obj = symbolMap[key].toObject();
-            int id = sym_obj.value("id").toInt();
-            std::string type = sym_obj.value("type").toString().toStdString();
-            std::string name = sym_obj.value("name").toString().toStdString();
+    foreach (const QString &key, symbolMap.keys())
+    {
+        QJsonObject sym_obj = symbolMap[key].toObject();
+        int id = sym_obj.value("id").toInt();
+        std::string type = sym_obj.value("type").toString().toStdString();
+        std::string name = sym_obj.value("name").toString().toStdString();
 
-            if (id == -1) {
-                std::cout << __FILE__ << " " << __FUNCTION__ << " Invalid ID Node: " << std::to_string(id);
-                continue;
-            }
-            std::cout << __FILE__ << " " << __FUNCTION__ << ", Node: " << std::to_string(id) << " " << type
-                      << std::endl;
-            Node n(id,  type, name, {}, {}, G->get_agent_id());
-
-//            n.type(type);
-//            n.id(id);
-//            n.agent_id(G->get_agent_id());
-//            n.name(name);
-            //G->name_map[name] = id;
-            //G->id_map[id] = name;
+        if (id == -1)
+        {
+            std::cout << __FILE__ << " " << __FUNCTION__ << " Invalid ID Node: " << std::to_string(id);
+            continue;
+        }
+        qDebug() << __FILE__ << " " << __FUNCTION__ << ", Node: " << id << " " <<  QString::fromStdString(type);
+        Node n;
+        n.type(type);
+        n.id(id);
+        n.agent_id(G->get_agent_id());
+        n.name(name);
+        //G->name_map[name] = id;
+        //G->id_map[id] = name;
 
             //std::map<string, Attrib> attrs;
 /*
@@ -108,6 +117,12 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
                         G->runtime_checked_add_attrib_local(n, attr_key,   attr_value.toBool());
                         break;
                     }
+                    case 5: {
+                        std::vector<uint8_t> v;
+                                foreach (const QVariant &value, attr_value.toList())v.push_back(static_cast<uint8_t>(value.toUInt()));
+                        G->runtime_checked_add_attrib_local(n,  attr_key,  v);
+                        break;
+                    }
                     case 6: {
                         G->runtime_checked_add_attrib_local(n,  attr_key,  static_cast<std::uint32_t>(attr_value.toUInt()));
                         break;
@@ -118,12 +133,13 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
             }
             //n.attrs(attrs);
             insert_node(n);
-            // get links
-            QJsonArray nodeLinksArray = sym_obj.value("links").toArray();
-            std::copy(nodeLinksArray.begin(), nodeLinksArray.end(), std::back_inserter(linksArray));
-        }
+        // get links
+        QJsonArray nodeLinksArray = sym_obj.value("links").toArray();
+        std::copy(nodeLinksArray.begin(), nodeLinksArray.end(), std::back_inserter(linksArray));
+    }
     // Read links
-            foreach (const QJsonValue &linkValue, linksArray) {
+    foreach (const QJsonValue &linkValue, linksArray)
+    {
             QJsonObject link_obj = linkValue.toObject();
             int srcn = link_obj.value("src").toInt();
             int dstn = link_obj.value("dst").toInt();
@@ -138,8 +154,8 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
 
             // link atributes
             QVariantMap linkAttributesMap = link_obj.value("linkAttribute").toObject().toVariantMap();
-            for (QVariantMap::const_iterator iter = linkAttributesMap.begin();
-                 iter != linkAttributesMap.end(); ++iter) {
+            for (QVariantMap::const_iterator iter = linkAttributesMap.begin(); iter != linkAttributesMap.end(); ++iter)
+            {
                 std::string attr_key = iter.key().toStdString();
                 QVariant attr_value = iter.value().toMap()["value"];
                 int attr_type = iter.value().toMap()["type"].toInt();
@@ -174,6 +190,13 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
                         G->runtime_checked_add_attrib_local(edge,  attr_key,  attr_value.toBool());
                         break;
                     }
+                    case 5: {
+                        std::vector<uint8_t> v;
+                                foreach (const QVariant &value, attr_value.toList())v.push_back(static_cast<uint8_t>(value.toUInt()));
+
+                        G->runtime_checked_add_attrib_local(edge, attr_key,   v);
+                        break;
+                    }
                     case 6: {
                         G->runtime_checked_add_attrib_local(edge,  attr_key,   static_cast<std::uint32_t>(attr_value.toUInt()));
                         break;
@@ -182,123 +205,134 @@ void Utilities::read_from_json_file(const std::string &json_file_path, std::func
                         G->runtime_checked_add_attrib_local(edge,   attr_key, attr_value.toString().toStdString());
                 }
             }
-            std::cout << __FILE__ << " " << __FUNCTION__ << "Edge from " << std::to_string(srcn) << " to "
-                      << std::to_string(dstn) << " label " << edgeName << std::endl;
+            qDebug() << __FILE__ << " " << __FUNCTION__ << "Edge from " << srcn << " to " << dstn << " label "  << QString::fromStdString(edgeName);
             //edge.attrs(attrs);
             G->insert_or_assign_edge(edge);
 
         } //foreach(links)
 }
 
-void Utilities::write_to_json_file(const std::string &json_file_path) {
+QJsonObject Utilities::Edge_to_QObject(const Edge edge)
+{
+    QJsonObject link;
+    link["src"] = static_cast<int>(edge.from());
+    link["dst"] = static_cast<int>(edge.to());
+    link["label"] = QString::fromStdString(edge.type());
+
+    QJsonObject lattrsObject;
+    for (auto &[key, value]: edge.attrs()) {
+        QJsonObject content;
+        QJsonValue val;
+        switch (value.value().index()) {
+            case 0:
+                val = QString::fromStdString(get<std::string>(value.value()));
+                break;
+            case 1:
+                val = get<std::int32_t>(value.value());
+                break;
+            case 2:
+                val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
+                break;
+            case 4:
+                val = get<bool>(value.value());
+                break;
+            case 3: {
+                QJsonArray array;
+                for (const float &value : get<std::vector<float>>(value.value()))
+                    array.push_back(value);
+                val = array;
+                break;
+            }
+            case 5: {
+                QJsonArray array;
+                for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
+                    array.push_back(static_cast<qint64>(value));
+                val = array;
+                break;
+            }
+            case 6:
+                val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
+                break;
+        }
+        content["type"] = static_cast<qint64>(value.value().index());
+        content["value"] = val;
+        lattrsObject[QString::fromStdString(key)] = content;
+    }
+    link["linkAttribute"] = lattrsObject;
+    return link;
+}
+
+QJsonObject Utilities::Node_to_QObject(const Node node)
+{
+    QJsonObject symbol;
+    symbol["id"] = static_cast<qint64>(node.id());
+    symbol["type"] = QString::fromStdString(node.type());
+    symbol["name"] = QString::fromStdString(node.name());
+    // symbol attribute
+    QJsonObject attrsObject;
+    for (const auto &[key, value]: node.attrs())
+    {
+        QJsonObject content;
+        QJsonValue val;
+        switch (value.value().index()) {
+            case 0:
+                val = QString::fromStdString(get<std::string>(value.value()));
+                break;
+            case 1:
+                val = get<std::int32_t>(value.value());
+                break;
+            case 2:
+                val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
+                break;
+            case 4:
+                val = get<bool>(value.value());
+                break;
+            case 3: {
+                QJsonArray array;
+                for (const float &value : get<std::vector<float>>(value.value()))
+                    array.push_back(value);
+                val = array;
+                break;
+            }
+            case 5: {
+                QJsonArray array;
+                for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
+                    array.push_back(static_cast<qint64>(value));
+                val = array;
+                break;
+            }
+            case 6:
+                val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
+                break;
+
+        }
+        content["type"] = static_cast<qint64>(value.value().index());
+        content["value"] = val;
+        attrsObject[QString::fromStdString(key)] = content;
+    }
+    symbol["attribute"] = attrsObject;
+    //link
+    QJsonArray nodeLinksArray;
+    for (const auto &[key, value]: node.fano()) {
+        QJsonObject link = Edge_to_QObject(value);
+        nodeLinksArray.push_back(link);
+    }
+    symbol["links"] = nodeLinksArray;
+    return symbol;
+}
+
+
+QJsonDocument Utilities::DSRGraph_to_QJsonDocument(DSR::DSRGraph *G_)
+{
     std::setlocale(LC_NUMERIC, "en_US.UTF-8");
     //create json object
     QJsonObject dsrObject;
     QJsonArray linksArray;
     QJsonObject symbolsMap;
-    for (auto kv : G->getCopy()) {
+    for (auto kv : G_->getCopy()) {
         Node node = kv.second;
         // symbol data
-        QJsonObject symbol;
-        symbol["id"] = static_cast<qint64>(node.id());
-        symbol["type"] = QString::fromStdString(node.type());
-        symbol["name"] = QString::fromStdString(node.name());
-        // symbol attribute
-        QJsonObject attrsObject;
-        std::map<std::string, Attribute> ordered_map_attr = std::map(node.attrs().begin(),
-                                                                                     node.attrs().end());
-        for (auto &[key, value]: ordered_map_attr) {
-            QJsonObject content;
-            QJsonValue val;
-            switch (value.value().index()) {
-                case 0:
-                    val = QString::fromStdString(get<std::string>(value.value()));
-                    break;
-                case 1:
-                    val = get<std::int32_t>(value.value());
-                    break;
-                case 2:
-                    val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
-                    break;
-                case 4:
-                    val = get<bool>(value.value());
-                    break;
-                case 3: {
-                    QJsonArray array;
-                    for (const float &value : get<std::vector<float>>(value.value()))
-                        array.push_back(value);
-                    val = array;
-                    break;
-                }
-                case 5: {
-                    QJsonArray array;
-                    for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
-                        array.push_back(static_cast<qint64>(value));
-                    val = array;
-                    break;
-                }
-                case 6:
-                    val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
-                    break;
-            }
-            content["type"] = static_cast<qint64>(value.value().index());
-            content["value"] = val;
-            attrsObject[QString::fromStdString(key)] = content;
-        }
-        symbol["attribute"] = attrsObject;
-        //link
-        QJsonArray nodeLinksArray;
-        std::map<std::pair<uint32_t, std::string>, Edge> ordered_map_fano = std::map(node.fano().begin(),
-                                                                                                node.fano().end());
-        for (auto &[key, value]: ordered_map_fano) {
-            QJsonObject link;
-            link["src"] = static_cast<qint64>(value.from());
-            link["dst"] = static_cast<qint64>(value.to());
-            link["label"] = QString::fromStdString(value.type());
-            // link attribute
-            QJsonObject lattrsObject;
-            for (auto &[key, value]: value.attrs()) {
-                QJsonObject attr, content;
-                QJsonValue val;
-                switch (value.value().index()) {
-                    case 0:
-                        val = QString::fromStdString(get<std::string>(value.value()));
-                        break;
-                    case 1:
-                        val = get<std::int32_t>(value.value());
-                        break;
-                    case 2:
-                        val = std::round(static_cast<double>(get<float>(value.value())) * 1000000) / 1000000;
-                        break;
-                    case 4:
-                        val = get<bool>(value.value());
-                        break;
-                    case 3: {
-                        QJsonArray array;
-                        for (const float &value : get<std::vector<float>>(value.value()))
-                            array.push_back(value);
-                        val = array;
-                        break;
-                    }
-                    case 5: {
-                        QJsonArray array;
-                        for (const uint8_t &value : get<std::vector<uint8_t>>(value.value()))
-                            array.push_back(static_cast<qint64>(value));
-                        val = array;
-                        break;
-                    }
-                    case 6:
-                        val = static_cast<std::int32_t>(get<std::uint32_t>(value.value()));
-                        break;
-                }
-                content["type"] = static_cast<qint64>(value.value().index());
-                content["value"] = val;
-                lattrsObject[QString::fromStdString(key)] = content;
-            }
-            link["linkAttribute"] = lattrsObject;
-            nodeLinksArray.push_back(link);
-        }
-        symbol["links"] = nodeLinksArray;
+        QJsonObject symbol = Node_to_QObject(node);
         symbolsMap[QString::number(node.id())] = symbol;
     }
     dsrObject["symbols"] = symbolsMap;
@@ -307,31 +341,36 @@ void Utilities::write_to_json_file(const std::string &json_file_path) {
     jsonObject["DSRModel"] = dsrObject;
     //write to file
     QJsonDocument jsonDoc(jsonObject);
-    QFile jsonFile(QString::fromStdString(json_file_path));
-    jsonFile.open(QFile::WriteOnly);
-    jsonFile.write(jsonDoc.toJson());
-    jsonFile.close();
-    auto now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    std::cout << __FILE__ << " " << __FUNCTION__ << "File: " << json_file_path << " written to disk at " << now_c
-              << std::endl;
+    return jsonDoc;
 }
 
-void Utilities::print() {
-    for (const auto &[_, v] : G->getCopy()) {
+void Utilities::write_to_json_file(const std::string &json_file_path)
+{
+	QJsonDocument jsonDoc = DSRGraph_to_QJsonDocument(G);
+    QFile jsonFile(QString::fromStdString(json_file_path));
+    jsonFile.open(QFile::WriteOnly | QFile::Text);
+    jsonFile.write(/*qCompress(*/jsonDoc.toJson())/*)*/;
+    jsonFile.close();
+    auto now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    qDebug() << __FILE__ << " " << __FUNCTION__ << "File: " << QString::fromStdString(json_file_path)<< " written to disk at " << now_c;
+}
+
+void Utilities::print()
+{
+    for (const auto &[_,v] : G->getCopy())
+    {
         Node node = v;
         std::cout << "Node: " << node.id() << std::endl;
         std::cout << "  Type:" << node.type() << std::endl;
         std::cout << "  Name:" << node.name() << std::endl;
         std::cout << "  Agent_id:" << node.agent_id() << std::endl;
         for (auto &[key, val] : node.attrs())
-            std::cout << "      [ " << key << ", " << DSR::TYPENAMES_UNION[val.value().index()] << ", " << val << " ]"
-                      << std::endl;
-        for (auto &[key, val] : node.fano()) {
-            std::cout << "          Edge-type->" << val.type() << " from:" << val.from() << " to:"
-                      << val.to() << std::endl;
+            std::cout << "      [ " << key << ", " << DSR::TYPENAMES_UNION[val.value().index()] << ", " << val << " ]"<< std::endl;
+        for (auto &[key, val] : node.fano())
+        {
+            std::cout << "          Edge-type->" << val.type() << " from:" << val.from() << " to:"<< val.to() << std::endl;
             for (auto[k, v] : val.attrs())
-                std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->"
-                          << v << std::endl;
+                std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->"<< v << std::endl;
         }
     }
     std::cout << "------------------------------------------------" << std::endl;
@@ -341,8 +380,7 @@ void Utilities::print_edge(const Edge &edge) {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "Edge-type->" << edge.type() << " from->" << edge.from() << " to->" << edge.to() << std::endl;
     for (auto[k, v] : edge.attrs())
-        std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->" << v
-                  << std::endl;
+        std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->" << v<< std::endl;
     std::cout << "------------------------------------" << std::endl;
 }
 
@@ -352,43 +390,49 @@ void Utilities::print_node(const Node &node) {
     std::cout << "  Type->" << node.type() << std::endl;
     std::cout << "  Name->" << node.name() << std::endl;
     std::cout << "  Agent_id->" << node.agent_id() << std::endl;
-    for (auto[key, val] : node.attrs())
-        std::cout << "      Key->" << key << " Type->" << DSR::TYPENAMES_UNION[val.value().index()] << " Value->" << val
-                  << std::endl;
-    for (auto[key, val] : node.fano()) {
-        std::cout << "          Edge-type->" << val.type() << " from->" << val.from() << " to->"
-                  << val.to() << std::endl;
-        for (auto[k, v] : val.attrs())
-            std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->"
-                      << v << std::endl;
+    for (auto [key, val] : node.attrs())
+        std::cout << "      Key->" << key << " Type->" << DSR::TYPENAMES_UNION[val.value().index()] << " Value->" << val << std::endl;
+    for (auto [key, val] : node.fano())
+    {
+        std::cout << "          Edge-type->" << val.type() << " from->" << val.from() << " to->" << val.to() << std::endl;
+        for (auto [k, v] : val.attrs())
+            std::cout << "              Key->" << k << " Type->" << DSR::TYPENAMES_UNION[v.value().index()] << " Value->" << v << std::endl;
     }
 }
 
-void Utilities::print_node(uint32_t id) {
+void Utilities::print_node(const std::int32_t id)
+{
     auto node = G->get_node(id);
-    if (node.has_value())
+    if(node.has_value())
         print_node(node.value());
 }
 
-void Utilities::print_RT(uint32_t id) {
+void Utilities::print_RT(const std::int32_t id)
+{
     std::cout << "-------------- Printing RT tree ------------------" << std::endl;
     auto node = G->get_node(id);
-    if (node.has_value()) {
+    if(node.has_value())
+    {
         print_node(node.value());
         print_RT(node.value());
-    } else
+    }
+    else
         throw std::runtime_error("Print_RT. Unable to traverse the tree at node: " + std::to_string(id));
     std::cout << "-------------- End printing RT tree ------------------" << std::endl;
 }
 
-void Utilities::print_RT(const Node &node) {
-    for (auto &edge: G->get_node_edges_by_type(node, "RT")) {
+void Utilities::print_RT(const Node& node)
+{
+    for(auto &edge: G->get_node_edges_by_type(node, "RT"))
+	{
         auto child = G->get_node(edge.to());
-        if (child.has_value()) {
+        if(child.has_value())
+        {
             print_node(child.value());
             print_RT(child.value());
-        } else
+        }
+        else
             throw std::runtime_error("Unable to traverse the tree at node: " + std::to_string(edge.to()));
-    }
+	}
 }
 

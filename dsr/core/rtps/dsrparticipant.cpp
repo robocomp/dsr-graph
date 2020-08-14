@@ -23,27 +23,15 @@
 #include <fastrtps/transport/UDPv4TransportDescriptor.h>
 
 #include <thread>
-#include <chrono>
 #include "dsrparticipant.h"
 
 
-DSRParticipant::DSRParticipant() :
-        mp_participant(nullptr)//,
-//mp_node_p(nullptr),
-//mp_node_s(nullptr),
-//mp_subscriber_graph_request(nullptr),
-//mp_publisher_topic_answer(nullptr),
-//mp_subscriber_topic_answer(nullptr),
-//mp_edge_p(nullptr),
-//mp_edge_s(nullptr),
-//mp_attr_node_p(nullptr),
-//mp_attr_node_s(nullptr),
-//mp_attr_edge_p(nullptr),
-//mp_attr_edge_s(nullptr)
-{}
+DSRParticipant::DSRParticipant() : mp_participant(nullptr) {}
 
-DSRParticipant::~DSRParticipant() {
-    eprosima::fastrtps::Domain::removeParticipant(mp_participant);
+DSRParticipant::~DSRParticipant()
+{
+    if (mp_participant != nullptr)
+        eprosima::fastrtps::Domain::removeParticipant(mp_participant);
 }
 
 std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init(int32_t agent_id) {
@@ -70,56 +58,59 @@ std::tuple<bool, eprosima::fastrtps::Participant *> DSRParticipant::init(int32_t
 
     mp_participant = eprosima::fastrtps::Domain::createParticipant(PParam);
 
-    if (mp_participant == nullptr) {
+    if(mp_participant == nullptr)
+    {
         return std::make_tuple(false, nullptr);
     }
 
     //Register the type
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&dsrgraphType));
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&graphrequestType));
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&graphRequestAnswerType));
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&dsrEdgeType));
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&dsrNodeAttrType));
-    eprosima::fastrtps::Domain::registerType(mp_participant,
-                                             static_cast<eprosima::fastrtps::TopicDataType *>(&dsrEdgeAttrType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&dsrgraphType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&graphrequestType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&graphRequestAnswerType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&dsrEdgeType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&dsrNodeAttrType));
+    eprosima::fastrtps::Domain::registerType(mp_participant, static_cast<eprosima::fastrtps::TopicDataType *>(&dsrEdgeAttrType));
 
     return std::make_tuple(true, mp_participant);
 }
 
-eprosima::fastrtps::Participant *DSRParticipant::getParticipant() {
+eprosima::fastrtps::Participant *DSRParticipant::getParticipant()
+{
     return mp_participant;
 }
 
-eprosima::fastrtps::rtps::GUID_t DSRParticipant::getID() const {
+eprosima::fastrtps::rtps::GUID_t DSRParticipant::getID() const
+{
     return mp_participant->getGuid();
 }
 
-const char *DSRParticipant::getNodeTopicName() const {
+const char *DSRParticipant::getNodeTopicName() const
+{
     return dsrgraphType.getName();
 }
 
-const char *DSRParticipant::getEdgeTopicName() const {
+const char *DSRParticipant::getEdgeTopicName() const
+{
     return dsrEdgeType.getName();
 }
 
-const char *DSRParticipant::getNodeAttrTopicName() const {
+const char *DSRParticipant::getNodeAttrTopicName() const
+{
     return dsrNodeAttrType.getName();
 }
 
-const char *DSRParticipant::getEdgeAttrTopicName() const {
+const char *DSRParticipant::getEdgeAttrTopicName() const
+{
     return dsrEdgeAttrType.getName();
 }
 
 
-const char *DSRParticipant::getRequestTopicName() const {
+const char *DSRParticipant::getRequestTopicName() const
+{
     return graphrequestType.getName();
 }
 
-const char *DSRParticipant::getAnswerTopicName() const {
+const char *DSRParticipant::getAnswerTopicName() const
+{
     return graphRequestAnswerType.getName();
 }

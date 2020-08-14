@@ -33,11 +33,11 @@ class GraphEdge;
 
 namespace DSR
 {
-    class DSRtoTreeViewer : public QTreeWidget
+    class TreeViewer : public QTreeWidget
     {
         Q_OBJECT
         public:
-            DSRtoTreeViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *parent=0);
+            TreeViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *parent=0);
             std::shared_ptr<DSR::DSRGraph> getGraph()  			  	{return G;};
 		     
         public slots:   // From G
@@ -48,6 +48,7 @@ namespace DSR
 			void del_node_SLOT(int id);
 			void node_change_SLOT(int value,  int id, const std::string &type, QTreeWidgetItem* parent= nullptr);
 			void category_change_SLOT(int value,  QTreeWidgetItem* parent= nullptr);
+			void reload(QWidget *widget);
 
         private:
             std::shared_ptr<DSR::DSRGraph> G;

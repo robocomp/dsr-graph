@@ -28,49 +28,37 @@
 #include <fastrtps/subscriber/SampleInfo.h>
 #include <functional>
 
-/*
-namespace CRDT {
-	class CRDTGraph;
-}
-#include <../../../graph-related-classes/CRDT.h>
-*/
 
-class DSRSubscriber {
+class DSRSubscriber
+{
 public:
-    DSRSubscriber();
-
-    virtual ~DSRSubscriber();
-
-    bool init(eprosima::fastrtps::Participant *mp_participant_,
-              const char *topicName, const char *topicDataType,
-              std::function<void(eprosima::fastrtps::Subscriber *sub)> f_);
-
-    void run();
-
-    eprosima::fastrtps::Subscriber *getSubscriber();
+	DSRSubscriber();
+	virtual ~DSRSubscriber();
+	bool init(eprosima::fastrtps::Participant *mp_participant_,
+				const char* topicName, const char* topicDataType,
+				std::function<void(eprosima::fastrtps::Subscriber* sub)>  f_);
+	void run();
+    eprosima::fastrtps::Subscriber * getSubscriber();
 
 private:
-    eprosima::fastrtps::Participant *mp_participant;
-    eprosima::fastrtps::Subscriber *mp_subscriber;
+	eprosima::fastrtps::Participant *mp_participant;
+	eprosima::fastrtps::Subscriber *mp_subscriber;
 
-    class SubListener : public eprosima::fastrtps::SubscriberListener {
-    public:
-        SubListener() : n_matched(0), n_msg(0), participant_ID(eprosima::fastrtps::rtps::GUID_t()) {};
+	class SubListener : public eprosima::fastrtps::SubscriberListener
+	{
+	public:
+		SubListener() : n_matched(0),n_msg(0),participant_ID(eprosima::fastrtps::rtps::GUID_t()){};
+		~SubListener(){};
+		void onSubscriptionMatched(eprosima::fastrtps::Subscriber* sub,eprosima::fastrtps::rtps::MatchingInfo& info);
+		void onNewDataMessage(eprosima::fastrtps::Subscriber* sub);
+		eprosima::fastrtps::SampleInfo_t m_info;
+		int n_matched;
+		int n_msg;
+		eprosima::fastrtps::rtps::GUID_t participant_ID;
 
-        ~SubListener() {};
+		std::function<void(eprosima::fastrtps::Subscriber* sub)>  f;
 
-        void onSubscriptionMatched(eprosima::fastrtps::Subscriber *sub, eprosima::fastrtps::rtps::MatchingInfo &info);
-
-        void onNewDataMessage(eprosima::fastrtps::Subscriber *sub);
-
-        eprosima::fastrtps::SampleInfo_t m_info;
-        int n_matched;
-        int n_msg;
-        eprosima::fastrtps::rtps::GUID_t participant_ID;
-
-        std::function<void(eprosima::fastrtps::Subscriber *sub)> f;
-
-    } m_listener;
+	} m_listener;
 
 };
 

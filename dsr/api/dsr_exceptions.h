@@ -11,21 +11,19 @@
 /////////////////////////////////////////////////////////////////
 /// DSR Exceptions
 /////////////////////////////////////////////////////////////////
-namespace DSR {
-    class DSRException : public std::exception {
-    public:
-        explicit DSRException(const std::string &message) : msg_(message) {};
-
-        explicit DSRException(const char *message) : msg_(message) {};
-
-        virtual ~DSRException() throw() {}
-
-        virtual const char *what() const throw() {
-            return msg_.c_str();
-        }
-
-    protected:
-        std::string msg_;
+namespace DSR
+{
+    class DSRException : public std::exception
+    {
+        public:
+            explicit DSRException(const std::string &message): msg_(message){};
+            explicit DSRException(const char *message): msg_(message){};
+            virtual ~DSRException() throw (){}
+            virtual const char* what() const throw (){
+                return msg_.c_str();
+            }
+        protected:
+            std::string msg_;
     };
 }
 #endif

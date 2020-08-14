@@ -3,19 +3,19 @@
 #include <qmat/QMatAll>
 #include <QTableWidget>
 #include <QApplication>
-#include "./graph_node.h"
-#include "./graph_edge.h"
-#include "./graph_viewer.h"
+#include "graph_node.h"
+#include "graph_edge.h"
+#include "graph_viewer.h"
 
 using namespace DSR ;
 
-DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *parent) :  AbstractGraphicViewer(parent)
+GraphViewer::GraphViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *parent) :  AbstractGraphicViewer(parent)
 {
     qRegisterMetaType<std::int32_t>("std::int32_t");
     qRegisterMetaType<std::uint32_t>("std::uint32_t");
     qRegisterMetaType<std::string>("std::string");
     G = G_;
-	own = shared_ptr<DSRtoGraphViewer>(this);
+	own = shared_ptr<GraphViewer>(this);
 
     createGraph();
 
@@ -23,15 +23,16 @@ DSRtoGraphViewer::DSRtoGraphViewer(std::shared_ptr<DSR::DSRGraph> G_, QWidget *p
 
 	this->fitInView(scene.itemsBoundingRect(), Qt::KeepAspectRatio );
 
-    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &DSRtoGraphViewer::add_or_assign_node_SLOT);
 	central_point = new QGraphicsEllipseItem(0,0,0,0);
 	scene.addItem(central_point);
-	connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &DSRtoGraphViewer::add_or_assign_edge_SLOT);
-	connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &DSRtoGraphViewer::del_edge_SLOT);
-	connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &DSRtoGraphViewer::del_node_SLOT);
+
+	connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &GraphViewer::add_or_assign_node_SLOT);
+	connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &GraphViewer::add_or_assign_edge_SLOT);
+	connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &GraphViewer::del_edge_SLOT);
+	connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &GraphViewer::del_node_SLOT);
 }
 
-DSRtoGraphViewer::~DSRtoGraphViewer()
+GraphViewer::~GraphViewer()
 {
 	gmap.clear();
 	gmap_edges.clear();
@@ -47,9 +48,12 @@ DSRtoGraphViewer::~DSRtoGraphViewer()
 	scene.clear();
 }
 
-void DSRtoGraphViewer::createGraph()
+void GraphViewer::createGraph()
 {
-	std::cout << __FUNCTION__ << "Reading graph in Graph Viewer" << std::endl;
+	gmap.clear();
+	gmap_edges.clear();
+	this->scene.clear();
+	qDebug() << __FUNCTION__ << "Reading graph in Graph Viewer";
     try
     {
         auto map = G->getCopy();
@@ -65,31 +69,34 @@ void DSRtoGraphViewer::createGraph()
 
 ///////////////////////////////////////
 
-void DSRtoGraphViewer::itemMoved()
+void GraphViewer::toggle_animation(bool animate)
 {
-	do_simulate = true;
 	qDebug() << "timerId " << timerId ;
-	if(do_simulate and timerId == 0)
-	if (timerId == 0)
-	   timerId = startTimer(1000 / 25);
+	if(animate)
+	{
+		if(timerId == 0)
+	   		timerId = startTimer(1000 / 25);
+	}
+	else
+	{
+		killTimer(timerId);
+		timerId = 0;
+	}
 }
 
-void DSRtoGraphViewer::timerEvent(QTimerEvent *event)
+void GraphViewer::timerEvent(QTimerEvent *event)
 {
 	// Q_UNUSED(event)
 
-	for( auto &[k,node] : gmap)
+	for( auto &[_,node] : gmap)
 	{
-		(void)k;
 		node->calculateForces();
 	}
 	bool itemsMoved = false;
 
-	for( auto &[k,node] : gmap)
+	for( auto &[_,node] : gmap)
 	{
-		(void)k;
-		if (node->advancePosition())
-			itemsMoved = true;
+		itemsMoved = node->advancePosition() or itemsMoved;
 	}
 	if (!itemsMoved)
 	{
@@ -100,112 +107,105 @@ void DSRtoGraphViewer::timerEvent(QTimerEvent *event)
 //////////////////////////////////////////////////////////////////////////////////////
 ///// SLOTS
 //////////////////////////////////////////////////////////////////////////////////////
-void DSRtoGraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
+void GraphViewer::add_or_assign_node_SLOT(int id, const std::string &type)
 {
-   std::cout << __FUNCTION__ << "##### New node"<< std::endl;
+	//qDebug() << __FUNCTION__ << "node id " << id<<", type "<<QString::fromUtf8(type.c_str());
+	GraphNode *gnode;														// CAMBIAR a sharer_ptr
 
-    try {
-        //qDebug() << __FUNCTION__ << "node id " << id<<", type "<<QString::fromUtf8(type.c_str());
-        GraphNode *gnode;                                                        // CAMBIAR a sharer_ptr
+    auto name_op = G->get_name_from_id(id);
+    auto name = name_op.value_or("No_name");
+	std::optional<Node> n = G->get_node(id);
+    if (n.has_value()) {
+        if (gmap.count(id) == 0)    // if node does not exist, create it
+        {
+            qDebug()<<__FUNCTION__<<"##### New node";
+        	gnode = new GraphNode(own);
+            gnode->id_in_graph = id;
+            gnode->setType(type);
+			gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
+            scene.addItem(gnode);
+            gmap.insert(std::pair(id, gnode));
+            // //left table filling only if it is new
+            // tableWidgetNodes->setColumnCount(1);
+            // tableWidgetNodes->setHorizontalHeaderLabels(QStringList{"type"});
+            // tableWidgetNodes->verticalHeader()->setVisible(false);
+            // tableWidgetNodes->setShowGrid(false);
+            // nodes_types_list << QString::fromStdString(type);
+            // nodes_types_list.removeDuplicates();
+            // int i = 0;
+            // tableWidgetNodes->clearContents();
+            // tableWidgetNodes->setRowCount(nodes_types_list.size());
+            // for (auto &s : nodes_types_list)
+			// {
+            //     tableWidgetNodes->setItem(i, 0, new QTableWidgetItem(s));
+            //     tableWidgetNodes->item(i, 0)->setIcon(QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
+            //     i++;
+            // }
+            // tableWidgetNodes->horizontalHeader()->setStretchLastSection(true);
+            // tableWidgetNodes->resizeRowsToContents();
+            // tableWidgetNodes->resizeColumnsToContents();
+            // tableWidgetNodes->show();
 
-        auto name_op = G->get_name_from_id(id);
-        auto name = name_op.value_or("No_name");
-        std::optional<Node> n = G->get_node(id);
-        if (n.has_value()) {
-            if (gmap.count(id) == 0)    // if node does not exist, create it
-            {
-                qDebug() << __FUNCTION__ << "##### New node";
-                gnode = new GraphNode(own);
-                gnode->id_in_graph = id;
-                gnode->setType(type);
-                gnode->setTag(n.value().name() + " [" + std::to_string(n.value().id()) + "]");
-                scene.addItem(gnode);
-                gmap.insert(std::pair(id, gnode));
-                // //left table filling only if it is new
-                // tableWidgetNodes->setColumnCount(1);
-                // tableWidgetNodes->setHorizontalHeaderLabels(QStringList{"type"});
-                // tableWidgetNodes->verticalHeader()->setVisible(false);
-                // tableWidgetNodes->setShowGrid(false);
-                // nodes_types_list << QString::fromStdString(type);
-                // nodes_types_list.removeDuplicates();
-                // int i = 0;
-                // tableWidgetNodes->clearContents();
-                // tableWidgetNodes->setRowCount(nodes_types_list.size());
-                // for (auto &s : nodes_types_list)
-                // {
-                //     tableWidgetNodes->setItem(i, 0, new QTableWidgetItem(s));
-                //     tableWidgetNodes->item(i, 0)->setIcon(QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
-                //     i++;
-                // }
-                // tableWidgetNodes->horizontalHeader()->setStretchLastSection(true);
-                // tableWidgetNodes->resizeRowsToContents();
-                // tableWidgetNodes->resizeColumnsToContents();
-                // tableWidgetNodes->show();
+            // connect QTableWidget itemClicked to hide/show nodes of selected type and nodes fanning into it
+            // disconnect(tableWidgetNodes, &QTableWidget::itemClicked, nullptr, nullptr);
+            // connect(tableWidgetNodes, &QTableWidget::itemClicked, this, [this](const auto &item)
+            // {
+            //     static bool visible = true;
+            //     qDebug() << __FILE__ << " " << __FUNCTION__ << "hide or show all nodes of type " << item->text().toStdString() ;
+            //     for (auto &[k, v] : gmap)
+            //         if (item->text().toStdString() == v->getType()) {
+            //             v->setVisible(!v->isVisible());
+            //             for (const auto &gedge: gmap.at(k)->edgeList)
+            //                 gedge->setVisible(!gedge->isVisible());
+            //         }
+            //     visible = !visible;
+            //     if (visible)
+            //         tableWidgetNodes->item(item->row(), 0)->setIcon(
+            //                 QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
+            //     else
+            //         tableWidgetNodes->item(item->row(), 0)->setIcon(
+            //                 QPixmap::fromImage(QImage("../../dsr/redBall.png")));
+            // }, Qt::UniqueConnection);
 
-                // connect QTableWidget itemClicked to hide/show nodes of selected type and nodes fanning into it
-                // disconnect(tableWidgetNodes, &QTableWidget::itemClicked, nullptr, nullptr);
-                // connect(tableWidgetNodes, &QTableWidget::itemClicked, this, [this](const auto &item)
-                // {
-                //     static bool visible = true;
-                //     qDebug() << __FILE__ << " " << __FUNCTION__ << "hide or show all nodes of type " << item->text().toStdString() ;
-                //     for (auto &[k, v] : gmap)
-                //         if (item->text().toStdString() == v->getType()) {
-                //             v->setVisible(!v->isVisible());
-                //             for (const auto &gedge: gmap.at(k)->edgeList)
-                //                 gedge->setVisible(!gedge->isVisible());
-                //         }
-                //     visible = !visible;
-                //     if (visible)
-                //         tableWidgetNodes->item(item->row(), 0)->setIcon(
-                //                 QPixmap::fromImage(QImage("../../dsr/greenBall.png")));
-                //     else
-                //         tableWidgetNodes->item(item->row(), 0)->setIcon(
-                //                 QPixmap::fromImage(QImage("../../dsr/redBall.png")));
-                // }, Qt::UniqueConnection);
-
-                std::string color = "coral";
-                if (type == "world") color = "SeaGreen";
-                else if (type == "transform") color = "SteelBlue";
-                else if (type == "plane") color = "Khaki";
-                else if (type == "differentialrobot") color = "GoldenRod";
-                else if (type == "laser") color = "GreenYellow";
-                else if (type == "mesh") color = "LightBlue";
-                else if (type == "imu") color = "LightSalmon";
-                gnode->setColor(color);
-            } else {
-                qDebug() << __FUNCTION__ << "##### Updated node";
-                gnode = gmap.at(id);
-            }
-            gnode->change_detected();
-            float posx = 10;
-            float posy = 10;
-            try {
-                posx = G->get_attrib_by_name<pos_x_att>(n.value()).value_or(10);
-                posy = G->get_attrib_by_name<pos_y_att>(n.value()).value_or(10);
-            }
-            catch (const std::exception &e) {
-                auto rd = QVec::uniformVector(2, -200, 200);
-                posx = rd.x();
-                posy = rd.y();
-            }
-            if ((posx != gnode->x() or posy != gnode->y()) and gnode != scene.mouseGrabberItem()) {
-                qDebug() << __FUNCTION__ << "##### posx " << posx << " != gnode->x() " << gnode->x() << " or posy "
-                         << posy << " != gnode->y() " << gnode->y();
-                gnode->setPos(posx, posy);
-            }
-
-            emit G->update_attrs_signal(id, n.value().attrs());
+			std::string color = "coral";
+			if(type == "world") color = "SeaGreen";
+			else if(type == "transform") color = "SteelBlue";
+			else if(type == "plane") color = "Khaki";
+			else if(type == "differentialrobot") color = "GoldenRod";
+			else if(type == "laser") color = "GreenYellow";
+			else if(type == "mesh") color = "LightBlue";
+			else if(type == "imu") color = "LightSalmon";
+			gnode->setColor(color);
+        } else
+		{
+			qDebug()<<__FUNCTION__<<"##### Updated node";
+            gnode = gmap.at(id);
+		}
+		gnode->change_detected();
+        float posx = 10;
+        float posy = 10;
+        try
+        {
+            posx = G->get_attrib_by_name<pos_x_att>(n.value()).value_or(10);
+            posy = G->get_attrib_by_name<pos_y_att>(n.value()).value_or(10);
         }
-    } catch (const std::exception &e) {
-        std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<<" "<<e.what()<< std::endl;
+        catch (const std::exception &e) {
+            auto rd = QVec::uniformVector(2, -200, 200);
+            posx = rd.x();
+            posy = rd.y();
+        }
+        if ((posx != gnode->x() or posy != gnode->y()) and gnode != scene.mouseGrabberItem()) {
+			qDebug()<<__FUNCTION__<<"##### posx "<<posx<<" != gnode->x() "<<gnode->x()<<" or posy "<<posy<<" != gnode->y() "<<gnode->y();
+			gnode->setPos(posx, posy);
+		}
+
+        emit G->update_attrs_signal(id, n.value().attrs());
     }
 }
 
-void DSRtoGraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t to, const std::string &edge_tag)
+void GraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t to, const std::string &edge_tag)
 {
-    std::cout << __FUNCTION__ << "##### New edge"<< std::endl;
-
-    try
+	try
     {
  		//qDebug() << __FUNCTION__ << "edge id " << QString::fromStdString(edge_tag) << from << to;
 		std::tuple<std::int32_t, std::int32_t, std::string> key = std::make_tuple(from, to, edge_tag);
@@ -246,20 +246,21 @@ void DSRtoGraphViewer::add_or_assign_edge_SLOT(std::int32_t from, std::int32_t t
 
 }
 
-void DSRtoGraphViewer::del_edge_SLOT(const std::uint32_t from, const std::uint32_t to, const std::string &edge_tag)
+void GraphViewer::del_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string &edge_tag)
 {
-
-    std::cout <<__FUNCTION__<<":"<<__LINE__ << std::endl;
-    try {
-        std::tuple<std::uint32_t, std::uint32_t, std::string> key = std::make_tuple(from, to, edge_tag);
-        while (gmap_edges.count(key) > 0) {
+    qDebug()<<__FUNCTION__<<":"<<__LINE__;
+	try {
+		std::tuple<std::int32_t, std::int32_t, std::string> key = std::make_tuple(from, to, edge_tag);
+		while (gmap_edges.count(key) > 0) {
             scene.removeItem(gmap_edges.at(key));
-            gmap_edges.erase(key);
-        }
-    } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
+		    gmap_edges.erase(key);
+		}
+	} catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
+
 }
 
-void DSRtoGraphViewer::del_node_SLOT(int id)
+
+void GraphViewer::del_node_SLOT(int id)
 {
     qDebug()<<__FUNCTION__<<":"<<__LINE__;
     try {
@@ -268,23 +269,28 @@ void DSRtoGraphViewer::del_node_SLOT(int id)
             scene.removeItem(item);
             delete item;
             gmap.erase(id);
+
         }
     } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
 
 }
 
 
-void DSRtoGraphViewer::hide_show_node_SLOT(int id, bool visible)
+void GraphViewer::hide_show_node_SLOT(int id, bool visible)
 {
-    try {
-        auto item = gmap[id];
-        item->setVisible(visible);
-        for (const auto &gedge: item->edgeList)
-            gedge->setVisible(visible);
-    } catch(const std::exception &e) { std::cout << e.what() <<" Error  "<<__FUNCTION__<<":"<<__LINE__<< std::endl;}
+	auto item = gmap[id];
+	item->setVisible(visible);
+	for (const auto &gedge: item->edgeList)
+	{
+		if((visible and gedge->destNode()->isVisible() and gedge->sourceNode()->isVisible()) or !visible)
+		{
+			gedge->setVisible(visible);
+		}
+	}
+
 }
 
-void DSRtoGraphViewer::mousePressEvent(QMouseEvent *event)
+void GraphViewer::mousePressEvent(QMouseEvent *event)
 {
 	auto item = this->scene.itemAt(mapToScene(event->pos()), QTransform());
 	if(item) {
@@ -292,6 +298,14 @@ void DSRtoGraphViewer::mousePressEvent(QMouseEvent *event)
 	}
 	else {
 		AbstractGraphicViewer::mousePressEvent(event);
+	}
+}
+
+void GraphViewer::reload(QWidget * widget)
+{
+	if(qobject_cast<GraphViewer*>(widget) != nullptr)
+	{
+		createGraph();
 	}
 }
 
