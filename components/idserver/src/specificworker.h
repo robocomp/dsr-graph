@@ -39,11 +39,6 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void initialize();
-    
-	 // DSR
-    std::shared_ptr<DSR::DSRGraph> G;
-    std::string agent_name;
-    bool startup_check_flag;
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
@@ -54,8 +49,10 @@ public slots:
     int startup_check();
 
 private:
-
-	std::unique_ptr<DSR::GraphViewer> graph_viewer;
+    std::shared_ptr<DSR::DSRGraph> G;
+    std::string agent_name;
+    bool startup_check_flag;
+    std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
     uint32_t node_id = 0;
@@ -66,16 +63,12 @@ private:
 	std::string dsr_output_path;
 	int output_file_count = 0;
 	bool dsr_write_to_file;
-
-	void get_max_id_from_G();
-
-	QGraphicsScene scene;
-	QGraphicsView gv;
-
     int tree_view;
     int graph_view;
     int qscene_2d_view;
     int osg_3d_view;
+
+	void get_max_id_from_G();
 };
 
 #endif

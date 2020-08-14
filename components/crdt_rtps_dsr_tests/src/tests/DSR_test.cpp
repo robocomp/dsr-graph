@@ -4,22 +4,7 @@
 
 #include "DSR_test.h"
 
-// This has to be a RPC call to the idserver component
-// create and insert a new id in the list
-int DSR_test::newID()
-{
-    int node_id;
-    try{
-        unique_lock<std::shared_mutex> lock(mut);
-        node_id = dsrgetid_proxy->getID();
-        created_nodes.push_back(node_id);
-        qDebug() <<"New nodeID: "<< node_id;
-    }catch(...)
-    {
-        qDebug()<<"Error getting new nodeID from idserver, check connection";
-    }
-    return node_id;
-}
+
 // pick a random id from the list of new ones
 int DSR_test::removeID()
 {

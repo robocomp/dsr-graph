@@ -47,8 +47,6 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-        std::string agent_name;
-        std::shared_ptr<DSR::DSRGraph> G;
 
 
     public slots:
@@ -67,7 +65,9 @@ public:
 		bool read_file;
 		bool write_string;
 		int agent_id;
+		std::string agent_name;
 		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+        std::shared_ptr<DSR::DSRGraph> G;
         QHBoxLayout mainLayout;
         QWidget window;
 

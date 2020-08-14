@@ -87,29 +87,27 @@ bool SpecificMonitor::sendParamsToWorker(RoboCompCommonBehavior::ParameterList p
 void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 {
 	RoboCompCommonBehavior::Parameter aux;
-
 //	aux.editable = true;
 //	configGetString( "","InnerModelPath", aux.value, "nofile");
 //	params["InnerModelPath"] = aux;
-        configGetString("", "agent_name", aux.value, "");
-        params["agent_name"] = aux;
-        configGetString("", "read_file", aux.value, "true");
-        params["read_file"] = aux;
-        configGetString("", "write_string", aux.value, "false");
-        params["write_string"] = aux;
-        configGetString("", "agent_id", aux.value, "false");
-        params["agent_id"] = aux;
-        configGetString("", "dsr_input_file", aux.value, "");
-        params["dsr_input_file"] = aux;
-        configGetString("", "dsr_output_file", aux.value, "");
-        params["dsr_output_file"] = aux;
-        configGetString("", "test_output_file", aux.value, "");
-        params["test_output_file"] = aux;
-        configGetString("", "test_name", aux.value, "");
-        params["test_name"] = aux;
-        //configGetString( "","gui", aux.value, "true");
-        //params["gui"] = aux;
-
+	configGetString( "","agent_name", aux.value,"");
+	params["agent_name"] = aux;
+    configGetString( "","read_file", aux.value,"true");
+    params["read_file"] = aux;
+    configGetString( "","write_string", aux.value,"false");
+    params["write_string"] = aux;
+    configGetString( "","agent_id", aux.value,"false");
+    params["agent_id"] = aux;
+	configGetString( "","dsr_input_file", aux.value, "");
+    params["dsr_input_file"] = aux;
+	configGetString( "","dsr_output_file", aux.value, "");
+    params["dsr_output_file"] = aux;
+	configGetString( "","test_output_file", aux.value, "");
+    params["test_output_file"] = aux;
+    configGetString( "","test_name", aux.value, "");
+    params["test_name"] = aux;
+    //configGetString( "","gui", aux.value, "true");
+    //params["gui"] = aux;
 }
 
 //Check parameters and transform them to worker structure

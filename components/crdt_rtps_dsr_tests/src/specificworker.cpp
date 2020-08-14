@@ -53,24 +53,17 @@ int SpecificWorker::startup_check()
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
-    try {
-        agent_name = params["agent_name"].value;
-        read_file = params["read_file"].value == "true";
-        test_name = params["test_name"].value;
-        agent_id = stoi(params["agent_id"].value);
+    agent_name = params["agent_name"].value;
+    read_file = params["read_file"].value == "true";
+    write_string = params["write_string"].value == "true";
+    agent_id = stoi(params["agent_id"].value);
 
-        write_string = params["write_string"].value == "true";
+    dsr_output_file = params["dsr_output_file"].value;
+    dsr_input_file = params["dsr_input_file"].value;
+    test_output_file = params["test_output_file"].value;
+    dsr_input_file = params["dsr_input_file"].value;
 
-        dsr_output_file = params["dsr_output_file"].value;
-        dsr_input_file = params["dsr_input_file"].value;
-        test_output_file = params["test_output_file"].value;
-        dsr_input_file = params["dsr_input_file"].value;
-
-//    gui = params["gui"].value == "true";
-    } catch(...) {
-        std::cout << "ERROR: One or more parameters not found in the configuration"<<  std::endl;
-    }
-    return true;
+    test_name = params["test_name"].value;
 }
 
 void SpecificWorker::initialize(int period) {
@@ -80,24 +73,10 @@ void SpecificWorker::initialize(int period) {
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
     //G->print();
 
-
-
-    // qDebug() << __FUNCTION__ << "Graph Viewer started";
-    
-
-    //test = std::make_shared<Test_utils>(dsrgetid_proxy);
-    //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    //DSR_test dst_test;
-    //timer.start(300);
-    //autokill_timer.start(10000);
-
-    sleep(5);
-    compute();
-
     // Graph viewer
-    using opts = DSR::GraphViewer::view;
+    using opts = DSR::DSRViewer::view;
 
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
+    graph_viewer = std::make_unique<DSR::DSRViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
     setWindowTitle(QString::fromStdString(agent_name));
     connect(actionSave, &QAction::triggered,  [this]()
     {
@@ -173,8 +152,7 @@ void SpecificWorker::compute()
         }
         default: {
             qDebug() << "TEST NOT FOUND";
-
-            break;
+            std::terminate();
         }
     }
 
