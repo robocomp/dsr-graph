@@ -95,28 +95,35 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // check if there is an active command
+    // read RGBD image from graph
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
+    // call pose estimation on RGBD and receive estimated poses
+    RoboCompObjectPoseEstimationRGBD::PoseType pose;
     try
     {
-        RoboCompObjectPoseEstimationRGBD::PoseType pose = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
+        pose = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
     }
     catch (const Ice::Exception &e)
     {
         std::cout << e << " No RoboCompPoseEstimation component found" << std::endl;
     }
-    // Move arm
-        // compute arm pose from object pose
-        // G->ass
-    // Check if target reached
+    // re-project estimated poses into world coordinates
+    // inject final poses into the graph
+    // compute arm pose from object pose
+        // inject arm pose into graph
+        // move arm
+        // check if target not reached
+        // repeat
 }
 
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
+    // get head camera node
     auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
+        // read RGB data attributes from graph 
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
@@ -129,6 +136,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
 
+            // assign attributes to RoboCompCameraRGBDSimple::TImage
             rgb.image = rgb_data;
             rgb.width = width.value();
             rgb.height = height.value();
@@ -154,9 +162,11 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 
 RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 {
+    // get head camera node
     auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
+        // read depth data attributes from graph
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
@@ -169,6 +179,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
 
+            // assign attributes to RoboCompCameraRGBDSimple::TDepth
             depth.depth = depth_data;
             depth.width = width.value();
             depth.height = height.value();

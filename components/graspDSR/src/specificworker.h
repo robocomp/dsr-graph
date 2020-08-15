@@ -63,7 +63,7 @@ private:
 	QWidget window;
 	bool startup_check_flag;
 
-	// pose estimation
+	// Pose Estimation & Grasping
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
 	RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
 };
