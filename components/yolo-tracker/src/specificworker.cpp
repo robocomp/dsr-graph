@@ -134,18 +134,17 @@ void SpecificWorker::compute()
                 if(object.has_value() and pan_tilt.has_value())
                 {
                     // get object pose in camera coordinate frame
-                    //auto pose = G->get_RT_pose_from_parent(object.value());
-                    auto pose = innermodel->transformS(camera_name, object_of_interest);
+                    auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
                     auto n_pose = pose->normalize();
-                    n_pose = n_pose * 100;
-                    pose = innermodel->transformS(world_node, n_pose, camera_name);
+                    n_pose = n_pose * (RMat::T)200;
+                    pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
                     if (pose.has_value())
                     {
                         // get pan_tilt current target pose
                         if(auto current_pose = G->get_attrib_by_name<std::vector<float>>(pan_tilt.value(), nose_target); current_pose.has_value())
                         {
                             QVec qcurrent_pose(current_pose.value());
-                            // if they are different modify G
+                            //if they are different modify G
                             if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                             {
                                 G->add_or_modify_attrib_local(pan_tilt.value(), nose_target, std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
@@ -322,19 +321,19 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const std::vector<SpecificWorke
             cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(0, 255, 255), 2);
         }
     }
-    for(const auto &box : synth_boxes)
-    {
-        if(box.prob > 50)
-        {
-            auto p1 = cv::Point(box.left, box.top);
-            auto p2 = cv::Point(box.right, box.bot);
-            auto offset = int((box.bot - box.top) / 2);
-            auto pt = cv::Point(box.left + offset, box.top + offset);
-            cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
-            auto font = cv::FONT_HERSHEY_SIMPLEX;
-            cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(255, 0, 255), 2);
-        }
-    }
+//    for(const auto &box : synth_boxes)
+//    {
+//        if(box.prob > 50)
+//        {
+//            auto p1 = cv::Point(box.left, box.top);
+//            auto p2 = cv::Point(box.right, box.bot);
+//            auto offset = int((box.bot - box.top) / 2);
+//            auto pt = cv::Point(box.left + offset, box.top + offset);
+//            cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
+//            auto font = cv::FONT_HERSHEY_SIMPLEX;
+//            cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(255, 0, 255), 2);
+//        }
+//    }
     cv::imshow("", imgdst);
     cv::waitKey(1);
 }
