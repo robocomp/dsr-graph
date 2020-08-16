@@ -103,6 +103,7 @@ class SpecificWorker(GenericWorker):
 
         # camera tilt motor
         self.camera_tilt_motor = Joint("viriato_camera_tilt_joint")
+        self.camera_pan_motor = Joint("viriato_camera_pan_joint")
 
         # Each laser is composed of two cameras. They are converted into a 360 virtual laser
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
@@ -212,6 +213,7 @@ class SpecificWorker(GenericWorker):
             ###########################################
             ### Viriato head camera tilt motor. Command from JointMotor interface
             ############################################
+
 
             ############################################
             time.sleep(0.070)
@@ -396,10 +398,13 @@ class SpecificWorker(GenericWorker):
             dummy.set_name(name)
         else:
             dummy = Dummy(name)
-        # change from RoboComp to Coppelia coordinate system
-        # print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
-        dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
-        dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
+            parent_frame_object = None
+            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+                parent_frame_object = Object("viriato_head_camera_sensor")
+            # change from RoboComp to Coppelia coordinate system
+            print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
+            dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
+            dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
 
     ######################################################################
    #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)

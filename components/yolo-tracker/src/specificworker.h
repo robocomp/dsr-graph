@@ -62,8 +62,16 @@ class SpecificWorker : public GenericWorker
 		void initialize(int period);
 
 	private:
-		
-		// DSR graph
+        // NODE NAMES
+        const std::string object_of_interest = "glass_1";
+        const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
+        const std::string camera_name = "viriato_head_camera_sensor";
+        const std::string world_node = "world";
+
+        // ATTRIBUTE NAMES
+        const std::string nose_target = "viriato_pan_tilt_nose_target";
+
+    // DSR graph
 		std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerAPI> innermodel;
 
