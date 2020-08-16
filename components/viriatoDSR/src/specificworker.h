@@ -51,11 +51,18 @@ public slots:
 	void initialize(int period);
 
 private:
-	bool startup_check_flag;
+    // NODE NAMES
+    const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
+    const std::string camera_name = "viriato_head_camera_sensor";
+    const std::string robot_name = "omnirobot";
 
+    // ATTRIBUTE NAMES
+    const std::string nose_target = "viriato_pan_tilt_nose_target";
+
+
+    bool startup_check_flag;
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
-	std::string robot_name = "omnirobot";
 
 	//params
 	std::string agent_name;

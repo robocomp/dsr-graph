@@ -98,25 +98,17 @@ void SpecificWorker::compute()
 {
     // get current plan and extract Object of Interest
     // if plan exists and same plan
-        std::string object_of_interest = "glass_1";
-        std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
-        std::string nose_target = "viriato_pan_tilt_nose_target";
-        std::string camera_name = "viriato_head_camera_sensor";
-
-
     // get image and extract objects
         auto rgb_camera = G->get_node(camera_name);
         if (rgb_camera.has_value())
         {
-            //cv::Mat img = get_rgb_image(rgb_camera.value());
-            //auto g_image = G->get_attrib_by_name<std::vector<uint8_t>>(rgb_camera.value(), "rgb");
             auto g_image = G->get_rgb_image(rgb_camera.value());
             auto width = G->get_attrib_by_name<int32_t>(rgb_camera.value(), "width");
             auto height = G->get_attrib_by_name<int32_t>(rgb_camera.value(), "height");
             //if (g_image.has_value() and width.has_value() and height.has_value())
             if (width.has_value() and height.has_value())
             {
-                auto img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image[0]);
+                cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image[0]);
                 // resize img for Yolo
                 cv::Mat imgyolo(608, 608, CV_8UC3);
                 cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, CV_INTER_LINEAR);
@@ -144,6 +136,9 @@ void SpecificWorker::compute()
                     // get object pose in camera coordinate frame
                     //auto pose = G->get_RT_pose_from_parent(object.value());
                     auto pose = innermodel->transformS(camera_name, object_of_interest);
+                    auto n_pose = pose->normalize();
+                    n_pose = n_pose * 100;
+                    pose = innermodel->transformS(world_node, n_pose, camera_name);
                     if (pose.has_value())
                     {
                         // get pan_tilt current target pose
@@ -151,7 +146,7 @@ void SpecificWorker::compute()
                         {
                             QVec qcurrent_pose(current_pose.value());
                             // if they are different modify G
-                            if (not(pose == qcurrent_pose))  // use an epsilon limited difference
+                            if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                             {
                                 G->add_or_modify_attrib_local(pan_tilt.value(), nose_target, std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
                                 G->update_node(pan_tilt.value());
@@ -448,6 +443,8 @@ std::vector<SpecificWorker::Box> SpecificWorker::detectLabels(yolo::network *yne
 	return boxes;
 }
 
+
+/////////////////////////////////////////////////////
 
 int SpecificWorker::startup_check()
 {
