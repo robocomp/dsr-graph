@@ -52,17 +52,20 @@ You need the following third-party software:
 
 - CoppeliaSim. Follow the instructions in their site: https://www.coppeliarobotics.com/ and make sure you choose the latest EDU version
 
-- cppitertools 
+- cppitertools
+```sh
       sudo git clone https://github.com/ryanhaining/cppitertools /usr/local/include/cppitertools
-      
+```
 - gcc >= 9
+```sh
       sudo add-apt-repository ppa:ubuntu-toolchain-r/test
       sudo apt update
-      sudo apt install gcc-9  
-      (you might want to update the default version: https://stackoverflow.com/questions/7832892/how-to-change-the-default-gcc-compiler-in-ubuntu)
+      sudo apt install gcc-9
+ ```
+ (you might want to update the default version: https://stackoverflow.com/questions/7832892/how-to-change-the-default-gcc-compiler-in-ubuntu)
       
 - Fast-RTPS (aka Fast-DDS) from https://www.eprosima.com/. Follow these steps:
-
+```sh
       mkdir software
       cd software
       git clone https://github.com/eProsima/Fast-CDR.git
@@ -89,7 +92,7 @@ You need the following third-party software:
       sudo make install
       sudo apt install libasio-dev libtinyxml2-dev libqglviewer-dev-qt5
       sudo ldconfig
-
+```
 ## Basic use case
 
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
