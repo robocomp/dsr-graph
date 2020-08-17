@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by Mohamed Shawky
  *
  *    This file is part of RoboComp
  *
@@ -95,28 +95,33 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // check if there is an active command
+    // read RGBD image from graph
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
+    // call pose estimation on RGBD and receive estimated poses
+    RoboCompObjectPoseEstimationRGBD::PoseType poses;
     try
     {
-        RoboCompObjectPoseEstimationRGBD::PoseType pose = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
+        poses = this->objectposeestimationrgbd_proxy->getObjectPose(rgb, depth);
     }
     catch (const Ice::Exception &e)
     {
         std::cout << e << " No RoboCompPoseEstimation component found" << std::endl;
     }
-    // Move arm
-        // compute arm pose from object pose
-        // G->ass
-    // Check if target reached
+    if (poses.size() != 0)
+    {
+        // inject estimated poses into graph
+        this->inject_estimated_poses(poses);
+    }
 }
 
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
+    // get head camera node
     auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
+        // read RGB data attributes from graph 
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
@@ -128,16 +133,6 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
-
-            rgb.image = rgb_data;
-            rgb.width = width.value();
-            rgb.height = height.value();
-            rgb.depth = depth.value();
-            rgb.cameraID = cam_id.value();
-            rgb.focalx = focalx.value();
-            rgb.focaly = focaly.value();
-            rgb.alivetime = alivetime.value();
-
             return rgb;
         }
         catch (const std::exception &e)
@@ -154,9 +149,11 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 
 RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 {
+    // get head camera node
     auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
+        // read depth data attributes from graph
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
@@ -168,16 +165,6 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "focaly");
             const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
-
-            depth.depth = depth_data;
-            depth.width = width.value();
-            depth.height = height.value();
-            depth.cameraID = cam_id.value();
-            depth.focalx = focalx.value();
-            depth.focaly = focaly.value();
-            depth.depthFactor = depth_factor.value();
-            depth.alivetime = alivetime.value();
-
             return depth;
         }
         catch(const std::exception& e)
@@ -190,6 +177,54 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     {
         qFatal("Terminate in Compute. No node rgbd found");
     }
+}
+
+void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses)
+{
+    // get innermodel sub-API
+    auto innermodel = G->get_inner_api();
+    // loop over each estimated object pose
+    for (auto pose : poses)
+    {
+        // convert quaternions into euler angles
+        vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
+        vector<float> angles = this->quat_to_euler(quat);
+
+        // re-project estimated poses into world coordinates
+        QVec orig_point = QVec(6);
+        orig_point.setItem(0, pose.x);
+        orig_point.setItem(1, pose.y);
+        orig_point.setItem(2, pose.z);
+        orig_point.setItem(3, angles.at(0));
+        orig_point.setItem(4, angles.at(1));
+        orig_point.setItem(5, angles.at(2));
+        auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+    }
+}
+
+vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
+{
+    // euler angles vector
+    vector<float> angles;
+
+    // roll (x-axis rotation)
+    double sinr_cosp = 2 * (quat.at(3) * quat.at(0) + quat.at(1) * quat.at(2));
+    double cosr_cosp = 1 - 2 * ( quat.at(0) *  quat.at(0) +  quat.at(1) *  quat.at(1));
+    angles.push_back(std::atan2(sinr_cosp, cosr_cosp));
+
+    // pitch (y-axis rotation)
+    double sinp = 2 * (quat.at(3) * quat.at(1) - quat.at(2) * quat.at(0));
+    if (std::abs(sinp) >= 1)
+        angles.push_back(std::copysign(M_PI / 2, sinp)); // use 90 degrees if out of range
+    else
+        angles.push_back(std::asin(sinp));
+
+    // yaw (z-axis rotation)
+    double siny_cosp = 2 * (quat.at(3) * quat.at(2) + quat.at(0) * quat.at(1));
+    double cosy_cosp = 1 - 2 * (quat.at(1) * quat.at(1) + quat.at(2) * quat.at(2));
+    angles.push_back(std::atan2(siny_cosp, cosy_cosp));
+
+    return angles;
 }
 
 int SpecificWorker::startup_check()
