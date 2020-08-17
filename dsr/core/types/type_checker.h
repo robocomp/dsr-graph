@@ -19,7 +19,7 @@ public:
 
     static bool REGISTER(std::string_view s, const std::any& type ) {
         map_fn_.emplace(std::make_pair(s, [s, t = std::type_index(type.type()) ](const std::any &el) -> bool {
-            std::cout << t.name() <<  "  " <<  std::type_index(el.type()).name() << std::endl;
+            //std::cout << t.name() <<  "  " <<  std::type_index(el.type()).name() << std::endl;
             return t == std::type_index(el.type());
         }));
         return true;

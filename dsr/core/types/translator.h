@@ -81,6 +81,7 @@ namespace DSR {
 
             delta_crdt.dk().cbase().dc().push_back(pi);
         }
+        delta_crdt.type(type);
         delta_crdt.id(id);
         delta_crdt.attr_name(attr);
         delta_crdt.from(from);
