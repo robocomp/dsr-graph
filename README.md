@@ -48,6 +48,12 @@ The Figure below shows an artist view of a CORTEX instantiation.
     
 ## Dependencies and Installation
 
+From ubuntu repositories you need:
+```sh
+sudo apt install libasio-dev
+sudo apt install libtinyxml2-dev 
+```
+
 You need the following third-party software:
 
 - CoppeliaSim. Follow the instructions in their site: https://www.coppeliarobotics.com/ and make sure you choose the latest EDU version
