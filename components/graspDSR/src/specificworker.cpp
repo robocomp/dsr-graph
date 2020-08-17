@@ -114,13 +114,13 @@ void SpecificWorker::compute()
 
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
-    auto cam = G->get_node("Viriato_head_camera_front_sensor");
+    auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
-            const auto rgb_data = G->get_attrib_by_name<std::vector<uint8_t>>(cam.value(), "rgb");
+            const std::vector<uint8_t> rgb_data = G->get_rgb_image(cam.value());
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
             const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
@@ -129,7 +129,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
 
-            rgb.image = rgb_data.value();
+            rgb.image = rgb_data;
             rgb.width = width.value();
             rgb.height = height.value();
             rgb.depth = depth.value();
@@ -154,13 +154,13 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 
 RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 {
-    auto cam = G->get_node("Viriato_head_camera_front_sensor");
+    auto cam = G->get_node("viriato_head_camera_sensor");
     if (cam.has_value())
     {
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
-            const auto depth_data = G->get_attrib_by_name<std::vector<uint8_t>>(cam.value(), "depth");
+            const std::vector<uint8_t> depth_data = G->get_depth_image(cam.value());
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
             const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth.cameraID");
@@ -169,7 +169,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
 
-            depth.depth = depth_data.value();
+            depth.depth = depth_data;
             depth.width = width.value();
             depth.height = height.value();
             depth.cameraID = cam_id.value();
