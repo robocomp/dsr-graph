@@ -1,30 +1,25 @@
 # graspDSR
 
-This component is responsible for planning targets for the robot arm, enabling it to grasp a specific object in the scene. It estimnates poses using `objectPoseEstimation` component, which uses DNN-based methods to estimate poses from RGBD data.
+This component is responsible for planning targets for the robot arm, enabling it to grasp a specific object in the scene. It estimates poses using `objectPoseEstimation` component, which uses DNN-based methods to estimate poses from RGBD data.
 
 ## Configuration parameters
 
-As any other component, *graspDSR* needs a configuration file to start. In
-```
-etc/config
-```
-you can find an example of a configuration file. We can find there the following lines:
-```
-etc/config
-```
+Like any other component, *graspDSR* needs a configuration file to start. In `etc/config`, you can change the ports and other parameters in the configuration file, according to your setting.
 
 ## Starting the component
-To avoid changing the *config* file in the repository, we can copy it to the component's home directory, so changes will remain untouched by future git pulls:
 
-```
+To run `graspDSR` component, navigate to the component directory :
+```bash
 cd <graspDSR's path> 
 ```
-```
-cp etc/config config
+
+Then compile the component :
+```bash
+cmake .
+make
 ```
 
-After editing the new config file we can run the component:
-
-```
-bin/graspDSR config
+Then run the component :
+```bash
+./bin/graspDSR
 ```
