@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by Mohamed Shawky
  *
  *    This file is part of RoboComp
  *
@@ -63,9 +63,17 @@ private:
 	QWidget window;
 	bool startup_check_flag;
 
-	// pose estimation
+	// Pose Estimation & Grasping
+
+	// Projection utilities
+	vector<float> quat_to_euler(vector<float> quat);
+
+	// G read utilities
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
 	RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
+
+	// G injection utilities
+	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
 };
 
 #endif
