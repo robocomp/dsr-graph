@@ -109,6 +109,18 @@ git clone https://github.com/robocomp/dsr-graph/
 cd dsr-graph/components/
 ```
 
+Note: To be able to build social_navigation component you need to install
+  ```sh
+  sudo apt install libfclib-dev
+  ```
+  And rebuild robocomp core with fcl support:
+  ```sh
+  cd ~/robocomp/build
+  cmake -D FCL_SUPPORT=1 ..
+  make
+  sudo make install
+  ```
+
 ## Basic use case
 
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
