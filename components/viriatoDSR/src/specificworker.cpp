@@ -134,11 +134,11 @@ void SpecificWorker::compute()
             };
     if( auto pan_tilt = G->get_node(viriato_pan_tilt); pan_tilt.has_value())
     {
-        auto target = G->get_attrib_by_name<std::vector<float>>(pan_tilt.value(), nose_target);
+        auto target = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value());
         if (target.has_value() and not equals(target.value(), ant_nose_target, 1.0))
         {
             // convert target to world reference
-            RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value()[0], target.value()[1], target.value()[2], 0.0, 0.0, 0.0};
+            RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
             try
             { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
             catch (const Ice::Exception &e)
@@ -226,6 +226,7 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
         G->modify_attrib_local<linear_speed_att>(edge,  std::vector<float>{bState.advVx, 0 , bState.advVz});
         G->modify_attrib_local<angular_speed_att>(edge,  std::vector<float>{0, bState.rotV, 0});
         G->insert_or_assign_edge(edge);
+        std::cout << "Updated  omnirobot\n";
         last_state = bState;
 	}
 }

@@ -156,10 +156,10 @@ std::optional<uint32_t> DSRGraph::insert_node(Node &node) {
         if (!copy) {
             if (aw.has_value()) {
                 dsrpub_node.write(&aw.value());
-                std::cout << "[INSERT NODE] : " << aw->id()<< std::endl;
+                //std::cout << "[INSERT NODE] : " << aw->id()<< std::endl;
                 emit update_node_signal(node.id(), node.type());
                 for (const auto &[k, v]: node.fano()) {
-                    std::cout << "  [INSERT EDGE] : " << node.id() << " " << k.first << " type: " << k.second << std::endl;
+                    //std::cout << "  [INSERT EDGE] : " << node.id() << " " << k.first << " type: " << k.second << std::endl;
                     emit update_edge_signal(node.id(), k.first, k.second);
                 }
             }
@@ -235,7 +235,7 @@ bool DSRGraph::update_node(Node &node) {
         if (!copy) {
             if (vec_node_attr.has_value()) {
                 for (auto &v: vec_node_attr.value()) {
-                    std::cout << "[ATTR CHANGE] " << v.attr_name() << std::endl;
+                    //std::cout << "[ATTR CHANGE] " << v.attr_name() << std::endl;
                     dsrpub_node_attrs.write(&v);
                 }
                 emit update_node_signal(node.id(), node.type());
@@ -256,7 +256,7 @@ DSRGraph::delete_node_(uint32_t id) {
     auto node = get_(id);
     if (!node.has_value()) return make_tuple(false, edges_, std::nullopt, aw);
     for (const auto &v : node.value().fano()) { // Delete all edges from this node.
-        std::cout << id << " -> " << v.first.first << " " << v.first.second << std::endl;
+        //std::cout << id << " -> " << v.first.first << " " << v.first.second << std::endl;
         edges_.emplace_back(make_tuple(id, v.first.first, v.first.second));
     }
     // Get remove delta.
@@ -308,12 +308,12 @@ bool DSRGraph::delete_node(const std::string &name) {
 
     if (result) {
         if (!copy) {
-            std::cout << "[DELETE NODE] : " << id.value()<< std::endl;
+            //std::cout << "[DELETE NODE] : " << id.value()<< std::endl;
             emit del_node_signal(id.value());
             dsrpub_node.write(&deleted_node.value());
 
             for (auto &a  : aw_) {
-                std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
+                //std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
                 dsrpub_edge.write(&a);
             }
             for (auto &[id0, id1, label] : edges_)
@@ -341,12 +341,12 @@ bool DSRGraph::delete_node(uint32_t id) {
     if (result) {
         if (!copy) {
 
-            std::cout << "[DELETE NODE] : " << id<< std::endl;
+            //std::cout << "[DELETE NODE] : " << id<< std::endl;
             emit del_node_signal(id);
             dsrpub_node.write(&deleted_node.value());
 
             for (auto &a  : aw_) {
-                std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
+                //std::cout << "  [DELETE EDGE] : " << a.from() << " " << a.to() << " type: " << a.type() << std::endl;
                 dsrpub_edge.write(&a);
             }
             for (auto &[id0, id1, label] : edges_)
@@ -388,8 +388,8 @@ std::optional<CRDTEdge> DSRGraph::get_edge_(uint32_t from, uint32_t to, const st
                 return *edge->second.read().begin();
             }
         }
-        std::cout << __FUNCTION__ << ":" << __LINE__ << " Error obteniedo edge from: " << from << " to: " << to
-                  << " key " << key << endl;
+        //std::cout << __FUNCTION__ << ":" << __LINE__ << " Error obteniedo edge from: " << from << " to: " << to
+        //          << " key " << key << endl;
     }
     return {};
 }
@@ -503,10 +503,12 @@ bool DSRGraph::insert_or_assign_edge(const Edge &attrs) {
                 dsrpub_edge.write(&delta_edge.value());
             }
             if (delta_attrs.has_value()) { //Update
-                for (auto &d : delta_attrs.value())
+                for (auto &d : delta_attrs.value()) {
+                    //std::cout << "[ATTR CHANGE] " << d.attr_name() << std::endl;
                     dsrpub_edge_attrs.write(&d);
+                }
             }
-            std::cout << "[INSERT EDGE] : " << attrs.from() << " " << attrs.to() << " type: " << attrs.type() << std::endl;
+            //std::cout << "[INSERT EDGE] : " << attrs.from() << " " << attrs.to() << " type: " << attrs.type() << std::endl;
             emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
         }
     }
@@ -693,7 +695,7 @@ std::optional<IDL::MvregEdge> DSRGraph::delete_edge_(uint32_t from, uint32_t to,
             auto delta = node.fano().at({to, key}).reset();
             node.fano().erase({to, key});
             update_maps_edge_delete(from, to, key);
-            std::cout << "DELETE EDGE: " << std::boolalpha <<(nodes[from].read_reg().fano().find({to, key}) == nodes[from].read_reg().fano().end())<<std::endl ;
+            //std::cout << "DELETE EDGE: " << std::boolalpha <<(nodes[from].read_reg().fano().find({to, key}) == nodes[from].read_reg().fano().end())<<std::endl ;
             //node.value().agent_id(agent_id);
             return translateEdgeMvCRDTtoIDL(agent_id, from, to, key, delta);
         }
@@ -711,7 +713,7 @@ bool DSRGraph::delete_edge(uint32_t from, uint32_t to, const std::string &key) {
     }
     if (delta.has_value()) {
         if (!copy) {
-            std::cout << "[DELETE EDGE] : " <<from << " " << to << " type: " << key << std::endl;
+            //std::cout << "[DELETE EDGE] : " <<from << " " << to << " type: " << key << std::endl;
             emit del_edge_signal(from, to, key);
             dsrpub_edge.write(&delta.value());
         }
@@ -738,7 +740,7 @@ bool DSRGraph::delete_edge(const std::string &from, const std::string &to, const
 
     if (delta.has_value()) {
         if (!copy) {
-            std::cout << "[DELETE EDGE] : " <<id_from.value() << " " << id_to.value() << " type: " << key << std::endl;
+            //std::cout << "[DELETE EDGE] : " <<id_from.value() << " " << id_to.value() << " type: " << key << std::endl;
             emit del_edge_signal(id_from.value(), id_to.value(), key);
             dsrpub_edge.write(&delta.value());
         }
@@ -1036,14 +1038,14 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
                 nodes[mvreg.id()].join(d);
                 if (nodes[mvreg.id()].read().empty() or mvreg.dk().ds().empty()) {
                     nodes.erase(mvreg.id());
-                    std::cout << "JOIN REMOVE" << std::endl;
+                    //std::cout << "JOIN REMOVE" << std::endl;
                     //Delete all nodes and attributes received out of order
                     //temp_edge.erase(mvreg.id());
                     //temp_node_attr.erase(mvreg.id());
                     //Update Maps
                     update_maps_node_delete(mvreg.id(), nd);
                 } else {
-                    std::cout << "JOIN INSERT" << std::endl;
+                    //std::cout << "JOIN INSERT" << std::endl;
                     signal = true;
                     //We have to consume all unordered delta edges for this node. Normally there won't be any.
                     /*for (auto &[k, v] : temp_edge[mvreg.id()]) {
@@ -1070,17 +1072,17 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
 
         if (ok) {
             if (signal) {
-                std::cout << "[INSERT NODE] : " << mvreg.id() << " type: " << nodes[mvreg.id()].read().begin()->type() << std::endl;
+                //std::cout << "[INSERT NODE] : " << mvreg.id() << " type: " << nodes[mvreg.id()].read().begin()->type() << std::endl;
                 emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
                 for (auto &[k,v] : nodes[mvreg.id()].read().begin()->fano()) {
-                    std::cout << "[INSERT EDGE] : " << mvreg.id() << "" <<  k.first << " type: " << k.second <<  std::endl;
+                    //std::cout << "[INSERT EDGE] : " << mvreg.id() << "" <<  k.first << " type: " << k.second <<  std::endl;
                     emit update_edge_signal(mvreg.id(), k.first, k.second);
                 }
             } else {
-                std::cout << "[DELETE NODE] : " << mvreg.id() << std::endl;
+                //std::cout << "[DELETE NODE] : " << mvreg.id() << std::endl;
                 emit del_node_signal(mvreg.id());
                 for (auto &node: nd.fano()) {
-                    std::cout << "  [DELETE EDGE] : " << node.second.read_reg().from() << " " <<  node.second.read_reg().to()<<  " type: " << node.second.read_reg().type()<<  std::endl;
+                    //std::cout << "  [DELETE EDGE] : " << node.second.read_reg().from() << " " <<  node.second.read_reg().to()<<  " type: " << node.second.read_reg().type()<<  std::endl;
                     emit del_edge_signal(node.second.read_reg().from(), node.second.read_reg().to(), node.second.read_reg().type());
                 }
 
@@ -1089,7 +1091,7 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
                     auto [from, to] = key;
                     if (to == nd.id()) {
                         for (const std::string& type : types) {
-                            std::cout << "  [DELETE EDGE] : " << from << "" <<  to << " type: " << type <<  std::endl;
+                            //std::cout << "  [DELETE EDGE] : " << from << "" <<  to << " type: " << type <<  std::endl;
                             emit del_edge_signal(from, to, type);
                         }
                     }
@@ -1174,11 +1176,11 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
 
         if (ok) {
             if (signal) {
-                std::cout << "[INSERT EDGE] : " << mvreg.from() << " " <<  mvreg.to() <<  " type: " << mvreg.type()<< std::endl;
+                //std::cout << "[INSERT EDGE] : " << mvreg.from() << " " <<  mvreg.to() <<  " type: " << mvreg.type()<< std::endl;
                 emit update_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
             } else {
-                std::cout << "DELETE EDGE: " << std::boolalpha <<(nodes[mvreg.from()].read_reg().fano().find({mvreg.to(), mvreg.type()}) == nodes[mvreg.from()].read_reg().fano().end())<<std::endl ;
-                std::cout << "[DELETE EDGE] : " << mvreg.from() << " " <<  mvreg.to() << " type: " << mvreg.type()<< std::endl;
+                //std::cout << "DELETE EDGE: " << std::boolalpha <<(nodes[mvreg.from()].read_reg().fano().find({mvreg.to(), mvreg.type()}) == nodes[mvreg.from()].read_reg().fano().end())<<std::endl ;
+                //std::cout << "[DELETE EDGE] : " << mvreg.from() << " " <<  mvreg.to() << " type: " << mvreg.type()<< std::endl;
                 emit del_edge_signal(mvreg.from(), mvreg.to(), mvreg.type());
             }
         }
@@ -1207,7 +1209,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
                     ::mvreg<CRDTAttribute, uint32_t> new_mv;
                     n.attrs().insert({mvreg.attr_name(), new_mv});
                 }
-                std::cout << "JOINING NODE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
+               // std::cout << "JOINING NODE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
                 n.attrs()[mvreg.attr_name()].join(d);
 
                 //Check if we are inserting or deleting.
@@ -1240,7 +1242,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
         if (ok) {
             //print_node(mvreg.id());
-            std::cout << "[UPDATE NODE] : " << mvreg.id() << " type: " <<  nodes[mvreg.id()].read().begin()->type() << std::endl;
+            //std::cout << "[UPDATE NODE] : " << mvreg.id() << " type: " <<  nodes[mvreg.id()].read().begin()->type() << std::endl;
             emit update_node_signal(mvreg.id(), nodes[mvreg.id()].read().begin()->type());
         }
 
@@ -1265,7 +1267,7 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
                 ok = true;
                 auto &n = nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read_reg();
 
-                std::cout << "JOINING EDGE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
+                //std::cout << "JOINING EDGE ATTRIBUTE: " << mvreg.attr_name() << std::endl;
 
                 n.attrs()[mvreg.attr_name()].join(d);
 
@@ -1295,8 +1297,8 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
         }
 
         if (ok) {
-            std::cout << "[UPDATE EDGE] : " << mvreg.id()  << " " << mvreg.from() << " type: "<< mvreg.type() <<std::endl;
-            emit update_edge_signal(mvreg.id(),  mvreg.from(), mvreg.type());
+            //std::cout << "[UPDATE EDGE] : " << mvreg.from()  << " " << mvreg.to() << " type: "<< mvreg.type() <<std::endl;
+            emit update_edge_signal(mvreg.from(),  mvreg.to(), mvreg.type());
         }
 
     } catch (const std::exception &e) {
@@ -1443,8 +1445,8 @@ void DSRGraph::node_subscription_thread(bool showReceived) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
                         if (sample.agent_id() != agent_id) {
                             if (showReceived)
-                                std::cout << name << " Received:" << sample.id() << " node from: "
-                                          << m_info.sample_identity.writer_guid() << std::endl;
+                                //std::cout << name << " Received:" << sample.id() << " node from: "
+                                //          << m_info.sample_identity.writer_guid() << std::endl;
                             graph->join_delta_node(sample);
                         }
                     }
@@ -1471,8 +1473,8 @@ void DSRGraph::edge_subscription_thread(bool showReceived) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
                         if (sample.agent_id() != agent_id) {
                             if (showReceived)
-                                std::cout << name << " Received:" << sample.id() << " node from: "
-                                          << m_info.sample_identity.writer_guid() << std::endl;
+                                //std::cout << name << " Received:" << sample.id() << " node from: "
+                                //          << m_info.sample_identity.writer_guid() << std::endl;
                             graph->join_delta_edge(sample);
                         }
                     }
@@ -1499,8 +1501,8 @@ void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
                         if (sample.agent_id() != agent_id) {
                             if (showReceived)
-                                std::cout << name << " Received:" << sample.id() << " node from: "
-                                          << m_info.sample_identity.writer_guid() << std::endl;
+                                //std::cout << name << " Received:" << sample.id() << " node from: "
+                                //          << m_info.sample_identity.writer_guid() << std::endl;
                             graph->join_delta_edge_attr(sample);
                         }
                     }
@@ -1528,8 +1530,8 @@ void DSRGraph::node_attrs_subscription_thread(bool showReceived) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
                         if (sample.agent_id() != agent_id) {
                             if (showReceived)
-                                std::cout << name << " Received:" << sample.id() << " node from: "
-                                          << m_info.sample_identity.writer_guid() << std::endl;
+                                //std::cout << name << " Received:" << sample.id() << " node from: "
+                                //          << m_info.sample_identity.writer_guid() << std::endl;
                             graph->join_delta_node_attr(sample);
                         }
                     }
@@ -1544,7 +1546,7 @@ void DSRGraph::node_attrs_subscription_thread(bool showReceived) {
 }
 
 void DSRGraph::fullgraph_server_thread() {
-    std::cout << __FUNCTION__ << "->Entering thread to attend full graph requests" << std::endl;
+    //std::cout << __FUNCTION__ << "->Entering thread to attend full graph requests" << std::endl;
     // Request Topic
     auto lambda_graph_request = [&](eprosima::fastrtps::Subscriber *sub, bool *work, DSR::DSRGraph *graph) {
 
@@ -1554,14 +1556,13 @@ void DSRGraph::fullgraph_server_thread() {
         if (sub->takeNextData(&sample, &m_info)) { // Get sample
             if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                 if (/*m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false*/static_cast<uint32_t>(std::stoi(sample.from())) != agent_id) {
-                    std::cout << " Received Full Graph request: from " << m_info.sample_identity.writer_guid()
-                              << std::endl;
+                    std::cout << " Received Full Graph request: from " << m_info.sample_identity.writer_guid() << std::endl;
                     *work = false;
                     IDL::OrMap mp;
                     mp.id(graph->get_agent_id());
                     mp.m(graph->Map());
                     mp.cbase(graph->context());
-                    std::cout << "nodos enviados: " << mp.m().size() << std::endl;
+                    //std::cout << "nodos enviados: " << mp.m().size() << std::endl;
 
                     dsrpub_request_answer.write(&mp);
 
@@ -1585,7 +1586,7 @@ bool DSRGraph::fullgraph_request_thread() {
 
         eprosima::fastrtps::SampleInfo_t m_info;
         IDL::OrMap sample;
-        std::cout << "Grafo completo - Mensajes sin leer " << sub->get_unread_count() << std::endl;
+        //std::cout << "Grafo completo - Mensajes sin leer " << sub->get_unread_count() << std::endl;
         if (sub->takeNextData(&sample, &m_info)) { // Get sample
             if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                 if (/*m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false*/ sample.id() != graph->get_agent_id()) {
