@@ -52,6 +52,7 @@ From ubuntu repositories you need:
 ```sh
 sudo apt install libasio-dev
 sudo apt install libtinyxml2-dev 
+sudo apt install libqglviewer-dev-qt5
 ```
 
 You need the following third-party software:
@@ -96,7 +97,6 @@ You need the following third-party software:
       cmake ..
       cmake --build . 
       sudo make install
-      sudo apt install libasio-dev libtinyxml2-dev libqglviewer-dev-qt5
       sudo ldconfig
 ```
 ## Basic use case
