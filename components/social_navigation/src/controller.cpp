@@ -66,7 +66,7 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robotNose, points[1]))));
     if(angle >= 0) rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
     else rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
-    if(euc_dist_to_target < 2*FINAL_DISTANCE_TO_TARGET)
+    if(euc_dist_to_target < 4*FINAL_DISTANCE_TO_TARGET)
         rotVel = 0.f;
 
     /// Compute advance speed
