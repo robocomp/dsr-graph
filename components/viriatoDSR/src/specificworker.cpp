@@ -18,6 +18,7 @@
  */
 #include "specificworker.h"
 #include <algorithm>
+#include <cppitertools/zip.hpp>
 
 /**
 * \brief Default constructor
@@ -78,22 +79,31 @@ void SpecificWorker::compute()
 {
     static RoboCompGenericBase::TBaseState my_bstate;
 
-    // read laser
+    //////////////
+    /// read laser
+    /////////////
     if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
-    // read robot state
+
+    //////////////
+    /// read robot state
+    //////////////
     if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
     {
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
-    // read camera head rgb data
+    //////////////////////////////
+    /// read camera head rgbd data
+    /////////////////////////////
     auto rgb = rgb_buffer.try_get();
     auto depth = depth_buffer.try_get();
     if( rgb.has_value() and depth.has_value())
         update_rgbd(rgb.value(), depth.value());
 
-    // check for new target values in robot node
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// check for new base target values in robot node to be show as a dummy in Coppelia
+    ////////////////////////////////////////////////////////////////////////////////////
     static float current_base_target_x = 0;
     static float current_base_target_y = 0;
     if( auto robot = G->get_node(robot_name); robot.has_value())
@@ -112,7 +122,34 @@ void SpecificWorker::compute()
                 current_base_target_y = y.value();
             }
     }
-    // check for changes in base speed references
+    /////////////////////////////////////////////////
+    /// check for new head pan-tilt reference values
+    ////////////////////////////////////////////////
+    static std::vector<float> ant_nose_target{0.0, 0.0, 10.0};
+    auto equals = [](const std::vector<float> &current_nose, const std::vector<float> &ant_nose, float epsilon)
+            {
+                for(auto &&[a, b] : iter::zip(ant_nose_target, current_nose))
+                    if(fabs(a-b) > epsilon) return false;
+                return true;
+            };
+    if( auto pan_tilt = G->get_node(viriato_pan_tilt); pan_tilt.has_value())
+    {
+        auto target = G->get_attrib_by_name<std::vector<float>>(pan_tilt.value(), nose_target);
+        if (target.has_value() and not equals(target.value(), ant_nose_target, 1.0))
+        {
+            // convert target to world reference
+            RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value()[0], target.value()[1], target.value()[2], 0.0, 0.0, 0.0};
+            try
+            { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
+            catch (const Ice::Exception &e)
+            { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            ant_nose_target = target.value();
+        }
+    }
+
+    ////////////////////////////////////////////////
+    /// check for changes in base speed references
+    ////////////////////////////////////////////////
     checkNewCommand(my_bstate);
 }
 
@@ -239,12 +276,13 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
     }
 }
 
+//////////////////////////////////////////////////////////////////////////
 bool SpecificWorker::areDifferent(float a, float b, float epsilon)
-{ 
-	return !((fabs(a - b) <= epsilon * std::max(fabs(a), fabs(b)))); 
+{
+    return !((fabs(a - b) <= epsilon * std::max(fabs(a), fabs(b))));
 };
 
-//////////////////////////////////////////////////////////////////////////
+
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
