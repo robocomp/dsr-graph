@@ -1202,7 +1202,9 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             //Check if the node where we are joining the edge exist.
-            if (deleted.find(mvreg.id()) == deleted.end() and nodes.getMapRef().find(mvreg.id()) != nodes.getMapRef().end()) {
+            if (deleted.find(mvreg.id()) == deleted.end()
+                and nodes.getMapRef().find(mvreg.id()) != nodes.getMapRef().end())
+            {
                 ok = true;
                 auto &n = nodes[mvreg.id()].read_reg();
                 if (n.attrs().find(mvreg.attr_name()) == n.attrs().end()) {
@@ -1262,8 +1264,9 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             //Check if the node where we are joining the edge exist.
-            if (nodes.getMapRef().find(mvreg.id()) != nodes.getMapRef().end() and
-                !(nodes[mvreg.id()].read_reg().fano().find({mvreg.to(), mvreg.type()}) == nodes[mvreg.id()].read_reg().fano().end())) {
+            if (nodes.getMapRef().find(mvreg.id()) != nodes.getMapRef().end()
+                and !(nodes[mvreg.id()].read_reg().fano().find({mvreg.to(), mvreg.type()}) == nodes[mvreg.id()].read_reg().fano().end()))
+            {
                 ok = true;
                 auto &n = nodes[mvreg.id()].read_reg().fano()[{mvreg.to(), mvreg.type()}].read_reg();
 
@@ -1499,7 +1502,9 @@ void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
                 if (sub->takeNextData(&sample, &m_info)) { // Get sample
                     if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
-                        if (sample.agent_id() != agent_id) {
+                        if (sample.agent_id() != agent_id
+                            and  graph->ignored_attributes.find(sample.attr_name().data()) == ignored_attributes.end())
+                        {
                             if (showReceived)
                                 //std::cout << name << " Received:" << sample.id() << " node from: "
                                 //          << m_info.sample_identity.writer_guid() << std::endl;
@@ -1528,7 +1533,9 @@ void DSRGraph::node_attrs_subscription_thread(bool showReceived) {
                 if (sub->takeNextData(&sample, &m_info)) { // Get sample
                     if (m_info.sampleKind == eprosima::fastrtps::rtps::ALIVE) {
                         //if( m_info.sample_identity.writer_guid().is_on_same_process_as(sub->getGuid()) == false) {
-                        if (sample.agent_id() != agent_id) {
+                        if (sample.agent_id() != agent_id
+                            and  graph->ignored_attributes.find(sample.attr_name().data()) == ignored_attributes.end())
+                        {
                             if (showReceived)
                                 //std::cout << name << " Received:" << sample.id() << " node from: "
                                 //          << m_info.sample_identity.writer_guid() << std::endl;

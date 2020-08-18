@@ -68,7 +68,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-
+        //G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;

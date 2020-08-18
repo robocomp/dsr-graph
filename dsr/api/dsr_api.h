@@ -162,7 +162,7 @@ namespace DSR
          * CONVENIENCE METHODS
          **/
         // Nodes
-        std::optional<Node> get_node_root() { return get_node("world"); };  //CHANGE THIS
+        std::optional<Node> get_node_root() { return get_node("world"); };
         std::vector<Node> get_nodes_by_type(const std::string &type);
         std::optional<std::string> get_name_from_id(uint32_t id);  // caché
         std::optional<std::uint32_t> get_id_from_name(const std::string &name);  // caché
@@ -206,21 +206,7 @@ namespace DSR
                 return av.float_vec();
             else if constexpr (std::is_same_v< name_type,  std::reference_wrapper<const std::vector<uint8_t>>>)
                 return av.byte_vec();
-            /*
-            else if constexpr (std::is_same_v< name_type, QVec>) {
-                const auto &val = av.float_vec();
-                if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
-                    and (val.size() == 3 or val.size() == 6))
-                    return QVec{val};
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            }
-            else if constexpr (std::is_same_v<name_type, QMat>) {
-                if (av.selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
-                    const auto &val = av.float_vec();
-                    return QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])};
-                }
-                throw std::runtime_error("vec size mut be 3 or 6 in get_attrib_by_name<QVec>()");
-            } */else {
+            else {
                 throw std::logic_error("Unreachable");
             }
         }
@@ -404,7 +390,7 @@ namespace DSR
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
             add_or_modify_attrib_local<name>(elem, att_value);
 
-            return reinsert_element(elem, "insert_or_assign_attrib()");
+            /*return*/ reinsert_element(elem, "insert_or_assign_attrib()");
 
         }
         template<typename Ta, typename = std::enable_if_t<node_or_edge<Ta>>,
@@ -485,6 +471,16 @@ namespace DSR
             to_edges.clear();
         }
 
+
+        //////////////////////////////////////////////////////
+        ///  Attribute filters
+        //////////////////////////////////////////////////////
+        template<typename ... Att>
+        constexpr void set_ignored_attributes() {
+            static_assert((is_attr_name<Att>::value && ...));
+            (ignored_attributes.insert(Att::attr_name), ...);
+        }
+
         /////////////////////////////////////////////////
         /// AUXILIARY IMAGES SUB-API
         /////////////////////////////////////////////////
@@ -537,7 +533,7 @@ namespace DSR
         std::unique_ptr<Utilities> utils;
         RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy; // proxy to obtain unique node ids
         const bool copy;
-
+        std::unordered_set<string_view> ignored_attributes;
 
         //////////////////////////////////////////////////////////////////////////
         // Cache maps
@@ -624,26 +620,11 @@ namespace DSR
                     return ret_type(av.val().uint());
                 else if constexpr (std::is_same_v< name_type, bool>)
                     return ret_type(av.val().bl());
-                /*
-                else if constexpr (std::is_same_v< name_type, QVec>) {
-                    const auto &val = av.val().float_vec();
-                    if ((name::attr_name == "translation" or name::attr_name == "rotation_euler_xyz")
-                        and (val.size() == 3 or val.size() == 6))
-                        return ret_type(QVec{val});
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
-                }
-                else if constexpr (std::is_same_v<name_type, QMat>) {
-                    if (av.val().selected() == FLOAT_VEC and name::attr_name == "rotation_euler_xyz") {
-                        const auto &val = av.val().float_vec();
-                        return ret_type(QMat{RMat::Rot3DOX(val[0]) * RMat::Rot3DOY(val[1]) * RMat::Rot3DOZ(val[2])});
-                    }
-                    throw std::runtime_error("vec size mut be 3 or 6 in get_crdt_attrib_by_name<QVec>()");
-                }*/ else {
+                else {
                     throw std::logic_error("Unreachable");
                 }
             }
-            //std::cout << "tipo : " << name::attr_name <<  " "<<  typeid(name_type).name() << std::endl;
-            //std::optional<CRDTAttribute> av = get_attrib_by_name_( n , name::attr_name);
+
         }
 
 
