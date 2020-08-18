@@ -17,89 +17,34 @@
 #include <any>
 #include <cmath>
 #include <memory>
+#include "../core/traits.h"
 #include "../core/types/crdt_types.h"
 #include "../core/types/user_types.h"
 #include "../core/types/type_checker.h"
 #include <qmat/QMatAll>
-
-template<typename Va>
-static bool constexpr allowed_types = std::is_same<std::int32_t, Va>::value ||
-                                      std::is_same<std::uint32_t, Va>::value ||
-                                      std::is_same<std::string, Va>::value ||
-                                      std::is_same<std::reference_wrapper<const std::string>, Va>::value ||
-                                      std::is_same<std::reference_wrapper<const std::vector<float_t>>, Va>::value ||
-                                      std::is_same<std::reference_wrapper<const std::vector<uint8_t>>, Va>::value ||
-                                      std::is_same<std::float_t, Va>::value ||
-                                      std::is_same<std::double_t, Va>::value ||
-                                      std::is_same<std::vector<float_t>, Va>::value ||
-                                      std::is_same<std::vector<uint8_t>, Va>::value ||
-                                      std::is_same<bool, Va>::value;
-template<typename Va>
-static bool constexpr any_node_or_edge = std::is_same<DSR::CRDTNode, Va>::value ||
-                                         std::is_same<DSR::CRDTEdge, Va>::value ||
-                                         std::is_same<DSR::Node, Va>::value ||
-                                         std::is_same<DSR::Edge, Va>::value
-;
-
-template<typename Va>
-static bool constexpr node_or_edge = std::is_same<DSR::Node, Va>::value ||
-                                     std::is_same<DSR::Edge, Va>::value
-;
-
-
-template<typename Va>
-static bool constexpr crdt_node_or_edge = std::is_same<DSR::CRDTNode, Va>::value ||
-                                     std::is_same<DSR::CRDTNode, Va>::value
-;
-
-template<typename Va>
-static bool constexpr allowed_return_types = std::is_same<std::int32_t, Va>::value ||
-                                             std::is_same<std::uint32_t, Va>::value ||
-                                             std::is_same<std::string, Va>::value ||
-                                             std::is_same<std::float_t, Va>::value ||
-                                             std::is_same<std::vector<float_t>, Va>::value ||
-                                             std::is_same<std::vector<uint8_t>, Va>::value ||
-                                             std::is_same<bool, Va>::value ||
-                                             std::is_same<QVec, Va>::value ||
-                                             std::is_same<QMat, Va>::value;
-
-
-
-//Comprueba si en el tipo T existen los attributos attr_type y attr_name
-template <typename, typename = void, typename = void>
-struct is_attr_name : std::false_type {};
-template <typename T>
-struct is_attr_name<T, std::void_t<decltype(T::attr_type), decltype(T::attr_name)>, typename std::enable_if<T::attr_type >::type > : std::true_type {};
-
-
-template<typename T>
-struct is_reference_wrapper : false_type {};
-template<typename T>
-struct is_reference_wrapper<reference_wrapper<T>> : true_type{};
-
-template<typename name, class Ta>
-static constexpr bool valid_type ()
-{
-    if constexpr(is_reference_wrapper<decltype(name::type)>::value) {
-        using ref_type = typename decltype(name::type)::type;
-        using Selected_Type = std::remove_reference_t<std::remove_cv_t<ref_type>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
-        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
-    } else {
-        using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>; // g++10 da error con ice, no podemos usar std::remove_cv_ref
-        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
-    }
-}
 
 
 // Attributes
 //Define el tipo utilizado para validar los tipos de atributos durante la compilación
 template<const std::string_view& n, typename Tn>
 struct Attr {
-    static constexpr bool attr_type = bool_constant<allowed_types<Tn>>(); //Para comprobar el tipo
-    static constexpr std::string_view attr_name = std::string_view(n); //Nombre del atributo usado en el mapa.
-    static Tn type; //tipo que se devuelve de G.
+    static constexpr bool attr_type = bool_constant<allowed_types<Tn>>();
+    static constexpr std::string_view attr_name = std::string_view(n);
+    static Tn type;
 };
 
+template<typename name, class Ta>
+static constexpr bool valid_type ()
+{
+    if constexpr(is_reference_wrapper<decltype(name::type)>::value) {
+        using ref_type = typename decltype(name::type)::type;
+        using Selected_Type = std::remove_reference_t<std::remove_cv_t<ref_type>>;
+        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+    } else {
+        using Selected_Type = std::remove_reference_t<std::remove_cv_t<decltype(name::type)>>;
+        return std::is_same_v<Selected_Type, std::remove_cv_t<std::remove_reference_t<Ta>>>;
+    }
+}
 
 #define REGISTER_FN(x, it)  \
                             inline bool x ##_b =  TYPES::REGISTER( x##_str, []<typename tp = it>() -> auto {\
@@ -123,7 +68,7 @@ struct Attr {
 
 
 
-inline std::unordered_map<std::string_view, std::function<bool(const std::any&)>> TYPES::map_fn_;
+inline std::unordered_map<std::string_view, std::function<bool(const std::any&)>> ATTRIBUTE_TYPES::map_fn_;
 
 
 REGISTER_TYPE(pos_x, float);
