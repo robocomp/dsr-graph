@@ -45,6 +45,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     graph_view = params["graph_view"].value == "true";
     qscene_2d_view = params["2d_view"].value == "true";
     osg_3d_view = params["3d_view"].value == "true";
+    grasp_object = params["grasp_object"].value;
 
     return true;
 }
@@ -205,22 +206,59 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
 {
     // get innermodel sub-API
     auto innermodel = G->get_inner_api();
+    // get a copy of world node
+    auto world = G->get_node("world");
     // loop over each estimated object pose
     for (auto pose : poses)
     {
-        // convert quaternions into euler angles
-        vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
-        vector<float> angles = this->quat_to_euler(quat);
+        if (pose.objectname.compare(grasp_object) == 0)
+        {
+            // convert quaternions into euler angles
+            vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
+            vector<float> angles = this->quat_to_euler(quat);
 
-        // re-project estimated poses into world coordinates
-        QVec orig_point = QVec(6);
-        orig_point.setItem(0, pose.x);
-        orig_point.setItem(1, pose.y);
-        orig_point.setItem(2, pose.z);
-        orig_point.setItem(3, angles.at(0));
-        orig_point.setItem(4, angles.at(1));
-        orig_point.setItem(5, angles.at(2));
-        auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+            // re-project estimated poses into world coordinates
+            QVec orig_point = QVec(6);
+            orig_point.setItem(0, pose.x);
+            orig_point.setItem(1, pose.y);
+            orig_point.setItem(2, pose.z);
+            orig_point.setItem(3, angles.at(0));
+            orig_point.setItem(4, angles.at(1));
+            orig_point.setItem(5, angles.at(2));
+            auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+
+            // get object node id (if exists)
+            auto id = G->get_id_from_name(pose.objectname);
+
+            // check whether object node already exists
+            auto object_node = G->get_node(pose.objectname);
+            if (!object_node.has_value()) // if node doesn't exist
+            {
+                // define object node
+                Node object = Node();
+                object.type("mesh");
+                object.agent_id(agent_id);
+                object.name(pose.objectname);
+
+                // inject object node into graph
+                id = G->insert_node(object);
+
+                // check whether node is inserted or not
+                if (id.has_value())
+                {
+                    std::cout << "Node inserted successfully -> " << id.value() << ":" << G->get_name_from_id(id.value()).value() << std::endl;
+                }
+                else
+                {
+                    std::cout << "Failed to insert node!" << std::endl;
+                }
+            }
+
+            //  inject estimated object pose into graph
+            vector<float> trans{final_pose->x(), final_pose->y(), final_pose->z()};
+            vector<float> rot{final_pose->rx(), final_pose->ry(), final_pose->rz()};
+            G->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+        }
     }
 }
 
