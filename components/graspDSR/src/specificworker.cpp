@@ -254,10 +254,13 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
                 }
             }
 
-            //  inject estimated object pose into graph
+            // inject estimated object pose into graph
             vector<float> trans{final_pose->x(), final_pose->y(), final_pose->z()};
             vector<float> rot{final_pose->rx(), final_pose->ry(), final_pose->rz()};
             G->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+
+            // ignore rest of objects
+            break;
         }
     }
 }
