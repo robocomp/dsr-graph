@@ -286,6 +286,7 @@ namespace DSR {
             }
         }
 
+
         ~Node() = default;
 
         Node& operator= (const CRDTNode& node ) {
