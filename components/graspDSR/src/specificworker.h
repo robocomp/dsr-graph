@@ -50,6 +50,8 @@ private:
 
 	//DSR params
 	std::string agent_name;
+	std::string grasp_object;
+	
 	int agent_id;
 
 	bool tree_view;
