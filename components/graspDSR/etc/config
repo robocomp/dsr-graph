@@ -1,6 +1,7 @@
 CommonBehavior.Endpoints=tcp -p 10000
 
 # Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 ObjectPoseEstimationRGBDProxy = objectposeestimationrgbd:tcp -h localhost -p 10121
 
 

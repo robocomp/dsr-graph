@@ -61,7 +61,7 @@ void SpecificWorker::initialize(int period)
     {
         timer.start(Period);
         // create graph
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
@@ -255,6 +255,10 @@ int SpecificWorker::startup_check()
     QTimer::singleShot(200, qApp, SLOT(quit()));
     return 0;
 }
+
+/**************************************/
+// From the RoboCompDSRGetID you can call this methods:
+// this->dsrgetid_proxy->getID(...)
 
 /**************************************/
 // From the RoboCompObjectPoseEstimationRGBD you can call this methods:

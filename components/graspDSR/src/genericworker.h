@@ -32,6 +32,7 @@
 #include <CommonBehavior.h>
 
 #include <CameraRGBDSimple.h>
+#include <DSRGetID.h>
 #include <ObjectPoseEstimationRGBD.h>
 
 
@@ -39,7 +40,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompObjectPoseEstimationRGBD::ObjectPoseEstimationRGBDPrxPtr>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompObjectPoseEstimationRGBD::ObjectPoseEstimationRGBDPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -55,6 +56,7 @@ public:
 	QMutex *mutex;
 
 
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 	RoboCompObjectPoseEstimationRGBD::ObjectPoseEstimationRGBDPrxPtr objectposeestimationrgbd_proxy;
 
 
