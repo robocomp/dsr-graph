@@ -47,7 +47,7 @@ static constexpr bool valid_type ()
 }
 
 #define REGISTER_FN(x, it)  \
-                            inline bool x ##_b =  TYPES::REGISTER( x##_str, []<typename tp = it>() -> auto {\
+                            inline bool x ##_b =  ATTRIBUTE_TYPES::REGISTER( x##_str, []<typename tp = it>() -> auto {\
                                 if constexpr (is_reference_wrapper<tp>::value) {                           \
                                     using tp_c = std::remove_const_t<typename tp::type>;                                      \
                                     return tp_c();\
