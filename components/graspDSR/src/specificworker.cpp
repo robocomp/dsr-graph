@@ -113,6 +113,30 @@ void SpecificWorker::compute()
     {
         // inject estimated poses into graph
         this->inject_estimated_poses(poses);
+
+        // get arm target and required object poses
+        auto world_node = G->get_node("world");
+        auto arm_id = G->get_id_from_name("viriato_arm_target");
+        auto object_id = G->get_id_from_name(grasp_object);
+        
+        auto world_arm_edge = G->get_edge_RT(world_node.value(), arm_id.value());
+        auto world_object_edge = G->get_edge_RT(world_node.value(), object_id.value());
+        
+        std::map<std::string, Attrib> arm_attribs = world_arm_edge.value().attrs();
+        vector<float> arm_trans = arm_attribs.at("translation").value().float_vec();
+        
+        std::map<std::string, Attrib> object_attribs = world_object_edge.value().attrs();
+        vector<float> object_trans = object_attribs.at("translation").value().float_vec();
+
+        // get euclidean distance between arm and required object (ignoring distance along z-axis)
+        float arm_object_dist = sqrt(pow(object_trans.at(0)-arm_trans.at(0), 2.0) + pow(object_trans.at(1)-arm_trans.at(1), 2.0));
+
+        // check whether required object is within arm's reach
+        if (arm_object_dist >= 0.5)
+        {
+            // plan a dummy target near the object
+            // check whether the arm will reach the object
+        }
     }
 }
 
