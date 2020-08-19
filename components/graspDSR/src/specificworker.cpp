@@ -134,11 +134,23 @@ void SpecificWorker::compute()
         // check whether required object is within arm's reach
         if (arm_object_dist >= 0.5)
         {
-            // plan a dummy target near the object
-            // check whether the arm will reach the object
+            // plan a dummy target closer to the object (planning is done on 5 stages | factor = 0.2)
+            vector<float> dummy_trans = this->interpolate_trans(arm_trans, object_trans, 0.2); // interpolate dummy target position
+            vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").value().float_vec(); // set dummy target rotation with object rotation
+            G->insert_or_assign_edge_RT(world_node.value(), arm_id.value(), dummy_trans, dummy_rot);
+
+            // check whether the arm target reaches the object
+            if (dummy_trans == object_trans)
+            {
+                std::cout << "The arm has reached the target object" << std::endl;
+            }
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////
+//                     G read utilities
+/////////////////////////////////////////////////////////////////
 
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
@@ -226,6 +238,10 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     }
 }
 
+/////////////////////////////////////////////////////////////////
+//                     G injection utilities
+/////////////////////////////////////////////////////////////////
+
 void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses)
 {
     // get innermodel sub-API
@@ -289,6 +305,10 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
     }
 }
 
+/////////////////////////////////////////////////////////////////
+//                     Geometry utilities
+/////////////////////////////////////////////////////////////////
+
 vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
 {
     // euler angles vector
@@ -312,6 +332,11 @@ vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
     angles.push_back(std::atan2(siny_cosp, cosy_cosp));
 
     return angles;
+}
+
+vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float> dest, float factor)
+{
+    
 }
 
 int SpecificWorker::startup_check()
