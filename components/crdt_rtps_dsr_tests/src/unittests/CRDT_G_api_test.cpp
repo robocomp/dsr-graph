@@ -21,6 +21,7 @@ CATCH_CONFIG_MAIN
 #include <IceStorm/IceStorm.h>
 #include <Ice/Application.h>
 
+using namespace std::literals;
 
 REGISTER_TYPE(att, std::reference_wrapper<const string>)
 REGISTER_TYPE(int_, int32_t)
@@ -80,11 +81,14 @@ TEST_CASE("Node operations", "[NODE]") {
     }
 
     SECTION("Insert a new node") {
-
-        Node n(0, "testtype", "", {}, {}, 1550);
+        Node n (1550, "testtype");
         std::optional<int> r  = G->insert_node(n);
         REQUIRE(r.has_value());
         REQUIRE(r.value() == static_cast<int>(G->size()));
+    }
+
+    SECTION("Create a node with an invalid type") {
+        REQUIRE_THROWS(Node (1550, "aaaaa"));
     }
 
     SECTION("Get an existing node by id") {

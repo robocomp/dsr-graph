@@ -97,7 +97,7 @@ namespace DSR
 
         public:
         size_t size();
-        DSRGraph(int root, std::string name, int id, std::string dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy = nullptr);
+        DSRGraph(int root, std::string name, int id, const std::string& dsr_input_file = std::string(), RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy = nullptr);
         ~DSRGraph();
 
 
@@ -518,7 +518,7 @@ namespace DSR
         ///// PRIVATE COPY
         /////////////////////////////////////////////////
         DSRGraph G_copy();
-        bool is_copy();
+        bool is_copy() const;
 
     private:
 

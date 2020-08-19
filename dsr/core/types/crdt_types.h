@@ -530,6 +530,8 @@ namespace DSR {
 
         explicit CRDTNode(IDL::IDLNode &&x);
 
+        explicit CRDTNode(IDL::IDLNode &x);
+
         /*
         CRDTNode &operator=(CRDTNode &&x) noexcept
         {
