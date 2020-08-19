@@ -6,6 +6,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <algorithm>
+#include <utility>
 
 #include <fastrtps/subscriber/Subscriber.h>
 #include <fastrtps/transport/UDPv4TransportDescriptor.h>
@@ -22,9 +23,9 @@ using namespace DSR;
 ///// PUBLIC METHODS
 /////////////////////////////////////////////////
 
-DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id) , agent_name(name), copy(false)
+DSRGraph::DSRGraph(int root, std::string name, int id, const std::string& dsr_input_file, RoboCompDSRGetID::DSRGetIDPrxPtr dsr_getid_proxy_) : agent_id(id) , agent_name(std::move(name)), copy(false)
 {
-    dsr_getid_proxy = dsr_getid_proxy_;
+    dsr_getid_proxy = std::move(dsr_getid_proxy_);
     graph_root = root;
     nodes = Nodes(graph_root);
     utils = std::make_unique<Utilities>(this);
@@ -44,7 +45,7 @@ DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_fil
     dsrpub_request_answer.init(participant_handle, "DSR_GRAPH_ANSWER", dsrparticipant.getAnswerTopicName());
 
     // RTPS Initialize comms threads
-    if (dsr_input_file != std::string())
+    if (!dsr_input_file.empty())
     {
         try
         {
@@ -63,7 +64,7 @@ DSRGraph::DSRGraph(int root, std::string name, int id, std::string dsr_input_fil
     {
         start_subscription_threads(false);     // regular subscription to deltas
         bool res = start_fullgraph_request_thread();    // for agents that want to request the graph for other agent
-        if(res == false) {
+        if(!res) {
             eprosima::fastrtps::Domain::removeParticipant(participant_handle); // Remove a Participant and all associated publishers and subscribers.
             qFatal("DSRGraph aborting: could not get DSR from the network after timeout");  //JC ¿se pueden limpiar aquí cosas antes de salir?
 
@@ -228,7 +229,7 @@ bool DSRGraph::update_node(Node &node) {
                      __FUNCTION__ + " " + std::to_string(__LINE__)).data());
         else if (nodes.getMapRef().find(node.id()) != nodes.getMapRef().end()) {
             //node.agent_id(agent_id);
-            std::tie(r, vec_node_attr) = update_node_(user_node_to_crdt(std::move(node)));
+            std::tie(r, vec_node_attr) = update_node_(user_node_to_crdt(node));
         }
     }
     if (r) {
@@ -424,7 +425,7 @@ std::optional<Edge> DSRGraph::get_edge(const Node &n, uint32_t to, const std::st
 {
     EdgeKey ek; ek.to(to); ek.type(key);
     return (n.fano().find({to, key}) != n.fano().end()) ?  std::make_optional(n.fano().find({to, key})->second) : std::nullopt;
-};
+}
 
 std::tuple<bool, std::optional<IDL::MvregEdge>, std::optional<std::vector<IDL::MvregEdgeAttr>>>
 DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t to) {
@@ -792,7 +793,7 @@ std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> DSRGraph::g
     }
     return std::nullopt;
 
-};
+}
 
 std::optional<Edge> DSRGraph::get_edge_RT(const Node &n, uint32_t to) {
     auto edges_ = n.fano();
@@ -1010,7 +1011,7 @@ std::optional<std::string> DSRGraph::get_name_from_id(uint32_t id) {
 size_t DSRGraph::size() {
     std::shared_lock<std::shared_mutex> lock(_mutex);
     return nodes.getMapRef().size();
-};
+}
 
 bool DSRGraph::in(uint32_t id) const {
     return nodes.in(id);
@@ -1103,7 +1104,7 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
     } catch (const std::exception &e) {
         std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
                   << std::endl;
-    };
+    }
 
 }
 
@@ -1189,7 +1190,7 @@ void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
     } catch (const std::exception &e) {
         std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
                   << std::endl;
-    };
+    }
 
 
 }
@@ -1252,7 +1253,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
     } catch (const std::exception &e) {
         std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
                   << std::endl;
-    };
+    }
 
 
 }
@@ -1308,7 +1309,7 @@ void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
     } catch (const std::exception &e) {
         std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
                   << std::endl;
-    };
+    }
 
 
 }
@@ -1438,7 +1439,7 @@ std::map<uint32_t, IDL::Mvreg> DSRGraph::Map() {
 void DSRGraph::node_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
-    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
+    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, const bool *work,
                                                  DSR::DSRGraph *graph) {
         if (*work) {
             try {
@@ -1466,7 +1467,7 @@ void DSRGraph::node_subscription_thread(bool showReceived) {
 void DSRGraph::edge_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
-    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
+    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, const bool *work,
                                                  DSR::DSRGraph *graph) {
         if (*work) {
             try {
@@ -1494,7 +1495,7 @@ void DSRGraph::edge_subscription_thread(bool showReceived) {
 void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
-    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
+    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, const bool *work,
                                                  DSR::DSRGraph *graph) {
         if (*work) {
             try {
@@ -1525,7 +1526,7 @@ void DSRGraph::edge_attrs_subscription_thread(bool showReceived) {
 void DSRGraph::node_attrs_subscription_thread(bool showReceived) {
     // RTPS Initialize subscriptor
     auto name = __FUNCTION__;
-    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, bool *work,
+    auto lambda_general_topic = [&, name = name](eprosima::fastrtps::Subscriber *sub, const bool *work,
                                                  DSR::DSRGraph *graph) {
         if (*work) {
             try {
@@ -1585,7 +1586,7 @@ void DSRGraph::fullgraph_server_thread() {
     dsrpub_graph_request_call = NewMessageFunctor(this, &work, lambda_graph_request);
     dsrsub_graph_request.init(dsrparticipant.getParticipant(), "DSR_GRAPH_REQUEST",
                               dsrparticipant.getRequestTopicName(), dsrpub_graph_request_call);
-};
+}
 
 bool DSRGraph::fullgraph_request_thread() {
     bool sync = false;
@@ -1648,12 +1649,13 @@ DSRGraph::DSRGraph(const DSRGraph& G) : agent_id(G.agent_id), copy(true)
     edges = G.edges;
     edgeType = G.edgeType;
     nodeType = G.nodeType;
+    work = false;
 }
 
 DSRGraph DSRGraph::G_copy() {
     return DSRGraph(*this);
-};
+}
 
-bool DSRGraph::is_copy() {
+bool DSRGraph::is_copy() const {
     return copy;
-};
+}

@@ -393,6 +393,20 @@ namespace DSR {
         }
     }
 
+    CRDTNode::CRDTNode(IDL::IDLNode& x)
+    {
+        m_type = x.type();
+        m_name = x.name();
+        m_id = x.id();
+        m_agent_id = x.agent_id();
+        for (auto&[k, v] : x.attrs()) {
+            m_attrs[k] = translate_node_attr_mvIDL_to_CRDT(v);
+        }
+        for (auto&[k, v] : x.fano()) {
+            m_fano[make_pair(k.to(), k.type())] = translate_edge_mvIDL_to_CRDT(v);
+        }
+    }
+
     void CRDTNode::type(const std::string &_type)
     {
         m_type = _type;

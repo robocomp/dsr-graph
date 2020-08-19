@@ -177,13 +177,14 @@ namespace DSR {
 
         Edge() = default;
 
+        /* template constructor doesnt work
         template <std::string_view& type>
         Edge(uint32_t mTo, uint32_t mFrom,  uint32_t mAgentId) :  m_to(mTo), m_from(mFrom), m_type(type), m_attrs{},
                                   m_agent_id(mAgentId)
         {
 
             static_assert(EDGE_TYPES::find(type), TYPE_ASSERT_ERROR(type, edge));
-        }
+        }*/
 
         Edge(uint32_t mTo, uint32_t mFrom, string mType, uint32_t mAgentId) : m_to(mTo), m_from(mFrom), m_type(std::move(mType)), m_attrs{},
                                   m_agent_id(mAgentId)
@@ -312,12 +313,6 @@ namespace DSR {
 
         Node() = default;
 
-        template <std::string_view& type>
-        explicit Node(uint32_t mAgentId) : m_id(0), m_type(type), m_attrs{}, m_fano{}, m_agent_id(mAgentId)
-        {
-            static_assert(NODE_TYPES::find(type), TYPE_ASSERT_ERROR(type, node));
-        }
-
         Node(uint32_t mAgentId, string mType) : m_id(0), m_type(std::move(mType)), m_attrs{}, m_fano{}, m_agent_id(mAgentId)
         {
             if (!NODE_TYPES::find(m_type)) {
@@ -335,6 +330,17 @@ namespace DSR {
             }
         }
 
+        /*
+        template <std::string_view& type>
+        static Node make_node(uint32_t mAgentId)
+        {
+            static_assert(NODE_TYPES::find(type), TYPE_ASSERT_ERROR(type, node));
+            Node n;
+            n.m_type = type;
+            n.m_agent_id = mAgentId;
+            return n;
+        }
+         */
 
         explicit Node (const CRDTNode& node)
         {
