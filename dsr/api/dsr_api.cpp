@@ -115,7 +115,7 @@ std::tuple<bool, std::optional<IDL::Mvreg>> DSRGraph::insert_node_(const CRDTNod
         mvreg<CRDTNode, uint32_t> delta = nodes[node.id()].write(node);
         update_maps_node_insert(node.id(), node);
 
-        return {true, translateNodeMvCRDTtoIDL(agent_id, node.id(), delta)};
+        return {true, translate_node_mvCRDT_to_IDL(agent_id, node.id(), delta)};
     }
     return {false, {}};
 }
@@ -186,7 +186,7 @@ std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> DSRGraph::updat
                 }
                 if (iter[k].read().empty() or *att.read().begin() != *iter.at(k).read().begin()) {
                     auto delta = iter[k].write(*att.read().begin());
-                    atts_deltas.emplace_back(translateNodeAttrMvCRDTtoIDL(agent_id, node.id(), node.id(), k, delta));
+                    atts_deltas.emplace_back(translate_node_attr_mvCRDT_to_IDL(agent_id, node.id(), node.id(), k, delta));
                 }
             }
             //Remove old attributes.
@@ -197,7 +197,7 @@ std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> DSRGraph::updat
                     auto delta = iter[k].reset();
                     it_a = iter.erase(it_a);
                     atts_deltas.emplace_back(
-                            translateNodeAttrMvCRDTtoIDL(node.agent_id(), node.id(), node.id(), k, delta));
+                            translate_node_attr_mvCRDT_to_IDL(node.agent_id(), node.id(), node.id(), k, delta));
                 } else {
                     it_a++;
                 }
@@ -261,7 +261,7 @@ DSRGraph::delete_node_(uint32_t id) {
     }
     // Get remove delta.
     auto delta = nodes[id].reset();
-    IDL::Mvreg delta_remove = translateNodeMvCRDTtoIDL(agent_id, id, delta);
+    IDL::Mvreg delta_remove = translate_node_mvCRDT_to_IDL(agent_id, id, delta);
     update_maps_node_delete(id, node.value());
 
     //2. search and remove edges.
@@ -273,7 +273,7 @@ DSRGraph::delete_node_(uint32_t id) {
         for (const auto &key : edges[{k, id}]) {
 
             auto delta_fano = visited_node.fano()[{k, key}].reset();
-            aw.emplace_back(translateEdgeMvCRDTtoIDL(agent_id, visited_node.id(), k, key, delta_fano));
+            aw.emplace_back(translate_edge_mvCRDT_to_IDL(agent_id, visited_node.id(), k, key, delta_fano));
             visited_node.fano().erase({k, key});
             edges_.emplace_back(make_tuple(visited_node.id(), id, key));
 
@@ -452,7 +452,7 @@ DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t 
                         *iter_edge.at(k).read().begin()) {
                         auto delta = iter_edge.at(k).write(att.read_reg());//*iter_edge.at(k).read().begin());
                         atts_deltas.emplace_back(
-                                translateEdgeAttrMvCRDTtoIDL(agent_id, from, from, to, attrs.type(), k, delta));
+                                translate_edge_attr_mvCRDT_to_IDL(agent_id, from, from, to, attrs.type(), k, delta));
                     }
                 }
                 auto it = iter_edge.begin();
@@ -471,7 +471,7 @@ DSRGraph::insert_or_assign_edge_(const CRDTEdge &attrs, uint32_t from, uint32_t 
             node.fano().insert({{to, attrs.type()}, mv});
             auto delta = node.fano()[{to, attrs.type()}].write(attrs);
             update_maps_edge_insert(from, to, attrs.type());
-            return {true, translateEdgeMvCRDTtoIDL(agent_id, from, to, attrs.type(), delta), {}};
+            return {true, translate_edge_mvCRDT_to_IDL(agent_id, from, to, attrs.type(), delta), {}};
         }
     }
     return {false, {}, {}};
@@ -697,7 +697,7 @@ std::optional<IDL::MvregEdge> DSRGraph::delete_edge_(uint32_t from, uint32_t to,
             update_maps_edge_delete(from, to, key);
             //std::cout << "DELETE EDGE: " << std::boolalpha <<(nodes[from].read_reg().fano().find({to, key}) == nodes[from].read_reg().fano().end())<<std::endl ;
             //node.value().agent_id(agent_id);
-            return translateEdgeMvCRDTtoIDL(agent_id, from, to, key, delta);
+            return translate_edge_mvCRDT_to_IDL(agent_id, from, to, key, delta);
         }
     }
     return {};
@@ -895,7 +895,8 @@ std::optional<DSR::Node> DSRGraph::get_parent_node(const Node &n) {
     auto p = get_attrib_by_name<parent_att>(n);
     if (p.has_value()) {
         std::shared_lock<std::shared_mutex> lock(_mutex);
-        return get_(p.value());
+        auto tmp = get_(p.value());
+        if (tmp.has_value()) return Node(tmp.value());
     }
     return {};
 }
@@ -1027,7 +1028,7 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
     try {
 
         bool signal = false, ok = false;
-        auto d = translateNodeMvIDLtoCRDT(mvreg);
+        auto d = translate_node_mvIDL_to_CRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             if (deleted.find(mvreg.id()) == deleted.end()) {
@@ -1110,7 +1111,7 @@ void DSRGraph::join_delta_node(IDL::Mvreg &mvreg) {
 void DSRGraph::join_delta_edge(IDL::MvregEdge &mvreg) {
     try {
         bool signal = false, ok = false;
-        auto d = translateEdgeMvIDLtoCRDT(mvreg);
+        auto d = translate_edge_mvIDL_to_CRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
 
@@ -1198,7 +1199,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 
     try {
         bool ok = false;
-        auto d = translateNodeAttrMvIDLtoCRDT(mvreg);
+        auto d = translate_node_attr_mvIDL_to_CRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             //Check if the node where we are joining the edge exist.
@@ -1260,7 +1261,7 @@ void DSRGraph::join_delta_node_attr(IDL::MvregNodeAttr &mvreg) {
 void DSRGraph::join_delta_edge_attr(IDL::MvregEdgeAttr &mvreg) {
     try {
         bool  ok = false;
-        auto d = translateEdgeAttrMvIDLtoCRDT(mvreg);
+        auto d = translate_edge_attr_mvIDL_to_CRDT(mvreg);
         {
             std::unique_lock<std::shared_mutex> lock(_mutex);
             //Check if the node where we are joining the edge exist.
@@ -1324,7 +1325,7 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
             s.emplace(std::make_pair(v.first(), v.second()));
         */
         for (auto &[k, val] : full_graph.m()) {
-            auto mv = translateNodeMvIDLtoCRDT(val);
+            auto mv = translate_node_mvIDL_to_CRDT(val);
             CRDTNode nd = (nodes[k].read().empty()) ? CRDTNode() : *nodes[k].read().begin();
 
             if (deleted.find(k) == deleted.end()) {
@@ -1351,7 +1352,7 @@ void DSRGraph::join_full_graph(IDL::OrMap &full_graph) {
                         temp_node_attr[k].erase(kk);
                     }
                      */
-                    print_node(*nodes[k].read().begin());
+                    //print_node(*nodes[k].read().begin());
 
                     update_maps_node_insert(k, *mv.read().begin());
                     updates.emplace_back(make_tuple(true, k, nodes[k].read().begin()->type(), nd));
@@ -1428,7 +1429,7 @@ std::map<uint32_t, IDL::Mvreg> DSRGraph::Map() {
     std::map<uint32_t, IDL::Mvreg> m;
     for (auto kv : nodes.getMapRef()) {
         //std::cout << "P " << kv.second.dk.ds.begin()->second.attrs().find("parent")->second.dk.ds.begin()->second << std::endl;
-        m[kv.first] = translateNodeMvCRDTtoIDL(agent_id, kv.first, kv.second);
+        m[kv.first] = translate_node_mvCRDT_to_IDL(agent_id, kv.first, kv.second);
         //std::cout << "P " << m[kv.first].dk().ds().begin()->second.attrs().find("parent")->second.dk().ds().begin()->second.value().uint() << std::endl;
     }
     return m;

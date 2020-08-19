@@ -7,13 +7,14 @@
 #include "translator.h"
 
 namespace DSR {
-
-
-    [[nodiscard]] int32_t CRDTValue::selected() const {
+    
+    int32_t CRDTValue::selected() const 
+    {
         return val.index();
     }
 
-    std::string &CRDTValue::str() {
+    std::string &CRDTValue::str() 
+    {
         if (auto pval = std::get_if<std::string>(&val)) {
             return *pval;
         }
@@ -22,7 +23,8 @@ namespace DSR {
 
     }
 
-    [[nodiscard]] const std::string &CRDTValue::str() const {
+    const std::string &CRDTValue::str() const 
+    {
         if (auto pval = std::get_if<std::string>(&val)) {
             return *pval;
         }
@@ -31,19 +33,23 @@ namespace DSR {
 
     }
 
-    void CRDTValue::str(const std::string &_str) {
+    void CRDTValue::str(const std::string &_str) 
+    {
         val = _str;
     }
 
-    void CRDTValue::str(std::string &&_str) {
+    void CRDTValue::str(std::string &&_str) 
+    {
         val = std::move(_str);
     }
 
-    void CRDTValue::dec(int32_t _dec) {
+    void CRDTValue::dec(int32_t _dec) 
+    {
         val = _dec;
     }
 
-    [[nodiscard]] int32_t CRDTValue::dec() const {
+    int32_t CRDTValue::dec() const 
+    {
         if (auto pval = std::get_if<int32_t>(&val)) {
             return *pval;
         }
@@ -52,11 +58,13 @@ namespace DSR {
 
     }
 
-    void CRDTValue::uint(uint32_t _uint) {
+    void CRDTValue::uint(uint32_t _uint) 
+    {
         val = _uint;
     }
 
-    [[nodiscard]] uint32_t CRDTValue::uint() const {
+    uint32_t CRDTValue::uint() const 
+    {
         if (auto pval = std::get_if<uint32_t>(&val)) {
             return *pval;
         }
@@ -65,11 +73,13 @@ namespace DSR {
 
     }
 
-    void CRDTValue::fl(float _fl) {
+    void CRDTValue::fl(float _fl) 
+    {
         val = _fl;
     }
 
-    [[nodiscard]] float CRDTValue::fl() const {
+    float CRDTValue::fl() const 
+    {
         if (auto pval = std::get_if<float>(&val)) {
             return *pval;
         }
@@ -78,15 +88,18 @@ namespace DSR {
                 ("FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    void CRDTValue::float_vec(const std::vector<float> &_float_vec) {
+    void CRDTValue::float_vec(const std::vector<float> &_float_vec) 
+    {
         val = _float_vec;
     }
 
-    void CRDTValue::float_vec(std::vector<float> &&_float_vec) {
+    void CRDTValue::float_vec(std::vector<float> &&_float_vec) 
+    {
         val = std::move(_float_vec);
     }
 
-    [[nodiscard]] const std::vector<float> &CRDTValue::float_vec() const {
+    const std::vector<float> &CRDTValue::float_vec() const 
+    {
         if (auto pval = std::get_if<vector<float>>(&val)) {
             return *pval;
         }
@@ -94,7 +107,8 @@ namespace DSR {
                 ("VECTOR_FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    std::vector<float> &CRDTValue::float_vec() {
+    std::vector<float> &CRDTValue::float_vec() 
+    {
 
         if (auto pval = std::get_if<vector<float>>(&val)) {
             return *pval;
@@ -103,11 +117,13 @@ namespace DSR {
                 ("VECTOR_FLOAT is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    void CRDTValue::bl(bool _bl) {
+    void CRDTValue::bl(bool _bl) 
+    {
         val = _bl;
     }
 
-    [[nodiscard]] bool CRDTValue::bl() const {
+    bool CRDTValue::bl() const 
+    {
 
         if (auto pval = std::get_if<bool>(&val)) {
             return *pval;
@@ -116,15 +132,18 @@ namespace DSR {
                 ("BOOL is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    void CRDTValue::byte_vec(const std::vector<uint8_t> &_float_vec) {
+    void CRDTValue::byte_vec(const std::vector<uint8_t> &_float_vec) 
+    {
         val = _float_vec;
     }
 
-    void CRDTValue::byte_vec(std::vector<uint8_t> &&_float_vec) {
+    void CRDTValue::byte_vec(std::vector<uint8_t> &&_float_vec) 
+    {
         val = std::move(_float_vec);
     }
 
-    [[nodiscard]] const std::vector<uint8_t> &CRDTValue::byte_vec() const {
+    const std::vector<uint8_t> &CRDTValue::byte_vec() const 
+    {
         if (auto pval = std::get_if<vector<uint8_t>>(&val)) {
             return *pval;
         }
@@ -132,7 +151,8 @@ namespace DSR {
                 ("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    std::vector<uint8_t> &CRDTValue::byte_vec() {
+    std::vector<uint8_t> &CRDTValue::byte_vec() 
+    {
 
         if (auto pval = std::get_if<vector<uint8_t >>(&val)) {
             return *pval;
@@ -141,7 +161,8 @@ namespace DSR {
                 ("VECTOR_BYTE is not selected, selected is " + std::string(TYPENAMES_UNION[val.index()])).data());
     }
 
-    [[nodiscard]] IDL::Val CRDTValue::toIDLVal() {
+    IDL::Val CRDTValue::toIDLVal() 
+    {
         IDL::Val value;
 
         switch (val.index()) {
@@ -174,52 +195,61 @@ namespace DSR {
 
         return value;
     }
-
-
-    void CRDTAttribute::type(uint32_t _type) {
+    
+    void CRDTAttribute::type(uint32_t _type) 
+    {
         m_type = _type;
     }
-
-
-    [[nodiscard]] uint32_t CRDTAttribute::type() const {
+    
+    uint32_t CRDTAttribute::type() const 
+    {
         return m_type;
     }
 
-    void CRDTAttribute::timestamp(uint64_t _time) {
+    void CRDTAttribute::timestamp(uint64_t _time) 
+    {
         m_timestamp = _time;
     }
 
 
-    [[nodiscard]] uint64_t CRDTAttribute::timestamp() const {
+    uint64_t CRDTAttribute::timestamp() const 
+    {
         return m_timestamp;
     }
 
 
-    void CRDTAttribute::val(IDL::Val &&_CRDTValue) {
-        m_Value = CRDTValue(std::move(_CRDTValue));
+    void CRDTAttribute::val(IDL::Val &&CRDTValue_) 
+    {
+        m_Value = CRDTValue(std::move(CRDTValue_));
     }
 
-    void CRDTAttribute::val(CRDTValue &&_CRDTValue) {
-        m_Value = std::move(_CRDTValue);
+    void CRDTAttribute::val(CRDTValue &&CRDTValue_) 
+    {
+        m_Value = std::move(CRDTValue_);
     }
 
-    [[nodiscard]] const CRDTValue &CRDTAttribute::val() const {
+    const CRDTValue &CRDTAttribute::val() const 
+    {
         return m_Value;
     }
 
-    CRDTValue &CRDTAttribute::val() {
+    CRDTValue &CRDTAttribute::val() 
+    {
         return m_Value;
     }
 
-    void CRDTAttribute::agent_id(uint32_t _agent_id) {
+    void CRDTAttribute::agent_id(uint32_t _agent_id) 
+    {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] uint32_t CRDTAttribute::agent_id() const {
+    uint32_t CRDTAttribute::agent_id() const 
+    {
         return m_agent_id;
     }
 
-    [[nodiscard]] IDL::Attrib CRDTAttribute::toIDLAttrib() {
+    IDL::Attrib CRDTAttribute::toIDLAttrib() 
+    {
         IDL::Attrib att;
         att.timestamp(m_timestamp);
         att.type(m_type);
@@ -229,14 +259,15 @@ namespace DSR {
     }
 
 
-    CRDTEdge &CRDTEdge::operator=(IDL::IDLEdge &&x) {
+    CRDTEdge &CRDTEdge::operator=(IDL::IDLEdge &&x) 
+    {
 
         m_to = x.to();
         m_type = std::move(x.type());
         m_from = x.from();
         if (!x.attrs().empty()) {
             for (auto&[k, v] : x.attrs()) {
-                m_attrs[k] = translateEdgeAttrMvIDLtoCRDT(v);
+                m_attrs[k] = translate_edge_attr_mvIDL_to_CRDT(v);
             }
         }
         m_agent_id = x.agent_id();
@@ -245,65 +276,79 @@ namespace DSR {
     }
 
 
-    void CRDTEdge::to(uint32_t _to) {
+    void CRDTEdge::to(uint32_t _to) 
+    {
         m_to = _to;
     }
-
-    [[nodiscard]] uint32_t CRDTEdge::to() const {
+    
+    uint32_t CRDTEdge::to() const 
+    {
         return m_to;
     }
 
 
-    void CRDTEdge::type(const std::string &_type) {
+    void CRDTEdge::type(const std::string &_type) 
+    {
         m_type = _type;
     }
 
-    void CRDTEdge::type(std::string &&_type) {
+    void CRDTEdge::type(std::string &&_type) 
+    {
         m_type = std::move(_type);
     }
 
-    [[nodiscard]] const std::string &CRDTEdge::type() const {
+    const std::string &CRDTEdge::type() const 
+    {
         return m_type;
     }
 
-    std::string &CRDTEdge::type() {
+    std::string &CRDTEdge::type()
+    {
         return m_type;
     }
 
-    void CRDTEdge::from(uint32_t _from) {
+    void CRDTEdge::from(uint32_t _from)
+    {
         m_from = _from;
     }
 
-    [[nodiscard]] uint32_t CRDTEdge::from() const {
+    uint32_t CRDTEdge::from() const
+    {
         return m_from;
     }
 
-    void CRDTEdge::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
+    void CRDTEdge::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs)
+    {
         m_attrs = _attrs;
     }
 
-    void CRDTEdge::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
+    void CRDTEdge::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs)
+    {
         m_attrs = std::move(_attrs);
     }
 
-    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() const {
+    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() const
+    {
         return m_attrs;
     }
 
-
-    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs() {
+    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTEdge::attrs()
+    {
         return m_attrs;
     }
 
-    void CRDTEdge::agent_id(uint32_t _agent_id) {
+    void CRDTEdge::agent_id(uint32_t _agent_id)
+    {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] uint32_t CRDTEdge::agent_id() const {
+    uint32_t CRDTEdge::agent_id() const
+    {
         return m_agent_id;
     }
 
-    [[nodiscard]] IDL::IDLEdge CRDTEdge::toIDLEdge(uint32_t id) {
+    IDL::IDLEdge CRDTEdge::toIDLEdge(uint32_t id)
+    {
         IDL::IDLEdge edge;
         edge.from(m_from);
         edge.to(m_to);
@@ -322,15 +367,6 @@ namespace DSR {
 
             }
 
-            /*
-            for (auto &kv_dc : v.context().dc){
-                IDL::PairInt pi;
-                pi.first(kv_dc.first);
-                pi.second(kv_dc.second);
-
-                edgeAttr.dk().cbase().dc().push_back(pi);
-            }
-*/
             edgeAttr.from(m_from);
             edgeAttr.to(m_to);
             edgeAttr.type(m_type);
@@ -343,103 +379,123 @@ namespace DSR {
     }
 
 
-    CRDTNode::CRDTNode(IDL::IDLNode &&x) {
+    CRDTNode::CRDTNode(IDL::IDLNode &&x)
+    {
         m_type = std::move(x.type());
         m_name = std::move(x.name());
         m_id = x.id();
         m_agent_id = x.agent_id();
         for (auto&[k, v] : x.attrs()) {
-            m_attrs[k] = translateNodeAttrMvIDLtoCRDT(v);
+            m_attrs[k] = translate_node_attr_mvIDL_to_CRDT(v);
         }
         for (auto&[k, v] : x.fano()) {
-            m_fano[make_pair(k.to(), k.type())] = translateEdgeMvIDLtoCRDT(v);
+            m_fano[make_pair(k.to(), k.type())] = translate_edge_mvIDL_to_CRDT(v);
         }
     }
 
-    void CRDTNode::type(const std::string &_type) {
+    void CRDTNode::type(const std::string &_type)
+    {
         m_type = _type;
     }
 
-    void CRDTNode::type(std::string &&_type) {
+    void CRDTNode::type(std::string &&_type)
+    {
         m_type = std::move(_type);
     }
 
-    [[nodiscard]] const std::string &CRDTNode::type() const {
+    const std::string &CRDTNode::type() const
+    {
         return m_type;
     }
 
-    std::string &CRDTNode::type() {
+    std::string &CRDTNode::type()
+    {
         return m_type;
     }
 
-    void CRDTNode::name(const std::string &_name) {
+    void CRDTNode::name(const std::string &_name)
+    {
         m_name = _name;
     }
 
-    void CRDTNode::name(std::string &&_name) {
+    void CRDTNode::name(std::string &&_name)
+    {
         m_name = std::move(_name);
     }
 
-    [[nodiscard]] const std::string &CRDTNode::name() const {
+    const std::string &CRDTNode::name() const
+    {
         return m_name;
     }
 
-    std::string &CRDTNode::name() {
+    std::string &CRDTNode::name()
+    {
         return m_name;
     }
 
-    void CRDTNode::id(uint32_t _id) {
+    void CRDTNode::id(uint32_t _id)
+    {
         m_id = _id;
     }
 
-    [[nodiscard]] uint32_t CRDTNode::id() const {
+    uint32_t CRDTNode::id() const
+    {
         return m_id;
     }
 
-    void CRDTNode::agent_id(uint32_t _agent_id) {
+    void CRDTNode::agent_id(uint32_t _agent_id)
+    {
         m_agent_id = _agent_id;
     }
 
-    [[nodiscard]] uint32_t CRDTNode::agent_id() const {
+    uint32_t CRDTNode::agent_id() const
+    {
         return m_agent_id;
     }
 
-    void CRDTNode::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs) {
+    void CRDTNode::attrs(const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &_attrs)
+    {
         m_attrs = _attrs;
     }
 
-    void CRDTNode::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs) {
+    void CRDTNode::attrs(std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &&_attrs)
+    {
         m_attrs = std::move(_attrs);
     }
 
-
-    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() &{
+    std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() &
+    {
         return m_attrs;
     }
 
-    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() const &{
+    const std::map<std::string, mvreg<CRDTAttribute, uint32_t>> &CRDTNode::attrs() const &
+    {
         return m_attrs;
     }
 
-    void
-    CRDTNode::fano(const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &_fano) {
+    void CRDTNode::fano(const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &_fano)
+    {
         m_fano = _fano;
     }
 
-    void CRDTNode::fano(std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &&_fano) {
+    void CRDTNode::fano(std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &&_fano)
+    {
         m_fano = std::move(_fano);
     }
 
-    std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano() {
+    std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano()
+    {
         return m_fano;
     }
 
-    const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano() const {
+    const std::map<std::pair<uint32_t, std::string>, mvreg<CRDTEdge, uint32_t>> &CRDTNode::fano() const
+    {
         return m_fano;
     }
 
 
-    [[nodiscard]] IDL::IDLNode CRDTNode::toIDLNode(uint32_t id) {
+    IDL::IDLNode CRDTNode::toIDLNode(uint32_t id)
+    {
         IDL::IDLNode node;
         node.id(m_id);
         node.name(m_name);
@@ -456,21 +512,6 @@ namespace DSR {
                 nodeAttr.dk().cbase().cc().emplace(kv_dots.first);
             }
 
-            //for (auto &kv_cc : v.context().getCcDc().first) {
-            //    nodeAttr.dk().cbase().cc().emplace(make_pair(kv_cc.first, kv_cc.second));
-            //}
-            /*
-            if (v.context().dc.begin() != v.context().dc.end()){
-                for (auto &kv_dc : v.context().dc) {
-                    IDL::PairInt pi;
-                    pi.first(kv_dc.first);
-                    pi.second(kv_dc.second);
-
-                    nodeAttr.dk().cbase().dc().push_back(pi);
-            }
-
-            }
-            */
             nodeAttr.id(id);
             nodeAttr.attr_name(k);
             nodeAttr.agent_id(v.read().begin()->agent_id());
@@ -488,15 +529,7 @@ namespace DSR {
                 mvregCRDTEdge.dk().cbase().cc().emplace(kv_dots.first);
 
             }
-            /*
-            for (auto &kv_dc : v.context().dc) {
-                IDL::PairInt pi;
-                pi.first(kv_dc.first);
-                pi.second(kv_dc.second);
 
-                mvregCRDTEdge.dk().cbase().dc().push_back(pi);
-            }
-             */
             mvregCRDTEdge.id(id);
             mvregCRDTEdge.agent_id(v.read().begin()->agent_id());
             mvregCRDTEdge.to(k.first);
