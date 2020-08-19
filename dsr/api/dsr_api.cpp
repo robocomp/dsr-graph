@@ -194,7 +194,9 @@ std::tuple<bool, std::optional<std::vector<IDL::MvregNodeAttr>>> DSRGraph::updat
             auto it_a = iter.begin();
             while (it_a != iter.end()) {
                 const std::string &k = it_a->first;
-                if (node.attrs().find(k) == node.attrs().end()) {
+                if (ignored_attributes.find(k) != ignored_attributes.end()) {
+                    it_a = iter.erase(it_a);
+                } else if (node.attrs().find(k) == node.attrs().end()) {
                     auto delta = iter[k].reset();
                     it_a = iter.erase(it_a);
                     atts_deltas.emplace_back(
