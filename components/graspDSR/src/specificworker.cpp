@@ -134,7 +134,7 @@ void SpecificWorker::compute()
         // check whether required object is within arm's reach
         if (arm_object_dist >= 0.5)
         {
-            // plan a dummy target closer to the object (planning is done on 5 stages | factor = 0.2)
+            // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
             vector<float> dummy_trans = this->interpolate_trans(arm_trans, object_trans, 0.2); // interpolate dummy target position
             vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").value().float_vec(); // set dummy target rotation with object rotation
             G->insert_or_assign_edge_RT(world_node.value(), arm_id.value(), dummy_trans, dummy_rot);
@@ -336,7 +336,13 @@ vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
 
 vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float> dest, float factor)
 {
-    
+    // interpolate between the source and destination positions with the given factor
+    float interp_x = src.at(0) + (dest.at(0)-src.at(0)) * factor;
+    float interp_y = src.at(1) + (dest.at(1)-src.at(1)) * factor;
+    float interp_z = src.at(2) + (dest.at(2)-src.at(2)) * factor;
+    vector<float> interp_trans{interp_x, interp_y, interp_z};
+
+    return interp_trans;
 }
 
 int SpecificWorker::startup_check()
