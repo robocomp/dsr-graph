@@ -11,10 +11,9 @@ namespace DSR
 
     class InnerAPI
     {
-        //using VEdgePtr = std::shared_ptr<VEdge>;
         using Lists = std::tuple<std::list<RMat::RTMat>, std::list<RMat::RTMat> >;
         public:
-            InnerAPI(DSRGraph *G_);
+            explicit InnerAPI(DSRGraph *G_);
 
             /////////////////////////////////////////////////
             /// Kinematic transformation methods
@@ -52,6 +51,6 @@ namespace DSR
             std::optional<InnerAPI::Lists> setLists(const std::string &origId, const std::string &destId);
 
     };
-};
+}
 
 #endif

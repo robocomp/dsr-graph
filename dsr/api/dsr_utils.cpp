@@ -31,7 +31,7 @@ QJsonDocument Utilities::file_to_QJsonDocument(const std::string &json_file_path
 	return doc;
 }
 
-void Utilities::read_from_json_file(const std::string &json_file_path,  std::function<std::optional<int>(const Node&)> insert_node)
+void Utilities::read_from_json_file(const std::string &json_file_path,  const std::function<std::optional<int>(const Node&)>& insert_node)
 {
     qDebug() << __FUNCTION__ << " Reading json file: " << QString::fromStdString(json_file_path);
 
@@ -42,7 +42,7 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
 	QJsonObject symbolMap = dsrobject.value("symbols").toObject();
     QJsonArray linksArray;
     // Read symbols (just symbols, then links in other loop)
-    foreach (const QString &key, symbolMap.keys())
+    for (const QString &key : symbolMap.keys())
     {
         QJsonObject sym_obj = symbolMap[key].toObject();
         int id = sym_obj.value("id").toInt();
@@ -109,7 +109,8 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
                     }
                     case 3: {
                         std::vector<float> v;
-                                foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
+                        for (const QVariant &value : attr_value.toList())
+                            v.push_back(value.toFloat());
                         G->runtime_checked_add_attrib_local(n,  attr_key,  v);
                         break;
                     }
@@ -119,7 +120,8 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
                     }
                     case 5: {
                         std::vector<uint8_t> v;
-                                foreach (const QVariant &value, attr_value.toList())v.push_back(static_cast<uint8_t>(value.toUInt()));
+                        for (const QVariant &value : attr_value.toList())
+                            v.push_back(static_cast<uint8_t>(value.toUInt()));
                         G->runtime_checked_add_attrib_local(n,  attr_key,  v);
                         break;
                     }
@@ -138,7 +140,7 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
         std::copy(nodeLinksArray.begin(), nodeLinksArray.end(), std::back_inserter(linksArray));
     }
     // Read links
-    foreach (const QJsonValue &linkValue, linksArray)
+    for (const auto &linkValue : linksArray)
     {
             QJsonObject link_obj = linkValue.toObject();
             int srcn = link_obj.value("src").toInt();
@@ -181,8 +183,8 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
                     }
                     case 3: {
                         std::vector<float> v;
-                                foreach (const QVariant &value, attr_value.toList())v.push_back(value.toFloat());
-
+                        for (const QVariant &val : attr_value.toList())
+                            v.push_back(val.toFloat());
                         G->runtime_checked_add_attrib_local(edge, attr_key,   v);
                         break;
                     }
@@ -192,8 +194,8 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
                     }
                     case 5: {
                         std::vector<uint8_t> v;
-                                foreach (const QVariant &value, attr_value.toList())v.push_back(static_cast<uint8_t>(value.toUInt()));
-
+                        for (const QVariant &val : attr_value.toList())
+                            v.push_back(static_cast<uint8_t>(val.toUInt()));
                         G->runtime_checked_add_attrib_local(edge, attr_key,   v);
                         break;
                     }
@@ -212,7 +214,7 @@ void Utilities::read_from_json_file(const std::string &json_file_path,  std::fun
         } //foreach(links)
 }
 
-QJsonObject Utilities::Edge_to_QObject(const Edge edge)
+QJsonObject Utilities::Edge_to_QObject(const Edge& edge)
 {
     QJsonObject link;
     link["src"] = static_cast<int>(edge.from());
@@ -262,7 +264,7 @@ QJsonObject Utilities::Edge_to_QObject(const Edge edge)
     return link;
 }
 
-QJsonObject Utilities::Node_to_QObject(const Node node)
+QJsonObject Utilities::Node_to_QObject(const Node& node)
 {
     QJsonObject symbol;
     symbol["id"] = static_cast<qint64>(node.id());
@@ -329,7 +331,7 @@ QJsonDocument Utilities::DSRGraph_to_QJsonDocument(DSR::DSRGraph *G_)
     QJsonObject dsrObject;
     QJsonArray linksArray;
     QJsonObject symbolsMap;
-    for (auto kv : G_->getCopy()) {
+    for (const auto& kv : G_->getCopy()) {
         Node node = kv.second;
         // symbol data
         QJsonObject symbol = Node_to_QObject(node);

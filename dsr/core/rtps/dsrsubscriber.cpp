@@ -33,10 +33,7 @@ using namespace eprosima::fastrtps::rtps;
 
 DSRSubscriber::DSRSubscriber() : mp_participant(nullptr), mp_subscriber(nullptr) {}
 
-DSRSubscriber::~DSRSubscriber()
-{
-    	//Domain::removeParticipant(mp_participant);
-}
+DSRSubscriber::~DSRSubscriber() = default;
 
 bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
                         const char* topicName, const char* topicDataType,
@@ -56,14 +53,6 @@ bool DSRSubscriber::init(eprosima::fastrtps::Participant *mp_participant_,
     Rparam.qos.m_reliability.kind = eprosima::fastrtps::RELIABLE_RELIABILITY_QOS;
     Rparam.historyMemoryPolicy = eprosima::fastrtps::rtps::DYNAMIC_RESERVE_MEMORY_MODE; //PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
 
-    /*
-    if (std::string_view(topicName) == "DSR") {
-        // This would be better, but we sent a lots of messages to use it.
-        //Wparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
-        Rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
-        Rparam.topic.historyQos.depth = 50; // Adjust this value if we are losing  messages
-    }
-     */
     Rparam.topic.historyQos.kind = KEEP_ALL_HISTORY_QOS;
     //Rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
     //Rparam.topic.historyQos.depth = 20; // Adjust this value if we are losing  messages

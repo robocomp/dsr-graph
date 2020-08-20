@@ -36,7 +36,6 @@
 
 #include <DSRGetID.h>
 
-#define NO_PARENT -1
 #define TIMEOUT 5000
 
 
@@ -86,7 +85,7 @@ namespace DSR
                     if (id_map.find(node.id()) == id_map.end() and name_map.find(node.name())  == name_map.end()) {
                         std::tie(r, std::ignore) = insert_node_(user_node_to_crdt(node));
                     } else throw std::runtime_error((std::string("Cannot insert node in G, a node with the same id already exists ")
-                                                     + __FILE__ + " " + __FUNCTION__ + " " + std::to_string(__LINE__)).data());
+                                                     + __FILE__ + " " + " " + std::to_string(__LINE__)).data());
                 }
                 if (r) {
                     return node.id();
@@ -152,7 +151,7 @@ namespace DSR
         std::optional<Edge> get_edge(const std::string& from, const std::string& to, const std::string& key);
         std::optional<Edge> get_edge(uint32_t from, uint32_t to, const std::string& key);
         std::optional<Edge> get_edge(const Node& n, const std::string& to, const std::string& key);
-        std::optional<Edge> get_edge(const Node& n, uint32_t to, const std::string& key);
+        static std::optional<Edge> get_edge(const Node& n, uint32_t to, const std::string& key);
         bool delete_edge(const std::string& from, const std::string& t, const std::string& key);
         bool delete_edge(uint32_t from, uint32_t t, const std::string& key);
         /**CORE END**/
@@ -169,11 +168,11 @@ namespace DSR
         std::optional<std::int32_t> get_node_level(const Node &n);
         std::optional<std::uint32_t> get_parent_id(const Node &n);
         std::optional<Node> get_parent_node(const Node &n);
-        std::string get_node_type(Node &n);
+        static std::string get_node_type(Node &n);
 
         // Edges
         std::vector<Edge> get_edges_by_type(const std::string &type);
-        std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
+        static std::vector<Edge> get_node_edges_by_type(const Node &node, const std::string &type);
         std::vector<Edge> get_edges_to_id(uint32_t id);
         std::optional<std::map<std::pair<uint32_t, std::string>, Edge>> get_edges(uint32_t id);
 
@@ -271,7 +270,7 @@ namespace DSR
             if (!ATTRIBUTE_TYPES::CHECKTYPE(att_name.data(), att_value)) {
                 throw std::runtime_error(std::string("Invalid type in attribute ") + att_name + " - " + typeid(att_value).name() + " in: " + __FILE__  " "
                     + __FUNCTION__ + " " + std::to_string(__LINE__));
-            };
+            }
 
             if constexpr (std::is_same_v<Type, Node> || std::is_same_v<Type, Edge>) {
                 Attribute at(att_value, get_unix_timestamp(), agent_id);
@@ -484,7 +483,7 @@ namespace DSR
         /////////////////////////////////////////////////
         /// AUXILIARY IMAGES SUB-API
         /////////////////////////////////////////////////
-        const std::vector<uint8_t>& get_rgb_image(const Node &n) const;
+        static const std::vector<uint8_t>& get_rgb_image(const Node &n) ;
         std::vector<float> get_depth_image(const Node &n); //return a copy
         const std::vector<uint8_t>& get_depth_image(const Node &n) const;
         /**AUXILIARY Images SUB-API**/
@@ -495,7 +494,7 @@ namespace DSR
 
         void insert_or_assign_edge_RT(Node &n, uint32_t to, const std::vector<float> &trans, const std::vector<float> &rot_euler);
         void insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float> &&trans, std::vector<float> &&rot_euler);
-        std::optional<Edge> get_edge_RT(const Node &n, uint32_t to);
+        static std::optional<Edge> get_edge_RT(const Node &n, uint32_t to);
         std::optional<RTMat> get_edge_RT_as_RTMat(const Edge &edge);
         std::optional<RTMat> get_edge_RT_as_RTMat(Edge &&edge);
         std::optional<RTMat> get_RT_pose_from_parent(const Node &n);

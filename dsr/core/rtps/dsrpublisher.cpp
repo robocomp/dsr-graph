@@ -23,10 +23,6 @@
 #include <fastrtps/publisher/Publisher.h>
 #include <fastrtps/attributes/PublisherAttributes.h>
 #include <fastrtps/Domain.h>
-#include <fastrtps/transport/UDPv4TransportDescriptor.h>
-
-#include <thread>
-#include <chrono>
 
 #include "dsrpublisher.h"
 
@@ -38,10 +34,7 @@ using namespace eprosima::fastrtps::rtps;
 
 DSRPublisher::DSRPublisher() : mp_participant(nullptr), mp_publisher(nullptr) {}
 
-DSRPublisher::~DSRPublisher()
-{
-    //eprosima::fastrtps::Domain::removeParticipant(mp_participant);
-}
+DSRPublisher::~DSRPublisher()= default;
 
 bool DSRPublisher::init(eprosima::fastrtps::Participant *mp_participant_, const char* topicName, const char* topicDataType)
 {

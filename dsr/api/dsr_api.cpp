@@ -916,7 +916,7 @@ std::string DSRGraph::get_node_type(Node &n) {
 /// Image subAPI
 ////////////////////////////////////////////////////////////////////////////
 
-const std::vector<uint8_t>& DSRGraph::get_rgb_image(const Node &n) const
+const std::vector<uint8_t>& DSRGraph::get_rgb_image(const Node &n)
 {
     auto& attrs = n.attrs();
     if (auto value  = attrs.find("rgb"); value != attrs.end())
