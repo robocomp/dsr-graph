@@ -126,6 +126,29 @@
                             }
                         },
                         "src": 1
+                    },
+                    {
+                        "dst": 84,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    350,
+                                    257,
+                                    550
+                                ]
+                            }
+                        },
+                        "src": 1
                     }
                 ],
                 "name": "world",
@@ -5653,6 +5676,43 @@
                 ],
                 "name": "viriato_head_camera_sensor",
                 "type": "rgbd"
+            },
+            "84": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -318.317413
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -356.16037
+                    }                   
+                },
+                "id": 84,
+                "links": [
+                ],
+                "name": "viriato_arm_target",
+                "type": "transform"
             }
         }
     }
