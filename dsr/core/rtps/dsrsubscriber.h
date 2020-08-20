@@ -48,9 +48,9 @@ private:
 	{
 	public:
 		SubListener() : n_matched(0),n_msg(0),participant_ID(eprosima::fastrtps::rtps::GUID_t()){};
-		~SubListener(){};
-		void onSubscriptionMatched(eprosima::fastrtps::Subscriber* sub,eprosima::fastrtps::rtps::MatchingInfo& info);
-		void onNewDataMessage(eprosima::fastrtps::Subscriber* sub);
+		~SubListener() override= default;;
+		void onSubscriptionMatched(eprosima::fastrtps::Subscriber* sub,eprosima::fastrtps::rtps::MatchingInfo& info) override;
+		void onNewDataMessage(eprosima::fastrtps::Subscriber* sub) override;
 		eprosima::fastrtps::SampleInfo_t m_info;
 		int n_matched;
 		int n_msg;

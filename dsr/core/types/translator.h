@@ -48,7 +48,7 @@ namespace DSR {
         // Dots
         std::map<pair<uint32_t, int>, CRDTNode> ds_aux;
         for (auto &[k, v] : data.dk().ds())
-            ds_aux[pair<uint32_t, int>(k.first(), k.second())] = CRDTNode(std::move(v));
+            ds_aux[pair<uint32_t, int>(k.first(), k.second())] = CRDTNode(v);
         // Join
         mvreg<CRDTNode, uint32_t> aw;
         aw.dk.c = dotcontext_aux;

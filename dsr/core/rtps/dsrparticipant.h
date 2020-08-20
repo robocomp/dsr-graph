@@ -32,13 +32,13 @@ public:
     DSRParticipant();
     virtual ~DSRParticipant();
     std::tuple<bool, eprosima::fastrtps::Participant *> init(int32_t agent_id);
-    eprosima::fastrtps::rtps::GUID_t getID() const;
-    const char *getNodeTopicName() const;
-    const char *getRequestTopicName() const;
-    const char *getAnswerTopicName() const;
-    const char *getEdgeTopicName() const;
-    const char *getNodeAttrTopicName() const;
-    const char *getEdgeAttrTopicName() const;
+    [[nodiscard]] eprosima::fastrtps::rtps::GUID_t getID() const;
+    [[nodiscard]] const char *getNodeTopicName() const;
+    [[nodiscard]] const char *getRequestTopicName() const;
+    [[nodiscard]] const char *getAnswerTopicName() const;
+    [[nodiscard]] const char *getEdgeTopicName() const;
+    [[nodiscard]] const char *getNodeAttrTopicName() const;
+    [[nodiscard]] const char *getEdgeAttrTopicName() const;
     eprosima::fastrtps::Participant *getParticipant();
 
 private:

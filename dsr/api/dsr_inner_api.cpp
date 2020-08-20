@@ -140,7 +140,7 @@ std::optional<QVec> InnerAPI::transformS(const std::string &destId, const QVec &
 	}
 	else
 		return {};
-};
+}
 
  std::optional<QVec> InnerAPI::transformS( const std::string &destId, const std::string &origId)
  {

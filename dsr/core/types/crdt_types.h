@@ -517,34 +517,10 @@ namespace DSR {
             m_fano = x.m_fano;
         }
 
-        /*CRDTNode(CRDTNode &&x)  noexcept
-        {
-            m_type = std::move(x.type());
-            m_name = std::move(x.name());
-            m_id = x.id();
-            m_agent_id = x.agent_id();
-            m_attrs = std::move(x.m_attrs);
-            m_fano = std::move(x.m_fano);
-
-        }*/
-
         explicit CRDTNode(IDL::IDLNode &&x);
 
         explicit CRDTNode(IDL::IDLNode &x);
 
-        /*
-        CRDTNode &operator=(CRDTNode &&x) noexcept
-        {
-
-            m_type = std::move(x.m_type);
-            m_name = std::move(x.m_name);
-            m_id = x.m_id;
-            m_agent_id = x.m_agent_id;
-            m_attrs = std::move(x.m_attrs);
-            m_fano = std::move(x.m_fano);
-
-            return *this;
-        }*/
 
         void type(const std::string &_type);
 
