@@ -511,8 +511,9 @@ bool DSRGraph::insert_or_assign_edge(const Edge &attrs) {
                     dsrpub_edge_attrs.write(&d);
                 }
             }
-            //std::cout << "[INSERT EDGE] : " << attrs.from() << " " << attrs.to() << " type: " << attrs.type() << std::endl;
             emit update_edge_signal(attrs.from(), attrs.to(), attrs.type());
+
+            //std::cout << "[INSERT EDGE] : " << attrs.from() << " " << attrs.to() << " type: " << attrs.type() << std::endl;
         }
     }
     return true;
@@ -588,8 +589,9 @@ void DSRGraph::insert_or_assign_edge_RT(Node &n, uint32_t to, std::vector<float>
     }
     if (!copy) {
 
-        if (node1_insert.has_value())
+        if (node1_insert.has_value()) {
             dsrpub_edge.write(&node1_insert.value());
+        }
         if (node1_update.has_value())
             for (auto &d : node1_update.value())
                 dsrpub_edge_attrs.write(&d);
