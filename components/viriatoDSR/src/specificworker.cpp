@@ -61,7 +61,7 @@ void SpecificWorker::initialize(int period)
 	else
 	{
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
 		// Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -82,24 +82,40 @@ void SpecificWorker::compute()
     //////////////
     /// read laser
     /////////////
-    if (auto ldata = laser_buffer.try_get(); ldata.has_value())
-        update_laser(ldata.value());
+    try{
+        auto ldata = laser_buffer.get();
+        update_laser(ldata);
+    } catch(...) {}
+    //if (auto ldata = laser_buffer.try_get(); ldata.has_value())
+    //    update_laser(ldata.value());
 
     //////////////
     /// read robot state
     //////////////
-    if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
-    {
-        update_omirobot(bState.value());
-        my_bstate = bState.value();
-    }
+    try{
+        auto bState = omnirobot_buffer.get();
+        update_omirobot(bState);
+        my_bstate = bState;
+    } catch(...) {}
+    //if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
+    //{
+    //    update_omirobot(bState.value());
+    //    my_bstate = bState.value();
+    //}
+
     //////////////////////////////
     /// read camera head rgbd data
     /////////////////////////////
-    auto rgb = rgb_buffer.try_get();
-    auto depth = depth_buffer.try_get();
-    if( rgb.has_value() and depth.has_value())
-        update_rgbd(rgb.value(), depth.value());
+    try {
+        auto rgb = rgb_buffer.get();
+        auto depth = depth_buffer.get();
+        update_rgbd(rgb, depth);
+    } catch (...) {}
+
+    //auto rgb = rgb_buffer.try_get();
+    //auto depth = depth_buffer.try_get();
+    //if (rgb.has_value() and depth.has_value())
+    //    update_rgbd(rgb.value(), depth.value());
 
     /////////////////////////////////////////////////////////////////////////////////////
     /// check for new base target values in robot node to be show as a dummy in Coppelia

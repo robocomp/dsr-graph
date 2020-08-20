@@ -60,6 +60,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
+        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
@@ -87,10 +88,15 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    if(auto pdata = people_data_buffer.try_get(); pdata.has_value())
+    try {
+        auto pdata = people_data_buffer.get();
+        process_people_data(pdata);
+    } catch (...) {}
+    check_unseen_people();
+    /*if(auto pdata = people_data_buffer.get(); pdata.has_value())
         process_people_data(pdata.value());
     //check people thas has not been seen
-    check_unseen_people();
+     */
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
