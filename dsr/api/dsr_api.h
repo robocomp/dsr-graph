@@ -32,7 +32,8 @@
 #include "../core/types/translator.h"
 #include "dsr_inner_api.h"
 #include "dsr_utils.h"
-#include "dsr_attr_name.h"
+#include "../core/types/type_checking/dsr_attr_name.h"
+#include "../core/utils.h"
 
 #include <DSRGetID.h>
 
@@ -43,31 +44,6 @@ namespace DSR
 {
     using Nodes = ormap<uint32_t , mvreg<CRDTNode, uint32_t>, uint32_t>;
     using IDType = std::uint32_t;
-
-
-    class hash_tuple {
-
-        template<class T>
-        struct component {
-            const T &value;
-
-            component(const T &value) : value(value) {}
-
-            uintmax_t operator,(uintmax_t n) const {
-                n ^= std::hash<T>()(value);
-                n ^= n << (sizeof(uintmax_t) * 4 - 1);
-                return n ^ std::hash<uintmax_t>()(n);
-            }
-        };
-
-    public:
-        template<class Tuple>
-        size_t operator()(const Tuple &tuple) const {
-            return std::hash<uintmax_t>()(
-                    std::apply([](const auto &... xs) { return (component(xs), ..., 0); }, tuple));
-        }
-    };
-
 
     /////////////////////////////////////////////////////////////////
     /// CRDT API
@@ -575,12 +551,6 @@ namespace DSR
         IDL::DotContext context();
         std::map<uint32_t, IDL::Mvreg> Map();
 
-
-        static uint64_t get_unix_timestamp() { //Move to utilities?
-            std::time_t st = std::time(nullptr) ;
-            auto secs = static_cast<std::chrono::seconds>(st).count();
-            return static_cast<uint64_t>(secs);
-        }
 
 
         template <typename name, typename Type, typename =  std::enable_if_t<crdt_node_or_edge<Type>> >

@@ -82,41 +82,45 @@ void SpecificWorker::compute()
     //////////////
     /// read laser
     /////////////
-    try{
+    /*try{
         auto ldata = laser_buffer.get();
         update_laser(ldata);
     } catch(...) {}
-    //if (auto ldata = laser_buffer.try_get(); ldata.has_value())
-    //    update_laser(ldata.value());
+    */
+    if (auto ldata = laser_buffer.try_get(); ldata.has_value())
+        update_laser(ldata.value());
+    else std::this_thread::yield();
 
     //////////////
     /// read robot state
     //////////////
-    try{
+    /*try{
         auto bState = omnirobot_buffer.get();
         update_omirobot(bState);
         my_bstate = bState;
     } catch(...) {}
-    //if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
-    //{
-    //    update_omirobot(bState.value());
-    //    my_bstate = bState.value();
-    //}
+    */
+    if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
+    {
+        update_omirobot(bState.value());
+        my_bstate = bState.value();
+    }
+    else std::this_thread::yield();
 
     //////////////////////////////
     /// read camera head rgbd data
     /////////////////////////////
-    try {
+    /*try {
         auto rgb = rgb_buffer.get();
         auto depth = depth_buffer.get();
         update_rgbd(rgb, depth);
     } catch (...) {}
-
-    //auto rgb = rgb_buffer.try_get();
-    //auto depth = depth_buffer.try_get();
-    //if (rgb.has_value() and depth.has_value())
-    //    update_rgbd(rgb.value(), depth.value());
-
+    */
+    auto rgb = rgb_buffer.try_get();
+    auto depth = depth_buffer.try_get();
+    if (rgb.has_value() and depth.has_value())
+        update_rgbd(rgb.value(), depth.value());
+    else std::this_thread::yield();
     /////////////////////////////////////////////////////////////////////////////////////
     /// check for new base target values in robot node to be show as a dummy in Coppelia
     ////////////////////////////////////////////////////////////////////////////////////

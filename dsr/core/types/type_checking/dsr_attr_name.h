@@ -17,10 +17,10 @@
 #include <any>
 #include <cmath>
 #include <memory>
-#include "../core/traits.h"
-#include "../core/types/crdt_types.h"
-#include "../core/types/user_types.h"
-#include "../core/types/type_checker.h"
+#include "../../traits.h"
+#include "../crdt_types.h"
+#include "../user_types.h"
+#include "type_checker.h"
 #include <qmat/QMatAll>
 
 
