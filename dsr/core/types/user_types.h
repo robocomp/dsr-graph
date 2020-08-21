@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <utility>
 #include "crdt_types.h"
-#include "type_checker.h"
+#include "type_checking/type_checker.h"
 
 #define TYPE_ASSERT_ERROR(x, y) "Error, " #x "is not a valid" #y "type"
 

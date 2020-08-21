@@ -14,18 +14,11 @@
 namespace DSR {
 
 
-    struct pair_hash
-    {
-        template<class T1, class T2>
-        std::size_t operator()(const std::pair<T1, T2> &pair) const
-        {
-            return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
-        }
-    };
-
     static constexpr std::array<std::string_view, 8> TYPENAMES_UNION = { "STRING", "INT", "FLOAT",
                                                                         "FLOAT_VEC", "BOOL", "BYTE_VEC", "UINT",};
+
     using ValType = std::variant<std::string, int32_t, float, std::vector<float>, bool, std::vector<uint8_t>, uint32_t>;
+
     enum Types : uint32_t {
         STRING,
         INT,

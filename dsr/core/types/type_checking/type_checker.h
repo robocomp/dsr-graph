@@ -10,8 +10,8 @@
 #include<functional>
 #include<any>
 #include<typeindex>
-#include "../../api/dsr_node_type.h"
-#include "../../api/dsr_edge_type.h"
+#include "dsr_node_type.h"
+#include "dsr_edge_type.h"
 
 
 class ATTRIBUTE_TYPES
