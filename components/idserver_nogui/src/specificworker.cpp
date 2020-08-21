@@ -56,7 +56,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 
 	// create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
 	G->print();
 	G->print_RT(100);
 

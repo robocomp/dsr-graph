@@ -27,8 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../graph-related-classes/CRDT.h"
-#include "../../../graph-related-classes/CRDT_graphviewer.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -40,7 +40,7 @@ public:
 	void initialize();
     
 	 // DSR
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
     std::string agent_name;
 
 	//Interface DSRGetID
