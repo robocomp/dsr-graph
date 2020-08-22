@@ -23,7 +23,8 @@
 GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
-	objectposeestimationrgbd_proxy = std::get<0>(tprx);
+	dsrgetid_proxy = std::get<0>(tprx);
+	objectposeestimationrgbd_proxy = std::get<1>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
