@@ -1,9 +1,10 @@
 CommonBehavior.Endpoints=tcp -p 10000
 
 # Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 ObjectPoseEstimationRGBDProxy = objectposeestimationrgbd:tcp -h localhost -p 10121
 
-
+# Agent configuration
 agent_id = 17
 agent_name = graspDSR
 tree_view = false
@@ -13,6 +14,10 @@ graph_view = true
 
 InnerModelPath = innermodel.xml
 
+# Grasping objects
+grasp_object = glass_1
+
+# Ice configuration
 Ice.MessageSizeMax=20004800
 
 Ice.Warn.Connections=0

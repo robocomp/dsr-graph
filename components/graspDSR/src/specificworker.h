@@ -50,6 +50,8 @@ private:
 
 	//DSR params
 	std::string agent_name;
+	std::string grasp_object;
+	
 	int agent_id;
 
 	bool tree_view;
@@ -65,8 +67,9 @@ private:
 
 	// Pose Estimation & Grasping
 
-	// Projection utilities
+	// Geometry utilities
 	vector<float> quat_to_euler(vector<float> quat);
+	vector<float> interpolate_trans(vector<float> src, vector<float> dest, float factor);
 
 	// G read utilities
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
