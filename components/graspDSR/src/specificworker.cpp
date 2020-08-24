@@ -45,6 +45,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     graph_view = params["graph_view"].value == "true";
     qscene_2d_view = params["2d_view"].value == "true";
     osg_3d_view = params["3d_view"].value == "true";
+    grasp_object = params["grasp_object"].value;
 
     return true;
 }
@@ -61,7 +62,7 @@ void SpecificWorker::initialize(int period)
     {
         timer.start(Period);
         // create graph
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
@@ -112,8 +113,44 @@ void SpecificWorker::compute()
     {
         // inject estimated poses into graph
         this->inject_estimated_poses(poses);
+
+        // get arm target and required object poses
+        auto world_node = G->get_node("world");
+        auto arm_id = G->get_id_from_name("viriato_arm_target");
+        auto object_id = G->get_id_from_name(grasp_object);
+        
+        auto world_arm_edge = G->get_edge_RT(world_node.value(), arm_id.value());
+        auto world_object_edge = G->get_edge_RT(world_node.value(), object_id.value());
+        
+        std::map<std::string, Attrib> arm_attribs = world_arm_edge.value().attrs();
+        vector<float> arm_trans = arm_attribs.at("translation").value().float_vec();
+        
+        std::map<std::string, Attrib> object_attribs = world_object_edge.value().attrs();
+        vector<float> object_trans = object_attribs.at("translation").value().float_vec();
+
+        // get euclidean distance between arm and required object (ignoring distance along z-axis)
+        float arm_object_dist = sqrt(pow(object_trans.at(0)-arm_trans.at(0), 2.0) + pow(object_trans.at(1)-arm_trans.at(1), 2.0));
+
+        // check whether required object is within arm's reach
+        if (arm_object_dist >= 0.5)
+        {
+            // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
+            vector<float> dummy_trans = this->interpolate_trans(arm_trans, object_trans, 0.2); // interpolate dummy target position
+            vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").value().float_vec(); // set dummy target rotation with object rotation
+            G->insert_or_assign_edge_RT(world_node.value(), arm_id.value(), dummy_trans, dummy_rot);
+
+            // check whether the arm target reaches the object
+            if (dummy_trans == object_trans)
+            {
+                std::cout << "The arm has reached the target object" << std::endl;
+            }
+        }
     }
 }
+
+/////////////////////////////////////////////////////////////////
+//                     G read utilities
+/////////////////////////////////////////////////////////////////
 
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
@@ -179,28 +216,76 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     }
 }
 
+/////////////////////////////////////////////////////////////////
+//                     G injection utilities
+/////////////////////////////////////////////////////////////////
+
 void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses)
 {
     // get innermodel sub-API
     auto innermodel = G->get_inner_api();
+    // get a copy of world node
+    auto world = G->get_node("world");
     // loop over each estimated object pose
     for (auto pose : poses)
     {
-        // convert quaternions into euler angles
-        vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
-        vector<float> angles = this->quat_to_euler(quat);
+        if (pose.objectname.compare(grasp_object) == 0)
+        {
+            // convert quaternions into euler angles
+            vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
+            vector<float> angles = this->quat_to_euler(quat);
 
-        // re-project estimated poses into world coordinates
-        QVec orig_point = QVec(6);
-        orig_point.setItem(0, pose.x);
-        orig_point.setItem(1, pose.y);
-        orig_point.setItem(2, pose.z);
-        orig_point.setItem(3, angles.at(0));
-        orig_point.setItem(4, angles.at(1));
-        orig_point.setItem(5, angles.at(2));
-        auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+            // re-project estimated poses into world coordinates
+            QVec orig_point = QVec(6);
+            orig_point.setItem(0, pose.x);
+            orig_point.setItem(1, pose.y);
+            orig_point.setItem(2, pose.z);
+            orig_point.setItem(3, angles.at(0));
+            orig_point.setItem(4, angles.at(1));
+            orig_point.setItem(5, angles.at(2));
+            auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+
+            // get object node id (if exists)
+            auto id = G->get_id_from_name(pose.objectname);
+
+            // check whether object node already exists
+            auto object_node = G->get_node(pose.objectname);
+            if (!object_node.has_value()) // if node doesn't exist
+            {
+                // define object node
+                Node object = Node();
+                object.type("mesh");
+                object.agent_id(agent_id);
+                object.name(pose.objectname);
+
+                // inject object node into graph
+                id = G->insert_node(object);
+
+                // check whether node is inserted or not
+                if (id.has_value())
+                {
+                    std::cout << "Node inserted successfully -> " << id.value() << ":" << G->get_name_from_id(id.value()).value() << std::endl;
+                }
+                else
+                {
+                    std::cout << "Failed to insert node!" << std::endl;
+                }
+            }
+
+            // inject estimated object pose into graph
+            vector<float> trans{final_pose->x(), final_pose->y(), final_pose->z()};
+            vector<float> rot{final_pose->rx(), final_pose->ry(), final_pose->rz()};
+            G->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+
+            // ignore rest of objects
+            break;
+        }
     }
 }
+
+/////////////////////////////////////////////////////////////////
+//                     Geometry utilities
+/////////////////////////////////////////////////////////////////
 
 vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
 {
@@ -227,12 +312,27 @@ vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
     return angles;
 }
 
+vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float> dest, float factor)
+{
+    // interpolate between the source and destination positions with the given factor
+    float interp_x = src.at(0) + (dest.at(0)-src.at(0)) * factor;
+    float interp_y = src.at(1) + (dest.at(1)-src.at(1)) * factor;
+    float interp_z = src.at(2) + (dest.at(2)-src.at(2)) * factor;
+    vector<float> interp_trans{interp_x, interp_y, interp_z};
+
+    return interp_trans;
+}
+
 int SpecificWorker::startup_check()
 {
     std::cout << "Startup check" << std::endl;
     QTimer::singleShot(200, qApp, SLOT(quit()));
     return 0;
 }
+
+/**************************************/
+// From the RoboCompDSRGetID you can call this methods:
+// this->dsrgetid_proxy->getID(...)
 
 /**************************************/
 // From the RoboCompObjectPoseEstimationRGBD you can call this methods:

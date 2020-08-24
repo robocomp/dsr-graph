@@ -27,7 +27,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "../../../dsr/api/dsr_api.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -39,7 +40,7 @@ public:
 	void initialize();
     
 	 // DSR
-    std::shared_ptr<CRDT::CRDTGraph> G;
+    std::shared_ptr<DSR::DSRGraph> G;
     std::string agent_name;
 
 	//Interface DSRGetID
@@ -50,7 +51,7 @@ public slots:
 	void initialize(int period);
 
 private:
-	uint32_t node_id = 0;
+	int node_id = -9999;
 
 	//params
 	int agent_id;
@@ -60,6 +61,9 @@ private:
 	bool dsr_write_to_file;
 
 	void get_max_id_from_G();
+
+	QGraphicsScene scene;
+	QGraphicsView gv;
 
 };
 

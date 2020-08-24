@@ -18,7 +18,6 @@
  */
 #include "specificworker.h"
 #include <QFileDialog>
-#include <iostream>
 
 /**
 * \brief Default constructor
@@ -57,70 +56,10 @@ void SpecificWorker::initialize(int period)
 	std::cout << "Initialize worker" << std::endl;
 
 	// create graph
-    G = std::make_shared<CRDT::CRDTGraph>(0, agent_name, agent_id, /*"/home/juancarlos/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/tests/testfiles/empty_file.json"*/dsr_input_file); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file); // Init nodes
+	G->print();
+	G->print_RT(100);
 
-    /*
-    //INSERTAR NODO
-    CRDT::Node node;
-    node.type("n");
-    node.id( 7777 );
-    node.agent_id(0);
-    node.name("plane" + std::to_string(7777));
-    G->add_attrib(node, "name", std::string("fucking_plane"));
-    G->add_attrib(node, "color", std::string("SteelBlue"));
-    G->add_attrib(node, "pos_x", 10.0);
-    G->add_attrib(node, "pos_y", 5.0);
-    G->add_attrib(node, "parent", 100);
-
-    auto res = G->insert_node(node);
-    std::cout << std::boolalpha << res.has_value() << std::endl;
-    G->print();
-
-    //ACTUALIZAR NODO
-
-    std::optional<CRDT::Node> n_u = G->get_node(7777);
-    if (!n_u.has_value())
-    {
-        throw std::runtime_error("ERROR OBTENIENDO EL NODO");
-    }
-
-    std::string str = std::to_string(agent_id) + "-" + std::to_string(8) + "_" + std::to_string(0);
-    CRDT::Attribute ab;
-    ab.val().str(str);
-    n_u.value().attrs()["testattrib"].write(ab);
-    G->add_or_modify(n_u.value(), "pos_x", 7.0);
-    G->add_or_modify(n_u.value(), "pos_y", 7.0);
-
-    bool r = G->update_node(n_u.value());
-    std::cout << std::boolalpha << r << std::endl;
-
-
-    G->print();
-	//G->print_RT(100);
-
-    //INSERTAR NODO 2
-
-    CRDT::Node node2;
-    node2.type("n");
-    node2.id( 7778 );
-    node2.agent_id(0);
-    node2.name("plane" + std::to_string(7778));
-    G->add_attrib(node2, "name", std::string("fucking_plane"));
-    G->add_attrib(node2, "color", std::string("SteelBlue"));
-    G->add_attrib(node2, "pos_x", 5.0);
-    G->add_attrib(node2, "pos_y", 10.0);
-    G->add_attrib(node2, "parent", 100);
-
-    res = G->insert_node(node);
-    std::cout << std::boolalpha << res.has_value() << std::endl;
-    G->print();
-
-    //INSERTAR EDGE
-
-
-
-
-    */
 
 	// Compute max Id in G
     get_max_id_from_G();

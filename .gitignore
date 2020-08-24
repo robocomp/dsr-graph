@@ -1,4 +1,4 @@
-
+.vscode
 *.new
 *.o
 **/CMakeCache\.txt
@@ -36,5 +36,3 @@ components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_initial_dsr2.json
 **/perf.data
 **/config
 **/__pycache__/
-
-

@@ -52,6 +52,8 @@ From ubuntu repositories you need:
 ```sh
 sudo apt install libasio-dev
 sudo apt install libtinyxml2-dev 
+sudo apt install libopencv-dev
+sudo apt install libqglviewer-dev-qt5
 ```
 
 You need the following third-party software:
@@ -96,9 +98,29 @@ You need the following third-party software:
       cmake ..
       cmake --build . 
       sudo make install
-      sudo apt install libasio-dev libtinyxml2-dev libqglviewer-dev-qt5
       sudo ldconfig
 ```
+
+It's assumed that you have already installed ![robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
+You must this (dsr-graph) repository in ~/robocomp/components/
+```sh
+cd ~/robocomp/components/
+git clone https://github.com/robocomp/dsr-graph/
+cd dsr-graph/components/
+```
+
+Note: To be able to build social_navigation component you need to install
+  ```sh
+  sudo apt install libfclib-dev
+  ```
+  And rebuild robocomp core with fcl support:
+  ```sh
+  cd ~/robocomp/build
+  cmake -D FCL_SUPPORT=1 ..
+  make
+  sudo make install
+  ```
+
 ## Basic use case
 
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.

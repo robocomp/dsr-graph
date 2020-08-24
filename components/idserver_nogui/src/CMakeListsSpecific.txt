@@ -3,29 +3,34 @@
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  ../../../dsr/api/dsr_api.cpp
-  ../../../dsr/core/types/crdt_types.cpp
-  ../../../dsr/core/types/user_types.cpp
-  ../../../dsr/core/rtps/dsrpublisher.cpp
-  ../../../dsr/core/rtps/dsrsubscriber.cpp
-  ../../../dsr/core/rtps/dsrparticipant.cpp
-  ../../../dsr/core/topics/DSRGraphPubSubTypes.cxx
-  ../../../dsr/core/topics/DSRGraph.cxx
-  ../../../dsr/api/dsr_inner_api.cpp
-  ../../../dsr/api/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
+  $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
+  $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_node.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
+  $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-   ../../../dsr/api/dsr_api.h
-
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
+  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
 
 )
-
 set(CMAKE_CXX_STANDARD 17)
-add_definitions(-g  -fmax-errors=1 -std=c++2a  )
+add_definitions(-g  -fmax-errors=1 -std=c++2a )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 SET(SPECIFIC_LIBS  fastcdr fastrtps osgDB)
 
