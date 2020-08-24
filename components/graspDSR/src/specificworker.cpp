@@ -170,6 +170,17 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
+
+            // assign attributes to RoboCompCameraRGBDSimple::TImage
+            rgb.image = rgb_data;
+            rgb.width = width.value();
+            rgb.height = height.value();
+            rgb.depth = depth.value();
+            rgb.cameraID = cam_id.value();
+            rgb.focalx = focalx.value();
+            rgb.focaly = focaly.value();
+            rgb.alivetime = alivetime.value();
+
             return rgb;
         }
         catch (const std::exception &e)
@@ -202,6 +213,17 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "focaly");
             const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
+
+            // assign attributes to RoboCompCameraRGBDSimple::TDepth
+            depth.depth = depth_data;
+            depth.width = width.value();
+            depth.height = height.value();
+            depth.cameraID = cam_id.value();
+            depth.focalx = focalx.value();
+            depth.focaly = focaly.value();
+            depth.depthFactor = depth_factor.value(); // set to 0.1 for viriato_head_camera_sensor
+            depth.alivetime = alivetime.value();
+
             return depth;
         }
         catch(const std::exception& e)
