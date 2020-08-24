@@ -342,6 +342,15 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
     float interp_z = src.at(2) + (dest.at(2)-src.at(2)) * factor;
     vector<float> interp_trans{interp_x, interp_y, interp_z};
 
+    float final_pose_dist = sqrt(pow(dest.at(0)-interp_trans.at(0), 2.0) + 
+                                pow(dest.at(1)-interp_trans.at(1), 2.0) + 
+                                pow(dest.at(2)-interp_trans.at(2), 2.0));
+
+    if (final_pose_dist <= 0.01)
+    {
+        return dest;
+    }
+
     return interp_trans;
 }
 
