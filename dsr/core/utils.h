@@ -2,8 +2,8 @@
 // Created by juancarlos on 21/8/20.
 //
 
-#ifndef COMPONENTS_UTILS_H
-#define COMPONENTS_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 
 
@@ -46,4 +46,4 @@ static uint64_t get_unix_timestamp() { //Move to utilities?
     return static_cast<uint64_t>(secs);
 }
 
-#endif //COMPONENTS_UTILS_H
+#endif //UTILS_H
