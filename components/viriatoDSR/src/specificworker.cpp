@@ -167,7 +167,7 @@ void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, co
         G->add_or_modify_attrib_local(node.value(), "rgb_width", rgb.width);
 		G->add_or_modify_attrib_local(node.value(), "rgb_height", rgb.height);
 		G->add_or_modify_attrib_local(node.value(), "rgb_depth", rgb.depth);
-		G->add_or_modify_attrib_local(node.value(), "rgb.cameraID", rgb.cameraID);
+		G->add_or_modify_attrib_local(node.value(), "rgb_cameraID", rgb.cameraID);
 		G->add_or_modify_attrib_local(node.value(), "rgb_focalx", rgb.focalx);
 		G->add_or_modify_attrib_local(node.value(), "rgb_focaly", rgb.focaly);
 		G->add_or_modify_attrib_local(node.value(), "rgb_alivetime", rgb.alivetime);
@@ -175,11 +175,11 @@ void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, co
 		G->add_or_modify_attrib_local(node.value(), "depth", depth.depth);
         G->add_or_modify_attrib_local(node.value(), "depth_width", depth.width);
         G->add_or_modify_attrib_local(node.value(), "depth_height", depth.height);
-        G->add_or_modify_attrib_local(node.value(), "focalx", depth.focalx);
-        G->add_or_modify_attrib_local(node.value(), "focaly", depth.focaly);
-        G->add_or_modify_attrib_local(node.value(), "depth.cameraID", depth.cameraID);
-        G->add_or_modify_attrib_local(node.value(), "depthFactor", depth.depthFactor);
-        G->add_or_modify_attrib_local(node.value(), "alivetime", depth.alivetime);
+        G->add_or_modify_attrib_local(node.value(), "depth_focalx", depth.focalx);
+        G->add_or_modify_attrib_local(node.value(), "depth_focaly", depth.focaly);
+        G->add_or_modify_attrib_local(node.value(), "depth_cameraID", depth.cameraID);
+        G->add_or_modify_attrib_local(node.value(), "depth_factor", depth.depthFactor);
+        G->add_or_modify_attrib_local(node.value(), "depth_alivetime", depth.alivetime);
         G->update_node(node.value());
     }
 }
