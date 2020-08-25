@@ -166,7 +166,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
             const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb.cameraID");
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_cameraID");
             const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
@@ -208,11 +208,11 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const std::vector<uint8_t> depth_data = G->get_depth_image(cam.value());
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth.cameraID");
-            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "focalx");
-            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "focaly");
-            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
-            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth_cameraID");
+            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focalx");
+            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focaly");
+            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depth_factor");
+            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "depth_alivetime");
 
             // assign attributes to RoboCompCameraRGBDSimple::TDepth
             depth.depth = depth_data;
