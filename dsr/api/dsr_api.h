@@ -459,9 +459,9 @@ namespace DSR
         /////////////////////////////////////////////////
         /// AUXILIARY IMAGES SUB-API
         /////////////////////////////////////////////////
-        static const std::vector<uint8_t>& get_rgb_image(const Node &n) ;
-        std::vector<float> get_depth_image(const Node &n); //return a copy
-        const std::vector<uint8_t>& get_depth_image(const Node &n) const;
+        std::optional<std::reference_wrapper<const std::vector<uint8_t>>> get_rgb_image(const Node &n) const;
+        std::optional<std::vector<float>> get_depth_image(const Node &n); //return a copy
+        std::optional<std::reference_wrapper<const std::vector<uint8_t>>> get_depth_image(const Node &n) const;
         /**AUXILIARY Images SUB-API**/
 
         /////////////////////////////////////////////////
