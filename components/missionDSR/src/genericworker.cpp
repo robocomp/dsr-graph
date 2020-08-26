@@ -23,6 +23,8 @@
 GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
+	dsrgetid_proxy = std::get<0>(tprx);
+	dsrgetid1_proxy = std::get<1>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 

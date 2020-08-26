@@ -25,7 +25,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
     this->startup_check_flag = startup_check;
-    QLoggingCategory::setFilterRules("*.debug=false\n");
+	QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -57,7 +57,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::initialize(int period)
 {
-    std::cout << "Initialize worker" << std::endl;
+	qDebug() << "Initialize worker" ;
     this->Period = period;
     if(this->startup_check_flag)
     {
@@ -68,7 +68,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-
+        //G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
@@ -77,7 +77,7 @@ void SpecificWorker::initialize(int period)
 		{
         	main = opts::graph;
 		}
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
         connect(actionSaveToFile, &QAction::triggered, [this]() {
             auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"),
@@ -104,6 +104,7 @@ void SpecificWorker::compute()
 
 void SpecificWorker::get_max_id_from_G()
 {
+	node_id = 0;
 	for (const auto &[key, node] : G->getCopy())
         if (node.id() > node_id)
             node_id = node.id();

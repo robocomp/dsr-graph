@@ -11,10 +11,10 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     std::optional<Node> world_node = G->get_node("world");
     if(world_node.has_value())
     {
-        outerRegion.setLeft(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionLeft").value());
-        outerRegion.setRight(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionRight").value());
-        outerRegion.setBottom(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionBottom").value());
-        outerRegion.setTop(G->get_attrib_by_name<int>(world_node.value(), "OuterRegionTop").value());
+        outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft>(world_node.value()).value());
+        outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight>(world_node.value()).value());
+        outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom>(world_node.value()).value());
+        outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop>(world_node.value()).value());
     }
     robot_name = params_->at("RobotName").value;
     if(outerRegion.isNull())
@@ -143,7 +143,7 @@ fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::Inne
 fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
-    std::optional<std::string> meshPath = G->get_attrib_by_name<std::string>(node, "path");
+    std::optional<std::string> meshPath = G->get_attrib_by_name<path>(node);
     osg::ref_ptr<osg::Node> osgnode_ = osgDB::readNodeFile(meshPath.value());
     if (osgnode_ != NULL)
     {
@@ -153,9 +153,9 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<D
         osgnode_->accept(calcTriangles);
 
         // Transform each of the read vertices
-        std::optional<int> scalex = G->get_attrib_by_name<int>(node, "scalex");
-        std::optional<int> scaley = G->get_attrib_by_name<int>(node, "scaley");
-        std::optional<int> scalez = G->get_attrib_by_name<int>(node, "scalez");
+        std::optional<int> scalex = G->get_attrib_by_name<scalex_att>(node);
+        std::optional<int> scaley = G->get_attrib_by_name<scaley_att>(node);
+        std::optional<int> scalez = G->get_attrib_by_name<scalez_att>(node);
         if(not (scalex.has_value() and scaley.has_value() and scalez.has_value()))
         {
             qWarning() << __FUNCTION__ << "scale attributes not found in object " << QString::fromStdString(node.name()) << " returning nullptr";
@@ -181,9 +181,9 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<D
 fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
-    std::optional<int> width = G->get_attrib_by_name<int>(node, "width");
-    std::optional<int> height = G->get_attrib_by_name<int>(node, "height");
-    std::optional<int> depth = G->get_attrib_by_name<int>(node, "depth");
+    std::optional<int> width = G->get_attrib_by_name<width_att>(node);
+    std::optional<int> height = G->get_attrib_by_name<height_att>(node);
+    std::optional<int> depth = G->get_attrib_by_name<depth_att>(node);
     if(not (width.has_value() and height.has_value() and depth.has_value()))
     {
         qWarning() << __FUNCTION__ << "size attributes not found in object " << QString::fromStdString(node.name()) << " returning nullptr";
