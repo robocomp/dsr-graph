@@ -1137,7 +1137,7 @@ inline void DSRGraph::update_maps_edge_insert(uint32_t from, uint32_t to, const 
 }
 
 
-inline std::optional<uint32_t> DSRGraph::get_id_from_name(const std::string &name)
+ std::optional<uint32_t> DSRGraph::get_id_from_name(const std::string &name)
 {
     auto v = name_map.find(name);
     if (v != name_map.end()) return v->second;
