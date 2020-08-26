@@ -7,7 +7,7 @@
 
 #include <DSRGetID.h>
 #include <random>
-#include "../../../../dsr/api/dsr_api.h"
+#include "dsr/api/dsr_api.h"
 
 static const std::string MARKER = ";";
 

@@ -35,9 +35,9 @@
 #include <controller.h>
 #include <custom_widget.h>
 
-#include "../../../dsr/api/dsr_api.h"
-#include "../../../dsr/gui/dsr_gui.h"
-#include "../../../dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
+#include "dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h"
 
 #include <localPerson.h>
 #include <cppitertools/zip.hpp>

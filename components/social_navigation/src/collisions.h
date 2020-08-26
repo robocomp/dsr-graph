@@ -5,8 +5,8 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include "../../../dsr/api/dsr_api.h"
-#include "../../../dsr/api/dsr_inner_api.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/api/dsr_inner_api.h"
 #include <CommonBehavior.h>
 
 #include <fcl/collision.h>
