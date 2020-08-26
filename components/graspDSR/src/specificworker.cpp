@@ -166,10 +166,21 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
             const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb.cameraID");
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_cameraID");
             const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
             const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
             const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
+
+            // assign attributes to RoboCompCameraRGBDSimple::TImage
+            rgb.image = rgb_data;
+            rgb.width = width.value();
+            rgb.height = height.value();
+            rgb.depth = depth.value();
+            rgb.cameraID = cam_id.value();
+            rgb.focalx = focalx.value();
+            rgb.focaly = focaly.value();
+            rgb.alivetime = alivetime.value();
+
             return rgb;
         }
         catch (const std::exception &e)
@@ -197,11 +208,22 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const std::vector<uint8_t> depth_data = G->get_depth_image(cam.value());
             const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
             const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth.cameraID");
-            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "focalx");
-            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "focaly");
-            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depthFactor");
-            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "alivetime");
+            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth_cameraID");
+            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focalx");
+            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focaly");
+            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depth_factor");
+            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "depth_alivetime");
+
+            // assign attributes to RoboCompCameraRGBDSimple::TDepth
+            depth.depth = depth_data;
+            depth.width = width.value();
+            depth.height = height.value();
+            depth.cameraID = cam_id.value();
+            depth.focalx = focalx.value();
+            depth.focaly = focaly.value();
+            depth.depthFactor = depth_factor.value(); // set to 0.1 for viriato_head_camera_sensor
+            depth.alivetime = alivetime.value();
+
             return depth;
         }
         catch(const std::exception& e)
@@ -319,6 +341,15 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
     float interp_y = src.at(1) + (dest.at(1)-src.at(1)) * factor;
     float interp_z = src.at(2) + (dest.at(2)-src.at(2)) * factor;
     vector<float> interp_trans{interp_x, interp_y, interp_z};
+
+    float final_pose_dist = sqrt(pow(dest.at(0)-interp_trans.at(0), 2.0) + 
+                                pow(dest.at(1)-interp_trans.at(1), 2.0) + 
+                                pow(dest.at(2)-interp_trans.at(2), 2.0));
+
+    if (final_pose_dist <= 0.01)
+    {
+        return dest;
+    }
 
     return interp_trans;
 }
