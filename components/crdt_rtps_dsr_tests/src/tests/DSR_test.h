@@ -2,12 +2,12 @@
 // Created by juancarlos on 7/5/20.
 //
 
-#ifndef DSR_RTPS_DSR_STRINGS_DSR_TEST_H
-#define DSR_RTPS_DSR_STRINGS_DSR_TEST_H
+#ifndef DSR_TEST_BASE_H
+#define DSR_TEST_BASE_H
 
 #include <DSRGetID.h>
 #include <random>
-#include <dsr/api/dsr_api.h>
+#include "dsr/api/dsr_api.h"
 
 static const std::string MARKER = ";";
 
@@ -40,7 +40,6 @@ protected:
     std::pair<int, int> removeEdgeIDs();
     std::pair<int, int> getEdgeIDs();
 
-    int newID();
     int removeID();
     int getID();
 
@@ -66,11 +65,11 @@ private:
     std::uniform_real_distribution<float> dist;
     std::uniform_int_distribution<int> random_selector, random_pos;
 
-    std::vector<int> created_nodos;
     std::vector<std::pair<int, int>> created_edges;
-    std::mutex mut;
-
+    std::shared_mutex mut;
+protected:
+    std::vector<int> created_nodes;
 };
 
 
-#endif //DSR_RTPS_DSR_STRINGS_DSR_TEST_H
+#endif //DSR_TEST_BASE_H

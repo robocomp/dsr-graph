@@ -78,19 +78,19 @@ Q_OBJECT
         void del_edge_attrib_slot();
 
         //G signals
-        void G_add_or_assign_node_slot(const std::int32_t id, const std::string &type);
-        void G_add_or_assign_edge_slot(const std::int32_t from, const std::int32_t to, const std::string& type);
-        void G_del_node_slot(const std::int32_t id);
-        void G_del_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &edge_tag);
+        void G_add_or_assign_node_slot(const std::uint32_t id, const std::string &type);
+        void G_add_or_assign_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string& type);
+        void G_del_node_slot(const std::uint32_t id);
+        void G_del_edge_slot(const std::uint32_t from, const std::uint32_t to, const std::string &edge_tag);
 
 
 	private:
-		void fill_table(QTableWidget *table_widget, std::map<std::string, Attrib> attrib);
-		std::map<std::string, Attrib> get_table_content(QTableWidget *table_widget, std::map<std::string, Attrib> attrs);
+		void fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrib);
+		std::map<std::string, DSR::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs);
 
 
 };
-Q_DECLARE_METATYPE(Node);
-Q_DECLARE_METATYPE(Edge);
+Q_DECLARE_METATYPE(DSR::Node);
+Q_DECLARE_METATYPE(DSR::Edge);
 
 #endif

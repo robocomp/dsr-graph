@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C)2018 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -64,8 +64,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_input_file = params["dsr_input_file"].value;
 
     test_name = params["test_name"].value;
-//    gui = params["gui"].value == "true";
-
     return true;
 }
 
@@ -77,38 +75,32 @@ void SpecificWorker::initialize(int period) {
     //G->print();
 
     // Graph viewer
-    using opts = DSR::GraphViewer::view;
-    graph_viewer = std::make_unique<DSR::GraphViewer>(this, G, opts::scene|opts::osg|opts::graph|opts::tree, opts::scene);
+    using opts = DSR::DSRViewer::view;
 
+    dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G,/*opts::scene|*/opts::graph/*|opts::tree|opts::osg*/, opts::graph);
     setWindowTitle(QString::fromStdString(agent_name));
+    connect(actionSave, &QAction::triggered,  [this]()
+    {
+        auto file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home/robocomp/robocomp/components/dsr-graph/etc",
+                                                      tr("JSON Files (*.json)"), nullptr,
+                                                      QFileDialog::Option::DontUseNativeDialog);
+        G->write_to_json_file(file_name.toStdString());
+        qDebug() << __FUNCTION__ << "Written";
+    });
 
-
-    // qDebug() << __FUNCTION__ << "Graph Viewer started";
-    
-
-    //test = std::make_shared<Test_utils>(dsrgetid_proxy);
-    //G_api_test = CRDT_G_api_test(test, dsr_test_file, dsr_empty_test_file );
-    //DSR_test dst_test;
-    //timer.start(300);
-    //autokill_timer.start(10000);
-
-    sleep(5);
-    compute();
 }
 
 void SpecificWorker::compute()
 {
     qDebug()<<"COMPUTE";
 
-    constexpr std::array<std::string_view, 7> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start"};
+    constexpr std::array<std::string_view, 7> tests = { "insert_remove_node", "insert_remove_edge", "change_attribute", "conflict_resolution", "concurrent_operations", "delayed_start", "noname"};
     auto iter = std::find(tests.begin(), tests.end(), test_name);
-    std::distance(tests.begin(), iter);
-
+    bool exit_ = true;
     switch(std::distance(tests.begin(), iter)){
-        
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
-            DSR_insert_remove_node concurrent_test = DSR_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -116,7 +108,7 @@ void SpecificWorker::compute()
         }
         case 1: {
             qDebug() << "INSERT AND REMOVE EDGES TEST:";
-            DSR_insert_remove_edge concurrent_test = DSR_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -124,7 +116,7 @@ void SpecificWorker::compute()
         }
         case 2: {
             qDebug() << "CHANGE ATTRIBUTES TEST:";
-            DSR_change_attribute concurrent_test = DSR_change_attribute(dsrgetid_proxy, G, dsr_output_file,  test_output_file,5000, agent_id);
+            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file,  test_output_file,5000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -132,7 +124,7 @@ void SpecificWorker::compute()
         }
         case 3: {
             qDebug() << "CONFLICT RESOLUTION TEST:";
-            DSR_conflict_resolution concurrent_test = DSR_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, test_output_file, 10000, agent_id);
+            CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, test_output_file, 10000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -140,50 +132,33 @@ void SpecificWorker::compute()
         }
         case 4: {
             qDebug() << "CONCURRENT OPERATIONS TEST:";
-            DSR_concurrent_operations concurrent_test = DSR_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
+            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
             concurrent_test.run_test();
-            std::this_thread::sleep_for(std::chrono::seconds (60));
+            std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
             break;
         }
         case 5: {
             qDebug() << "DELAYED START TEST:";
-            DSR_delayed_start concurrent_test = DSR_delayed_start(dsrgetid_proxy, G, dsr_output_file,  test_output_file,1200, agent_id);
+            CRDT_delayed_start concurrent_test = CRDT_delayed_start(dsrgetid_proxy, G, dsr_output_file,  test_output_file,1200, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (20));
             concurrent_test.save_json_result();
             break;
         }
+        case 6: {
+            qDebug() << "DUMMY:";
+            exit_ = false;
+            break;
+        }
         default: {
             qDebug() << "TEST NOT FOUND";
-
-            DSR::DSRGraph copy = G->G_copy();
-
-            //Obtenemnos un nodo
-            copy.print_node(copy.get_id_from_name("world").value());
-            Node n = copy.get_node("world").value();
-            //Añadimos un atributo
-            copy.insert_attrib_by_name(n, "prueba", 1.0f);
-            copy.print_node(n.id());
-            G->print_node(n.id());
-
-            //Añadimos un nodo
-            Node n_new;
-            n_new.type("D");
-
-            auto id = copy.insert_node(n_new);
-            if (id.has_value()) {
-                copy.print_node(id.value());
-                G->print_node(id.value());
-
-            } else {
-                qDebug() << "ERROR";
-            }
-            //break;
+            std::terminate();
         }
     }
 
-    //exit(0);
+    //if (exit_)
+    //    exit(0);
 
 }
 
@@ -213,86 +188,4 @@ int SpecificWorker::newID()
     }
     return node_id;
 }
-
-// void SpecificWorker::test_nodes_mov() {
-//     static int cont = 0;
-//     if (cont<LAPS) {
-//         try {
-//             for (auto x : G->get_list()) {
-//                 for (auto &[k, v] : x.attrs) {
-//                     if(k == "pos_x" || k == "pos_y") {
-//                         std::string nValue = std::to_string(std::stoi(v.value) + dist(mt));
-//                         cout << "Nodo: "<<x.id<<", antes: "<<v<<", ahora: "<<nValue<<endl;
-//                         G->add_node_attrib(x.id, k, v.type, nValue, v.length);
-//                     }
-//                 }
-//             }
-//             std::cout<<"Working..."<<cont<<std::endl;
-//             cont++;
-// //            auto toDelete = randomNode(mt);
-// //            std::cout<<"Deleting.... "<<toDelete<<std::endl;
-// //            G->delete_node(toDelete);
-//         }
-//         catch (const Ice::Exception &e) {
-//             std::cout << "Error reading from Laser" << e << std::endl;
-//         }
-//     } else if (cont == LAPS)
-//     {
-// //        auto to_delete = randomNode(mt);
-// ////        int to_delete = 118;
-// //        std::cout<<"Antes "<<to_delete<<std::endl;
-// //        G->delete_node(to_delete);
-// //        std::cout<<"Fin "<<std::endl;
-//         cont++;
-//     } else
-//         std::cout<<"nada "<<std::endl;
-// }
-
-// void SpecificWorker::test_node_random()
-// {   static int cont = 0;
-//     if (cont<NODES) {
-//         try {
-//             int to_move = randomNode(mt);
-//             if (G->in(to_move))
-//             {
-//                 std::cout << "[" << cont << "] to_move: " << to_move << std::endl;
-//                 float p_x = G->get_node_attrib_by_name<float>(to_move, "pos_x");
-//                 p_x += dist(mt);
-//                 float p_y = G->get_node_attrib_by_name<float>(to_move, "pos_y");
-//                 p_y += dist(mt);
-//                 G->add_node_attrib(to_move, "pos_x", p_x);
-//                 G->add_node_attrib(to_move, "pos_y", p_y);
-//             }
-//         } catch (const std::exception &e) {
-//             std::cout << "EXCEPTION: " << __FILE__ << " " << __FUNCTION__ << ":" << __LINE__ << " " << e.what()
-//                       << std::endl;
-//         };
-//         cont++;
-//     }
-// }
-
-// void SpecificWorker::tester() {
-//     try {
-//         static int cont = 0, laps = 1;
-//         if (laps < LAPS) {
-//             try {
-//                 cont++;
-//                 auto test = Node{
-//                         "foo_id:" + std::to_string(cont) + "_laps:" + std::to_string(laps) + "_" + agent_name, cont};
-// //            std::cout <<" New node: "<< test << std::endl;
-//                 G->insert_or_assign(cont, test);
-//             }
-//             catch (const std::exception &ex) { cerr << __FUNCTION__ << " -> " << ex.what() << std::endl; }
-
-//             if (cont == NODES) {
-//                 cont = 0;
-//                 laps++;
-//             }
-//         } else if (laps == LAPS) {
-// //            G->print();
-//             laps++;
-//         } else
-//             sleep(5);
-//     } catch(const std::exception &e){ std::cout <<__FILE__ << " " << __FUNCTION__ << " "<< e.what() << std::endl;};
-// }
 
