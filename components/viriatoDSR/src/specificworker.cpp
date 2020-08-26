@@ -61,7 +61,7 @@ void SpecificWorker::initialize(int period)
 	else
 	{
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
 		// Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -84,6 +84,7 @@ void SpecificWorker::compute()
     /////////////
     if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
+    else std::this_thread::yield();
 
     //////////////
     /// read robot state
@@ -93,24 +94,25 @@ void SpecificWorker::compute()
         update_omirobot(bState.value());
         my_bstate = bState.value();
     }
+    else std::this_thread::yield();
+
     //////////////////////////////
     /// read camera head rgbd data
     /////////////////////////////
     auto rgb = rgb_buffer.try_get();
     auto depth = depth_buffer.try_get();
-    if( rgb.has_value() and depth.has_value())
+    if (rgb.has_value() and depth.has_value())
         update_rgbd(rgb.value(), depth.value());
-
+    else std::this_thread::yield();
     /////////////////////////////////////////////////////////////////////////////////////
     /// check for new base target values in robot node to be show as a dummy in Coppelia
     ////////////////////////////////////////////////////////////////////////////////////
     static float current_base_target_x = 0;
     static float current_base_target_y = 0;
-    auto robot = G->get_node(robot_name);
     if( auto robot = G->get_node(robot_name); robot.has_value())
     {
-        auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
-        auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+        auto x = G->get_attrib_by_name<base_target_x_att>(robot.value());
+        auto y = G->get_attrib_by_name<base_target_y_att>(robot.value());
         if( x.has_value() and y.has_value())
             if(x.value() != current_base_target_x or y.value() != current_base_target_y)
             {
@@ -135,11 +137,11 @@ void SpecificWorker::compute()
             };
     if( auto pan_tilt = G->get_node(viriato_pan_tilt); pan_tilt.has_value())
     {
-        auto target = G->get_attrib_by_name<std::vector<float>>(pan_tilt.value(), nose_target);
+        auto target = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value());
         if (target.has_value() and not equals(target.value(), ant_nose_target, 1.0))
         {
             // convert target to world reference
-            RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value()[0], target.value()[1], target.value()[2], 0.0, 0.0, 0.0};
+            RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
             try
             { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
             catch (const Ice::Exception &e)
@@ -163,25 +165,26 @@ void SpecificWorker::update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, co
 	auto node = G->get_node(camera_name);
 	if (node.has_value())
 	{
-		G->add_or_modify_attrib_local(node.value(), "rgb", rgb.image);
-        G->add_or_modify_attrib_local(node.value(), "rgb_width", rgb.width);
-		G->add_or_modify_attrib_local(node.value(), "rgb_height", rgb.height);
-		G->add_or_modify_attrib_local(node.value(), "rgb_depth", rgb.depth);
-		G->add_or_modify_attrib_local(node.value(), "rgb_cameraID", rgb.cameraID);
-		G->add_or_modify_attrib_local(node.value(), "rgb_focalx", rgb.focalx);
-		G->add_or_modify_attrib_local(node.value(), "rgb_focaly", rgb.focaly);
-		G->add_or_modify_attrib_local(node.value(), "rgb_alivetime", rgb.alivetime);
+		G->add_or_modify_attrib_local<rgb_att>(node.value(),  rgb.image);
+		G->add_or_modify_attrib_local<rgb_width>(node.value(),  rgb.width);
+		G->add_or_modify_attrib_local<rgb_height>(node.value(),  rgb.height);
+		G->add_or_modify_attrib_local<rgb_depth>(node.value(),  rgb.depth);
+		G->add_or_modify_attrib_local<rgb_cameraID>(node.value(),  rgb.cameraID);
+		G->add_or_modify_attrib_local<rgb_focalx>(node.value(),  rgb.focalx);
+		G->add_or_modify_attrib_local<rgb_focaly>(node.value(), rgb.focaly);
+		G->add_or_modify_attrib_local<rgb_alivetime>(node.value(),  rgb.alivetime);
+
 		// depth
-		G->add_or_modify_attrib_local(node.value(), "depth", depth.depth);
-        G->add_or_modify_attrib_local(node.value(), "depth_width", depth.width);
-        G->add_or_modify_attrib_local(node.value(), "depth_height", depth.height);
-        G->add_or_modify_attrib_local(node.value(), "depth_focalx", depth.focalx);
-        G->add_or_modify_attrib_local(node.value(), "depth_focaly", depth.focaly);
-        G->add_or_modify_attrib_local(node.value(), "depth_cameraID", depth.cameraID);
-        G->add_or_modify_attrib_local(node.value(), "depth_factor", depth.depthFactor);
-        G->add_or_modify_attrib_local(node.value(), "depth_alivetime", depth.alivetime);
-        G->update_node(node.value());
-    }
+		G->add_or_modify_attrib_local<img_depth>(node.value(), depth.depth);
+        G->add_or_modify_attrib_local<depth_width>(node.value(), depth.width);
+        G->add_or_modify_attrib_local<depth_height>(node.value(), depth.height);
+        G->add_or_modify_attrib_local<focalx>(node.value(), depth.focalx);
+        G->add_or_modify_attrib_local<focaly>(node.value(), depth.focaly);
+        G->add_or_modify_attrib_local<depth_cameraID>(node.value(), depth.cameraID);
+        G->add_or_modify_attrib_local<depthFactor>(node.value(), depth.depthFactor);
+        G->add_or_modify_attrib_local<alivetime>(node.value(), depth.alivetime);
+		G->update_node(node.value());
+	}
 }
 
 void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
@@ -196,8 +199,8 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData& ldata)
 	auto node = G->get_node("laser");
 	if (node.has_value())
 	{
-		G->add_or_modify_attrib_local(node.value(), "dists", dists);
-		G->add_or_modify_attrib_local(node.value(), "angles", angles);
+		G->add_or_modify_attrib_local<dists_att>(node.value(),  dists);
+		G->add_or_modify_attrib_local<angles_att>(node.value(),  angles);
 		G->update_node(node.value());
 	}
 }
@@ -221,10 +224,10 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
 	if( areDifferent(bState.x, last_state.x, FLT_EPSILON) or areDifferent(bState.z, last_state.z, FLT_EPSILON) or areDifferent(bState.alpha, last_state.alpha, FLT_EPSILON))
 	{
 		auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
-		G->modify_attrib_local(edge, "rotation_euler_xyz", std::vector<float>{0., bState.alpha, 0.});
-        G->modify_attrib_local(edge, "translation", std::vector<float>{bState.x, 0., bState.z});
-        G->modify_attrib_local(edge, "linear_speed", std::vector<float>{bState.advVx, 0 , bState.advVz});
-        G->modify_attrib_local(edge, "angular_speed", std::vector<float>{0, bState.rotV, 0});
+		G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., bState.alpha, 0.});
+        G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x, 0., bState.z});
+        G->modify_attrib_local<linear_speed_att>(edge,  std::vector<float>{bState.advVx, 0 , bState.advVz});
+        G->modify_attrib_local<angular_speed_att>(edge,  std::vector<float>{0, bState.rotV, 0});
         G->insert_or_assign_edge(edge);
         last_state = bState;
 	}
@@ -240,9 +243,9 @@ void SpecificWorker::checkNewCommand(const RoboCompGenericBase::TBaseState& bSta
         std::cout << __FUNCTION__ << " No node " <<  "this->robot_name" << std::endl;
         return;
     }
-    auto ref_adv_speed = G->get_attrib_by_name<float>(robot.value(), "ref_adv_speed");
-    auto ref_rot_speed = G->get_attrib_by_name<float>(robot.value(), "ref_rot_speed");
-    auto ref_side_speed = G->get_attrib_by_name<float>(robot.value(), "ref_side_speed");
+    auto ref_adv_speed = G->get_attrib_by_name<ref_adv_speed_att>(robot.value());
+    auto ref_rot_speed = G->get_attrib_by_name<ref_rot_speed_att>(robot.value());
+    auto ref_side_speed = G->get_attrib_by_name<ref_side_speed_att>(robot.value());
     if(not ref_adv_speed.has_value() or not ref_rot_speed.has_value() or not ref_side_speed.has_value())
     {
         std::cout << __FUNCTION__ << " No valid attributes for robot speed" << std::endl;

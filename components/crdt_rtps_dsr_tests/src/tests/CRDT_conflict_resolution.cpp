@@ -9,14 +9,17 @@
 #include <random>
 #include <fstream>
 
-void DSR_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
+#include <type_traits>
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+
+void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     static int it = 0;
     while (it++ < num_ops)
     {
         start = std::chrono::steady_clock::now();
         // request node
-        std::optional<Node> node = G->get_node(100);
+        std::optional<DSR::Node> node = G->get_node("world");
         if (!node.has_value())
         {
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
@@ -24,28 +27,15 @@ void DSR_conflict_resolution::insert_or_assign_attributes(int i, const shared_pt
 
         std::string str = std::to_string(agent_id) + "-"+ std::to_string(it);
 
-        auto at = node.value().attrs().find("testattrib");
-        if (at == node.value().attrs().end()) {
-            Val v;
-            v.str(str);
-            Attrib ab;
-            ab.value(v);
-            ab.type(STRING);
-            node.value().attrs()["testattrib"] = ab;
-            node->agent_id(agent_id);
-            G->add_attrib_local(node.value(), "pos_x", rnd_float());
-            G->add_attrib_local(node.value(), "pos_y", rnd_float());
-        }
-        else {
-            at->second.value().str(str);
-            G->modify_attrib_local(node.value(), "pos_x", rnd_float());
-            G->modify_attrib_local(node.value(), "pos_y", rnd_float());
-        }
+        DSR::Attribute ab (str, 0, agent_id);
+        node.value().attrs()["testattrib"] = ab;
 
+        G->add_or_modify_attrib_local<pos_x_att>(node.value(), rnd_float());
+        G->add_or_modify_attrib_local<pos_y_att>(node.value(), rnd_float());
         bool r = G->update_node(node.value());
 
         if (!r) {
-            throw std::runtime_error("ERROR INSERTANDO EL NODO");
+            throw std::runtime_error("ERROR ACTUALIZANDO EL NODO");
         }
         end = std::chrono::steady_clock::now();
         times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
@@ -55,7 +45,7 @@ void DSR_conflict_resolution::insert_or_assign_attributes(int i, const shared_pt
 }
 
 
-void DSR_conflict_resolution::run_test()
+void CRDT_conflict_resolution::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -75,7 +65,7 @@ void DSR_conflict_resolution::run_test()
     }
 }
 
-void DSR_conflict_resolution::save_json_result() {
+void CRDT_conflict_resolution::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

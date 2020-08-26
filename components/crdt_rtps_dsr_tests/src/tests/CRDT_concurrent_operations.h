@@ -2,19 +2,20 @@
 // Created by juancarlos on 7/5/20.
 //
 
-#ifndef DSR_RTPS_DSR_TEST_concurrent_insert_remove_node_H
-#define DSR_RTPS_DSR_TEST_concurrent_insert_remove_node_H
+#ifndef CRDT_RTPS_DSR_TEST_concurrent_insert_remove_node_H
+#define CRDT_RTPS_DSR_TEST_concurrent_insert_remove_node_H
 
 #include "DSR_test.h"
+#include "dsr/api/dsr_api.h"
 
 
-class DSR_concurrent_operations : DSR_test {
+class CRDT_concurrent_operations : DSR_test {
 public:
-    DSR_concurrent_operations () {};
-    DSR_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_, int num_threads_, int agent_id_)
+    CRDT_concurrent_operations () {};
+    CRDT_concurrent_operations(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_, int num_threads_, int agent_id_)
         : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_), num_threads(num_threads_), agent_id(agent_id_) {times.resize(num_ops*num_threads); };
 
-    DSR_concurrent_operations& operator=(DSR_concurrent_operations&& t) {
+    CRDT_concurrent_operations& operator=(CRDT_concurrent_operations&& t) {
         dsrgetid_proxy = std::move(t.dsrgetid_proxy);
         output_result = std::move(t.output_result);
         G = t.G;
@@ -26,7 +27,7 @@ public:
         return *this;
     }
 
-    ~DSR_concurrent_operations() {};
+    ~CRDT_concurrent_operations() {};
 
     void save_json_result();
     void run_test();
@@ -48,4 +49,4 @@ private:
 };
 
 
-#endif //DSR_RTPS_DSR_STRINGS_DSR_CONCURRENT_TEST_H
+#endif //CRDT_RTPS_DSR_STRINGS_CRDT_CONCURRENT_TEST_H

@@ -6,7 +6,7 @@
 #define COLLISIONS_H
 
 #include "dsr/api/dsr_api.h"
-#include <dsr/api/dsr_inner_api.h>
+#include "dsr/api/dsr_inner_api.h"
 #include <CommonBehavior.h>
 
 #include <fcl/collision.h>
@@ -25,8 +25,11 @@
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
+
 typedef fcl::BVHModel<fcl::OBBRSS> FCLModel;
 typedef std::shared_ptr<FCLModel> FCLModelPtr;
+
+using namespace DSR;
 
 struct IncludeTrianglesInFCL_functor
 {

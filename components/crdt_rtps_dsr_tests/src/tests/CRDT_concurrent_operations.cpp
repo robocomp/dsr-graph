@@ -8,7 +8,11 @@
 #include <thread>
 #include <fstream>
 
-void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
+
+#include <type_traits>
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+
+void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
 {
     int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
@@ -25,19 +29,20 @@ void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<
             if ( rnd_selector())
             {
                 // create node
-                auto id = newID();
-                Node node; node.type("n"); node.id(id);
+                DSR::Node node;
+                node.type("n"); //node.id(id);
                 node.agent_id(agent_id);
-                node.name("plane" + std::to_string(id));
-                G->add_attrib_local(node, "name", std::string("fucking_plane"));
-                G->add_attrib_local(node, "color", std::string("SteelBlue"));
-                G->add_attrib_local(node, "pos_x", rnd_float());
-                G->add_attrib_local(node, "pos_y", rnd_float());
-                G->add_attrib_local(node, "parent", 100);
+                //node.name("plane" + std::to_string(id));
+                G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
+                G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
+                G->add_attrib_local<pos_x_att>(node,  rnd_float());
+                G->add_attrib_local<pos_y_att>(node,  rnd_float());
+                G->add_attrib_local<parent_att>(node,  100u);
 
                 auto res = G->insert_node(node);
                 if (res.has_value()) {
-                    qDebug() << "Created node:" << id;
+                    created_nodes.push_back(res.value());
+                    qDebug() << "Created node:" << res.value();
                     r = true;
                 }
                 else
@@ -59,13 +64,13 @@ void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<
         {
             if(rnd_selector() == 0)
             {
-                Edge edge;
+                DSR::Edge edge;
                 edge.type("Edge");
                 //get two ids
                 edge.from(getID());
                 edge.to(getID());
-                G->add_attrib_local(edge, "name", std::string("fucking_plane"));
-                G->add_attrib_local(edge, "color", std::string("SteelBlue"));
+                G->add_attrib_local<name_att>(edge,  std::string("fucking_plane"));
+                G->add_attrib_local<color_att>(edge,  std::string("SteelBlue"));
 
                 r = G->insert_or_assign_edge(edge);
                 if (r) {
@@ -92,7 +97,7 @@ void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<
             auto nid = keys.at(rnd(mt));
             //qDebug() << __FUNCTION__ << nid;
             if(nid<0) continue;
-            std::optional<Node> node = G->get_node(nid);
+            std::optional<DSR::Node> node = G->get_node(nid);
             if (!node.has_value())
             {
                 qDebug() << "ERROR OBTENIENDO EL NODO";
@@ -103,22 +108,17 @@ void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<
             }
 
             std::string str = std::to_string(agent_id) + "_" + std::to_string(i) + "_" + std::to_string(it);
-
-            auto at = node.value().attrs().find("testattrib");
-            if (at == node.value().attrs().end()) {
-                Val v; v.str(str);
-                Attrib ab; ab.value(v); ab.type(STRING);
-                node.value().attrs()["testattrib"] = ab;
-                G->add_attrib_local(node.value(), "pos_x", rnd_float());
-                G->add_attrib_local(node.value(), "pos_y", rnd_float());
-            }
-            else {
-                at->second.value().str(str);
-                G->modify_attrib_local(node.value(), "pos_x", rnd_float());
-                G->modify_attrib_local(node.value(), "pos_y", rnd_float());
+            if (rnd_selector()) {
+                G->add_or_modify_attrib_local<testattrib_att>(node.value(), str) ;
+            } else {
+                G->remove_attrib_local(node.value(), "testattrib") ;
             }
 
+
+            G->modify_attrib_local<pos_x_att>(node.value(),  rnd_float());
+            G->modify_attrib_local<pos_y_att>(node.value(),  rnd_float());
             node->agent_id(agent_id);
+            G->print_node(node->id());
             r = G->update_node(node.value());
 
             if (!r) {
@@ -142,13 +142,13 @@ void DSR_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<
 }
 
 
-void DSR_concurrent_operations::run_test()
+void CRDT_concurrent_operations::run_test()
 {
     try {
         threads.resize(num_threads);
 
         for (int i = 0; thread &t: threads) {
-            t = std::thread(&DSR_concurrent_operations::concurrent_ops,this, i++, num_ops, G);
+            t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, i++, num_ops, G);
         }
         //create_or_remove_nodes(0, G);
         start_global = std::chrono::steady_clock::now();
@@ -170,7 +170,7 @@ void DSR_concurrent_operations::run_test()
     }
 }
 
-void DSR_concurrent_operations::save_json_result() {
+void CRDT_concurrent_operations::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);

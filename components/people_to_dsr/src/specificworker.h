@@ -36,6 +36,8 @@
 #include "dsr/gui/dsr_gui.h"
 #include <QHBoxLayout>
 
+using namespace DSR;
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -53,7 +55,7 @@ public slots:
     void initialize(int period);
     int startup_check();
 
-private: 
+private:
     //DSR params
     std::unique_ptr<DSR::InnerAPI> innermodel;
     std::shared_ptr<DSR::DSRGraph> G;
@@ -106,9 +108,9 @@ private:
 
     DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
     std::unordered_map<int, int> G_person_id;
-    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  int parent_idz);
-    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, int parent_id);
-    void process_people_data(RoboCompHumanToDSRPub::PeopleData people);    
+    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_idz);
+    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id);
+    void process_people_data(RoboCompHumanToDSRPub::PeopleData people);
     void check_unseen_people();
 
     const std::string person_path = "/home/robocomp/robocomp/components/robocomp-viriato/files/osgModels/";
