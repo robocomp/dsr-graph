@@ -6,7 +6,7 @@
 #define CRDT_RTPS_DSR_TEST_concurrent_insert_remove_node_H
 
 #include "DSR_test.h"
-#include "../../../../dsr/api/dsr_api.h"
+#include "dsr/api/dsr_api.h"
 
 
 class CRDT_concurrent_operations : DSR_test {

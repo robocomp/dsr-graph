@@ -28,8 +28,8 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include "../../../dsr/api/dsr_api.h"
-#include "../../../dsr/gui/dsr_gui.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 #include <custom_widget.h>
 

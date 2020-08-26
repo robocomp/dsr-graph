@@ -33,8 +33,8 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <genericworker.h>
-#include "../../../dsr/api/dsr_api.h"
-#include "../../../dsr/gui/dsr_gui.h"
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 
 class SpecificWorker : public GenericWorker
