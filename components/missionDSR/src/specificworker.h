@@ -31,6 +31,8 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 
+#include <custom_widget.h>
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -45,7 +47,13 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+    
+    //custom_widget
+    
 private:
+    //local widget
+    Custom_widget custom_widget;
+    
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 

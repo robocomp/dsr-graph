@@ -82,11 +82,6 @@ void SpecificWorker::compute()
     //////////////
     /// read laser
     /////////////
-    /*try{
-        auto ldata = laser_buffer.get();
-        update_laser(ldata);
-    } catch(...) {}
-    */
     if (auto ldata = laser_buffer.try_get(); ldata.has_value())
         update_laser(ldata.value());
     else std::this_thread::yield();
@@ -94,12 +89,6 @@ void SpecificWorker::compute()
     //////////////
     /// read robot state
     //////////////
-    /*try{
-        auto bState = omnirobot_buffer.get();
-        update_omirobot(bState);
-        my_bstate = bState;
-    } catch(...) {}
-    */
     if (auto bState = omnirobot_buffer.try_get(); bState.has_value())
     {
         update_omirobot(bState.value());
@@ -110,12 +99,6 @@ void SpecificWorker::compute()
     //////////////////////////////
     /// read camera head rgbd data
     /////////////////////////////
-    /*try {
-        auto rgb = rgb_buffer.get();
-        auto depth = depth_buffer.get();
-        update_rgbd(rgb, depth);
-    } catch (...) {}
-    */
     auto rgb = rgb_buffer.try_get();
     auto depth = depth_buffer.try_get();
     if (rgb.has_value() and depth.has_value())
@@ -246,7 +229,6 @@ void SpecificWorker::update_omirobot(const RoboCompGenericBase::TBaseState& bSta
         G->modify_attrib_local<linear_speed_att>(edge,  std::vector<float>{bState.advVx, 0 , bState.advVz});
         G->modify_attrib_local<angular_speed_att>(edge,  std::vector<float>{0, bState.rotV, 0});
         G->insert_or_assign_edge(edge);
-        std::cout << "Updated  omnirobot\n";
         last_state = bState;
 	}
 }

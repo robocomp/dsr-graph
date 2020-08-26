@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
 	{
 		timer.start(Period);
 		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
@@ -102,6 +102,11 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+        // custom_widget
+		graph_viewer->add_custom_widget_to_dock("Mission", &custom_widget);
+        
+//        connect(custom_widget.draw_personalSpace_button,SIGNAL(clicked()),this, SLOT(drawPersonalSpace()));
+        
 		this->Period = period;
 		timer.start(Period);
 	}
@@ -135,4 +140,12 @@ int SpecificWorker::startup_check()
 
 
 
+
+/**************************************/
+// From the RoboCompDSRGetID you can call this methods:
+// this->dsrgetid_proxy->getID(...)
+
+/**************************************/
+// From the RoboCompDSRGetID you can call this methods:
+// this->dsrgetid1_proxy->getID(...)
 
