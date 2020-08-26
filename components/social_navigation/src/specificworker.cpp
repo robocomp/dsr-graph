@@ -109,18 +109,18 @@ void SpecificWorker::compute()
     auto robot = G->get_node(robot_name);
     if(robot.has_value())
     {
-        if(auto target_id = G->get_attrib_by_name<int>(robot.value(), "target_node_id"); target_id.has_value())
+        if(auto target_id = G->get_attrib_by_name<target_node_id>(robot.value()); target_id.has_value())
         {
             if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
             {
-                auto x = G->get_attrib_by_name<float>(robot.value(), "base_target_x");
-                auto y = G->get_attrib_by_name<float>(robot.value(), "base_target_y");
+                auto x = G->get_attrib_by_name<base_target_x>(robot.value());
+                auto y = G->get_attrib_by_name<base_target_y>(robot.value());
                 const auto &[state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
                 switch (state)
                 {
                     case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
-                        G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) candidate.x());
-                        G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) candidate.y());
+                        G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) candidate.x());
+                        G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) candidate.y());
                         G->update_node(robot.value());
                         break;
                     case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
@@ -191,9 +191,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
-            G->add_or_modify_attrib_local(robot.value(), "target_node_id", (int) target_node.value().id());
-            G->add_or_modify_attrib_local(robot.value(), "base_target_x", (float) pos_x);
-            G->add_or_modify_attrib_local(robot.value(), "base_target_y", (float) pos_y);
+            G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
+            G->add_or_modify_attrib_local<pos_x_att>(robot.value(), (float) pos_x);
+            G->add_or_modify_attrib_local<pos_y_att>(robot.value(), (float) pos_y);
             G->update_node(robot.value());
         }
         else

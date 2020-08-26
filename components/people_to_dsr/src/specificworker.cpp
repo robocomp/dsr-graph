@@ -60,6 +60,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
+        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
@@ -87,8 +88,14 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+    /*try {
+        auto pdata = people_data_buffer.get();
+        process_people_data(pdata);
+    } catch (...) {}
+    */
     if(auto pdata = people_data_buffer.try_get(); pdata.has_value())
         process_people_data(pdata.value());
+    else std::this_thread::yield();
     //check people thas has not been seen
     check_unseen_people();
 }
@@ -214,18 +221,18 @@ void SpecificWorker::check_unseen_people()
 	}
 }
 
-std::optional<Node> SpecificWorker::create_node(const std::string &type, const std::string &name, int person_id,  int parent_id)
+std::optional<Node> SpecificWorker::create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_id)
 {
     Node node;
     node.type(type);
     node.agent_id(agent_id);
     node.name(name);
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
-    G->add_or_modify_attrib_local(node, "pos_y", 100.0);
-    G->add_or_modify_attrib_local(node, "name", name);
-    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
-    G->add_or_modify_attrib_local(node, "parent", parent_id);
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    G->add_or_modify_attrib_local<pos_x_att>(node, 100.0f);
+    G->add_or_modify_attrib_local<pos_y_att>(node,  100.0f);
+    G->add_or_modify_attrib_local<name_att>(node, name);
+    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
+    G->add_or_modify_attrib_local<parent_att>(node, parent_id);
+    G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(  G->get_node(parent_id).value()    ).value() + 1);
     //G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
     try
     {
@@ -250,21 +257,21 @@ std::optional<Node> SpecificWorker::create_node(const std::string &type, const s
     }
 }
 
-std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, const std::string &path, int parent_id)
+std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id)
 {
     Node node;
     node.type("mesh");
     node.name(name + "_mesh");
-    G->add_or_modify_attrib_local(node, "pos_x", 100.0);
-    G->add_or_modify_attrib_local(node, "pos_y", 130.0);
-    G->add_or_modify_attrib_local(node, "name", name + "_mesh");
-    G->add_or_modify_attrib_local(node, "color", std::string("GoldenRod"));
-    G->add_or_modify_attrib_local(node, "path", path);
-    G->add_or_modify_attrib_local(node, "scalex", 900);
-    G->add_or_modify_attrib_local(node, "scaley", 900);
-    G->add_or_modify_attrib_local(node, "scalez", 900);
-    G->add_or_modify_attrib_local(node, "parent", parent_id);
-    G->add_or_modify_attrib_local(node, "level", G->get_node_level(G->get_node(parent_id).value()).value() + 1);
+    G->add_or_modify_attrib_local<pos_x_att>(node,  100.0f);
+    G->add_or_modify_attrib_local<pos_y_att>(node,  130.0f);
+    G->add_or_modify_attrib_local<name_att>(node, name + "_mesh");
+    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
+    G->add_or_modify_attrib_local<path_att>(node, path);
+    G->add_or_modify_attrib_local<scalex_att>(node, 900);
+    G->add_or_modify_attrib_local<scaley_att>(node, 900);
+    G->add_or_modify_attrib_local<scalez_att>(node,  900);
+    G->add_or_modify_attrib_local<parent_att>(node,  parent_id);
+    G->add_or_modify_attrib_local<level_att>(node, G->get_node_level( G->get_node(parent_id).value()).value() + 1);
     try
     {     
         std::optional<int> new_id = G->insert_node(node);

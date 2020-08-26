@@ -29,14 +29,11 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
-//#include "../../../graph-related-classes/libs/DSRGraph.h"
 #include <random>
 #include <thread>
 #include <chrono>
-
-
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 
 
 #define LAPS 50
@@ -69,7 +66,7 @@ public:
 		bool write_string;
 		int agent_id;
 		std::string agent_name;
-		std::unique_ptr<DSR::GraphViewer> graph_viewer;
+		std::unique_ptr<DSR::DSRViewer> dsr_viewer;
         std::shared_ptr<DSR::DSRGraph> G;
         QHBoxLayout mainLayout;
         QWidget window;

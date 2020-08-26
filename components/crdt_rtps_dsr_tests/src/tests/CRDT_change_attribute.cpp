@@ -9,14 +9,15 @@
 #include <random>
 #include <fstream>
 
-void DSR_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
+#include <type_traits>
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+
+void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
     std::string result;
     static int it = 0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     start = std::chrono::steady_clock::now();
-    //bool fail=false;
-    //auto map = G->getCopy();  // provides a deep copy of the graph. Changes in it won't have effect on G
 
     auto keys = G->getKeys();
     std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
@@ -27,31 +28,27 @@ void DSR_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<D
         // request node
         auto nid = keys.at(rnd(mt));
         if(nid<0) continue;
-        std::optional<Node> node = G->get_node(nid);
+        std::optional<DSR::Node> node = G->get_node(nid);
         if (!node.has_value())
         {
             throw std::runtime_error("ERROR OBTENIENDO EL NODO");
         }
 
-        std::string str = 0 + "-" + std::to_string(i) + "_" + std::to_string(it);
+        std::string str = std::to_string(agent_id) + "-" + std::to_string(i) + "_" + std::to_string(it);
 
-        auto at = node.value().attrs().find("testattrib");
-        if (at == node.value().attrs().end()) {
-            Val v;
-            v.str(str);
-            Attrib ab;
-            ab.value(v);
-            ab.type(STRING);
-            node.value().attrs()["testattrib"] = ab;
-            node->agent_id(agent_id);
+        if (rnd_selector()) {
+            G->add_or_modify_attrib_local<testattrib_att>(node.value(), str) ;
+        } else {
+            G->remove_attrib_local(node.value(), "testattrib") ;
         }
-        else {
-            at->second.value().str(str);
-        }
+        
+        G->add_or_modify_attrib_local<pos_x_att>(node.value(),  rnd_float());
+        G->add_or_modify_attrib_local<pos_y_att>(node.value(),  rnd_float());
+        node->agent_id(agent_id);
         bool r = G->update_node(node.value());
 
         if (!r) {
-            throw std::runtime_error("ERROR INSERTANDO EL NODO");
+            throw std::runtime_error("ERROR ACTUALIZANDO EL NODO");
         }
         end = std::chrono::steady_clock::now();
         times.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
@@ -64,7 +61,7 @@ void DSR_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<D
 }
 
 
-void DSR_change_attribute::run_test()
+void CRDT_change_attribute::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
@@ -86,7 +83,7 @@ void DSR_change_attribute::run_test()
     }
 }
 
-void DSR_change_attribute::save_json_result() {
+void CRDT_change_attribute::save_json_result() {
     G->write_to_json_file(output);
 
     qDebug()<<"write results"<<QString::fromStdString(output_result);
