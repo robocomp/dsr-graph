@@ -16,47 +16,40 @@
  *    You should have received a copy of the GNU General Public License
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "genericworker.h"
-/**
-* \brief Default constructor
-*/
-GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
-{
-
-	dsrgetid_proxy = std::get<0>(tprx);
-	dsrgetid1_proxy = std::get<1>(tprx);
-
-	mutex = new QMutex(QMutex::Recursive);
-
-
-	#ifdef USE_QTGUI
-		setupUi(this);
-		show();
-	#endif
-	Period = BASIC_PERIOD;
-	connect(&timer, SIGNAL(timeout()), this, SLOT(compute()));
-
-}
 
 /**
-* \brief Default destructor
+	\brief
+	@author authorname
 */
-GenericWorker::~GenericWorker()
-{
 
-}
-void GenericWorker::killYourSelf()
+
+
+#ifndef CUSTOMWIDGET_H
+#define CUSTOMWIDGET_H
+
+#if Qt5_FOUND
+	#include <QtWidgets>
+#else
+	#include <QtGui>
+#endif
+
+#include <ui_localUI.h>
+
+
+class Custom_widget : public QWidget, public Ui_local_guiDlg
 {
-	rDebug("Killing myself");
-	emit kill();
-}
-/**
-* \brief Change compute period
-* @param per Period in ms
-*/
-void GenericWorker::setPeriod(int p)
-{
-	rDebug("Period changed"+QString::number(p));
-	Period = p;
-	timer.start(Period);
-}
+Q_OBJECT
+public:
+    Custom_widget() : Ui_local_guiDlg()
+    {
+        setupUi(this);
+    }
+	~Custom_widget()
+    {
+
+    }
+
+
+
+};
+#endif
