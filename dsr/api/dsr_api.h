@@ -193,7 +193,8 @@ namespace DSR
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, class Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         inline void add_or_modify_attrib_local(Type &elem, const Ta &att_value) {
 
-            static_assert(is_attr_name<name>::value, "No es un tipo nativo");
+            static_assert(is_attr_name<name>::value, "The type of name is invalid");
+            static_assert(valid_type<name, Ta>(), "Name and att_value are not from the same type");
 
             constexpr bool result = valid_type<name, Ta>();
             if constexpr(result) {
@@ -293,6 +294,7 @@ namespace DSR
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool add_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
+            static_assert(valid_type<name, Ta>(), "Name and new_val are not from the same type");
             if (elem.attrs().find(name::attr_name.data()) != elem.attrs().end()) return false;
             add_or_modify_attrib_local<name>(elem, att_value);
             return true;
@@ -305,9 +307,11 @@ namespace DSR
             return true;
         };
 
+        /*
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>>
         bool add_attrib_local(Type &elem, Attribute &attr) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
+
             if (elem.attrs().find(name::attr_name.data()) != elem.attrs().end()) return false;
             attr.timestamp(get_unix_timestamp());
             elem.attrs()[name::attr_name] = attr;
@@ -321,10 +325,12 @@ namespace DSR
             elem.attrs()[att_name] = attr;
             return true;
         };
+        */
 
         template<typename name, typename Type, typename = std::enable_if_t<any_node_or_edge<Type>>, typename Ta, typename = std::enable_if_t<allowed_types<Ta>>>
         bool modify_attrib_local(Type &elem, const Ta &att_value) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
+            static_assert(valid_type<name, Ta>(), "Name and new_val are not from the same type");
             if (elem.attrs().find(name::attr_name.data()) == elem.attrs().end()) return false;
             add_or_modify_attrib_local<name>(elem, att_value);
             return true;
@@ -363,6 +369,7 @@ namespace DSR
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         void insert_or_assign_attrib(Ta &elem,  const Va &att_value) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
+            static_assert(valid_type<name, Va>(), "Name and new_val are not from the same type");
             add_or_modify_attrib_local<name>(elem, att_value);
 
             /*return*/ reinsert_element(elem, "insert_or_assign_attrib()");
@@ -380,7 +387,7 @@ namespace DSR
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         bool insert_attrib_by_name(Type &elem,  const Va &new_val) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
-
+            static_assert(valid_type<name, Va>(), "Name and new_val are not from the same type");
             bool res = add_attrib_local<name>(elem, new_val);
             if (!res) return false;
             return reinsert_element(elem, "insert_attrib_by_name()");
@@ -399,6 +406,7 @@ namespace DSR
                 typename Va, typename = std::enable_if_t<allowed_types<Va>>>
         bool update_attrib_by_name(Type &elem,  const Va &new_val) {
             static_assert(is_attr_name<name>::value, "Name attr is not valid");
+            static_assert(valid_type<name, Va>(), "Name and new_val are not from the same type");
 
             bool res = modify_attrib_local<name>(elem, new_val);
             if (!res) return false;

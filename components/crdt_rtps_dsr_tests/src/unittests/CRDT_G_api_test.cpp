@@ -51,7 +51,7 @@ class Graph {
     private:
         Graph () {
             std::thread([](){
-                std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/config_idserver");
+                [[maybe_unused]] auto _ = std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/config_idserver");
                 //while (true) {this_thread::yield();};
             }).detach();
 
@@ -61,7 +61,7 @@ class Graph {
             dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( pr );
             G = make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
             std::atexit([](){
-               std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
+               [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
             });
         }
         RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;

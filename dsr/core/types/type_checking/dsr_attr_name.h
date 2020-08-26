@@ -129,4 +129,6 @@ REGISTER_TYPE(OuterRegionBottom, int)
 REGISTER_TYPE(OuterRegionTop, int)
 REGISTER_TYPE(target_node_id, int)
 REGISTER_TYPE(viriato_pan_tilt_nose_target, std::reference_wrapper<const std::vector<float>>)
+REGISTER_TYPE(mass, int)
+
 #endif //DSR_ATTR_NAME_H
