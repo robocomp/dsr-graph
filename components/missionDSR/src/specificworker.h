@@ -33,6 +33,8 @@
 
 #include <custom_widget.h>
 
+using namespace DSR;
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -41,14 +43,17 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
-
 public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
     
     //custom_widget
+    void del_mission();
+    void set_mission();
+    
+private:
+    Node get_intent_node();
     
 private:
     //local widget
