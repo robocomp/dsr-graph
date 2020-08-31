@@ -271,16 +271,13 @@ QJsonObject SpecificWorker::goto_action_to_json(std::string object_name, std::ve
     QJsonObject actionObject;
     actionObject["action"] = "goto";
     //action params
-    QJsonArray paramArray;
-    
     QJsonObject paramObject;
     paramObject["object"] = QString::fromStdString(object_name);
     QJsonArray vector;
     std::copy(location.begin(), location.end(), std::back_inserter(vector));
     paramObject["location"] = QJsonArray(vector);
     
-    paramArray.push_back(paramObject);
-    actionObject["params"] = paramArray;
+    actionObject["params"] = paramObject;
     
     return actionObject;
 }
