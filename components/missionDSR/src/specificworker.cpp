@@ -105,13 +105,24 @@ void SpecificWorker::initialize(int period)
         // custom_widget
 		graph_viewer->add_custom_widget_to_dock("Mission", &custom_widget);
         
-        connect(custom_widget.set_pb,SIGNAL(clicked()),this, SLOT(set_mission()));
-        connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission()));
+        connect(custom_widget.set_pb,SIGNAL(clicked()),this, SLOT(set_mission_slot()));
+        connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission_slot()));
+        //connect(G.get(), SIGNAL(update_node_signal), this, SLOT(update_mission_slot));
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_mission_slot);
         
 		this->Period = period;
 		timer.start(Period);
 	}
+    initialize_object_list();
+}
 
+void SpecificWorker::initialize_object_list()
+{
+    auto map = G->getCopy();
+	for(const auto &[k, node] : map)
+    {
+        custom_widget.object_cb->addItem(QString::fromStdString(node.name()));
+    }
 }
 
 void SpecificWorker::compute()
@@ -139,28 +150,65 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
-//remove data from node intent
-void SpecificWorker::del_mission()
+void SpecificWorker::update_mission_slot(const std::int32_t id, const std::string &type)
 {
-    
+    if (type == "intention")
+    {
+        auto node = G->get_node(id);
+        if(auto parent = G->get_parent_node(node.value()); parent.has_value())
+        {
+            if (parent.value().name() == robot_name)
+            {
+                std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
+                if (plan.has_value())
+                {
+                    custom_widget.mission_te->setText(QString::fromStdString(plan.value()));
+                }
+            }
+        }
+    }
+}
+
+//remove data from node intent
+void SpecificWorker::del_mission_slot()
+{
+    auto node = this->get_intent_node();
+    if (node.has_value())
+    {
+        G->insert_or_assign_attrib<plan_att>(node.value(), std::string());
+    }
 }
 
 //add data from node intent
-void SpecificWorker::set_mission()
+void SpecificWorker::set_mission_slot()
 {
-    auto node = this->get_intent_node();
+    auto node = this->get_intent_node(true);
     
+    QList<QJsonObject> actions;
+    
+    if(custom_widget.mision_cb->currentText() == "Goto")
+    {
+        float x = custom_widget.x_pos_sb->value();
+        float z = custom_widget.z_pos_sb->value();
+        float alpha = custom_widget.alpha_pos_sb->value();
+        std::string object_name = custom_widget.object_cb->currentText().toStdString();
+        
+        QJsonObject action = this->goto_action_to_json(object_name, {x,z,alpha});
+        actions.push_back(action);
+        
+        std::string plan = generate_json_plan(actions);
+        G->insert_or_assign_attrib<plan_att>(node.value(), plan);
+    }
+    else
+        qDebug()<<"Only goto mission is defined yet";
     
 }
 
 //get node intent
-Node SpecificWorker::get_intent_node()
+std::optional<Node> SpecificWorker::get_intent_node(bool create)
 {
-    //TODO: robot name must be obtained from config file
-    std::string robot_name = "omnirobot";
-
     //get intent node
-    auto intent_nodes = G->get_nodes_by_type("intent");
+    auto intent_nodes = G->get_nodes_by_type("intention");
     for (auto node : intent_nodes)
     {
         auto parent = G->get_parent_node(node);
@@ -170,53 +218,87 @@ Node SpecificWorker::get_intent_node()
         if(parent.value().name() == robot_name)
             return node;
     }
-
-    //intent node not found => creation
-    if(auto robot = G->get_node(robot_name); robot.has_value())
+    if(create)
     {
-        Node node;
-        node.type("intent");
-        G->add_or_modify_attrib_local<parent_att>(node,  robot.value().id());
-        G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(robot.value()).value() + 1);
-            
-        try
-        {     
-            std::optional<int> new_id = G->insert_node(node);
-            if(new_id.has_value())
-            {
-                Edge edge;
-                edge.type("has");
-                //get two ids
-                edge.from(robot.value().id());
-                edge.to(new_id.value());
-                if(not G->insert_or_assign_edge(edge))
+        //intent node not found => creation
+        if(auto robot = G->get_node(robot_name); robot.has_value())
+        {
+            Node node;
+            node.type("intention");
+            G->add_or_modify_attrib_local<parent_att>(node,  robot.value().id());
+            G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(robot.value()).value() + 1);
+                
+            try
+            {     
+                std::optional<int> new_id = G->insert_node(node);
+                if(new_id.has_value())
                 {
-                    std::cout<<"Error inserting new edge: "<<robot.value().id()<<"->"<<new_id.value()<<" type: has"<<std::endl;
-                    std::terminate();
+                    Edge edge;
+                    edge.type("has");
+                    //get two ids
+                    edge.from(robot.value().id());
+                    edge.to(new_id.value());
+                    if(not G->insert_or_assign_edge(edge))
+                    {
+                        std::cout<<"Error inserting new edge: "<<robot.value().id()<<"->"<<new_id.value()<<" type: has"<<std::endl;
+                        std::terminate();
+                    }
+                    return node;
                 }
-                return node;
+                else 
+                {
+                    qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
+                    return {};
+                }
             }
-            else 
+            catch(const std::exception& e)
             {
-                qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
-                return {};
+                std::cout << __FUNCTION__ <<  e.what() << std::endl;
+                std::terminate();
             }
         }
-        catch(const std::exception& e)
+        else
         {
-            std::cout << __FUNCTION__ <<  e.what() << std::endl;
+            std::cout << __FILE__ << __FUNCTION__ << " No node robot found";
             std::terminate();
         }
     }
-    else
-    {
-        std::cout << __FILE__ << __FUNCTION__ << " No node robot found";
-        std::terminate();
-    }
-    
 }
 
 
+QJsonObject SpecificWorker::goto_action_to_json(std::string object_name, std::vector<float> location)
+{
+    QJsonObject actionObject;
+    actionObject["action"] = "goto";
+    //action params
+    QJsonArray paramArray;
+    
+    QJsonObject paramObject;
+    paramObject["object"] = QString::fromStdString(object_name);
+    QJsonArray vector;
+    std::copy(location.begin(), location.end(), std::back_inserter(vector));
+    paramObject["location"] = QJsonArray(vector);
+    
+    paramArray.push_back(paramObject);
+    actionObject["params"] = paramArray;
+    
+    return actionObject;
+}
 
 
+std::string SpecificWorker::generate_json_plan(QList<QJsonObject> actions)
+{
+    QJsonObject jsonPlan;
+    QJsonArray actionArray;
+
+    //new action
+    for(const QJsonObject actionObject : actions)
+        actionArray.push_back(actionObject);
+
+    jsonPlan["plan"] = actionArray;
+    QJsonDocument doc(jsonPlan);
+    QString strJson(doc.toJson(QJsonDocument::Compact));
+    
+    return strJson.toStdString();
+}
 
