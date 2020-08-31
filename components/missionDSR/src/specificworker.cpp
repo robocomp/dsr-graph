@@ -21,7 +21,7 @@
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx, startup_check)
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
 }
@@ -105,7 +105,8 @@ void SpecificWorker::initialize(int period)
         // custom_widget
 		graph_viewer->add_custom_widget_to_dock("Mission", &custom_widget);
         
-//        connect(custom_widget.draw_personalSpace_button,SIGNAL(clicked()),this, SLOT(drawPersonalSpace()));
+        connect(custom_widget.set_pb,SIGNAL(clicked()),this, SLOT(set_mission()));
+        connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission()));
         
 		this->Period = period;
 		timer.start(Period);
@@ -138,14 +139,84 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
+//remove data from node intent
+void SpecificWorker::del_mission()
+{
+    
+}
+
+//add data from node intent
+void SpecificWorker::set_mission()
+{
+    auto node = this->get_intent_node();
+    
+    
+}
+
+//get node intent
+Node SpecificWorker::get_intent_node()
+{
+    //TODO: robot name must be obtained from config file
+    std::string robot_name = "omnirobot";
+
+    //get intent node
+    auto intent_nodes = G->get_nodes_by_type("intent");
+    for (auto node : intent_nodes)
+    {
+        auto parent = G->get_parent_node(node);
+        if(not parent.has_value())
+            std::cout << __FILE__ << __FUNCTION__ << " Intent node without parent" << std::endl;
+        
+        if(parent.value().name() == robot_name)
+            return node;
+    }
+
+    //intent node not found => creation
+    if(auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        Node node;
+        node.type("intent");
+        G->add_or_modify_attrib_local<parent_att>(node,  robot.value().id());
+        G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(robot.value()).value() + 1);
+            
+        try
+        {     
+            std::optional<int> new_id = G->insert_node(node);
+            if(new_id.has_value())
+            {
+                Edge edge;
+                edge.type("has");
+                //get two ids
+                edge.from(robot.value().id());
+                edge.to(new_id.value());
+                if(not G->insert_or_assign_edge(edge))
+                {
+                    std::cout<<"Error inserting new edge: "<<robot.value().id()<<"->"<<new_id.value()<<" type: has"<<std::endl;
+                    std::terminate();
+                }
+                return node;
+            }
+            else 
+            {
+                qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
+                return {};
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << __FUNCTION__ <<  e.what() << std::endl;
+            std::terminate();
+        }
+    }
+    else
+    {
+        std::cout << __FILE__ << __FUNCTION__ << " No node robot found";
+        std::terminate();
+    }
+    
+}
 
 
 
-/**************************************/
-// From the RoboCompDSRGetID you can call this methods:
-// this->dsrgetid_proxy->getID(...)
 
-/**************************************/
-// From the RoboCompDSRGetID you can call this methods:
-// this->dsrgetid1_proxy->getID(...)
 

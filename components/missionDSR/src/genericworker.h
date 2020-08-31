@@ -38,7 +38,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompDSRGetID::DSRGetIDPrxPtr>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -55,7 +55,6 @@ public:
 
 
 	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid1_proxy;
 
 
 protected:
