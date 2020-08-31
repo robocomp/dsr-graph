@@ -112,7 +112,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag;
+	bool startup_check_flag  = false;
 
 public:
 	virtual int run(int, char*[]);
