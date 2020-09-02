@@ -25,7 +25,7 @@ from bisect import bisect_left
 from os.path import dirname, join, abspath
 from pyrep import PyRep
 #from pyrep.robots.mobiles.viriato import Viriato
-from pyrep.robots.mobiles.viriato import Viriato
+#from pyrep.robots.mobiles.viriato import Viriato
 from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
