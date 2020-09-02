@@ -30,6 +30,7 @@
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+#include <yolo_v2_class.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -62,6 +63,9 @@ private:
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
 	bool startup_check_flag;
+
+	// YOLOv4
+	Detector init_detector(std::string  cfg_file, std::string  weights_file)
 
 };
 
