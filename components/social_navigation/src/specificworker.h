@@ -64,7 +64,9 @@ public slots:
     void sendRobotTo();
 	void forcesSliderChanged(int value = 0);
     void new_target_from_mouse(int pos_x, int pos_y, int id);
-
+    void new_target_from_G(const std::string &plan);
+    void update_node_slot(const std::int32_t id, const std::string &type);
+    
 private:
 	std::shared_ptr<DSR::InnerAPI> innermodel;
 	// DSR graph
