@@ -33,6 +33,8 @@
 
 #include <custom_widget.h>
 
+using namespace DSR;
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -41,16 +43,26 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
-
 public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
     
     //custom_widget
+    void del_mission_slot();
+    void set_mission_slot();
+    void update_mission_slot(const std::int32_t id, const std::string &type);
     
 private:
+    void initialize_object_list();
+    std::optional<Node> get_intent_node(bool create = false);
+    std::string generate_json_plan(QList<QJsonObject> actions);
+    QJsonObject goto_action_to_json(std::string object_name, std::vector<float> location);
+private:
+    
+    //TODO: robot name must be obtained from config file
+    std::string robot_name = "omnirobot";
+    
     //local widget
     Custom_widget custom_widget;
     

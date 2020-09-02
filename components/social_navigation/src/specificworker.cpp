@@ -78,6 +78,8 @@ void SpecificWorker::initialize(int period)
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
+		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+        
 		//Inner Api
 		innermodel = G->get_inner_api();
 
@@ -89,7 +91,7 @@ void SpecificWorker::initialize(int period)
     	connect(custom_widget.ke_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
     	connect(custom_widget.send_button, SIGNAL(clicked()),this, SLOT(sendRobotTo()));
         connect(custom_widget.stop_button, SIGNAL(clicked()),this, SLOT(stopRobot()));
-
+        
         forcesSliderChanged();
     	moveRobot();
 
@@ -206,6 +208,60 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
         qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
     }
 }
+
+//get changes on G nodes
+void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+{
+    //check node type
+    if (type == "intention")
+    {
+        //check node robot
+        auto node = G->get_node(id);
+        if(auto parent = G->get_parent_node(node.value()); parent.has_value())
+        {
+            if (parent.value().name() == robot_name)
+            {
+                std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
+                if (plan.has_value())
+                    new_target_from_G(plan.value());
+            }
+        }
+    }
+}
+
+void SpecificWorker::new_target_from_G(const std::string &plan)
+{
+    std::cout << __FUNCTION__ << " New target from G:" <<plan << std::endl;
+    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan).toUtf8());
+    QJsonObject planJson = doc.object();
+    
+    QJsonArray actionArray = planJson.value("plan").toArray();
+    
+    QJsonObject action_0 = actionArray.at(0).toObject();
+    
+    QString action = action_0.value("action").toString();
+    if(action == "goto")
+    {
+        QJsonObject action_params = action_0.value("params").toObject();
+        QString object = action_params.value("object").toString();
+        QJsonArray location = action_params.value("location").toArray();
+        
+        int x = location.at(0).toInt();
+        int z = location.at(1).toInt();
+        float alpha = location.at(2).toDouble();
+        
+        
+//TODO: Way to achive target must be changed
+        std::cout<<"TARGET: "<<object.toStdString()<<" location: "<<x<<","<<z<<","<<alpha<<std::endl;
+        
+        if(auto node = G->get_node(object.toStdString()); node.has_value())
+        {
+            new_target_from_mouse(x, z, node.value().id());
+        }
+    }
+}
+
+
 
 ///////////////////////////////////////////////////
 /// GUI

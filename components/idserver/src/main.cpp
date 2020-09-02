@@ -94,12 +94,12 @@ using namespace RoboCompCommonBehavior;
 class idserver : public RoboComp::Application
 {
 public:
-	idserver (QString prfx) { prefix = prfx.toStdString(); }
+	idserver (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-    bool startup_check_flag = false;
+    bool startup_check_flag  = false;
 
 
 public:
@@ -244,6 +244,7 @@ int main(int argc, char* argv[])
 
 	// Set config file
 	std::string configFile = "etc/config";
+	bool startup_check_flag = false;
 	if (argc > 1)
 	{
 		std::string initIC("--Ice.Config=");
@@ -272,7 +273,20 @@ int main(int argc, char* argv[])
 			printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
 		}
 	}
-	::idserver app(prefix);
+
+	// Search in argument list for --test argument (if exist)
+	QString startup = QString("--startup-check");
+	for (int i = 0; i < argc; ++i)
+	{
+		arg = argv[i];
+		if (arg.find(startup.toStdString(), 0) == 0)
+		{
+			startup_check_flag = true;
+			cout << "Startup check = True"<< endl;
+		}
+	}
+	
+	::idserver app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.c_str());
 }

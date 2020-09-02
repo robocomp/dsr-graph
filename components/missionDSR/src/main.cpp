@@ -93,7 +93,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag;
+	bool startup_check_flag  = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -151,23 +151,7 @@ int ::missionDSR::run(int argc, char* argv[])
 	rInfo("DSRGetIDProxy initialized Ok!");
 
 
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetID1Proxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
-		}
-		dsrgetid1_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID1: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DSRGetIDProxy1 initialized Ok!");
-
-
-	tprx = std::make_tuple(dsrgetid_proxy,dsrgetid1_proxy);
+	tprx = std::make_tuple(dsrgetid_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
