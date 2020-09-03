@@ -63,6 +63,7 @@ private:
 
     // DSR graph
     std::shared_ptr<DSR::DSRGraph> G;
+    std::shared_ptr<DSR::InnerAPI> innermodel;
 
     //DSR params
     std::string agent_name;
@@ -83,25 +84,33 @@ private:
     QWidget window;
     bool startup_check_flag;
 
+    // Bounding boxes struct
+    struct Box
+    {
+        std::string name;
+        int left;
+        int top;
+        int right;
+        int bot;
+        float prob;
+    };
+
     // YOLOv4 attributes
     const std::size_t YOLO_INSTANCES = 1;
     std::vector<Detector*> ynets;
     std::vector<std::string> names;
-    clock_t ytime1;
     bool SHOW_IMAGE = false;
     bool READY_TO_GO = false;
     FPSCounter fps;
 
     // YOLOv4 methods
     Detector* init_detector();
-    std::vector<bbox_t> process_image_with_yolo(const cv::Mat& img);
+    std::vector<Box> process_image_with_yolo(const cv::Mat& img);
     image_t createImage(const cv::Mat &src);
     image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
-    std::vector<bbox_t> detectLabels(const image_t &img, float thresh, float hier_thresh);
-    void show_image(cv::Mat &imgdst, const vector<bbox_t> &boxes, const std::vector<bbox_t> synth_boxes);
-    cv::Mat get_rgb_image(const DSR::Node &rgb_node);
-    vector<bbox_t> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam);
-    void compute_prediction_error(const vector<bbox_t> &real_boxes, const vector<bbox_t> synth_boxes);
+    void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
+    std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam);
+    void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
 };
 
 #endif
