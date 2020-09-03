@@ -33,7 +33,7 @@ SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
 	G->write_to_json_file("./"+agent_name+".json");
-    delete ynets[0];
+    delete ynets[0]; // deallocate YOLOv4 network
 	G.reset();
 }
 
@@ -51,6 +51,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     weights_file = params["weight_file"].value;
 	names_file = params["names_file"].value;
 
+    // initialize YOLOv4 network instances
     for(uint i=0; i<YOLO_INSTANCES; ++i)
         ynets.push_back(init_detector());
 
@@ -107,37 +108,54 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+    // get camera node from G
     auto rgb_camera = G->get_node(camera_name);
     if (rgb_camera.has_value())
     {
+        // get and process RGB image
         auto g_image = G->get_rgb_image(rgb_camera.value());
         auto width = G->get_attrib_by_name<rgb_width>(rgb_camera.value());
         auto height = G->get_attrib_by_name<rgb_height>(rgb_camera.value());
         if (width.has_value() and height.has_value())
         {
+            // create opencv image
             cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
-
+            // process opencv image
             cv::Mat imgyolo(608, 608, CV_8UC3);
             cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, CV_INTER_LINEAR);
+            // get detections using YOLOv4 network
             std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
-
+            // predict where OI will be in yolo space
             std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
-
+            // show detections on image
             show_image(imgyolo, real_objects, synth_objects);
 
+            // compute_prediction_error( real_objects, synth_objects);
+            // compute corrections and insert or assign to G
+            // assess current state of the plan and choose top-down or bottom-up
+            // if top-down choose OI
+            // if bottom-up choose another object
+            // compute correction saccade for t + delta and write in G (node head_camera) as "current_target_orientation"
+            // option2: write in G the target object pose in t + delta (node head_camera) as "center_target_reference"
+            // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
+
+            // get object_or_interest and pan_tilt nodes
             auto object = G->get_node(object_of_interest);
             auto pan_tilt = G->get_node(viriato_pan_tilt);
             if(object.has_value() and pan_tilt.has_value())
             {
+                // get object pose in camera coordinate frame
                 auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
                 auto n_pose = pose->normalize();
                 n_pose = n_pose * (RMat::T)200;
                 pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
                 if (pose.has_value())
                 {
+                    // get pan_tilt current target pose
                     if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
                     {
                         QVec qcurrent_pose(current_pose.value());
+                        //if they are different modify G
                         if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                         {
                             G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
@@ -172,17 +190,20 @@ void SpecificWorker::compute()
 
 Detector* SpecificWorker::init_detector()
 {
+    // read objects names from file
     std::ifstream file(names_file);
     for(std::string line; getline(file, line);) names.push_back(line);
+    // initialize YOLOv4 detector
     Detector detector(cfg_file, weights_file);
     return &detector;
 }
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img)
 {
+    // get detections from RGB image
     image_t yolo_img = createImage(img);
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, 0.2, false);
-
+    // process detected bounding boxes
     std::vector<Box> bboxes;
     for(int i = 0; i < detections.size(); ++i)
     {
@@ -206,6 +227,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
 
 image_t SpecificWorker::createImage(const cv::Mat &src)
 {
+    // create YOLOv4 image from opencv matrix
     const int &h = src.rows;
     const int &w = src.cols;
     const int &c = src.channels();
@@ -230,6 +252,7 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
 
 image_t SpecificWorker::createImage(const std::vector<uint8_t> &src, int width, int height, int depth)
 {
+    // create YOLOv4 image from array of bytes
     const int &h = height;
     const int &w = width;
     const int &c = depth;
@@ -254,6 +277,7 @@ image_t SpecificWorker::createImage(const std::vector<uint8_t> &src, int width, 
 
 void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes)
 {
+    // display RGB image with detections
     for(const auto &box : real_boxes)
     {
         if(box.prob > 50)
@@ -276,9 +300,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     std::string camera_name = "camera_pose";
     std::vector<Box> synth_box;
     //  get camera subAPI
-    //  camera = G->get_camera_api(cam);        //THIS IDEA COULD BE INTERESTING!!!
     RMat::Cam camera(527, 527, 608/2, 608/2);
-
     for(auto &&object_name : object_names)
     {
         //get object from G
