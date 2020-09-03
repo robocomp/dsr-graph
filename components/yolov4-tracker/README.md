@@ -14,10 +14,19 @@ An agent that performs object tracking using YOLOv4 network. This is an upgrade 
     git clone https://github.com/AlexeyAB/darknet.git
     ```
 
--   Edit `Makefile` tags :
+-   Edit `Makefile` tags (set `CUDNN` to `1` for faster inference and `CUDNN_HALF` to `1` (for _RTX_ GPUS) for _3X_ speed) :
     ```
     GPU=1
+    CUDNN=0
+    CUDNN_HALF=0
+    OPENCV=0
+    AVX=0
+    OPENMP=0
     LIBSO=1
+    ZED_CAMERA=0
+    ZED_CAMERA_v2_8=0
+    USE_CPP=0
+    DEBUG=0
     ```
 
 -   Compile Darknet library to get `.so` file :
@@ -29,15 +38,17 @@ An agent that performs object tracking using YOLOv4 network. This is an upgrade 
 
 -   Navigate to `yolov4-tracker` directory.
 
--   Update the library path in `src/CMakeListsSpecific.txt` :
+-   Update the library path in `src/CMakeListsSpecific.txt` and `etc/config` by replacing the word `REPLACE` in both files by the username for correct YOLOv4 library path, using the following commands :
     ```bash
     sed -i s/REPLACE/<username>/g src/CMakeListsSpecific.txt
-    ```
-
--   Update the directories path in `etc/config` :
-    ```bash
     sed -i s/REPLACE/<username>/g etc/config
     ```
+    For example, if the username is `robocomp` :
+    ```bash
+    sed -i s/REPLACE/robocomp/g src/CMakeListsSpecific.txt
+    sed -i s/REPLACE/robocomp/g etc/config
+    ```
+    So, the library path is `/home/robocomp/darknet/`.
 
 ## Configuration parameters
 
