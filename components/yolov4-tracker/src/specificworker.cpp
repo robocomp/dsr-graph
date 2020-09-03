@@ -32,26 +32,13 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
+	delete ynets[0];
 	G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
 
@@ -59,6 +46,13 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
+
+	cfg_file = params["cfg_file"].value;
+    weights_file = params["weight_file"].value;
+	names_file = params["names_file"].value;
+
+    for(uint i=0; i<YOLO_INSTANCES; ++i)
+        ynets.push_back(init_detector());
 
 	return true;
 }
@@ -102,28 +96,43 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-		this->Period = period;
-		timer.start(Period);
+        this->Period = period;
+        timer.start(Period);
+        READY_TO_GO = true;
 	}
-
 }
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+	auto rgb_camera = G->get_node(camera_name);
+	if (rgb_camera.has_value())
+	{
+        auto g_image = G->get_rgb_image(rgb_camera.value());
+        auto width = G->get_attrib_by_name<width_att>(rgb_camera.value());
+        auto height = G->get_attrib_by_name<height_att>(rgb_camera.value());
+
+        if (width.has_value() and height.has_value())
+        {
+
+        }
+        else
+        {
+            qWarning() << __FILE__ << __FUNCTION__ << "No attributes image, widht or height found in G";
+        }
+
+	}
+	else
+    {
+	    qWarning() << __FILE__ << __FUNCTION__ << "No node Viriato_head_camera_front_sensor found in G";
+    }
+}
+
+Detector* SpecificWorker::init_detector()
+{
+    std::ifstream file(names_file);
+    for(std::string line; getline(file, line);) names.push_back(line);
+    Detector detector(cfg_file, weights_file);
+    return &detector;
 }
 
 int SpecificWorker::startup_check()
@@ -133,9 +142,6 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
-
-
-
 /**************************************/
 // From the RoboCompDSRGetID you can call this methods:
 // this->dsrgetid_proxy->getID(...)
@@ -143,4 +149,3 @@ int SpecificWorker::startup_check()
 /**************************************/
 // From the RoboCompDSRGetID you can call this methods:
 // this->dsrgetid1_proxy->getID(...)
-
