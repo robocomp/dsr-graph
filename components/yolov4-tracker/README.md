@@ -1,29 +1,51 @@
-# yolov4_tracker
-Intro to component here
+# YOLOv4 Tracker
 
+An agent that performs object tracking using YOLOv4 network. This is an upgrade of `yolo-tracker` agent.
+
+## Installation
+
+-   Navigate to `home` directory :
+    ```bash
+    cd ~
+    ```
+-   Clone `darknet` repository :
+    ```bash
+    git clone https://github.com/AlexeyAB/darknet.git
+    ```
+-   Edit `Makefile` tags :
+    ```
+    GPU=1
+    OPENCV=1
+    LIBSO=1
+    ```
+-   Compile Darknet library to get `.so` file :
+    ```bash
+    make
+    ```
+-   Navigate to `yolov4-tracker` directory.
+-   Update the library path in `src/CMakeListsSpecific.txt` :
+    ```bash
+    sed -i s/REPLACE/<username>/g src/CMakeListsSpecific.txt
+    ```
 
 ## Configuration parameters
-As any other component, *yolov4_tracker* needs a configuration file to start. In
-```
-etc/config
-```
-you can find an example of a configuration file. We can find there the following lines:
-```
-EXAMPLE HERE
-```
+
+Like any other component, *yolov4-tracker* needs a configuration file to start. In `etc/config`, you can change the ports and other parameters in the configuration file, according to your setting.
 
 ## Starting the component
-To avoid changing the *config* file in the repository, we can copy it to the component's home directory, so changes will remain untouched by future git pulls:
 
-```
-cd <yolov4_tracker's path> 
-```
-```
-cp etc/config config
+To run `yolov4-tracker` component, navigate to the component directory :
+```bash
+cd <yolov4-tracker's path> 
 ```
 
-After editing the new config file we can run the component:
-
+Then compile the component :
+```bash
+cmake .
+make
 ```
-bin/yolov4_tracker config
+
+Then run the component :
+```bash
+./bin/yolov4-tracker
 ```
