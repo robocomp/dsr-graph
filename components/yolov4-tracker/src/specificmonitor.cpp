@@ -104,6 +104,13 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	params["2d_view"] = aux;
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
+
+	configGetString( "","cfg_file", aux.value, "none");
+	params["cfg_file"] = aux;
+	configGetString( "","weight_file", aux.value, "none");
+	params["weight_file"] = aux;
+	configGetString( "","names_file", aux.value, "none");
+	params["names_file"] = aux;
 }
 
 //Check parameters and transform them to worker structure

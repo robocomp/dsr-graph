@@ -8,24 +8,36 @@ An agent that performs object tracking using YOLOv4 network. This is an upgrade 
     ```bash
     cd ~
     ```
+
 -   Clone `darknet` repository :
     ```bash
     git clone https://github.com/AlexeyAB/darknet.git
     ```
+
 -   Edit `Makefile` tags :
     ```
     GPU=1
     OPENCV=1
     LIBSO=1
     ```
+
 -   Compile Darknet library to get `.so` file :
     ```bash
     make
     ```
+
+-   Download [pretrained weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) in `darknet` directory.
+
 -   Navigate to `yolov4-tracker` directory.
+
 -   Update the library path in `src/CMakeListsSpecific.txt` :
     ```bash
     sed -i s/REPLACE/<username>/g src/CMakeListsSpecific.txt
+    ```
+
+-   Update the directories path in `etc/config` :
+    ```bash
+    sed -i s/REPLACE/<username>/g etc/config
     ```
 
 ## Configuration parameters
