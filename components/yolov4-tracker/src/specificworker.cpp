@@ -107,26 +107,66 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	auto rgb_camera = G->get_node(camera_name);
-	if (rgb_camera.has_value())
-	{
+    auto rgb_camera = G->get_node(camera_name);
+    if (rgb_camera.has_value())
+    {
         auto g_image = G->get_rgb_image(rgb_camera.value());
-        auto width = G->get_attrib_by_name<width_att>(rgb_camera.value());
-        auto height = G->get_attrib_by_name<height_att>(rgb_camera.value());
-
+        auto width = G->get_attrib_by_name<rgb_width>(rgb_camera.value());
+        auto height = G->get_attrib_by_name<rgb_height>(rgb_camera.value());
         if (width.has_value() and height.has_value())
         {
+            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
 
+            cv::Mat imgyolo(608, 608, CV_8UC3);
+            cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, CV_INTER_LINEAR);
+            std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
+
+            std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
+
+            show_image(imgyolo, real_objects, synth_objects);
+
+            auto object = G->get_node(object_of_interest);
+            auto pan_tilt = G->get_node(viriato_pan_tilt);
+            if(object.has_value() and pan_tilt.has_value())
+            {
+                auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
+                auto n_pose = pose->normalize();
+                n_pose = n_pose * (RMat::T)200;
+                pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
+                if (pose.has_value())
+                {
+                    if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+                    {
+                        QVec qcurrent_pose(current_pose.value());
+                        if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+                        {
+                            G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                            G->update_node(pan_tilt.value());
+                        }
+                    }
+                    else
+                    {
+                        qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
+                    }
+                }
+                else
+                {
+                    qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
+                }
+            }
+            else
+            {
+                qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
+            }
         }
         else
         {
             qWarning() << __FILE__ << __FUNCTION__ << "No attributes image, widht or height found in G";
         }
-
-	}
-	else
+    }
+    else
     {
-	    qWarning() << __FILE__ << __FUNCTION__ << "No node Viriato_head_camera_front_sensor found in G";
+        qWarning() << __FILE__ << __FUNCTION__ << "No node Viriato_head_camera_front_sensor found in G";
     }
 }
 
