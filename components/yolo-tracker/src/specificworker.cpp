@@ -103,15 +103,16 @@ void SpecificWorker::compute()
         if (rgb_camera.has_value())
         {
             auto g_image = G->get_rgb_image(rgb_camera.value());
-            auto width = G->get_attrib_by_name<int32_t>(rgb_camera.value(), "width");
-            auto height = G->get_attrib_by_name<int32_t>(rgb_camera.value(), "height");
+            auto width = G->get_attrib_by_name<width_att>(rgb_camera.value());
+            auto height = G->get_attrib_by_name<height_att>(rgb_camera.value());
             //if (g_image.has_value() and width.has_value() and height.has_value())
             if (width.has_value() and height.has_value())
             {
-                cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image[0]);
+                auto im = g_image.value();
+                cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &im);
                 // resize img for Yolo
                 cv::Mat imgyolo(608, 608, CV_8UC3);
-                cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, CV_INTER_LINEAR);
+                cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, cv::INTER_LINEAR);
                 std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
                 // predict where OI will be in yolo space
                 std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
@@ -141,13 +142,13 @@ void SpecificWorker::compute()
                     if (pose.has_value())
                     {
                         // get pan_tilt current target pose
-                        if(auto current_pose = G->get_attrib_by_name<std::vector<float>>(pan_tilt.value(), nose_target); current_pose.has_value())
+                        if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
                         {
                             QVec qcurrent_pose(current_pose.value());
                             //if they are different modify G
                             if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                             {
-                                G->add_or_modify_attrib_local(pan_tilt.value(), nose_target, std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                                G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
                                 G->update_node(pan_tilt.value());
                             }
                         }
@@ -166,13 +167,13 @@ void SpecificWorker::compute()
             qWarning() << __FILE__ << __FUNCTION__ << "No node Viriato_head_camera_front_sensor found in G";
 }
 
-cv::Mat SpecificWorker::get_rgb_image(const Node &rgb_camera)
+cv::Mat SpecificWorker::get_rgb_image(const DSR::Node &rgb_camera)
 {
-    auto g_image = G->get_attrib_by_name<std::vector<uint8_t>>(rgb_camera, "rgb");
-    auto width = G->get_attrib_by_name<int32_t>(rgb_camera, "width");
-    auto height = G->get_attrib_by_name<int32_t>(rgb_camera, "height");
+    auto g_image = G->get_attrib_by_name<rgb_att>(rgb_camera);
+    auto width = G->get_attrib_by_name<width_att>(rgb_camera);
+    auto height = G->get_attrib_by_name<height_att>(rgb_camera);
     if (g_image.has_value() and width.has_value() and height.has_value())
-        return cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value()[0]);
+        return cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
 
     qWarning() << __FILE__ << __FUNCTION__ << "No attributes image, widht or height found in G";
     return cv::Mat();
@@ -183,7 +184,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     return detectLabels(ynets[0], createImage(img), .5, .5);
 }
 
-std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const Node& rgb_camera)
+std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_camera)
 {
     std::string camera_name = "camera_pose";
     std::vector<Box> synth_box;

@@ -116,8 +116,8 @@ class SpecificWorker : public GenericWorker
 		FPSCounter fps;
 
         void show_image(cv::Mat &imgdst, const vector<SpecificWorker::Box> &boxes, const std::vector<SpecificWorker::Box> synth_boxes);
-        cv::Mat get_rgb_image(const Node &rgb_node);
-        vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const Node& rgb_cam);
+        cv::Mat get_rgb_image(const DSR::Node &rgb_node);
+        vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam);
          void compute_prediction_error(const vector<SpecificWorker::Box> &real_boxes, const vector<Box> synth_boxes);
 };
 
