@@ -17,7 +17,6 @@ An agent that performs object tracking using YOLOv4 network. This is an upgrade 
 -   Edit `Makefile` tags :
     ```
     GPU=1
-    OPENCV=1
     LIBSO=1
     ```
 
