@@ -32,8 +32,8 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	delete ynets[0];
 	G->write_to_json_file("./"+agent_name+".json");
+    delete ynets[0];
 	G.reset();
 }
 
@@ -70,7 +70,10 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
+
+        // innermodel
+        innermodel = G->get_inner_api();
 
 		// Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -133,6 +136,154 @@ Detector* SpecificWorker::init_detector()
     for(std::string line; getline(file, line);) names.push_back(line);
     Detector detector(cfg_file, weights_file);
     return &detector;
+}
+
+std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img)
+{
+    image_t yolo_img = createImage(img);
+    std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, 0.2, false);
+
+    std::vector<Box> bboxes;
+    for(int i = 0; i < detections.size(); ++i)
+    {
+        const auto &d = detections[i];
+        int cls = d.obj_id;
+        int left  = d.x;
+        int right = d.x + d.w;
+        int top   = d.y;
+        int bot   = d.y + d.h;
+        if(left < 0) left = 0;
+        if(right > yolo_img.w-1) right = yolo_img.w-1;
+        if(top < 0) top = 0;
+        if(bot > yolo_img.h-1) bot = yolo_img.h-1;
+        float prob = d.prob;
+        bboxes.emplace_back(Box{names.at(cls), left, top, right, bot, prob*100});
+    }
+    qDebug() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
+    ynets[0]->free_image(yolo_img);
+    return bboxes;
+}
+
+image_t SpecificWorker::createImage(const cv::Mat &src)
+{
+    const int &h = src.rows;
+    const int &w = src.cols;
+    const int &c = src.channels();
+    int step = w*c;
+
+    int i, j, k;
+    image_t out;
+    out.data = 0;
+    out.h = h;
+    out.w = w;
+    out.c = c;
+
+    for(i = 0; i < h; ++i){
+        for(k= 0; k < c; ++k){
+            for(j = 0; j < w; ++j){
+                out.data[k*w*h + i*w + j] = src.data[i*step + j*c + k]/255.;
+            }
+        }
+    }
+    return out;
+}
+
+image_t SpecificWorker::createImage(const std::vector<uint8_t> &src, int width, int height, int depth)
+{
+    const int &h = height;
+    const int &w = width;
+    const int &c = depth;
+    int step = w*c;
+
+    int i, j, k;
+    image_t out;
+    out.data = 0;
+    out.h = h;
+    out.w = w;
+    out.c = c;
+
+    for(i = 0; i < h; ++i){
+        for(k= 0; k < c; ++k){
+            for(j = 0; j < w; ++j){
+                out.data[k*w*h + i*w + j] = src[i*step + j*c + k]/255.;
+            }
+        }
+    }
+    return out;
+}
+
+void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes)
+{
+    for(const auto &box : real_boxes)
+    {
+        if(box.prob > 50)
+        {
+            auto p1 = cv::Point(box.left, box.top);
+            auto p2 = cv::Point(box.right, box.bot);
+            auto offset = int((box.bot - box.top) / 2);
+            auto pt = cv::Point(box.left + offset, box.top + offset);
+            cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
+            auto font = cv::FONT_HERSHEY_SIMPLEX;
+            cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(0, 255, 255), 2);
+        }
+    }
+    cv::imshow("", imgdst);
+    cv::waitKey(1);
+}
+
+std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam)
+{
+    std::string camera_name = "camera_pose";
+    std::vector<Box> synth_box;
+    //  get camera subAPI
+    //  camera = G->get_camera_api(cam);        //THIS IDEA COULD BE INTERESTING!!!
+    RMat::Cam camera(527, 527, 608/2, 608/2);
+
+    for(auto &&object_name : object_names)
+    {
+        //get object from G
+        if (auto object = G->get_node(object_name); object.has_value())
+        {
+            // compute bounding box
+            std::vector<QVec> bb_in_camera;
+            const float h = 150;
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,0,40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,-40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,-0,-40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,-40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,-40), object_name).value()));
+            // Compute a bounding box of pixel coordinates
+            // Sort the coordinates x
+            auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
+                                                 [](const QVec& lhs, const QVec& rhs) {
+                                                     return lhs.x() < rhs.x();
+                                                 });
+            // Sort the coordinates y
+            auto yExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
+                                                 [](const QVec& lhs, const QVec& rhs) {
+                                                     return lhs.y() < rhs.y();
+                                                 });
+            // Take the most separated ends to build the rectangle
+            Box box;
+            box.left = xExtremes.first->x();
+            box.top = yExtremes.first->y();
+            box.right = xExtremes.second->x();
+            box.bot = yExtremes.second->y();
+            box.prob = 100;
+            box.name = object_name;
+            // get projection of bounding box
+            synth_box.push_back(box);
+        }
+    }
+    return synth_box;
+}
+
+void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
+{
+
 }
 
 int SpecificWorker::startup_check()
