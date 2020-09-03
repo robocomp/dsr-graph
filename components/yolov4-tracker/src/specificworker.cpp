@@ -122,7 +122,7 @@ void SpecificWorker::compute()
             cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
             // process opencv image
             cv::Mat imgyolo(608, 608, CV_8UC3);
-            cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, CV_INTER_LINEAR);
+            cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, cv::INTER_LINEAR);
             // get detections using YOLOv4 network
             std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
             // predict where OI will be in yolo space
