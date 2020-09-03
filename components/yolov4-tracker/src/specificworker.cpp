@@ -119,7 +119,8 @@ void SpecificWorker::compute()
         if (width.has_value() and height.has_value())
         {
             // create opencv image
-            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
+            auto g_img = g_image.value().get();
+            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_img[0]);
             // process opencv image
             cv::Mat imgyolo(608, 608, CV_8UC3);
             cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, cv::INTER_LINEAR);
@@ -194,8 +195,8 @@ Detector* SpecificWorker::init_detector()
     std::ifstream file(names_file);
     for(std::string line; getline(file, line);) names.push_back(line);
     // initialize YOLOv4 detector
-    Detector detector(cfg_file, weights_file);
-    return &detector;
+    Detector* detector = new Detector(cfg_file, weights_file);
+    return detector;
 }
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img)
