@@ -119,9 +119,8 @@ void SpecificWorker::compute()
         if (width.has_value() and height.has_value())
         {
             // create opencv image
-            auto gimg = g_image.value().get();
-            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &gimg[0]);
-
+            auto g_img = g_image.value().get();
+            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_img[0]);
             // process opencv image
             const int img_size = 416;
             //const int img_size = 608;   // check in yolo.cfg to match

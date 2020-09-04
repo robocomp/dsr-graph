@@ -13,9 +13,9 @@ graph_view = true
 3d_view = false
 
 # YOLOv4 configuration
-cfg_file = /home/robocomp/software/darknet/cfg/yolov4-tiny.cfg
-weight_file = /home/robocomp/software/darknet/yolov4-tiny.weights
-names_file = /home/robocomp/software/darknet/data/coco.names
+cfg_file = /home/REPLACE/darknet/cfg/yolov4.cfg
+weight_file = /home/REPLACE/darknet/yolov4.weights
+names_file = /home/REPLACE/darknet/data/coco.names
 
 # Ice configuration
 Ice.MessageSizeMax=20004800
