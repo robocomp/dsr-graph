@@ -63,7 +63,13 @@ void SpecificWorker::initialize(int period)
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
-		// Graph viewer
+        // Remove all existing targets
+        auto pan_tilt = G->get_node(viriato_pan_tilt);
+        G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{0,0,10});
+        G->update_node(pan_tilt.value());
+
+
+        // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
 		opts main = opts::none;

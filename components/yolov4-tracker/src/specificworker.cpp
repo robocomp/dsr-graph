@@ -53,8 +53,9 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
     // initialize YOLOv4 network instances
     for(uint i=0; i<YOLO_INSTANCES; ++i)
+    {
         ynets.push_back(init_detector());
-
+    }
 	return true;
 }
 
@@ -71,7 +72,7 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
+		std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
 
         // innermodel
         innermodel = G->get_inner_api();
@@ -99,7 +100,6 @@ void SpecificWorker::initialize(int period)
 		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
-
         this->Period = period;
         timer.start(Period);
         READY_TO_GO = true;
@@ -119,16 +119,23 @@ void SpecificWorker::compute()
         if (width.has_value() and height.has_value())
         {
             // create opencv image
-            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_image.value());
+            auto gimg = g_image.value().get();
+            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &gimg[0]);
+
             // process opencv image
-            cv::Mat imgyolo(608, 608, CV_8UC3);
-            cv::resize(img, imgyolo, cv::Size(608, 608), 0, 0, cv::INTER_LINEAR);
+            const int img_size = 416;
+            //const int img_size = 608;   // check in yolo.cfg to match
+            cv::Mat imgyolo(img_size, img_size, CV_8UC3);
+            cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
+
+            cv::imshow("", img);
+            cv::waitKey(1);
             // get detections using YOLOv4 network
-            std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
+            //std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
             // predict where OI will be in yolo space
-            std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
+            //std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
             // show detections on image
-            show_image(imgyolo, real_objects, synth_objects);
+            //show_image(imgyolo, real_objects, synth_objects);
 
             // compute_prediction_error( real_objects, synth_objects);
             // compute corrections and insert or assign to G
@@ -140,42 +147,42 @@ void SpecificWorker::compute()
             // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
             // get object_or_interest and pan_tilt nodes
-            auto object = G->get_node(object_of_interest);
-            auto pan_tilt = G->get_node(viriato_pan_tilt);
-            if(object.has_value() and pan_tilt.has_value())
-            {
-                // get object pose in camera coordinate frame
-                auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
-                auto n_pose = pose->normalize();
-                n_pose = n_pose * (RMat::T)200;
-                pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
-                if (pose.has_value())
-                {
-                    // get pan_tilt current target pose
-                    if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
-                    {
-                        QVec qcurrent_pose(current_pose.value());
-                        //if they are different modify G
-                        if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
-                        {
-                            G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
-                            G->update_node(pan_tilt.value());
-                        }
-                    }
-                    else
-                    {
-                        qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
-                    }
-                }
-                else
-                {
-                    qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
-                }
-            }
-            else
-            {
-                qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
-            }
+//            auto object = G->get_node(object_of_interest);
+//            auto pan_tilt = G->get_node(viriato_pan_tilt);
+//            if(object.has_value() and pan_tilt.has_value())
+//            {
+//                // get object pose in camera coordinate frame
+//                auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
+//                auto n_pose = pose->normalize();
+//                n_pose = n_pose * (RMat::T)200;
+//                pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
+//                if (pose.has_value())
+//                {
+//                    // get pan_tilt current target pose
+//                    if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+//                    {
+//                        QVec qcurrent_pose(current_pose.value());
+//                        //if they are different modify G
+//                        if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+//                        {
+//                            G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+//                            G->update_node(pan_tilt.value());
+//                        }
+//                    }
+//                    else
+//                    {
+//                        qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
+//                    }
+//                }
+//                else
+//                {
+//                    qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
+//                }
+//            }
+//            else
+//            {
+//                qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
+//            }
         }
         else
         {
@@ -194,8 +201,8 @@ Detector* SpecificWorker::init_detector()
     std::ifstream file(names_file);
     for(std::string line; getline(file, line);) names.push_back(line);
     // initialize YOLOv4 detector
-    Detector detector(cfg_file, weights_file);
-    return &detector;
+    Detector* detector = new Detector(cfg_file, weights_file);
+    return detector;
 }
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img)
@@ -205,7 +212,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, 0.2, false);
     // process detected bounding boxes
     std::vector<Box> bboxes;
-    for(int i = 0; i < detections.size(); ++i)
+    for(unsigned int i = 0; i < detections.size(); ++i)
     {
         const auto &d = detections[i];
         int cls = d.obj_id;
