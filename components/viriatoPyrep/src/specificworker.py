@@ -131,7 +131,7 @@ class SpecificWorker(GenericWorker):
         #         #start = time.time()
             self.pr.step()
             ###########################################
-            ### Cameras get and publish people position
+            ### CAMERAS get and publish people position
             ###########################################
             for name,cam in self.cameras.items():
                 cam = self.cameras["viriato_head_camera_sensor"]
@@ -164,7 +164,7 @@ class SpecificWorker(GenericWorker):
                 print(e)
 
             ###########################################
-            ### PEOPLE get and publish people position
+            ### LASER get and publish people position
             ###########################################
             ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
                                               self.hokuyo_base_front_left,

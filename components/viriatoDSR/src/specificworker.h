@@ -91,6 +91,8 @@ private:
 	void update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &dept);
 	bool areDifferent(float a, float b, float epsilon);
     void checkNewCommand(const RoboCompGenericBase::TBaseState& bState);
+
+
 };
 
 #endif
