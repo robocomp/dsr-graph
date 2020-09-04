@@ -1,4 +1,4 @@
-INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv3.cmake )
+INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
 
 # Sources set
 SET ( SOURCES
