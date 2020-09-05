@@ -122,11 +122,11 @@ void SpecificWorker::compute()
         auto world_arm_edge = G->get_edge_RT(world_node.value(), arm_id.value());
         auto world_object_edge = G->get_edge_RT(world_node.value(), object_id.value());
         
-        std::map<std::string, Attrib> arm_attribs = world_arm_edge.value().attrs();
-        vector<float> arm_trans = arm_attribs.at("translation").value().float_vec();
+        std::map<std::string, DSR::Attribute> arm_attribs = world_arm_edge.value().attrs();
+        vector<float> arm_trans = arm_attribs.at("translation").float_vec();
         
-        std::map<std::string, Attrib> object_attribs = world_object_edge.value().attrs();
-        vector<float> object_trans = object_attribs.at("translation").value().float_vec();
+        std::map<std::string, DSR::Attribute> object_attribs = world_object_edge.value().attrs();
+        vector<float> object_trans = object_attribs.at("translation").float_vec();
 
         // get euclidean distance between arm and required object (ignoring distance along z-axis)
         float arm_object_dist = sqrt(pow(object_trans.at(0)-arm_trans.at(0), 2.0) + pow(object_trans.at(1)-arm_trans.at(1), 2.0));
@@ -136,7 +136,7 @@ void SpecificWorker::compute()
         {
             // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
             vector<float> dummy_trans = this->interpolate_trans(arm_trans, object_trans, 0.2); // interpolate dummy target position
-            vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").value().float_vec(); // set dummy target rotation with object rotation
+            vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").float_vec(); // set dummy target rotation with object rotation
             G->insert_or_assign_edge_RT(world_node.value(), arm_id.value(), dummy_trans, dummy_rot);
 
             // check whether the arm target reaches the object
@@ -162,17 +162,17 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
-            const std::vector<uint8_t> rgb_data = G->get_rgb_image(cam.value());
-            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_width");
-            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_height");
-            const auto depth = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_depth");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_cameraID");
-            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focalx");
-            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_focaly");
-            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "rgb_alivetime");
+            auto rgb_data = G->get_rgb_image(cam.value());
+            const auto width = G->get_attrib_by_name<rgb_width>(cam.value());
+            const auto height = G->get_attrib_by_name<rgb_height>(cam.value());
+            const auto depth = G->get_attrib_by_name<rgb_depth>(cam.value());
+            const auto cam_id = G->get_attrib_by_name<rgb_cameraID>(cam.value());
+            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
+            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
+            const auto alivetime = G->get_attrib_by_name<rgb_alivetime>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TImage
-            rgb.image = rgb_data;
+            rgb.image = rgb_data.value().get();
             rgb.width = width.value();
             rgb.height = height.value();
             rgb.depth = depth.value();
@@ -205,17 +205,17 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
-            const std::vector<uint8_t> depth_data = G->get_depth_image(cam.value());
-            const auto width = G->get_attrib_by_name<int32_t>(cam.value(), "depth_width");
-            const auto height = G->get_attrib_by_name<int32_t>(cam.value(), "depth_height");
-            const auto cam_id = G->get_attrib_by_name<int32_t>(cam.value(), "depth_cameraID");
-            const auto focalx = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focalx");
-            const auto focaly = G->get_attrib_by_name<int32_t>(cam.value(), "depth_focaly");
-            const auto depth_factor = G->get_attrib_by_name<float_t>(cam.value(), "depth_factor");
-            const auto alivetime = G->get_attrib_by_name<int32_t>(cam.value(), "depth_alivetime");
+            auto depth_data = G->get_depth_image(cam.value());
+            const auto width = G->get_attrib_by_name<depth_width>(cam.value());
+            const auto height = G->get_attrib_by_name<depth_height>(cam.value());
+            const auto cam_id = G->get_attrib_by_name<depth_cameraID>(cam.value());
+            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
+            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
+            const auto depth_factor = G->get_attrib_by_name<depthFactor>(cam.value());
+            const auto alivetime = G->get_attrib_by_name<rgb_alivetime>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TDepth
-            depth.depth = depth_data;
+            depth.depth = depth_data.value().get();
             depth.width = width.value();
             depth.height = height.value();
             depth.cameraID = cam_id.value();
@@ -275,7 +275,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             if (!object_node.has_value()) // if node doesn't exist
             {
                 // define object node
-                Node object = Node();
+                DSR::Node object = DSR::Node();
                 object.type("mesh");
                 object.agent_id(agent_id);
                 object.name(pose.objectname);
