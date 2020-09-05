@@ -51,6 +51,8 @@ public slots:
 	void initialize(int period);
 
 private:
+    bool startup_check_flag;
+
     // NODE NAMES
     const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
     const std::string camera_name = "viriato_head_camera_sensor";
@@ -59,8 +61,6 @@ private:
     // ATTRIBUTE NAMES
     const std::string nose_target = "viriato_pan_tilt_nose_target";
 
-
-    bool startup_check_flag;
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
 
@@ -75,24 +75,25 @@ private:
 	int qscene_2d_view;
 	int osg_3d_view;
 
-	// graph viewer
+	// Graph Biewer
 	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
     std::unordered_map<int, int> G_person_id;
-	// buffers
+
+	// Double Buffers to receive data from ViriatoPyRep
 	DoubleBuffer<RoboCompLaser::TLaserData, RoboCompLaser::TLaserData> laser_buffer;
 	DoubleBuffer<RoboCompGenericBase::TBaseState, RoboCompGenericBase::TBaseState> omnirobot_buffer;
 	DoubleBuffer<RoboCompCameraRGBDSimple::TImage, RoboCompCameraRGBDSimple::TImage> rgb_buffer;
 	DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
 	
-	void update_laser(const RoboCompLaser::TLaserData& ldata);
-	void update_omirobot(const RoboCompGenericBase::TBaseState& bState);
-	void update_rgbd(const RoboCompCameraRGBDSimple::TImage& rgb, const RoboCompCameraRGBDSimple::TDepth &dept);
-	bool areDifferent(float a, float b, float epsilon);
-    void checkNewCommand(const RoboCompGenericBase::TBaseState& bState);
-
-
+	void update_laser();
+    RoboCompGenericBase::TBaseState update_omirobot();
+	void update_rgbd();
+	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
+    void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
+    void check_new_dummy_values_for_coppelia();
+    void check_new_nose_referece_for_pan_tilt();
 };
 
 #endif
