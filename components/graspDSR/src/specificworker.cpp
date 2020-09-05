@@ -205,7 +205,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
-            auto depth_data = G->get_depth_image(cam.value());
+            auto depth_data = G->get_attrib_by_name<img_depth_att>(cam.value());
             const auto width = G->get_attrib_by_name<depth_width>(cam.value());
             const auto height = G->get_attrib_by_name<depth_height>(cam.value());
             const auto cam_id = G->get_attrib_by_name<depth_cameraID>(cam.value());
@@ -215,7 +215,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
             const auto alivetime = G->get_attrib_by_name<rgb_alivetime>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TDepth
-            depth.depth = depth_data.value().get();
+            depth.depth = depth_data.value();
             depth.width = width.value();
             depth.height = height.value();
             depth.cameraID = cam_id.value();
