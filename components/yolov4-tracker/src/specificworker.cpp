@@ -122,19 +122,16 @@ void SpecificWorker::compute()
             auto g_img = g_image.value().get();
             cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_img[0]);
             // process opencv image
-            const int img_size = 416;
-            //const int img_size = 608;   // check in yolo.cfg to match
+            const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
             cv::Mat imgyolo(img_size, img_size, CV_8UC3);
             cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
 
-            cv::imshow("", img);
-            cv::waitKey(1);
             // get detections using YOLOv4 network
-            //std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
+            std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
             // predict where OI will be in yolo space
-            //std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
+            std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
             // show detections on image
-            //show_image(imgyolo, real_objects, synth_objects);
+            show_image(imgyolo, real_objects, synth_objects);
 
             // compute_prediction_error( real_objects, synth_objects);
             // compute corrections and insert or assign to G
@@ -146,42 +143,42 @@ void SpecificWorker::compute()
             // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
             // get object_or_interest and pan_tilt nodes
-//            auto object = G->get_node(object_of_interest);
-//            auto pan_tilt = G->get_node(viriato_pan_tilt);
-//            if(object.has_value() and pan_tilt.has_value())
-//            {
-//                // get object pose in camera coordinate frame
-//                auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
-//                auto n_pose = pose->normalize();
-//                n_pose = n_pose * (RMat::T)200;
-//                pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
-//                if (pose.has_value())
-//                {
-//                    // get pan_tilt current target pose
-//                    if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
-//                    {
-//                        QVec qcurrent_pose(current_pose.value());
-//                        //if they are different modify G
-//                        if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
-//                        {
-//                            G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
-//                            G->update_node(pan_tilt.value());
-//                        }
-//                    }
-//                    else
-//                    {
-//                        qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
-//                    }
-//                }
-//                else
-//                {
-//                    qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
-//                }
-//            }
-//            else
-//            {
-//                qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
-//            }
+            auto object = G->get_node(object_of_interest);
+            auto pan_tilt = G->get_node(viriato_pan_tilt);
+            if(object.has_value() and pan_tilt.has_value())
+            {
+                // get object pose in camera coordinate frame
+                auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
+                auto n_pose = pose->normalize();
+                n_pose = n_pose * (RMat::T)200;
+                pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
+                if (pose.has_value())
+                {
+                    // get pan_tilt current target pose
+                    if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+                    {
+                        QVec qcurrent_pose(current_pose.value());
+                        //if they are different modify G
+                        if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+                        {
+                            G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                            G->update_node(pan_tilt.value());
+                        }
+                    }
+                    else
+                    {
+                        qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
+                    }
+                }
+                else
+                {
+                    qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
+                }
+            }
+            else
+            {
+                qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
+            }
         }
         else
         {
@@ -241,15 +238,17 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
 
     int i, j, k;
     image_t out;
-    out.data = 0;
     out.h = h;
     out.w = w;
     out.c = c;
+    out.data = (float *)calloc(h*w*c, sizeof(float));
+
+    unsigned char *data = (unsigned char *)src.data;
 
     for(i = 0; i < h; ++i){
         for(k= 0; k < c; ++k){
             for(j = 0; j < w; ++j){
-                out.data[k*w*h + i*w + j] = src.data[i*step + j*c + k]/255.;
+                out.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
             }
         }
     }
@@ -266,10 +265,10 @@ image_t SpecificWorker::createImage(const std::vector<uint8_t> &src, int width, 
 
     int i, j, k;
     image_t out;
-    out.data = 0;
     out.h = h;
     out.w = w;
     out.c = c;
+    out.data = (float *)calloc(h*w*c, sizeof(float));
 
     for(i = 0; i < h; ++i){
         for(k= 0; k < c; ++k){
