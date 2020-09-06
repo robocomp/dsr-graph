@@ -248,7 +248,7 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
     for(i = 0; i < h; ++i){
         for(k= 0; k < c; ++k){
             for(j = 0; j < w; ++j){
-                out.data[k*w*h + i*w + j] = src.data[i*step + j*c + k]/255.;
+                out.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
             }
         }
     }
