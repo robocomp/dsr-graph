@@ -102,8 +102,10 @@ class SpecificWorker(GenericWorker):
                                                                 "depth": np.ndarray(0) }
 
         # camera tilt motor
-        self.camera_tilt_motor = Joint("viriato_camera_tilt_joint")
-        self.camera_pan_motor = Joint("viriato_camera_pan_joint")
+        self.viriato_head_camera_pan_joint_name = "viriato_head_camera_pan_joint"
+        self.viriato_head_camera_tilt_joint_name = "viriato_head_camera_tilt_joint"
+        self.viriato_head_camera_tilt_joint = Joint(self.viriato_head_camera_tilt_joint_name)
+        self.viriato_head_camera_pan_joint = Joint(self.viriato_head_camera_pan_joint_name)
 
         # Each laser is composed of two cameras. They are converted into a 360 virtual laser
         self.hokuyo_base_front_left = VisionSensor("hokuyo_base_front_left")
@@ -126,105 +128,135 @@ class SpecificWorker(GenericWorker):
 
     #@QtCore.Slot()
     def compute(self):
+        cont = 0
+        start = time.time()
         while True:
-        #     try:
-        #         #start = time.time()
             self.pr.step()
-            ###########################################
-            ### CAMERAS get and publish people position
-            ###########################################
-            for name,cam in self.cameras.items():
-                cam = self.cameras["viriato_head_camera_sensor"]
-                image_float = cam["handle"].capture_rgb()
-                depth = cam["handle"].capture_depth()
-                image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-                cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"], depth=3, focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), image=image.tobytes())
-                cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"], focalx=cam["focal"], focaly=cam["focal"], alivetime=time.time(), depth=depth.tobytes())
+            self.read_cameras()
+            self.read_people()
+            self.read_laser()
+            self.read_joystick()
+            self.read_robot_pose()
+            self.move_robot()
+            self.read_pan_tilt()
 
-                try:
-                    self.camerargbdsimplepub_proxy.pushRGBD( cam["rgb"],  cam["depth"])
-                except Ice.Exception as e:
-                    print(e)
+            elapsed = time.time()-start
+            if elapsed < 0.07:
+                time.sleep(0.07-elapsed)
+            cont += 1
+            if elapsed > 1:
+                print("Freq -> ", cont)
+                cont = 0
+                start = time.time()
 
-            ###########################################
-            ### PEOPLE get and publish people position
-            ###########################################
-            people_data = RoboCompHumanToDSRPub.PeopleData()
-            people_data.timestamp = time.time()
-            people = [] #RoboCompHumanToDSRPub.People()
-            for name, handle in self.people.items():
-                pos = handle.get_position()
-                rot = handle.get_orientation()
-                person = RoboCompHumanToDSRPub.Person(len(people), -pos[1]*1000, pos[2]*1000, pos[0]*1000, -rot[2], {})
-                people.append(person)
+    ###########################################
+    ### CAMERAS get and publish cameras data
+    ###########################################
+    def read_cameras(self):
+        for name, cam in self.cameras.items():
+            cam = self.cameras["viriato_head_camera_sensor"]
+            image_float = cam["handle"].capture_rgb()
+            depth = cam["handle"].capture_depth()
+            image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
+                                  dtype=cv2.CV_8U)
+            cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"],
+                                                         depth=3, focalx=cam["focal"], focaly=cam["focal"],
+                                                         alivetime=time.time(), image=image.tobytes())
+            cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"],
+                                                           focalx=cam["focal"], focaly=cam["focal"],
+                                                           alivetime=time.time(), depth=depth.tobytes())
+
             try:
-                people_data.peoplelist = people
-                self.humantodsrpub_proxy.newPeopleData(people_data)
+                self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
             except Ice.Exception as e:
                 print(e)
 
-            ###########################################
-            ### LASER get and publish people position
-            ###########################################
-            ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
-                                              self.hokuyo_base_front_left,
-                                              self.hokuyo_base_back_left,
-                                              self.hokuyo_base_back_right
-                                             ], self.robot)
-            try:
-                self.laserpub_proxy.pushLaserData(ldata)
-            except Ice.Exception as e:
-                print(e)
+    ###########################################
+    ### PEOPLE get and publish people position
+    ###########################################
+    def read_people(self):
+        people_data = RoboCompHumanToDSRPub.PeopleData()
+        people_data.timestamp = time.time()
+        people = []  # RoboCompHumanToDSRPub.People()
+        for name, handle in self.people.items():
+            pos = handle.get_position()
+            rot = handle.get_orientation()
+            person = RoboCompHumanToDSRPub.Person(len(people), -pos[1] * 1000, pos[2] * 1000, pos[0] * 1000, -rot[2],
+                                                  {})
+            people.append(person)
+        try:
+            people_data.peoplelist = people
+            self.humantodsrpub_proxy.newPeopleData(people_data)
+        except Ice.Exception as e:
+            print(e)
 
-            ###########################################
-            ### JOYSITCK get and publish people position
-            ###########################################
-            if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
-                self.update_joystick(self.joystick_newdata[0])
-                self.joystick_newdata = None
+    ###########################################
+    ### LASER get and publish people position
+    ###########################################
+    def read_laser(self):
+        ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
+                                         self.hokuyo_base_front_left,
+                                         self.hokuyo_base_back_left,
+                                         self.hokuyo_base_back_right
+                                         ], self.robot)
+        try:
+            self.laserpub_proxy.pushLaserData(ldata)
+        except Ice.Exception as e:
+            print(e)
 
-            ###########################################
-            ### ROBOT POSE get and publish people position
-            ###########################################
-            pose = self.robot.get_2d_pose()
-            linear_vel, ang_vel = self.robot_object.get_velocity()
-            #print("Veld:", linear_vel, ang_vel)
-            try:
-                isMoving = np.abs(linear_vel[1]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-                self.bState = RoboCompGenericBase.TBaseState(x=-pose[1]*1000,
-                                                             z=pose[0]*1000,
-                                                             alpha=-pose[2]-1.5707963,
-                                                             advVx=-linear_vel[1]*1000,
-                                                             advVz=linear_vel[0]*1000,
-                                                             rotV=ang_vel[2],
-                                                             isMoving=isMoving)
-                self.omnirobotpub_proxy.pushBaseState(self.bState)
-            except Ice.Exception as e:
-                print(e)
+    ###########################################
+    ### JOYSITCK get and publish people position
+    ###########################################
+    def read_joystick(self):
+        if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
+            self.update_joystick(self.joystick_newdata[0])
+            self.joystick_newdata = None
 
-            ###########################################
-            ### MOVE ROBOT from Omnirobot interface
-            ###########################################
-            if self.speed_robot != self.speed_robot_ant:#or (isMoving and self.speed_robot == [0,0,0]):
-                self.robot.set_base_angular_velocites(self.speed_robot)
-                print("Velocities sent to robot:", self.speed_robot)
-                self.speed_robot_ant = self.speed_robot
+    ###########################################
+    ### ROBOT POSE get and publish people position
+    ###########################################
+    def read_robot_pose(self):
+        pose = self.robot.get_2d_pose()
+        linear_vel, ang_vel = self.robot_object.get_velocity()
+        # print("Veld:", linear_vel, ang_vel)
+        try:
+            isMoving = np.abs(linear_vel[1]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
+            self.bState = RoboCompGenericBase.TBaseState(x=-pose[1] * 1000,
+                                                         z=pose[0] * 1000,
+                                                         alpha=-pose[2] - 1.5707963,
+                                                         advVx=-linear_vel[1] * 1000,
+                                                         advVz=linear_vel[0] * 1000,
+                                                         rotV=ang_vel[2],
+                                                         isMoving=isMoving)
+            self.omnirobotpub_proxy.pushBaseState(self.bState)
+        except Ice.Exception as e:
+            print(e)
 
-            ###########################################
-            ### Viriato head camera tilt motor. Command from JointMotor interface
-            ############################################
+    ###########################################
+    ### MOVE ROBOT from Omnirobot interface
+    ###########################################
+    def move_robot(self):
 
+        if self.speed_robot != self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
+            self.robot.set_base_angular_velocites(self.speed_robot)
+            print("Velocities sent to robot:", self.speed_robot)
+            self.speed_robot_ant = self.speed_robot
 
-            ############################################
-            time.sleep(0.070)
+    ###########################################
+    ### Viriato head camera tilt motor. Command from JointMotor interface
+    ############################################
+    def read_pan_tilt(self):
+        mpan = RoboCompJointMotor.MotorState()
+        mpan.pos = self.viriato_head_camera_pan_joint.get_joint_position()
+        mtilt = RoboCompJointMotor.MotorState()
+        mtilt.pos = self.viriato_head_camera_tilt_joint.get_joint_position()
+        motors = dict({self.viriato_head_camera_pan_joint_name: mpan,
+                       self.viriato_head_camera_tilt_joint_name: mtilt})
+        self.jointmotorpub_proxy.motorStates(motors)
 
-        #         #print(time.time()-start)
-        #     except KeyboardInterrupt:
-        #         break
-
-    ###################################################################################################
-
-    # General laser computation
+    ########################################
+    ## General laser computation
+    ########################################
     def compute_omni_laser(self, lasers, robot):
         c_data = []
         coor = []

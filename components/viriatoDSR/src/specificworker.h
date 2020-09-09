@@ -41,6 +41,7 @@ public:
 	void CameraRGBDSimplePub_pushRGBD(RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep);
 	void LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData);
 	void OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state);
+    void JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap){};
 
 	// DSR
     std::shared_ptr<DSR::DSRGraph> getGDSR() const {return G;};
@@ -54,12 +55,14 @@ private:
     bool startup_check_flag;
 
     // NODE NAMES
-    const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
-    const std::string camera_name = "viriato_head_camera_sensor";
+    const std::string viriato_head_camera_pan_tilt = "viriato_head_camera_pan_tilt";
+    const std::string viriato_head_camera_pan_joint = "viriato_head_camera_pan_joint";
+    const std::string viriato_head_camera_tilt_joint = "viriato_head_camera_tilt_joint";
+    const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
     const std::string robot_name = "omnirobot";
 
     // ATTRIBUTE NAMES
-    const std::string nose_target = "viriato_pan_tilt_nose_target";
+    const std::string nose_target = "viriato_head_camera_pan_tilt_nose_target";
 
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
@@ -86,14 +89,17 @@ private:
 	DoubleBuffer<RoboCompGenericBase::TBaseState, RoboCompGenericBase::TBaseState> omnirobot_buffer;
 	DoubleBuffer<RoboCompCameraRGBDSimple::TImage, RoboCompCameraRGBDSimple::TImage> rgb_buffer;
 	DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
-	
-	void update_laser();
+    DoubleBuffer<RoboCompJointMotor::MotorStateMap, RoboCompJointMotor::MotorStateMap> jointmotor_buffer;
+
+
+    void update_laser();
     RoboCompGenericBase::TBaseState update_omirobot();
 	void update_rgbd();
 	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
     void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
     void check_new_dummy_values_for_coppelia();
     void check_new_nose_referece_for_pan_tilt();
+    void update_nose_position();
 };
 
 #endif

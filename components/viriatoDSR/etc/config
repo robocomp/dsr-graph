@@ -1,13 +1,14 @@
-CommonBehavior.Endpoints=tcp -p 10000
+CommonBehavior.Endpoints=tcp -p 10010
 
 # Endpoints for subscriptions interfaces
-CameraRGBDSimplePubTopic.Endpoints=tcp -p 11111
+CameraRGBDSimplePubTopic.Endpoints=tcp -p 12111
 LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
 
 #Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004
 CoppeliaUtilsProxy = coppeliautils:tcp -p 10666
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
 agent_id = 10

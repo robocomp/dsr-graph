@@ -111,6 +111,7 @@ private:
     void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
     std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam);
     void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
+    void track_object_of_interest();
 };
 
 #endif
