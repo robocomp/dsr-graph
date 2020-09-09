@@ -133,9 +133,9 @@ void SpecificWorker::compute()
             std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
 
             // show detections on image
-            qInfo() << real_objects.size() << synth_objects.size();
-            for(auto s : synth_objects)
-                qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+//            qInfo() << real_objects.size() << synth_objects.size();
+//            for(auto s : synth_objects)
+//                qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
             show_image(imgyolo, real_objects, synth_objects);
 
             // compute_prediction_error( real_objects, synth_objects);
@@ -253,24 +253,25 @@ void SpecificWorker::track_object_of_interest()
     if(object.has_value() and pan_tilt.has_value())
     {
         // get object pose in camera coordinate frame
-        auto pose = innermodel->transformS(viriato_pan_tilt, object_of_interest);
+        //auto pose = innermodel->transformS(camera_name, object_of_interest);
+        auto pose = innermodel->transformS(world_node, object_of_interest);
         // make it 200 mm vector
-        auto n_pose = pose->normalize() * (RMat::T)200;
-        //n_pose = n_pose * (RMat::T)200;
+        //auto n_pose = pose->normalize() * pose->norm2();
         // transform to world coordinate frame so in Coppelia appears as the nose_target_dummy
-        pose = innermodel->transformS(world_node, n_pose, viriato_pan_tilt);
+        //pose = innermodel->transformS(world_node, pose, camera_name);
         if (pose.has_value())
         {
             // get pan_tilt current target pose
-            if(auto current_pose = G->get_attrib_by_name<viriato_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
             {
                 QVec qcurrent_pose(current_pose.value());
                 //if they are different modify G
-                if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
-                {
-                    G->add_or_modify_attrib_local<viriato_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                //if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+                //{
+                    pose.value().print("pose sent");
+                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
                     G->update_node(pan_tilt.value());
-                }
+                //}
             }
             else
             {
