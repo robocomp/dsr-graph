@@ -51,12 +51,15 @@ public slots:
 	//custom_widget
     void drawPersonalSpace();
 
+    //graph signals
+    void update_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type);
+
 private:
     void updatePeopleInModel();
     void checkInteractions();
     void applySocialRules();
     void updatePersonalSpacesInGraph();
-
+    void people_space_computation();
     //utils
     void convert_polyline_to_vector(const RoboCompSocialNavigationGaussian::SNGPolyline &poly, std::vector<float> &x_values, std::vector<float> &z_values);
 
