@@ -252,7 +252,11 @@ class SpecificWorker(GenericWorker):
         mtilt.pos = self.viriato_head_camera_tilt_joint.get_joint_position()
         motors = dict({self.viriato_head_camera_pan_joint_name: mpan,
                        self.viriato_head_camera_tilt_joint_name: mtilt})
-        self.jointmotorpub_proxy.motorStates(motors)
+        try:
+            print("Joints: ", mpan.pos, mtilt.pos)
+            self.jointmotorpub_proxy.motorStates(motors)
+        except Ice.Exception as e:
+            print(e)
 
     ########################################
     ## General laser computation
@@ -431,8 +435,8 @@ class SpecificWorker(GenericWorker):
         else:
             dummy = Dummy(name)
             parent_frame_object = None
-            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-                parent_frame_object = Object("viriato_head_camera_sensor")
+        #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+        #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
             # change from RoboComp to Coppelia coordinate system
             print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
             dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])

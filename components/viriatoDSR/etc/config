@@ -1,9 +1,10 @@
 CommonBehavior.Endpoints=tcp -p 10010
 
 # Endpoints for subscriptions interfaces
-CameraRGBDSimplePubTopic.Endpoints=tcp -p 12111
+CameraRGBDSimplePubTopic.Endpoints=tcp -p 11111
 LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
+JointMotorPubTopic.Endpoints=tcp -p 11114
 
 #Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004

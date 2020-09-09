@@ -296,9 +296,9 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		try
 		{
 			if (not GenericMonitor::configGetString(communicator(), prefix, "JointMotorPubTopic.Endpoints", tmp, ""))
-			{
-				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorPubProxy";
-			}
+            {
+                cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorPubProxy" << std::endl;
+            }
 			Ice::ObjectAdapterPtr JointMotorPub_adapter = communicator()->createObjectAdapterWithEndpoints("jointmotorpub", tmp);
 			RoboCompJointMotorPub::JointMotorPubPtr jointmotorpubI_ =  std::make_shared <JointMotorPubI>(worker);
 			auto jointmotorpub = JointMotorPub_adapter->addWithUUID(jointmotorpubI_)->ice_oneway();

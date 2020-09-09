@@ -41,10 +41,18 @@ public:
 	void CameraRGBDSimplePub_pushRGBD(RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep);
 	void LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData);
 	void OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state);
-    void JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap){};
+    void JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap);
 
 	// DSR
     std::shared_ptr<DSR::DSRGraph> getGDSR() const {return G;};
+
+    // Double Buffers to receive data from ViriatoPyRep. Public to be used from the xxxI classes
+    DoubleBuffer<RoboCompLaser::TLaserData, RoboCompLaser::TLaserData> laser_buffer;
+    DoubleBuffer<RoboCompGenericBase::TBaseState, RoboCompGenericBase::TBaseState> omnirobot_buffer;
+    DoubleBuffer<RoboCompCameraRGBDSimple::TImage, RoboCompCameraRGBDSimple::TImage> rgb_buffer;
+    DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
+    DoubleBuffer<RoboCompJointMotor::MotorStateMap, RoboCompJointMotor::MotorStateMap> jointmotor_buffer;
+
 
 public slots:
 	void compute();
@@ -62,7 +70,7 @@ private:
     const std::string robot_name = "omnirobot";
 
     // ATTRIBUTE NAMES
-    const std::string nose_target = "viriato_head_camera_pan_tilt_nose_target";
+    const std::string nose_target = "viriato_head_pan_tilt_nose_target";
 
 	// DSR
 	std::shared_ptr<DSR::DSRGraph> G;
@@ -83,13 +91,6 @@ private:
 	QHBoxLayout mainLayout;
 	QWidget window;
     std::unordered_map<int, int> G_person_id;
-
-	// Double Buffers to receive data from ViriatoPyRep
-	DoubleBuffer<RoboCompLaser::TLaserData, RoboCompLaser::TLaserData> laser_buffer;
-	DoubleBuffer<RoboCompGenericBase::TBaseState, RoboCompGenericBase::TBaseState> omnirobot_buffer;
-	DoubleBuffer<RoboCompCameraRGBDSimple::TImage, RoboCompCameraRGBDSimple::TImage> rgb_buffer;
-	DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
-    DoubleBuffer<RoboCompJointMotor::MotorStateMap, RoboCompJointMotor::MotorStateMap> jointmotor_buffer;
 
 
     void update_laser();
