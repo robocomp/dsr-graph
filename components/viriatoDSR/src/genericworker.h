@@ -34,7 +34,10 @@
 #include <CameraRGBDSimple.h>
 #include <CameraRGBDSimplePub.h>
 #include <CoppeliaUtils.h>
+#include <DSRGetID.h>
 #include <GenericBase.h>
+#include <JointMotor.h>
+#include <JointMotorPub.h>
 #include <Laser.h>
 #include <LaserPub.h>
 #include <OmniRobot.h>
@@ -45,7 +48,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
+using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -62,9 +65,11 @@ public:
 
 
 	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;
+	virtual void JointMotorPub_motorStates (RoboCompJointMotor::MotorStateMap mstateMap) = 0;
 	virtual void LaserPub_pushLaserData (RoboCompLaser::TLaserData laserData) = 0;
 	virtual void OmniRobotPub_pushBaseState (RoboCompGenericBase::TBaseState state) = 0;
 

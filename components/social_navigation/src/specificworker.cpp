@@ -108,8 +108,7 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     // check for base_target_values
-    auto robot = G->get_node(robot_name);
-    if(robot.has_value())
+    if( auto robot = G->get_node(robot_name); robot.has_value())
     {
         if(auto target_id = G->get_attrib_by_name<target_node_id>(robot.value()); target_id.has_value())
         {

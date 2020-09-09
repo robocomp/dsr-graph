@@ -82,11 +82,13 @@
 #include "commonbehaviorI.h"
 
 #include <camerargbdsimplepubI.h>
+#include <jointmotorpubI.h>
 #include <laserpubI.h>
 #include <omnirobotpubI.h>
 
 #include <CameraRGBDSimple.h>
 #include <GenericBase.h>
+#include <JointMotor.h>
 #include <Laser.h>
 
 
@@ -99,7 +101,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag  = false;
+	bool startup_check_flag = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -136,9 +138,11 @@ int ::viriatoDSR::run(int argc, char* argv[])
 	int status=EXIT_SUCCESS;
 
 	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
+	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
+
 	initialize();
 
 	try
@@ -155,6 +159,22 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	rInfo("CoppeliaUtilsProxy initialized Ok!");
+
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
+		}
+		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("DSRGetIDProxy initialized Ok!");
 
 
 	try
@@ -184,7 +204,7 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(coppeliautils_proxy,omnirobot_proxy);
+	tprx = std::make_tuple(dsrgetid_proxy, coppeliautils_proxy, omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -266,6 +286,53 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		catch(const IceStorm::NoSuchTopic&)
 		{
 			cout << "[" << PROGRAM_NAME << "]: Error creating CameraRGBDSimplePub topic.\n";
+			//Error. Topic does not exist
+		}
+
+
+		// Server adapter creation and publication
+		std::shared_ptr<IceStorm::TopicPrx> jointmotorpub_topic;
+		Ice::ObjectPrxPtr jointmotorpub;
+		try
+		{
+			if (not GenericMonitor::configGetString(communicator(), prefix, "JointMotorPubTopic.Endpoints", tmp, ""))
+			{
+				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorPubProxy";
+			}
+			Ice::ObjectAdapterPtr JointMotorPub_adapter = communicator()->createObjectAdapterWithEndpoints("jointmotorpub", tmp);
+			RoboCompJointMotorPub::JointMotorPubPtr jointmotorpubI_ =  std::make_shared <JointMotorPubI>(worker);
+			auto jointmotorpub = JointMotorPub_adapter->addWithUUID(jointmotorpubI_)->ice_oneway();
+			if(!jointmotorpub_topic)
+			{
+				try {
+					jointmotorpub_topic = topicManager->create("JointMotorPub");
+				}
+				catch (const IceStorm::TopicExists&) {
+					//Another client created the topic
+					try{
+						cout << "[" << PROGRAM_NAME << "]: Probably other client already opened the topic. Trying to connect.\n";
+						jointmotorpub_topic = topicManager->retrieve("JointMotorPub");
+					}
+					catch(const IceStorm::NoSuchTopic&)
+					{
+						cout << "[" << PROGRAM_NAME << "]: Topic doesn't exists and couldn't be created.\n";
+						//Error. Topic does not exist
+					}
+				}
+				catch(const IceUtil::NullHandleException&)
+				{
+					cout << "[" << PROGRAM_NAME << "]: ERROR TopicManager is Null. Check that your configuration file contains an entry like:\n"<<
+					"\t\tTopicManager.Proxy=IceStorm/TopicManager:default -p <port>\n";
+					return EXIT_FAILURE;
+				}
+				IceStorm::QoS qos;
+				jointmotorpub_topic->subscribeAndGetPublisher(qos, jointmotorpub);
+			}
+			JointMotorPub_adapter->activate();
+		}
+		catch(const IceStorm::NoSuchTopic&)
+		{
+			cout << "[" << PROGRAM_NAME << "]: Error creating JointMotorPub topic.\n";
 			//Error. Topic does not exist
 		}
 
