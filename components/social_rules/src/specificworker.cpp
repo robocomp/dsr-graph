@@ -48,11 +48,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 //		innerModel = std::make_shared(innermodel_path);
 //	}
 //	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
 
@@ -105,6 +100,7 @@ void SpecificWorker::initialize(int period)
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::update_edge_slot);
 		// custom_widget
         dsr_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
 
@@ -131,38 +127,40 @@ void SpecificWorker::initialize(int period)
 
 		this->Period = period;
 		timer.start(Period);
+
+        //launched on component initialization, afterward changes are received on node updates.
+        people_space_computation();
 	}
 
 }
 
+
+
+void SpecificWorker::update_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type)
+{
+    if (type == "RT")
+    {
+        //check if edge involves any person
+        auto node = G->get_node(to);
+        if (node.has_value() and node.value().type() == "person") {
+            std::cout<<"Update edge from: "<<from<<" to person: "<<to<<std::endl;
+            people_space_computation();
+        }
+    }
+}
+
 void SpecificWorker::compute()
 {
- //   if (worldModelChanged)
-    {
-        updatePeopleInModel();
-        checkInteractions();
-//        checkObjectAffordance();
-        applySocialRules();
+}
 
-        updatePersonalSpacesInGraph();
-//        updateAffordancesInGraph();
-
-//        worldModelChanged = false;
-//        costChanged = false;
-    }
-
- /*   else if (costChanged)
-    {
-        updateAffordancesInGraph();
-
-//        publishAffordances();
-
-        costChanged = false;
-    }*/
-
-//    checkRobotmov();
-
-	
+//launched on component initialization, afterward changes are received on node updates.
+void SpecificWorker::people_space_computation()
+{
+    std::cout<<"Update people personal space"<<std::endl;
+    updatePeopleInModel();
+    checkInteractions();
+    applySocialRules();
+    updatePersonalSpacesInGraph();
 }
 
 int SpecificWorker::startup_check()
@@ -211,7 +209,6 @@ void SpecificWorker::updatePeopleInModel(){
 void SpecificWorker::checkInteractions(){
     qDebug()<< __FUNCTION__;
     //clear previous data
-    //TODO: check if something could be reused => node signals
     people_groups.clear();
     person_to_group.clear();
 
