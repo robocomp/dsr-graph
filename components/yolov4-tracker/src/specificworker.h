@@ -28,6 +28,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <QHBoxLayout>
@@ -45,7 +46,8 @@ public:
     SpecificWorker(TuplePrx tprx, bool startup_check);
     ~SpecificWorker();
     bool setParams(RoboCompCommonBehavior::ParameterList params);
-
+    void show_rgb_image();
+    
 public slots:
     void compute();
     int startup_check();
@@ -83,7 +85,10 @@ private:
     QHBoxLayout mainLayout;
     QWidget window;
     bool startup_check_flag;
-
+    
+    //local widget
+    Custom_widget custom_widget;
+    
     // Bounding boxes struct
     struct Box
     {

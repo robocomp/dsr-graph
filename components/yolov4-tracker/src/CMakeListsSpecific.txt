@@ -21,6 +21,7 @@ SET ( SOURCES
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
+   custom_widget.h
 )
 
 
