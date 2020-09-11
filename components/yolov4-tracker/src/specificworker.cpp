@@ -348,7 +348,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     // display RGB image with detections
     for(const auto &box : real_boxes)
     {
-        if(box.prob > 50)
+        if(box.prob > 40)
         {
             auto p1 = cv::Point(box.left, box.top);
             auto p2 = cv::Point(box.right, box.bot);
