@@ -190,23 +190,23 @@ if __name__ == '__main__':
     humantodsrpubTopic = RoboCompHumanToDSRPub.HumanToDSRPubPrx.uncheckedCast(pub)
     mprx["HumanToDSRPubPub"] = humantodsrpubTopic
 
-    # Create a proxy to publish a JointMotorPublish topic
+    # Create a proxy to publish a JointMotorPub topic
     topic = False
     try:
-        topic = topicManager.retrieve("JointMotorPublish")
+        topic = topicManager.retrieve("JointMotorPub")
     except:
         pass
     while not topic:
         try:
-            topic = topicManager.retrieve("JointMotorPublish")
+            topic = topicManager.retrieve("JointMotorPub")
         except IceStorm.NoSuchTopic:
             try:
-                topic = topicManager.create("JointMotorPublish")
+                topic = topicManager.create("JointMotorPub")
             except:
-                print('Another client created the JointMotorPublish topic? ...')
+                print('Another client created the JointMotorPub topic? ...')
     pub = topic.getPublisher().ice_oneway()
     jointmotorpubTopic = RoboCompJointMotorPub.JointMotorPubPrx.uncheckedCast(pub)
-    mprx["JointMotorPub"] = jointmotorpubTopic
+    mprx["JointMotorPubPub"] = jointmotorpubTopic
 
     if status == 0:
         worker = SpecificWorker(mprx)

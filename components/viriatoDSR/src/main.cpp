@@ -142,7 +142,6 @@ int ::viriatoDSR::run(int argc, char* argv[])
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
-
 	initialize();
 
 	try
@@ -204,7 +203,7 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(dsrgetid_proxy, coppeliautils_proxy, omnirobot_proxy);
+	tprx = std::make_tuple(coppeliautils_proxy,dsrgetid_proxy,omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -296,9 +295,9 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		try
 		{
 			if (not GenericMonitor::configGetString(communicator(), prefix, "JointMotorPubTopic.Endpoints", tmp, ""))
-            {
-                cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorPubProxy" << std::endl;
-            }
+			{
+				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorPubProxy";
+			}
 			Ice::ObjectAdapterPtr JointMotorPub_adapter = communicator()->createObjectAdapterWithEndpoints("jointmotorpub", tmp);
 			RoboCompJointMotorPub::JointMotorPubPtr jointmotorpubI_ =  std::make_shared <JointMotorPubI>(worker);
 			auto jointmotorpub = JointMotorPub_adapter->addWithUUID(jointmotorpubI_)->ice_oneway();

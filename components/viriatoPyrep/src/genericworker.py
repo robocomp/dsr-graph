@@ -73,4 +73,4 @@ class GenericWorker():
         self.laserpub_proxy = mprx["LaserPubPub"]
         self.omnirobotpub_proxy = mprx["OmniRobotPubPub"]
         self.humantodsrpub_proxy = mprx["HumanToDSRPubPub"]
-        self.jointmotorpub_proxy = mprx["JointMotorPub"]
+        self.jointmotorpub_proxy = mprx["JointMotorPubPub"]

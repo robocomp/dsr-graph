@@ -48,7 +48,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
+using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg

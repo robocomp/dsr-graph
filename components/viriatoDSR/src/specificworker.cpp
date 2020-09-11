@@ -95,7 +95,7 @@ void SpecificWorker::compute()
     update_laser();
     auto bState = update_omirobot();
     update_rgbd();
-    update_nose_position();
+    update_pantilt_position();
     check_new_dummy_values_for_coppelia();
     check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
@@ -196,7 +196,7 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
     return last_state;
 }
 
-void SpecificWorker::update_nose_position()
+void SpecificWorker::update_pantilt_position()
 {
     static std::vector<float> last_state{0.0, 0.0};
     static std::vector<float> epsilon{0.1, 0.1};
@@ -205,7 +205,7 @@ void SpecificWorker::update_nose_position()
     {
         const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint).pos;
         const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint).pos;
-        qInfo() << pan << tilt;
+        //qInfo() << pan << tilt;
         if( are_different(std::vector<float>{pan, tilt}, last_state, epsilon))
         {
             auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt);
@@ -215,7 +215,7 @@ void SpecificWorker::update_nose_position()
                 G->insert_or_assign_edge_RT(pan_tilt.value(), 81, std::vector<float>{0.0, 0.0, 0.0},
                                             std::vector<float>{0.0, pan, 0.0});
                 G->insert_or_assign_edge_RT(pan_joint.value(), 82, std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{tilt, 0.0, 0.0});
+                                            std::vector<float>{-tilt, 0.0, 0.0});
             }
             else
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
@@ -352,5 +352,5 @@ void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState 
 
 void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap)
 {
-    // copies to doublebuffer from jointmotorpubI.cpp
+    jointmotor_buffer.put(std::move(mstateMap));
 }
