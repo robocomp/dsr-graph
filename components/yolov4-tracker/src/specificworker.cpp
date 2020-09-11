@@ -101,8 +101,10 @@ void SpecificWorker::initialize(int period)
 		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		// custom_widget
-		graph_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
+		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+		// ignore attributes
+        G->set_ignored_attributes<angles_att, dists_att, depth_att>();
         this->Period = period;
         timer.start(Period);
         READY_TO_GO = true;
@@ -111,9 +113,6 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    //show rgb image on DSR UI
-    show_rgb_image();
-    
     // get camera node from G
     if( auto rgb_camera = G->get_node(camera_name); rgb_camera.has_value())
     {
@@ -209,6 +208,8 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     std::vector<Box> synth_box;
     //  get camera subAPI
     RMat::Cam camera(527, 527, 608/2, 608/2);
+    //320/np.tan(np.deg2rad(30))
+
     for(auto &&object_name : object_names)
     {
         //get object from G
@@ -217,6 +218,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             // compute bounding box projected in the camera coordinate frame
             std::vector<QVec> bb_in_camera;
             const float h = 150;
+
             bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,40), object_name).value()));
             bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,0,40), object_name).value()));
             bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,-40), object_name).value()));
@@ -271,12 +273,11 @@ void SpecificWorker::track_object_of_interest()
             {
                 QVec qcurrent_pose(current_pose.value());
                 //if they are different modify G
-                //if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
-                //{
-                    pose.value().print("pose sent");
+                if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+                {
                     G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
                     G->update_node(pan_tilt.value());
-                //}
+                }
             }
             else
             {

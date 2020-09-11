@@ -100,7 +100,7 @@ private:
     void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
     void check_new_dummy_values_for_coppelia();
     void check_new_nose_referece_for_pan_tilt();
-    void update_nose_position();
+    void update_pantilt_position();
 };
 
 #endif

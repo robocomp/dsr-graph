@@ -253,7 +253,7 @@ class SpecificWorker(GenericWorker):
         motors = dict({self.viriato_head_camera_pan_joint_name: mpan,
                        self.viriato_head_camera_tilt_joint_name: mtilt})
         try:
-            print("Joints: ", mpan.pos, mtilt.pos)
+            #print("Joints: ", motors)
             self.jointmotorpub_proxy.motorStates(motors)
         except Ice.Exception as e:
             print(e)
@@ -438,7 +438,7 @@ class SpecificWorker(GenericWorker):
         #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
         #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
             # change from RoboComp to Coppelia coordinate system
-            print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
+            #print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
             dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
             dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
 
