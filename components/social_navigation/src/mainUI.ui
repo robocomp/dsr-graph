@@ -20,21 +20,14 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionSaveToFile"/>
-   </widget>
    <widget class="QMenu" name="menuForces">
     <property name="title">
      <string>Forces</string>
     </property>
    </widget>
-   <addaction name="menuFile"/>
    <addaction name="menuForces"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
