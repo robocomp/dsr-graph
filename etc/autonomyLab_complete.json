@@ -346,7 +346,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/textures/wood.jpg"
+                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/alab/textures/wood.jpg"
                     },
                     "width": {
                         "type": 1,
@@ -5630,7 +5630,7 @@
                         "src": 83
                     }
                 ],
-                "name": "glass_node",
+                "name": "glass_1",
                 "type": "glass"
             },
             "84": {
