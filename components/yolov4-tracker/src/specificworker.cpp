@@ -109,25 +109,6 @@ void SpecificWorker::initialize(int period)
 	}
 }
 
-void SpecificWorker::show_rgb_image()
-{
-    //TODO: how to select which camera display
-    std::optional<DSR::Node> camera_node = G->get_node("viriato_head_camera_sensor");
-    if (camera_node.has_value())
-    {
-        const auto rgb_data = G->get_rgb_image(camera_node.value());
-        const auto rgb_width = G->get_attrib_by_name<width_att>(camera_node.value());
-        const auto rgb_height = G->get_attrib_by_name<height_att>(camera_node.value());
-
-        if (rgb_data.has_value() and rgb_width.has_value() and rgb_height.has_value()) {
-            const std::vector<uint8_t> &img = rgb_data.value().get();
-            auto pix = QPixmap::fromImage(
-                    QImage(&img[0], rgb_width.value(), rgb_height.value(), QImage::Format_RGB888));
-            custom_widget.rgb_image->setPixmap(pix);
-        }
-    }
-}
-
 void SpecificWorker::compute()
 {
     //show rgb image on DSR UI
@@ -312,9 +293,8 @@ void SpecificWorker::track_object_of_interest()
         qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
     }
 }
-
-
 /////////////////////////////////////////////////////////////////////////////
+
 image_t SpecificWorker::createImage(const cv::Mat &src)
 {
     // create YOLOv4 image from opencv matrix
@@ -393,11 +373,31 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(0, 255, 255), 2);
     }
-    cv::drawMarker(imgdst, cv::Point(imgdst.rows/2, imgdst.cols/2),  cv::Scalar(0, 0, 255), cv::MARKER_CROSS,0, 1);
-    cv::imshow("", imgdst);
-    cv::waitKey(1);
+    auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
+    custom_widget.rgb_image->setPixmap(pix);
+//    cv::drawMarker(imgdst, cv::Point(imgdst.rows/2, imgdst.cols/2),  cv::Scalar(0, 0, 255), cv::MARKER_CROSS,0, 1);
+//    cv::imshow("", imgdst);
+//    cv::waitKey(1);
 }
 
+void SpecificWorker::show_rgb_image()
+{
+    //TODO: how to select which camera to display
+    std::optional<DSR::Node> camera_node = G->get_node("viriato_head_camera_sensor");
+    if (camera_node.has_value())
+    {
+        const auto rgb_data = G->get_rgb_image(camera_node.value());
+        const auto rgb_width = G->get_attrib_by_name<width_att>(camera_node.value());
+        const auto rgb_height = G->get_attrib_by_name<height_att>(camera_node.value());
+
+        if (rgb_data.has_value() and rgb_width.has_value() and rgb_height.has_value()) {
+            const std::vector<uint8_t> &img = rgb_data.value().get();
+            auto pix = QPixmap::fromImage(
+                    QImage(&img[0], rgb_width.value(), rgb_height.value(), QImage::Format_RGB888));
+            custom_widget.rgb_image->setPixmap(pix);
+        }
+    }
+}
 void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
 {
 
