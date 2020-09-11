@@ -69,7 +69,7 @@
           <x>0</x>
           <y>0</y>
           <width>498</width>
-          <height>443</height>
+          <height>446</height>
          </rect>
         </property>
        </widget>
@@ -84,22 +84,15 @@
      <x>0</x>
      <y>0</y>
      <width>780</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionSave"/>
-   </widget>
    <widget class="QMenu" name="menuSimulation">
     <property name="title">
      <string>Simulation</string>
     </property>
     <addaction name="actionStart_Stop"/>
    </widget>
-   <addaction name="menuFile"/>
    <addaction name="menuSimulation"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
