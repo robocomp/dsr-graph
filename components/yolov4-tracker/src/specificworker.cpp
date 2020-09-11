@@ -100,6 +100,8 @@ void SpecificWorker::initialize(int period)
 		    current_opts = current_opts | opts::osg;
 		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+		// custom_widget
+		graph_viewer->add_custom_widget_to_dock("Social Rules", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
         this->Period = period;
         timer.start(Period);
@@ -107,8 +109,30 @@ void SpecificWorker::initialize(int period)
 	}
 }
 
+void SpecificWorker::show_rgb_image()
+{
+    //TODO: how to select which camera display
+    std::optional<DSR::Node> camera_node = G->get_node("viriato_head_camera_sensor");
+    if (camera_node.has_value())
+    {
+        const auto rgb_data = G->get_rgb_image(camera_node.value());
+        const auto rgb_width = G->get_attrib_by_name<width_att>(camera_node.value());
+        const auto rgb_height = G->get_attrib_by_name<height_att>(camera_node.value());
+
+        if (rgb_data.has_value() and rgb_width.has_value() and rgb_height.has_value()) {
+            const std::vector<uint8_t> &img = rgb_data.value().get();
+            auto pix = QPixmap::fromImage(
+                    QImage(&img[0], rgb_width.value(), rgb_height.value(), QImage::Format_RGB888));
+            custom_widget.rgb_image->setPixmap(pix);
+        }
+    }
+}
+
 void SpecificWorker::compute()
 {
+    //show rgb image on DSR UI
+    show_rgb_image();
+    
     // get camera node from G
     if( auto rgb_camera = G->get_node(camera_name); rgb_camera.has_value())
     {
