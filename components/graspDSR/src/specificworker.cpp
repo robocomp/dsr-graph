@@ -87,6 +87,8 @@ void SpecificWorker::initialize(int period)
             current_opts = current_opts | opts::osg;
         }
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+        graph_viewer->add_custom_widget_to_dock("Grasping", &custom_widget); // custom_widget
+
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
         this->Period = period;

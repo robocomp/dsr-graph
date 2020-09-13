@@ -26,6 +26,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <opencv2/core.hpp>
@@ -64,6 +65,9 @@ private:
 	QHBoxLayout mainLayout;
 	QWidget window;
 	bool startup_check_flag;
+
+    // Local widget
+    Custom_widget custom_widget;
 
 	// Pose Estimation & Grasping
 
