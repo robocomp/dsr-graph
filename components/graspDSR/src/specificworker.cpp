@@ -101,6 +101,8 @@ void SpecificWorker::compute()
     // read RGBD image from graph
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
+    // cast RGB image to OpenCV Mat
+    cv::Mat img = cv::Mat(rgb.height, rgb.width, CV_8UC3, &rgb.image[0]);
     // call pose estimation on RGBD and receive estimated poses
     RoboCompObjectPoseEstimationRGBD::PoseType poses;
     try
@@ -113,6 +115,9 @@ void SpecificWorker::compute()
     }
     if (poses.size() != 0)
     {
+        // display RGB image on QT widget
+        show_image(img, poses);
+
         // inject estimated poses into graph
         this->inject_estimated_poses(poses);
 
@@ -354,6 +359,17 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
     }
 
     return interp_trans;
+}
+
+/////////////////////////////////////////////////////////////////
+//                     Display utilities
+/////////////////////////////////////////////////////////////////
+
+void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses)
+{
+    // TODO : draw the DNN-estimated poses on the displayed image
+    auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
+    custom_widget.rgb_image->setPixmap(pix);
 }
 
 int SpecificWorker::startup_check()

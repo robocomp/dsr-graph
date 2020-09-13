@@ -81,6 +81,9 @@ private:
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
+
+	// Display utilities
+    void show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses);
 };
 
 #endif
