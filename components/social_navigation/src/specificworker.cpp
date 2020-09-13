@@ -83,7 +83,10 @@ void SpecificWorker::initialize(int period)
 		//Inner Api
 		innermodel = G->get_inner_api();
 
-		//Custom widget
+        // Ignore attributes from G
+        G->set_ignored_attributes<rgb_att, depth_att>();
+
+        //Custom widget
 		custom_widget.show();
 		connect(custom_widget.autoMov_checkbox, SIGNAL(clicked()),this, SLOT(checkRobotAutoMovState()));
     	connect(custom_widget.robotMov_checkbox, SIGNAL(clicked()),this, SLOT(moveRobot()));
@@ -107,30 +110,36 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // check for base_target_values
+    static Navigation<Grid<>,Controller>::SearchState last_state;
     if( auto robot = G->get_node(robot_name); robot.has_value())
     {
+        // check for base_target_values
         if(auto target_id = G->get_attrib_by_name<target_node_id>(robot.value()); target_id.has_value())
         {
             if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
             {
                 auto x = G->get_attrib_by_name<base_target_x>(robot.value());
                 auto y = G->get_attrib_by_name<base_target_y>(robot.value());
-                const auto &[state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
-                switch (state)
+                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
+                switch (search_state)
                 {
                     case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
                         G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) candidate.x());
                         G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) candidate.y());
                         G->update_node(robot.value());
+                        if(search_state != last_state)
+                            qInfo() << __FUNCTION__ << "At target";
                         break;
                     case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
-                        qInfo() << __FUNCTION__ << "At target";
+                        if(search_state != last_state)
+                            qInfo() << __FUNCTION__ << "At target";
                         break;
                     case Navigation<Grid<>,Controller>::SearchState::NO_TARGET_FOUND:
-                        qInfo() << __FUNCTION__ << "No feasible target found";
+                        if(search_state != last_state)
+                            qInfo() << __FUNCTION__ << "No feasible target found";
                         break;
                 }
+                last_state = search_state;
             }
             else
                 qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
@@ -187,14 +196,14 @@ void  SpecificWorker::checkRobotAutoMovState()
 
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
-    std::cout << __FUNCTION__ << " New target:" << pos_x << " " << pos_y << " " << id << std::endl;
     if( auto target_node = G->get_node(id); target_node.has_value())
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
+            std::cout << __FUNCTION__ << " :" << pos_x << " " << pos_y << " " << id << " " << target_node->name() << std::endl;
             G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
-            G->add_or_modify_attrib_local<pos_x_att>(robot.value(), (float) pos_x);
-            G->add_or_modify_attrib_local<pos_y_att>(robot.value(), (float) pos_y);
+            G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) pos_x);
+            G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) pos_y);
             G->update_node(robot.value());
         }
         else

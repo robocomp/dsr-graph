@@ -50,32 +50,32 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    -7.152683974709362e-05,
+                                    -4.173345587332733e-05,
                                     0
                                 ]
                             },
                             "linear_speed": {
                                 "type": 3,
                                 "value": [
-                                    0.010728836059570312,
+                                    0.171661376953125,
                                     0,
-                                    0.19550323486328125
+                                    0.1049041748046875
                                 ]
                             },
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
-                                    0.0021157970186322927,
+                                    0.9590489268302917,
                                     0
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
-                                    -625.3102416992188,
+                                    3105.41796875,
                                     0,
-                                    2035.035400390625
+                                    1306.4124755859375
                                 ]
                             }
                         },
@@ -960,6 +960,14 @@
             },
             "2": {
                 "attribute": {
+                    "base_target_x": {
+                        "type": 2,
+                        "value": 3600
+                    },
+                    "base_target_y": {
+                        "type": 2,
+                        "value": 1550
+                    },
                     "collide": {
                         "type": 4,
                         "value": false
@@ -986,11 +994,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -148.239014
+                        "value": -101.473473
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -274.917053
+                        "value": -300.738739
                     },
                     "ref_adv_speed": {
                         "type": 2,
@@ -1003,6 +1011,10 @@
                     "ref_side_speed": {
                         "type": 2,
                         "value": 0
+                    },
+                    "target_node_id": {
+                        "type": 1,
+                        "value": 11
                     }
                 },
                 "id": 2,
@@ -5415,6 +5427,14 @@
                         "type": 2,
                         "value": -231.077576
                     },
+                    "viriato_head_pan_tilt_nose_target": {
+                        "type": 3,
+                        "value": [
+                            1680.46435546875,
+                            1393.8310546875,
+                            8.14342212677002
+                        ]
+                    },
                     "viriato_pan_tilt_nose_target": {
                         "type": 3,
                         "value": [
@@ -5434,7 +5454,7 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    0,
+                                    -1.0471975803375244,
                                     0
                                 ]
                             },
@@ -5493,7 +5513,7 @@
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    0,
+                                    1.0471975803375244,
                                     0,
                                     0
                                 ]
@@ -5735,7 +5755,7 @@
                 "attribute": {
                     "alivetime": {
                         "type": 1,
-                        "value": 1597568418
+                        "value": 1599986092
                     },
                     "color": {
                         "type": 0,
@@ -5747,6 +5767,10 @@
                     },
                     "depthFactor": {
                         "type": 2,
+                        "value": 0
+                    },
+                    "depth_cameraID": {
+                        "type": 1,
                         "value": 0
                     },
                     "depth_height": {
@@ -5817,7 +5841,11 @@
                     },
                     "rgb_alivetime": {
                         "type": 1,
-                        "value": 1597568418
+                        "value": 1599986092
+                    },
+                    "rgb_cameraID": {
+                        "type": 1,
+                        "value": 0
                     },
                     "rgb_depth": {
                         "type": 1,
