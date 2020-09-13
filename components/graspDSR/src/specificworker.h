@@ -49,9 +49,8 @@ private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 
-	//DSR params
+	// DSR params
 	std::string agent_name;
-	std::string grasp_object;
 	
 	int agent_id;
 
@@ -70,6 +69,9 @@ private:
     Custom_widget custom_widget;
 
 	// Pose Estimation & Grasping
+
+	// Grasp object
+    std::string grasp_object;
 
 	// Geometry utilities
 	vector<float> quat_to_euler(vector<float> quat);
