@@ -8,7 +8,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     qDebug()<<"Collisions - " <<__FUNCTION__;
     G = graph_;
     //read from World (DSR node)
-    std::optional<Node> world_node = G->get_node("world");
+    std::optional<Node> world_node = G->get_node(world_name);
     if(world_node.has_value())
     {
         outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft>(world_node.value()).value());
@@ -16,7 +16,6 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
         outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom>(world_node.value()).value());
         outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop>(world_node.value()).value());
     }
-    robot_name = params_->at("RobotName").value;
     if(outerRegion.isNull())
     {
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
@@ -29,6 +28,9 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
+    //    std::cout << __FUNCTION__ << "RESTNODES" << std::endl;
+    //    for(auto n : restNodes)
+    //        std::cout << n << std::endl;
     // std::cout << __FUNCTION__ << "lists" ;
     //std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
     //std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
@@ -38,7 +40,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
 std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in G_copy to the target coordinates
-    std::optional<Node> world = G_copy.get_node("world");
+    std::optional<Node> world = G_copy.get_node(world_name);
     std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
     G_copy.insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
     std::shared_ptr<DSR::InnerAPI> inner = G_copy.get_inner_api();

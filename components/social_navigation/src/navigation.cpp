@@ -13,7 +13,7 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     innerModel = G->get_inner_api();
     configparams = configparams_;
     viewer_2d = scene;
-    robot_name = configparams_->at("RobotName").value;
+    //robot_name = configparams_->at("RobotName").value;
 
     stopRobot();
     //grid can't be initialized if the robot is moving
@@ -78,7 +78,7 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     auto state = checkPathState();
     if(state == "PATH_NOT_FOUND")
     {
-        qWarning(state.c_str());
+        qWarning()<< __FUNCTION__ << QString::fromStdString(state);
         return State::PATH_NOT_FOUND;
     }
 
@@ -129,16 +129,22 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     return State::IDLE; // to remove warning
 };
 
-// Search for a target that is:
+// Given a target object, search a good arriving position and orientation
+// Constraints
 // - in free space
-// - close to target
+// - as close to target as possible
+// - robot oriented towards object
 // - close to current robot pose, i.e. to the approaching path
+// General procedure
+// - compute object best coordinates in case it is a large object:table, shelve
+// - project the coordinates on the floor
+// - search a free grid point satisfying the restrictions
 
 template<typename TMap, typename TController>
 std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
 {
-    //std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
-    // if valid x,y coordinates
+    //  std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
+    // if x,y not empty
     if(x.has_value() and y.has_value())
     {
         // if already in current_target return
@@ -160,7 +166,6 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
     // get robot coordinates in world
     auto rc = innerModel->transformS("world", robot_name).value();
     QVector2D robot_center(rc.x(), rc.z());
-    // sample the grid using a spiral trajectory away from target
     std::vector<QVector2D> candidates;
     std::string target_name = target.name();
     // search the whole grid. It could be
@@ -171,7 +176,7 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
             if(candidates.size() > 10)
                 break;
         }
-    std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+    //std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
     // sort by distances to target
     if(candidates.size() > 0)
     {
