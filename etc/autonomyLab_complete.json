@@ -1524,11 +1524,11 @@
                         "type": 1,
                         "value": 800
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1820
                     }
@@ -1831,15 +1831,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 1200
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 800
                     }
@@ -1884,15 +1884,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 1
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 1
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1
                     }
@@ -1937,15 +1937,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -1990,15 +1990,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2043,15 +2043,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2096,15 +2096,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2255,15 +2255,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 800
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1820
                     }
@@ -2566,15 +2566,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 800
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1320
                     }
@@ -2725,15 +2725,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2778,15 +2778,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2831,15 +2831,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -2884,15 +2884,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 25
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 25
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 370
                     }
@@ -4207,15 +4207,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 1
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 1
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1
                     }
@@ -4472,15 +4472,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 650
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 2500
                     }
@@ -4714,15 +4714,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 2110
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 20
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 650
                     }
@@ -4767,15 +4767,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 1
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 1
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 1
                     }
@@ -4873,15 +4873,15 @@
                         "type": 0,
                         "value": "NormalRendering"
                     },
-                    "scalex": {
+                    "width": {
                         "type": 1,
                         "value": 600
                     },
-                    "scaley": {
+                    "height": {
                         "type": 1,
                         "value": 1850
                     },
-                    "scalez": {
+                    "depth": {
                         "type": 1,
                         "value": 600
                     }
@@ -5694,6 +5694,18 @@
                     "render": {
                         "type": 0,
                         "value": "NormalRendering"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
                     },
                     "scalex": {
                         "type": 1,
