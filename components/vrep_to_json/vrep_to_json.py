@@ -4,6 +4,7 @@ import sys
 import random
 import math
 import numpy as NP
+import ctypes
 from numpy import linalg as LA
 
 
@@ -41,7 +42,7 @@ def check_truncate_value(name):
     return name in ["width", "height", "depth", "scalex", "scaley", "scalez"]
 
 
-# str:0, int:1, float:2, [float]:3, bool:4
+# str:0, int:1, float:2, [float]:3, bool:4, uint: 6
 def type_to_integer(value, round):
     try:
         fl = float(value)
@@ -72,7 +73,11 @@ def create_node(name, type, others ):
     new_node["attribute"]["color"] = {"type": 0, "value": get_color_type(new_node["type"])}
 
     for name,value in others:
-        type, val = type_to_integer(value, check_truncate_value(name))
+        if name == "parent":
+            type = 6
+            val = value
+        else:
+            type, val = type_to_integer(value, check_truncate_value(name))
         new_node["attribute"][name] = {"type": type, "value": val}
 
     return new_node
@@ -92,10 +97,8 @@ def create_edge(src, dst, type, pos, rot):
 
 # convert size[] to width, height, depth values
 def convert_size_to_parameters(type, size):
-    if type == "plane":
+    if type == "plane" or type == "mesh":
         return [("width", size[0]), ("height", size[1]), ("depth", size[2])]
-    elif type == "mesh":
-        return [("scalex", size[0]), ("scaley", size[1]), ("scalez", size[2])]
 
 
 def convert_color_to_texture(type, color):
@@ -106,21 +109,6 @@ def convert_color_to_texture(type, color):
         # TODO: read mesh from coppelia
         new_attrib = [("path", "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds")]
     return new_attrib
-
-
-# Tx => Tz
-# Ty => -Tx
-# Tz => Ty
-def convert_vreppos_to_jsonpos(pos):
-    return [pos[1], pos[2], pos[0]]
-
-
-# Rx => -Rz
-# Ry => Rx
-# Rz => -Ry
-def convert_vreprot_to_jsonrot(rot):
-    #return [rot[1], 1.57, -rot[0]]
-    return [rot[1], -rot[2], -rot[0]]
 
 
 def main(input_file, output_file):
@@ -134,7 +122,7 @@ def main(input_file, output_file):
     root = tree.getroot()
 
     # insert world node
-    w_node = create_node("world", "world", [("parent", 0), ("level", 0)])
+    w_node = create_node("world", "world", [("parent", 0), ("level", 0), ("OuterRegionBottom", -4250), ("OuterRegionLeft", -2000), ("OuterRegionRight",7500), ("OuterRegionTop",4250)])
     new_json["DSRModel"]["symbols"][w_node["id"]] = w_node
 
     for elem in root.findall('shape'):
@@ -143,9 +131,7 @@ def main(input_file, output_file):
 
             name = elem.findall('common/name')[0].text
             pos = [float(value)*1000 for value in elem.findall('common/localFrame/position')[0].text.split(' ')]
-            pos = convert_vreppos_to_jsonpos(pos)
-            rot = [float(value) for value in elem.findall('common/localFrame/euler')[0].text.split(' ')]
-            rot = convert_vreprot_to_jsonrot(rot)
+            rot = [float(value)*3.14159/180 for value in elem.findall('common/localFrame/euler')[0].text.split(' ')]
             type = convert_vreptype_to_jsontype(elem.findall('primitive/type')[0].text)
             size = [float(value)*1000 for value in elem.findall('primitive/size')[0].text.split(' ')]
             color = [int(value) for value in elem.findall('primitive/color/ambientDiffuse')[0].text.split(' ')]
@@ -170,7 +156,7 @@ def main(input_file, output_file):
                 if "parent" not in new_json["DSRModel"]["symbols"][dst]:
                     new_attribute = dict()
                     new_attribute["value"] = new_edge["src"]
-                    new_attribute["type"] = 1
+                    new_attribute["type"] = 6
                     new_json["DSRModel"]["symbols"][dst]["attribute"]["parent"] = new_attribute
                 if "level" not in new_json["DSRModel"]["symbols"][dst]:
                     new_attribute = dict()
