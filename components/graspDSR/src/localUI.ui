@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>local_guiDlg</class>
+ <widget class="QWidget" name="local_guiDlg">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>716</width>
+    <height>498</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="rgb_image_tab">
+      <attribute name="title">
+       <string>RGB Image</string>
+      </attribute>
+      <widget class="QLabel" name="rgb_image">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>671</width>
+         <height>431</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>320</width>
+         <height>240</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Image</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="object_sel_tab">
+      <attribute name="title">
+       <string>Object Selection</string>
+      </attribute>
+      <widget class="QRadioButton" name="obj_sel_radio_1">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>50</y>
+         <width>112</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>glass_1</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">object_sel_group</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="obj_sel_radio_2">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>80</y>
+         <width>112</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>cup_1</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">object_sel_group</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="obj_sel_radio_3">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>110</y>
+         <width>112</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>can_1</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">object_sel_group</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="obj_sel_radio_4">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>140</y>
+         <width>112</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>box_1</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">object_sel_group</string>
+       </attribute>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="object_sel_group">
+   <property name="exclusive">
+    <bool>true</bool>
+   </property>
+  </buttongroup>
+ </buttongroups>
+</ui>

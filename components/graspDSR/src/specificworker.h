@@ -26,6 +26,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <opencv2/core.hpp>
@@ -48,9 +49,8 @@ private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 
-	//DSR params
+	// DSR params
 	std::string agent_name;
-	std::string grasp_object;
 	
 	int agent_id;
 
@@ -65,7 +65,13 @@ private:
 	QWidget window;
 	bool startup_check_flag;
 
+    // Local widget
+    Custom_widget custom_widget;
+
 	// Pose Estimation & Grasping
+
+	// Grasp object
+    std::string grasp_object;
 
 	// Geometry utilities
 	vector<float> quat_to_euler(vector<float> quat);
@@ -77,6 +83,9 @@ private:
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
+
+	// Display utilities
+    void show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses);
 };
 
 #endif
