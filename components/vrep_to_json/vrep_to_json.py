@@ -12,10 +12,14 @@ from numpy import linalg as LA
 #GLOBAL
 NODE_ID = 0
 
-def convert_vreptype_to_jsontype(type):
-    if type == "cuboid" or type == "cylinder" or type == "sphere":
+def convert_vreptype_to_jsontype(name):
+    if "cubo" in name.lower():
         return 'mesh'
-    return type
+    elif "floor" in name.lower():
+        return "plane"
+    elif "plane" in name.lower():
+        return "plane"
+    return ""
 
 
 def get_color_type(type_):
@@ -25,7 +29,7 @@ def get_color_type(type_):
         color = "SteelBlue"
     elif type_ == "plane":
         color = "Khaki"
-    elif type_ == "differentialrobot":
+    elif type_ == "differentialrobot" or type_ == "omnirobot":
         color = "GoldenRod"
     elif type_ == "laser":
         color = "GreenYellow"
@@ -58,7 +62,7 @@ def type_to_integer(value, round):
         return 0, value
 
 
-def create_node(name, type, others ):
+def create_node(name, type, others):
     global NODE_ID
     NODE_ID += 1
     new_node = dict()
@@ -97,7 +101,7 @@ def create_edge(src, dst, type, pos, rot):
 
 # convert size[] to width, height, depth values
 def convert_size_to_parameters(type, size):
-    if type == "plane" or type == "mesh":
+    if type == "plane" or type == "mesh" or type == "floor":
         return [("width", size[0]), ("height", size[1]), ("depth", size[2])]
 
 
@@ -123,7 +127,7 @@ def main(input_file, output_file):
 
     # insert world node
     w_node = create_node("world", "world", [("parent", 0), ("level", 0), ("OuterRegionBottom", -4250), ("OuterRegionLeft", -2000), ("OuterRegionRight",7500), ("OuterRegionTop",4250)])
-    new_json["DSRModel"]["symbols"][w_node["id"]] = w_node
+    new_json["DSRModel"]["symbols"][str(w_node["id"])] = w_node
 
     for elem in root.findall('shape'):
         # check required tags
@@ -132,18 +136,22 @@ def main(input_file, output_file):
             name = elem.findall('common/name')[0].text
             pos = [float(value)*1000 for value in elem.findall('common/localFrame/position')[0].text.split(' ')]
             rot = [float(value)*3.14159/180 for value in elem.findall('common/localFrame/euler')[0].text.split(' ')]
-            type = convert_vreptype_to_jsontype(elem.findall('primitive/type')[0].text)
+            type = convert_vreptype_to_jsontype(name)
+#            type = convert_vreptype_to_jsontype(elem.findall('primitive/type')[0].text)
             size = [float(value)*1000 for value in elem.findall('primitive/size')[0].text.split(' ')]
             color = [int(value) for value in elem.findall('primitive/color/ambientDiffuse')[0].text.split(' ')]
 
             print(name, pos, rot, type, size, color)
 
             # first try
-            if "Cubo" in name:  #or "Plane" in name:
+            if type:
                 others = convert_size_to_parameters(type, size)
-                others += convert_color_to_texture(type, color)
+                if "floor" in name.lower():
+                    others += [("texture", "/home/robocomp/robocomp/components/dsr-graph/etc/alab/textures/wood.jpg")]
+                else:
+                    others += convert_color_to_texture(type, color)
                 n_node = create_node(name, type, others)
-                new_json["DSRModel"]["symbols"][n_node["id"]] = n_node
+                new_json["DSRModel"]["symbols"][str(n_node["id"])] = n_node
 
                 # edge
                 # TODO: this must be read from Coppelia?¿
@@ -153,25 +161,34 @@ def main(input_file, output_file):
                 new_edge = create_edge(src, dst, edge_type, pos, rot)
 
                 # check parent an level attributes
-                if "parent" not in new_json["DSRModel"]["symbols"][dst]:
+                if "parent" not in new_json["DSRModel"]["symbols"][str(dst)]:
                     new_attribute = dict()
                     new_attribute["value"] = new_edge["src"]
                     new_attribute["type"] = 6
-                    new_json["DSRModel"]["symbols"][dst]["attribute"]["parent"] = new_attribute
-                if "level" not in new_json["DSRModel"]["symbols"][dst]:
+                    new_json["DSRModel"]["symbols"][str(dst)]["attribute"]["parent"] = new_attribute
+                if "level" not in new_json["DSRModel"]["symbols"][str(dst)]:
                     new_attribute = dict()
-                    new_attribute["value"] = new_json["DSRModel"]["symbols"][src]["attribute"]["level"][
+                    new_attribute["value"] = new_json["DSRModel"]["symbols"][str(src)]["attribute"]["level"][
                                                  "value"] + 1
                     new_attribute["type"] = 1
-                    new_json["DSRModel"]["symbols"][dst]["attribute"]["level"] = new_attribute
+                    new_json["DSRModel"]["symbols"][str(dst)]["attribute"]["level"] = new_attribute
 
-                new_json["DSRModel"]["symbols"][src]["links"].append(new_edge)
+                new_json["DSRModel"]["symbols"][str(src)]["links"].append(new_edge)
+
+    # TODO: how to add robot?
+    with open('../../etc/viriato.json') as json_file:
+        viriato = json.load(json_file)
+
+        new_edge = create_edge(w_node["id"], 200, "RT", [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+        new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
+        # merge dictionaries
+        new_json["DSRModel"]["symbols"] = {**(new_json["DSRModel"]["symbols"]), **(viriato["DSRModel"]["symbols"])}
 
     # write to file
     with open(output_file, 'w') as outfile:
         json.dump(new_json, outfile, sort_keys=True, indent=4)
 
-#TODO: how to add robot?
+
 
 
 if __name__ == '__main__':
