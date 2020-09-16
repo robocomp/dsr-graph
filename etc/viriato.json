@@ -1,0 +1,751 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "200": {
+                "attribute": {
+                    "base_target_x": {
+                        "type": 2,
+                        "value": 3600
+                    },
+                    "base_target_y": {
+                        "type": 2,
+                        "value": 1550
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 12238
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -101.473473
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -300.738739
+                    },
+                    "ref_adv_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_rot_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_side_speed": {
+                        "type": 2,
+                        "value": 0
+                    }
+                },
+                "id": 200,
+                "links": [
+                    {
+                        "dst": 201,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    1.5700000524520874,
+                                    0,
+                                    -1.5700000524520874
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    200,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 202,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    400,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 206,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    1400,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 200
+                    }
+                ],
+                "name": "omnirobot",
+                "type": "omnirobot"
+            },
+            "201": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 2
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "../../etc/viriato_base_concept_3/viriato_mesh.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -279.904114
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -298.670929
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 1
+                    }
+                },
+                "id": 201,
+                "links": [
+                ],
+                "name": "viriato_mesh",
+                "type": "mesh"
+            },
+            "202": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 2
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -85.736885
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -221.920074
+                    }
+                },
+                "id": 202,
+                "links": [
+                    {
+                        "dst": 203,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 202
+                    },
+                    {
+                        "dst": 204,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    100,
+                                    0,
+                                    100
+                                ]
+                            }
+                        },
+                        "src": 202
+                    },
+                    {
+                        "dst": 205,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    -100,
+                                    0,
+                                    -100
+                                ]
+                            }
+                        },
+                        "src": 202
+                    }
+                ],
+                "name": "laser_pose",
+                "type": "transform"
+            },
+            "203": {
+                "attribute": {
+                    "angles": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "GreenYellow"
+                    },
+                    "dists": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 202
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 11.027694
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -256.000885
+                    }
+                },
+                "id": 203,
+                "links": [
+                ],
+                "name": "laser",
+                "type": "laser"
+            },
+            "204": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 202
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube.3ds"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -22.039091
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -143.049179
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 1
+                    }
+                },
+                "id": 204,
+                "links": [
+                ],
+                "name": "laser1",
+                "type": "mesh"
+            },
+            "205": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 202
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube.3ds"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -9.914569
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -188.451462
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 1
+                    }
+                },
+                "id": 205,
+                "links": [
+                ],
+                "name": "laser2",
+                "type": "mesh"
+            },
+            "206": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 200
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -357.970642
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -231.077576
+                    },
+                    "viriato_head_pan_tilt_nose_target": {
+                        "type": 3,
+                        "value": [
+                            1680.46435546875,
+                            1393.8310546875,
+                            8.14342212677002
+                        ]
+                    },
+                    "viriato_pan_tilt_nose_target": {
+                        "type": 3,
+                        "value": [
+                            -625.4576416015625,
+                            1421.2777099609375,
+                            2292.003173828125
+                        ]
+                    }
+                },
+                "id": 206,
+                "links": [
+                    {
+                        "dst": 207,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -1.0471975803375244,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 206
+                    }
+                ],
+                "name": "viriato_head_camera_pan_tilt",
+                "type": "transform"
+            },
+            "207": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 206
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -373.471283
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -162.293488
+                    }
+                },
+                "id": 207,
+                "links": [
+                    {
+                        "dst": 208,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    1.0471975803375244,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 207
+                    }
+                ],
+                "name": "viriato_head_camera_pan_joint",
+                "type": "transform"
+            },
+            "208": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 4
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 207
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -386.632111
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -107.49485
+                    }
+                },
+                "id": 208,
+                "links": [
+                    {
+                        "dst": 209,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 208
+                    }
+                ],
+                "name": "viriato_head_camera_tilt_joint",
+                "type": "transform"
+            },
+            "209": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 5
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 208
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -403.429169
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -52.065125
+                    }
+                },
+                "id": 209,
+                "links": [
+                    {
+                        "dst": 210,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 209
+                    }
+                ],
+                "name": "camera_pose",
+                "type": "transform"
+            },
+            "210": {
+                "attribute": {
+                    "alivetime": {
+                        "type": 1,
+                        "value": 1599986092
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "depth.cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "depthFactor": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "depth_cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "depth_height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "depth_width": {
+                        "type": 1,
+                        "value": 640
+                    },
+                    "focal": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "focalx": {
+                        "type": 1,
+                        "value": 369
+                    },
+                    "focaly": {
+                        "type": 1,
+                        "value": 369
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "ifconfig": {
+                        "type": 0,
+                        "value": "40000,50000"
+                    },
+                    "img_depth": {
+                        "type": 5,
+                        "value": [
+                        ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 6
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 209
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -437.235199
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 14.53627
+                    },
+                    "rgb": {
+                        "type": 5,
+                        "value": [
+                        ]
+                    },
+                    "rgb.cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "rgb_alivetime": {
+                        "type": 1,
+                        "value": 1599986092
+                    },
+                    "rgb_cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "rgb_depth": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "rgb_focalx": {
+                        "type": 1,
+                        "value": 369
+                    },
+                    "rgb_focaly": {
+                        "type": 1,
+                        "value": 369
+                    },
+                    "rgb_height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "rgb_width": {
+                        "type": 1,
+                        "value": 640
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": 210,
+                "links": [
+                ],
+                "name": "viriato_head_camera_sensor",
+                "type": "rgbd"
+            }
+        }
+    }
+}            
