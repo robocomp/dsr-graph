@@ -13,12 +13,12 @@ from numpy import linalg as LA
 NODE_ID = 0
 
 def convert_vreptype_to_jsontype(name):
-    if "cubo" in name.lower():
-        return 'mesh'
+    if "wall" in name.lower():
+        return 'plane'
     elif "floor" in name.lower():
         return "plane"
-    elif "plane" in name.lower():
-        return "plane"
+    elif "cubo" in name.lower():
+        return "mesh"
     return ""
 
 
@@ -76,7 +76,7 @@ def create_node(name, type, others):
     new_node["attribute"]["pos_y"] = {"type": 2, "value": random.randint(-200, 200)}
     new_node["attribute"]["color"] = {"type": 0, "value": get_color_type(new_node["type"])}
 
-    for name,value in others:
+    for name, value in others:
         if name == "parent":
             type = 6
             val = value
