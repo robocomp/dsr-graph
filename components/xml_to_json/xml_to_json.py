@@ -8,6 +8,8 @@ from numpy import linalg as LA
 
 
 
+IGNORE_PARAMS = [ "imType", "port", "ifconfig", "collide", "noise", "min", "max", "angle", "focal" ]
+
 def check_truncate_value(name):
     return name in ["width", "height", "depth", "scalex", "scaley", "scalez"]
 
@@ -51,7 +53,7 @@ def get_color_type(type_):
         color = "SteelBlue"
     elif type_ == "plane":
         color = "Khaki"
-    elif type_ == "differentialrobot":
+    elif type_ == "differentialrobot" or type_ == "omnirobot":
         color = "GoldenRod"
     elif type_ == "laser":
         color = "GreenYellow"
@@ -116,6 +118,21 @@ def rotationMatrixFromPlane(vector):
     return RU
 
 
+#Use on conversion from Inner To VREP
+def rotationFromInnerToVrep(vector):
+    R = [0.0] * 3
+    R[0] = -vector[2]
+    R[1] = vector[0]
+    R[2] = -vector[1]
+    return R
+
+def transfromFromInnerToVrep(vector):
+    T = [0.0] * 3
+    T[0] = vector[2]
+    T[1] = -vector[0]
+    T[2] = vector[1]
+    return T
+
 def main(input_file, output_file):
     new_json = {}
     new_json["DSRModel"] = {}
@@ -133,14 +150,14 @@ def main(input_file, output_file):
         if elem.tag == "symbol":
             new_symbol = {}
             new_symbol["id"] = int(elem.attrib["id"])
-            new_symbol["type"] = elem.attrib["type"]
+            new_symbol["type"] = elem.attrib["type"].lower()
             new_symbol["attribute"] = {}
             new_symbol["links"] = []
             new_tr = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
             for subelem in elem:
                 if subelem.attrib["key"] == "imName":
                     new_symbol["name"] = subelem.attrib["value"]
-                elif subelem.attrib["key"] == "imType":  # skip imType
+                elif subelem.attrib["key"] in IGNORE_PARAMS:
                     continue
                 else:
                     if not check_position_attrib(subelem, new_tr):
@@ -158,8 +175,13 @@ def main(input_file, output_file):
             new_symbol["attribute"]["color"] = {"type": 0, "value": get_color_type(new_symbol["type"])}
             # check level on initial symbol (world)
             if new_symbol["type"] == "world":
-                if not "level" in new_symbol["attribute"]:
+                if "level" not in new_symbol["attribute"]:
                     new_symbol["attribute"]["level"] = {"type": 1, "value": 0}
+                new_symbol["attribute"]["OuterRegionBottom"] = {"type": 1, "value": -4250}
+                new_symbol["attribute"]["OuterRegionLeft"] = {"type": 1, "value": -2000}
+                new_symbol["attribute"]["OuterRegionRight"] = {"type": 1, "value": 7500}
+                new_symbol["attribute"]["OuterRegionTop"] = {"type": 1, "value": 4250}
+                new_symbol["attribute"]["parent"] = {"type": 6, "value": 0}
 
             new_json["DSRModel"]["symbols"][elem.attrib["id"]] = new_symbol
         # Links
@@ -182,6 +204,9 @@ def main(input_file, output_file):
 #                    print (new_tr, node_transforms[new_edge["dst"]])
                     new_tr[0] = [x + y for (x, y) in zip(new_tr[0], node_transforms[new_edge["dst"]][0])]
                     new_tr[1] = [x + y for (x, y) in zip(new_tr[1], node_transforms[new_edge["dst"]][1])]
+                    #conversion to VREP
+                    new_tr[0] = transfromFromInnerToVrep(new_tr[0])
+                    new_tr[1] = transfromFromInnerToVrep(new_tr[1])
 #                    print(new_tr)
                 new_edge["linkAttribute"]["translation"] = {"type": 3, "value": new_tr[0]}
                 new_edge["linkAttribute"]["rotation_euler_xyz"] = {"type": 3, "value": new_tr[1]}
@@ -190,7 +215,7 @@ def main(input_file, output_file):
                 if not "parent" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
                     new_attribute = {}
                     new_attribute["value"] = new_edge["src"]
-                    new_attribute["type"] = 1
+                    new_attribute["type"] = 6
                     new_json["DSRModel"]["symbols"][elem.attrib["dst"]]["attribute"]["parent"] = new_attribute
                 if not "level" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
                     new_attribute = {}
