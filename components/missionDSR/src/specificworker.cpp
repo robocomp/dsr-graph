@@ -38,28 +38,12 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
-
 	tree_view = params["tree_view"].value == "true";
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
-
 	return true;
 }
 
@@ -104,7 +88,6 @@ void SpecificWorker::initialize(int period)
 
         // custom_widget
 		graph_viewer->add_custom_widget_to_dock("Mission", &custom_widget);
-        
         connect(custom_widget.set_pb,SIGNAL(clicked()),this, SLOT(set_mission_slot()));
         connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission_slot()));
         //connect(G.get(), SIGNAL(update_node_signal), this, SLOT(update_mission_slot));
@@ -127,29 +110,12 @@ void SpecificWorker::initialize_object_list()
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
 	
 }
 
-int SpecificWorker::startup_check()
-{
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
-}
-
+////////////////////////////////////////
+// UI slots
+////////////////////////////////////////
 void SpecificWorker::update_mission_slot(const std::int32_t id, const std::string &type)
 {
     if (type == "intention")
@@ -174,37 +140,32 @@ void SpecificWorker::del_mission_slot()
 {
     auto node = this->get_intent_node();
     if (node.has_value())
-    {
         G->insert_or_assign_attrib<plan_att>(node.value(), std::string());
-    }
 }
 
 //add data from node intent
 void SpecificWorker::set_mission_slot()
 {
     auto node = this->get_intent_node(true);
-    
     QList<QJsonObject> actions;
-    
     if(custom_widget.mision_cb->currentText() == "Goto")
     {
         float x = custom_widget.x_pos_sb->value();
         float z = custom_widget.z_pos_sb->value();
         float alpha = custom_widget.alpha_pos_sb->value();
         std::string object_name = custom_widget.object_cb->currentText().toStdString();
-        
         QJsonObject action = this->goto_action_to_json(object_name, {x,z,alpha});
         actions.push_back(action);
-        
         std::string plan = generate_json_plan(actions);
         G->insert_or_assign_attrib<plan_att>(node.value(), plan);
     }
     else
-        qDebug()<<"Only goto mission is defined yet";
-    
+        qWarning() << __FUNCTION__ << "Only goto mission is defined yet";
 }
 
-//get node intent
+////////////////////////////////////////////////////////////////////////
+/// get intent node from G
+///////////////////////////////////////////////////////////////////////
 std::optional<Node> SpecificWorker::get_intent_node(bool create)
 {
     //get intent node
@@ -247,7 +208,7 @@ std::optional<Node> SpecificWorker::get_intent_node(bool create)
                 }
                 else 
                 {
-                    qDebug() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
+                    qWarning() << __FUNCTION__ << "insert_node returned no value for" << QString::fromStdString(node.name());
                     return {};
                 }
             }
@@ -276,9 +237,7 @@ QJsonObject SpecificWorker::goto_action_to_json(std::string object_name, std::ve
     QJsonArray vector;
     std::copy(location.begin(), location.end(), std::back_inserter(vector));
     paramObject["location"] = QJsonArray(vector);
-    
     actionObject["params"] = paramObject;
-    
     return actionObject;
 }
 
@@ -299,3 +258,11 @@ std::string SpecificWorker::generate_json_plan(QList<QJsonObject> actions)
     return strJson.toStdString();
 }
 
+////////////////////////////////////////////////////////////////////////77
+
+int SpecificWorker::startup_check()
+{
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
+}
