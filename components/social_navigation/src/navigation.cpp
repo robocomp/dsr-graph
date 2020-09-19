@@ -35,7 +35,6 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     }
 
     // if read_from_file is true we should read the parameters from the file to guarantee consistency
-    Grid<>::Dimensions dim;
     dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
     dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
     dim.VMIN = std::min(outerRegion.top(), outerRegion.bottom());
@@ -140,6 +139,8 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
 // - project the coordinates on the floor
 // - search a free grid point satisfying the restrictions
 
+
+
 template<typename TMap, typename TController>
 std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
 {
@@ -168,15 +169,43 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
     QVector2D robot_center(rc.x(), rc.z());
     std::vector<QVector2D> candidates;
     std::string target_name = target.name();
+
     // search the whole grid. It could be
-    for( const auto &[key, val] : grid)
-        if(val.free and grid.cellNearToOccupiedCellByObject(key, target_name))
+
+    // search in a spiral pattern away from object for the first free cell
+    long int x_pos = target_center.x();
+    long int y_pos = target_center.y();
+    int d = dim.TILE_SIZE;
+    for(int i : iter::range(grid.size()))
+    {
+        while (2 * x_pos * d < i)
         {
-            candidates.push_back(QVector2D(key.x, key.z));
-            if(candidates.size() > 10)
-                break;
+            const auto &k = Grid<>::Key(x_pos, y_pos);
+            if (grid.isFree(k))
+                candidates.emplace_back(QVector2D(x_pos, y_pos));
+            x_pos = x_pos + d;
         }
+        while (2 * y_pos * d < i)
+        {
+           const auto &k = Grid<>::Key(x_pos, y_pos);
+           if (grid.isFree(k))
+                candidates.emplace_back(QVector2D(x_pos, y_pos));
+            y_pos = y_pos + d;
+        }
+        d = -1 * d;
+        if(candidates.size() > 10)   // arbitrary number hard to fix
+            break;
+    }
+//    for( const auto &[key, val] : grid)
+//        if(val.free and grid.cellNearToOccupiedCellByObject(key, target_name))
+//
+//        {
+//            candidates.push_back(QVector2D(key.x, key.z));
+//            if(candidates.size() > 10)
+//                break;
+//        }
     //std::cout << __FUNCTION__ << " " << candidates.size() << std::endl;
+
     // sort by distances to target
     if(candidates.size() > 0)
     {

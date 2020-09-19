@@ -90,6 +90,7 @@ class Navigation
         TMap grid;
         TController controller;
         std::string robot_name = "omnirobot";
+        Grid<>::Dimensions dim;
 
         // Scene
         QGraphicsScene *viewer_2d;

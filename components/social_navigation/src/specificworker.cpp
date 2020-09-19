@@ -193,6 +193,8 @@ void  SpecificWorker::checkRobotAutoMovState()
 }
 
 ///////////////////////////////////////////////////////
+//// Check new target
+///////////////////////////////////////////////////////
 
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
@@ -242,26 +244,20 @@ void SpecificWorker::new_target_from_G(const std::string &plan)
     std::cout << __FUNCTION__ << " New target from G:" <<plan << std::endl;
     QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan).toUtf8());
     QJsonObject planJson = doc.object();
-    
     QJsonArray actionArray = planJson.value("plan").toArray();
-    
     QJsonObject action_0 = actionArray.at(0).toObject();
-    
     QString action = action_0.value("action").toString();
     if(action == "goto")
     {
         QJsonObject action_params = action_0.value("params").toObject();
         QString object = action_params.value("object").toString();
         QJsonArray location = action_params.value("location").toArray();
-        
         int x = location.at(0).toInt();
         int z = location.at(1).toInt();
         float alpha = location.at(2).toDouble();
         
-        
 //TODO: Way to achive target must be changed
-        std::cout<<"TARGET: "<<object.toStdString()<<" location: "<<x<<","<<z<<","<<alpha<<std::endl;
-        
+        std::cout << "TARGET: " << object.toStdString() << " location: " << x << "," << z << "," << alpha << std::endl;
         if(auto node = G->get_node(object.toStdString()); node.has_value())
         {
             new_target_from_mouse(x, z, node.value().id());
