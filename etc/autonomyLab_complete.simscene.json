@@ -33,11 +33,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 99
+                        "value": -52
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -33
+                        "value": 8
                     }
                 },
                 "id": 1,
@@ -501,6 +501,29 @@
                             }
                         },
                         "src": 1
+                    },
+                    {
+                        "dst": 300,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    2622,
+                                    628,
+                                    1000
+                                ]
+                            }
+                        },
+                        "src": 1
                     }
                 ],
                 "name": "world",
@@ -530,11 +553,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 22
+                        "value": 23
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 121
+                        "value": -56
                     },
                     "texture": {
                         "type": 0,
@@ -574,11 +597,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -14
+                        "value": 39
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -99
+                        "value": -106
                     },
                     "texture": {
                         "type": 0,
@@ -618,11 +641,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -39
+                        "value": -15
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -181
+                        "value": 154
                     },
                     "texture": {
                         "type": 0,
@@ -662,11 +685,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -21
+                        "value": 76
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 75
+                        "value": -120
                     },
                     "texture": {
                         "type": 0,
@@ -706,11 +729,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 44
+                        "value": -162
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -10
+                        "value": 141
                     },
                     "texture": {
                         "type": 0,
@@ -750,11 +773,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -140
+                        "value": -21
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 15
+                        "value": -60
                     },
                     "texture": {
                         "type": 0,
@@ -794,11 +817,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -93
+                        "value": 45
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -33
+                        "value": -98
                     },
                     "texture": {
                         "type": 0,
@@ -838,11 +861,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 71
+                        "value": -33
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 26
+                        "value": -156
                     },
                     "texture": {
                         "type": 0,
@@ -882,11 +905,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 185
+                        "value": 72
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -180
+                        "value": -29
                     },
                     "texture": {
                         "type": 0,
@@ -926,11 +949,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -160
+                        "value": -43
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 18
+                        "value": 11
                     },
                     "texture": {
                         "type": 0,
@@ -970,11 +993,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -127
+                        "value": 98
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 171
+                        "value": 115
                     },
                     "texture": {
                         "type": 0,
@@ -1014,11 +1037,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 185
+                        "value": -113
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 134
+                        "value": -7
                     },
                     "texture": {
                         "type": 0,
@@ -1794,11 +1817,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -121
+                        "value": 163
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 124
+                        "value": -98
                     },
                     "texture": {
                         "type": 0,
@@ -1838,11 +1861,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 178
+                        "value": -83
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -45
+                        "value": -15
                     },
                     "texture": {
                         "type": 0,
@@ -1882,11 +1905,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 106
+                        "value": 132
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 59
+                        "value": 12
                     },
                     "texture": {
                         "type": 0,
@@ -1926,11 +1949,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -85
+                        "value": 102
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -36
+                        "value": 160
                     },
                     "texture": {
                         "type": 0,
@@ -1970,11 +1993,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 151
+                        "value": -139
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 86
+                        "value": 8
                     },
                     "texture": {
                         "type": 0,
@@ -2014,11 +2037,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 8
+                        "value": -143
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -159
+                        "value": 95
                     },
                     "texture": {
                         "type": 0,
@@ -2058,11 +2081,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 141
+                        "value": 95
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 143
+                        "value": -32
                     },
                     "texture": {
                         "type": 0,
@@ -2077,6 +2100,139 @@
                 "links": [],
                 "name": "Wall15",
                 "type": "plane"
+            },
+            "300": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 182.019562
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -299.624329
+                    }
+                },
+                "id": 300,
+                "links": [
+                    {
+                        "dst": 301,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 300
+                    }
+                ],
+                "name": "glass_1",
+                "type": "glass"
+            },
+            "301": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 300
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/alab/objects/mug.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 162.837662
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -203.714798
+                    },
+                    "render": {
+                        "type": 0,
+                        "value": "NormalRendering"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    }
+                    },
+                "id": 301,
+                "links": [
+                ],
+                "name": "glass_mesh",
+                "type": "mesh"
             }
         }
     }

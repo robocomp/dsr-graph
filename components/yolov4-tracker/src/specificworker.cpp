@@ -219,14 +219,14 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             std::vector<QVec> bb_in_camera;
             const float h = 150;
 
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,0,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,-0,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,-40), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40, 40, h), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,40, h), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40, -40, h), object_name).value()));
+            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
             // Compute a bounding box of pixel coordinates
             // Sort the coordinates x
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -269,9 +269,12 @@ void SpecificWorker::track_object_of_interest()
         if (pose.has_value())
         {
             // get pan_tilt current target pose
+            pose.value().print("object");
             if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
             {
-                QVec qcurrent_pose(current_pose.value());
+                std::vector<float> kaka = current_pose.value();
+                std::vector<double> kk(kaka.begin(), kaka.end());
+                QVec qcurrent_pose(kk);
                 //if they are different modify G
                 if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                 {

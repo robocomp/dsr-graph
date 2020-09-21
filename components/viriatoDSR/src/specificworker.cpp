@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
         // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            auto nose = innermodel->transformS("world", QVec::vec3(0,0,10),viriato_head_camera_name).value();
+            auto nose = innermodel->transformS("world", QVec::vec3(10,0,0),viriato_head_camera_name).value();
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(),nose.y(),nose.z()});
             G->update_node(pan_tilt.value());
         }
@@ -213,12 +213,13 @@ void SpecificWorker::update_pantilt_position()
         if( are_different(std::vector<float>{pan, tilt}, last_state, epsilon))
         {
             auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt);
+            auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint);
             auto pan_joint = G->get_node(viriato_head_camera_pan_joint);
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
-                G->insert_or_assign_edge_RT(pan_tilt.value(), 81, std::vector<float>{0.0, 0.0, 0.0},
+                G->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
                                             std::vector<float>{0.0, pan, 0.0});
-                G->insert_or_assign_edge_RT(pan_joint.value(), 82, std::vector<float>{0.0, 0.0, 0.0},
+                G->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
                                             std::vector<float>{-tilt, 0.0, 0.0});
             }
             else
@@ -299,7 +300,7 @@ void SpecificWorker::check_new_dummy_values_for_coppelia()
 void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
     // zero position of nose
-    static std::vector<float> ant_nose_target{0.0, 0.0, 10.0};
+    static std::vector<float> ant_nose_target{10.0, 0.0, 0.0};
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
         auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value());
