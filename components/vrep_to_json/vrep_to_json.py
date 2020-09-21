@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import json
 import sys
 import random
+import os
 import math
 import numpy as NP
 import ctypes
@@ -129,6 +130,7 @@ def main(input_file, output_file):
     w_node = create_node("world", "world", [("parent", 0), ("level", 0), ("OuterRegionBottom", -4250), ("OuterRegionLeft", -2000), ("OuterRegionRight",7500), ("OuterRegionTop",4250)])
     new_json["DSRModel"]["symbols"][str(w_node["id"])] = w_node
 
+    print("\nElements found:")
     for elem in root.findall('shape'):
         # check required tags
         if len(elem.findall('common/localFrame/position')) and len(elem.findall('primitive/type')):
@@ -176,18 +178,20 @@ def main(input_file, output_file):
                 new_json["DSRModel"]["symbols"][str(src)]["links"].append(new_edge)
 
     # TODO: how to add robot?
-    with open('../../etc/viriato.json') as json_file:
-        viriato = json.load(json_file)
+    robot_file = '/home/robocomp/robocomp/components/dsr-graph/etc/viriato.json'
+    if os.path.isfile(robot_file):
+        with open(robot_file) as json_file:
+            print("Adding viriato robot")
+            viriato = json.load(json_file)
 
-        new_edge = create_edge(w_node["id"], 200, "RT", [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
-        new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
-        # merge dictionaries
-        new_json["DSRModel"]["symbols"] = {**(new_json["DSRModel"]["symbols"]), **(viriato["DSRModel"]["symbols"])}
+            new_edge = create_edge(w_node["id"], 200, "RT", [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+            new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
+            # merge dictionaries
+            new_json["DSRModel"]["symbols"] = {**(new_json["DSRModel"]["symbols"]), **(viriato["DSRModel"]["symbols"])}
 
     # write to file
     with open(output_file, 'w') as outfile:
         json.dump(new_json, outfile, sort_keys=True, indent=4)
-
 
 
 
@@ -197,10 +201,23 @@ if __name__ == '__main__':
         print("vrep_to_json input_file.xml output_file.json")
         exit(0)
     elif len(sys.argv) == 2:
-        input = sys.argv[1]
-        output = sys.argv[1].split('.')[0] + ".json"
+        input_file = sys.argv[1]
+        output_file = sys.argv[1].split('.')[0] + ".json"
     elif len(sys.argv) == 3:
-        input = sys.argv[1]
-        output = sys.argv[2]
+        input_file = sys.argv[1]
+        output_file = sys.argv[2]
 
-    main(input, output)
+    cwd = os.getcwd()
+    if cwd not in input_file:
+        input_file = os.path.join(cwd, input_file)
+
+    if cwd not in output_file:
+        output_file = os.path.join(cwd, output_file)
+
+    # check file existence
+    if os.path.isfile(input_file):
+        print("Input file: ", input_file)
+        print("Output file: ", output_file)
+        main(input_file, output_file)
+    else:
+        print("Input file does not exists: ", input_file)
