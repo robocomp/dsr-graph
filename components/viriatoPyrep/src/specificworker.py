@@ -191,7 +191,7 @@ class SpecificWorker(GenericWorker):
             print(e)
 
     ###########################################
-    ### LASER get and publish people position
+    ### LASER get and publish laser data
     ###########################################
     def read_laser(self):
         ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
@@ -205,7 +205,7 @@ class SpecificWorker(GenericWorker):
             print(e)
 
     ###########################################
-    ### JOYSITCK get and publish people position
+    ### JOYSITCK read and move the robot
     ###########################################
     def read_joystick(self):
         if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
@@ -213,19 +213,19 @@ class SpecificWorker(GenericWorker):
             self.joystick_newdata = None
 
     ###########################################
-    ### ROBOT POSE get and publish people position
+    ### ROBOT POSE get and publish robot position
     ###########################################
     def read_robot_pose(self):
         pose = self.robot.get_2d_pose()
         linear_vel, ang_vel = self.robot_object.get_velocity()
         # print("Veld:", linear_vel, ang_vel)
         try:
-            isMoving = np.abs(linear_vel[1]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-            self.bState = RoboCompGenericBase.TBaseState(x=-pose[1] * 1000,
-                                                         z=pose[0] * 1000,
-                                                         alpha=-pose[2] - 1.5707963,
-                                                         advVx=-linear_vel[1] * 1000,
-                                                         advVz=linear_vel[0] * 1000,
+            isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
+            self.bState = RoboCompGenericBase.TBaseState(x=pose[0] * 1000,
+                                                         z=pose[1] * 1000,
+                                                         alpha=pose[2],
+                                                         advVx=linear_vel[0] * 1000,
+                                                         advVz=linear_vel[1] * 1000,
                                                          rotV=ang_vel[2],
                                                          isMoving=isMoving)
             self.omnirobotpub_proxy.pushBaseState(self.bState)
@@ -439,8 +439,10 @@ class SpecificWorker(GenericWorker):
         #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
             # change from RoboComp to Coppelia coordinate system
             #print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
-            dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
-            dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
+            #dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
+            #dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
+            dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.])
+            dummy.set_orientation([pose.rx, pose.ry, pose.rz])
 
     ######################################################################
    #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
