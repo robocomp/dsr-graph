@@ -125,6 +125,7 @@ class SpecificWorker(GenericWorker):
         self.joystick_newdata = []
         self.speed_robot = []
         self.speed_robot_ant = []
+        self.last_received_data_time = 0
 
     #@QtCore.Slot()
     def compute(self):
@@ -208,9 +209,14 @@ class SpecificWorker(GenericWorker):
     ### JOYSITCK read and move the robot
     ###########################################
     def read_joystick(self):
-        if self.joystick_newdata and (time.time() - self.joystick_newdata[1]) > 0.1:
+        if self.joystick_newdata: #and (time.time() - self.joystick_newdata[1]) > 0.1:
             self.update_joystick(self.joystick_newdata[0])
             self.joystick_newdata = None
+            self.last_received_data_time = time.time()
+        else:
+            elapsed = time.time() - self.last_received_data_time
+            if elapsed > 2 and elapsed < 3:
+                self.robot.set_base_angular_velocites([0, 0, 0])
 
     ###########################################
     ### ROBOT POSE get and publish robot position
@@ -306,7 +312,7 @@ class SpecificWorker(GenericWorker):
                 rot = x.value if np.abs(x.value) > 0.5 else 0
             if x.name == "side":
                 side = x.value if np.abs(x.value) > 0.5 else 0
-        print("Joystick ", adv, rot, side)
+        #print("Joystick ", adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
 
     ##################################################################################

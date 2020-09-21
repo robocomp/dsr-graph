@@ -269,7 +269,6 @@ void SpecificWorker::track_object_of_interest()
         if (pose.has_value())
         {
             // get pan_tilt current target pose
-            pose.value().print("object");
             if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
             {
                 std::vector<float> kaka = current_pose.value();

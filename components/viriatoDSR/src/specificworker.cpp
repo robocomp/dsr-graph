@@ -231,7 +231,7 @@ void SpecificWorker::update_pantilt_position()
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseState& bState)
 {
-    auto robot = G->get_node(this->robot_name); //any omnirobot
+    auto robot = G->get_node(this->robot_name);
     if (not robot.has_value())
     {
         qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(this->robot_name);
