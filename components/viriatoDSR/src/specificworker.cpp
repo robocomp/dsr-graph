@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
         // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            auto nose = innermodel->transformS("world", QVec::vec3(10,0,0),viriato_head_camera_name).value();
+            auto nose = innermodel->transformS("world", QVec::vec3(1000,0,0),viriato_head_camera_name).value();
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(),nose.y(),nose.z()});
             G->update_node(pan_tilt.value());
         }
@@ -186,10 +186,10 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
                           std::vector<float>{1, 1, 0.1}))
         {
             auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
-            G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., bState.alpha, 0.});
-            G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x, 0., bState.z});
+            G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
+            G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
             G->modify_attrib_local<linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
-            G->modify_attrib_local<angular_speed_att>(edge, std::vector<float>{0, bState.rotV, 0});
+            G->modify_attrib_local<angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
             G->insert_or_assign_edge(edge);
             last_state = bState;
             return bState;
@@ -218,9 +218,9 @@ void SpecificWorker::update_pantilt_position()
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
                 G->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{0.0, pan, 0.0});
+                                            std::vector<float>{0.0, 0.0, pan});
                 G->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{-tilt, 0.0, 0.0});
+                                            std::vector<float>{0.0, tilt, 0.0});
             }
             else
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";

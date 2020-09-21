@@ -13,7 +13,7 @@ DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
 agent_id = 10
-agent_name = viriato
+agent_name = viriatoDSR
 #dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
 tree_view = false
 graph_view = true
