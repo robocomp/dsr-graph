@@ -2,13 +2,14 @@ import xml.etree.ElementTree as ET
 import json
 import sys
 import random
+import os
 import math
 import numpy as NP
 from numpy import linalg as LA
 
 
 
-IGNORE_PARAMS = [ "imType", "port", "ifconfig", "collide", "noise", "min", "max", "angle", "focal" ]
+IGNORE_PARAMS = [ "imType", "port", "ifconfig", "collidable", "noise", "min", "max", "angle", "focal", "repeat" ]
 
 def check_truncate_value(name):
     return name in ["width", "height", "depth", "scalex", "scaley", "scalez"]
@@ -144,7 +145,7 @@ def main(input_file, output_file):
     # auxiliary, to store translation and rotation from nodes  before setting on links
     node_transforms = {}
 
-
+    print("\nElements found:")
     for elem in root:
         # Symbols
         if elem.tag == "symbol":
@@ -184,6 +185,7 @@ def main(input_file, output_file):
                 new_symbol["attribute"]["parent"] = {"type": 6, "value": 0}
 
             new_json["DSRModel"]["symbols"][elem.attrib["id"]] = new_symbol
+            print("New symbol: ", new_symbol["name"], new_symbol["type"])
         # Links
         if elem.tag == "link":
             new_edge = {}
@@ -206,26 +208,25 @@ def main(input_file, output_file):
                     new_tr[1] = [x + y for (x, y) in zip(new_tr[1], node_transforms[new_edge["dst"]][1])]
                     #conversion to VREP
                     new_tr[0] = transfromFromInnerToVrep(new_tr[0])
-                    new_tr[1] = transfromFromInnerToVrep(new_tr[1])
+                    new_tr[1] = rotationFromInnerToVrep(new_tr[1])
 #                    print(new_tr)
                 new_edge["linkAttribute"]["translation"] = {"type": 3, "value": new_tr[0]}
                 new_edge["linkAttribute"]["rotation_euler_xyz"] = {"type": 3, "value": new_tr[1]}
 
                 # check parent an level attributes
-                if not "parent" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
+                if "parent" not in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
                     new_attribute = {}
                     new_attribute["value"] = new_edge["src"]
                     new_attribute["type"] = 6
                     new_json["DSRModel"]["symbols"][elem.attrib["dst"]]["attribute"]["parent"] = new_attribute
-                if not "level" in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
+                if "level" not in new_json["DSRModel"]["symbols"][elem.attrib["dst"]]:
                     new_attribute = {}
                     new_attribute["value"] = new_json["DSRModel"]["symbols"][elem.attrib["src"]]["attribute"]["level"]["value"] + 1
                     new_attribute["type"] = 1
                     new_json["DSRModel"]["symbols"][elem.attrib["dst"]]["attribute"]["level"] = new_attribute
 
-
-
             new_json["DSRModel"]["symbols"][elem.attrib["src"]]["links"].append(new_edge)
+            print("New edge: ", new_edge["src"], "->", new_edge["dst"], new_edge["label"])
 
     # write to file
     with open(output_file, 'w') as outfile:
@@ -233,18 +234,30 @@ def main(input_file, output_file):
 
 
 if __name__ == '__main__':
-
     if len(sys.argv) == 1 or len(sys.argv) >= 4:
         print("XML file must be provided")
-        print("xml_to_json input_file.xml output_file.json")
+        print("vrep_to_json input_file.xml output_file.json")
         exit(0)
     elif len(sys.argv) == 2:
-        input = sys.argv[1]
-        output = sys.argv[1].split('.')[0] + ".json"
+        input_file = sys.argv[1]
+        output_file = sys.argv[1].split('.')[0] + ".json"
     elif len(sys.argv) == 3:
-        input = sys.argv[1]
-        output = sys.argv[2]
+        input_file = sys.argv[1]
+        output_file = sys.argv[2]
 
-    main(input, output)
+    cwd = os.getcwd()
+    if cwd not in input_file:
+        input_file = os.path.join(cwd, input_file)
+
+    if cwd not in output_file:
+        output_file = os.path.join(cwd, output_file)
+
+    # check file existence
+    if os.path.isfile(input_file):
+        print("Input file: ", input_file)
+        print("Output file: ", output_file)
+        main(input_file, output_file)
+    else:
+        print("Input file does not exists: ", input_file)
 
 
