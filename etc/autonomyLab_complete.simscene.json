@@ -1113,17 +1113,17 @@
                             "rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    3.14,
+                                    3.1592,
                                     0,
-                                    0
+                                    -1.72
                                 ]
                             },
                             "translation": {
                                 "type": 3,
                                 "value": [
                                     0,
-                                    200,
-                                    0
+                                    0,
+                                    200
                                 ]
                             }
                         },
