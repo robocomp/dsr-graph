@@ -85,11 +85,6 @@
 
 
 
-// User includes here
-
-// Namespaces
-using namespace std;
-using namespace RoboCompCommonBehavior;
 
 class idserver : public RoboComp::Application
 {
@@ -99,8 +94,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-    bool startup_check_flag  = false;
-
+	bool startup_check_flag = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -142,7 +136,7 @@ int ::idserver::run(int argc, char* argv[])
 
 	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
-    //Monitor thread
+	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
 	QObject::connect(monitor, SIGNAL(kill()), &a, SLOT(quit()));
 	QObject::connect(worker, SIGNAL(kill()), &a, SLOT(quit()));
@@ -190,7 +184,7 @@ int ::idserver::run(int argc, char* argv[])
 			auto dsrgetid = std::make_shared<DSRGetIDI>(worker);
 			adapterDSRGetID->add(dsrgetid, Ice::stringToIdentity("dsrgetid"));
 			adapterDSRGetID->activate();
-			qDebug() << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << QString::fromStdString(tmp) ;
+			cout << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << tmp << endl;
 		}
 		catch (const IceStorm::TopicExists&){
 			cout << "[" << PROGRAM_NAME << "]: ERROR creating or activating adapter for DSRGetID\n";
@@ -198,7 +192,7 @@ int ::idserver::run(int argc, char* argv[])
 
 
 		// Server adapter creation and publication
-		qDebug() << SERVER_FULL_NAME " started" ;
+		cout << SERVER_FULL_NAME " started" << endl;
 
 		// User defined QtGui elements ( main window, dialogs, etc )
 
@@ -208,7 +202,6 @@ int ::idserver::run(int argc, char* argv[])
 		#endif
 		// Run QT Application Event Loop
 		a.exec();
-		qDebug() << "[" << PROGRAM_NAME << "]: Finishing qt application execution\n";
 
 
 		status = EXIT_SUCCESS;
@@ -226,15 +219,10 @@ int ::idserver::run(int argc, char* argv[])
 	#endif
 
 	status = EXIT_SUCCESS;
-	qDebug() << "[" << PROGRAM_NAME << "]: To terminate monitor\n";
 	monitor->terminate();
-	qDebug() << "[" << PROGRAM_NAME << "]: To wait monitor\n";
 	monitor->wait();
-	qDebug() << "[" << PROGRAM_NAME << "]: To delete worker\n";
 	delete worker;
-	qDebug() << "[" << PROGRAM_NAME << "]: deleted worker\n";
 	delete monitor;
-	qDebug() << "[" << PROGRAM_NAME << "]: deleted monitor\n";
 	return status;
 }
 
@@ -243,50 +231,53 @@ int main(int argc, char* argv[])
 	string arg;
 
 	// Set config file
-	std::string configFile = "etc/config";
+	QString configFile("etc/config");
 	bool startup_check_flag = false;
+	QString prefix("");
 	if (argc > 1)
 	{
-		std::string initIC("--Ice.Config=");
-		size_t pos = std::string(argv[1]).find(initIC);
-		if (pos == 0)
+	    QString initIC = QString("--Ice.Config=");
+	    for (int i = 1; i < argc; ++i)
 		{
-			configFile = std::string(argv[1]+initIC.size());
-		}
-		else
-		{
-			configFile = std::string(argv[1]);
-		}
-	}
+		    arg = argv[i];
+            if (arg.find(initIC.toStdString(), 0) == 0)
+            {
+                configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+            else
+            {
+                configFile = QString::fromStdString(argv[1]);
+            }
+        }
 
-	// Search in argument list for --prefix= argument (if exist)
-	QString prefix("");
-	QString prfx = QString("--prefix=");
-	for (int i = 2; i < argc; ++i)
-	{
-		arg = argv[i];
-		if (arg.find(prfx.toStdString(), 0) == 0)
-		{
-			prefix = QString::fromStdString(arg).remove(0, prfx.size());
-			if (prefix.size()>0)
-				prefix += QString(".");
-			printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
-		}
-	}
+        // Search in argument list for --prefix= argument (if exist)
+        QString prfx = QString("--prefix=");
+        for (int i = 2; i < argc; ++i)
+        {
+            arg = argv[i];
+            if (arg.find(prfx.toStdString(), 0) == 0)
+            {
+                prefix = QString::fromStdString(arg).remove(0, prfx.size());
+                if (prefix.size()>0)
+                    prefix += QString(".");
+                printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
+            }
+        }
 
-	// Search in argument list for --test argument (if exist)
-	QString startup = QString("--startup-check");
-	for (int i = 0; i < argc; ++i)
-	{
-		arg = argv[i];
-		if (arg.find(startup.toStdString(), 0) == 0)
+        // Search in argument list for --test argument (if exist)
+        QString startup = QString("--startup-check");
+		for (int i = 0; i < argc; ++i)
 		{
-			startup_check_flag = true;
-			cout << "Startup check = True"<< endl;
+			arg = argv[i];
+			if (arg.find(startup.toStdString(), 0) == 0)
+			{
+				startup_check_flag = true;
+				cout << "Startup check = True"<< endl;
+			}
 		}
+
 	}
-	
 	::idserver app(prefix, startup_check_flag);
 
-	return app.main(argc, argv, configFile.c_str());
+	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }
