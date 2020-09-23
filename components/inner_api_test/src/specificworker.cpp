@@ -106,6 +106,25 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 	}
 
+    //Inner Api
+    auto innermodel = G->get_inner_api();
+    std::cout << "Initialize worker" << std::endl;
+    auto world_to_parent = innermodel->getTransformationMatrixS("laser1", "camera_pose");
+    world_to_parent.value().print("one");
+
+    auto world_to_parent2 = innermodel->getTransformationMatrixS("laser1", "camera_pose");
+    world_to_parent2.value().print("two");
+
+    auto node = G->get_node(81);
+    G->insert_or_assign_edge_RT(node.value(),82,{100,0,0},{0,0,0});
+
+    //       G->delete_edge(81, 82, "RT");
+
+    auto world_to_parent3 = innermodel->getTransformationMatrixS("laser1", "camera_pose");
+    world_to_parent3.value().print("three");
+
+
+
 }
 
 void SpecificWorker::compute()
