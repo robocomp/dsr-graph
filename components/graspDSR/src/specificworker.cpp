@@ -90,6 +90,8 @@ void SpecificWorker::initialize(int period)
 
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+        objects_pcl = this->read_pcl_from_file();
+
         this->Period = period;
         timer.start(Period);
     }
@@ -369,6 +371,49 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
     }
 
     return interp_trans;
+}
+
+/////////////////////////////////////////////////////////////////
+//                     IO utilities
+/////////////////////////////////////////////////////////////////
+
+std::map<std::string, vector<vector<float>>> SpecificWorker::read_pcl_from_file()
+{
+    std::vector<std::string> filenames;
+    std::map<std::string, std::vector<std::vector<float>>> data;
+
+    if(boost::filesystem::is_directory("objects-pcl"))
+    {
+        for(auto& entry : boost::make_iterator_range(boost::filesystem::directory_iterator("objects-pcl"), {}))
+        {
+            filenames.push_back(entry.path().string());
+        }
+    }
+
+    for (auto filename : filenames)
+    {
+        std::ifstream file(filename);
+        std::string line;
+        std::vector<std::vector<float>> pcl;
+
+        while (std::getline(file, line))
+        {
+            float value;
+            std::stringstream ss(line);
+            std::vector<float> point;
+
+            while (ss >> value)
+            {
+                point.push_back(value);
+            }
+            
+            pcl.push_back(point);
+        }
+
+        data.insert({filename.substr(12, filename.size()-16), pcl});
+    }
+
+    return data;
 }
 
 /////////////////////////////////////////////////////////////////
