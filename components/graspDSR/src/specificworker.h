@@ -31,6 +31,8 @@
 #include "dsr/gui/dsr_gui.h"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/range/iterator_range.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -70,8 +72,9 @@ private:
 
 	// Pose Estimation & Grasping
 
-	// Grasp object
+	// Grasp attributes
     std::string grasp_object;
+    std::map<std::string,std::vector<std::vector<float>>> objects_pcl;
 
 	// Geometry utilities
 	vector<float> quat_to_euler(vector<float> quat);
@@ -83,6 +86,9 @@ private:
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
+
+	// IO utilities
+    std::map<std::string,std::vector<std::vector<float>>> read_pcl_from_file();
 
 	// Display utilities
     void show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses);
