@@ -393,15 +393,15 @@ vector<vector<float>> SpecificWorker::quat_to_rotm(vector<float> quat)
     vector<vector<float>> rot_mat;
 
     // insert rotation matrix row one by one
-    rot_mat.push_back(vector<float>{static_cast<float>(pow(quat.at(3),2.0)+pow(quat.at(0),2.0)-pow(quat.at(3),2.0)-pow(quat.at(3),2.0)),
+    rot_mat.push_back(vector<float>{static_cast<float>(pow(quat.at(3),2.0)+pow(quat.at(0),2.0)-pow(quat.at(1),2.0)-pow(quat.at(2),2.0)),
                                     2*quat.at(0)*quat.at(1)-2*quat.at(2)*quat.at(3),
                                     2*quat.at(0)*quat.at(2)+2*quat.at(1)*quat.at(3)});
     rot_mat.push_back(vector<float>{2*quat.at(0)*quat.at(1)+2*quat.at(2)*quat.at(3),
-                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)+pow(quat.at(3),2.0)-pow(quat.at(3),2.0)),
+                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)+pow(quat.at(1),2.0)-pow(quat.at(2),2.0)),
                                     2*quat.at(1)*quat.at(2)+2*quat.at(0)*quat.at(3)});
     rot_mat.push_back(vector<float>{2*quat.at(0)*quat.at(2)-2*quat.at(1)*quat.at(3),
                                     2*quat.at(1)*quat.at(2)-2*quat.at(0)*quat.at(3),
-                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)-pow(quat.at(3),2.0)+pow(quat.at(3),2.0))});
+                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)-pow(quat.at(1),2.0)+pow(quat.at(2),2.0))});
 
     return rot_mat;
 }
@@ -430,7 +430,7 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
 //                     IO utilities
 /////////////////////////////////////////////////////////////////
 
-std::map<std::string, vector<vector<float>>> SpecificWorker::read_pcl_from_file()
+std::map<std::string,std::vector<std::vector<float>>> SpecificWorker::read_pcl_from_file()
 {
     std::vector<std::string> filenames;
     std::map<std::string, std::vector<std::vector<float>>> data;
@@ -486,7 +486,7 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             // get camera intrinsic matrix
             std::vector<std::vector<float>> intrinsic_mat = this->get_camera_intrinsics();
             // TODO : project point cloud into pixel space
-            // TODO : draw point cloud on RGB image
+            // TODO : draw projected point cloud on RGB image
         }
     }
     // create QImage and display it on the widget
