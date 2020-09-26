@@ -78,11 +78,13 @@ private:
 
 	// Geometry utilities
 	vector<float> quat_to_euler(vector<float> quat);
+	vector<vector<float>> quat_to_rotm(vector<float> quat);
 	vector<float> interpolate_trans(vector<float> src, vector<float> dest, float factor);
 
 	// G read utilities
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
 	RoboCompCameraRGBDSimple::TDepth get_depth_from_G();
+	std::vector<std::vector<float>> get_camera_intrinsics();
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
