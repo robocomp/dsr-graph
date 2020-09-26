@@ -151,7 +151,7 @@ void SpecificWorker::compute()
             // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
             // track object of interest
-            track_object_of_interest();
+            //track_object_of_interest();
 
         }
         else
@@ -204,11 +204,18 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam)
 {
-    std::string camera_name = "camera_pose";
+
     std::vector<Box> synth_box;
     //  get camera subAPI
     RMat::Cam camera(527, 527, 608/2, 608/2);
+
     //320/np.tan(np.deg2rad(30))
+    auto project = [](const QVec &p)
+            {
+                static const double fx=527; static const double fy=527;
+                static const int centerx=608/2; static const int centery=608/2;
+                return QVec::vec2(fx*p.y()/p.x() + centerx, fy*p.z()/p.x() + centery);
+            };
 
     for(auto &&object_name : object_names)
     {
@@ -219,14 +226,15 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             std::vector<QVec> bb_in_camera;
             const float h = 150;
 
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,40,0), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,40,0), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,-40,0), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,-40,0), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40, 40, h), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,40, h), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40, -40, h), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(-40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(-40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(40, 40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(-40,40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(40, -40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transformS(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
+
             // Compute a bounding box of pixel coordinates
             // Sort the coordinates x
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -248,6 +256,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             box.name = object_name;
             // store projection of bounding box
             synth_box.push_back(box);
+
+            //innermodel->transformS(camera_name, object_name).value().print("object");
+            //camera.print("camera");
+            //camera.project(innermodel->transformS(camera_name, object_name).value()).print("proj");
         }
     }
     return synth_box;

@@ -66,14 +66,6 @@ void SpecificWorker::initialize(int period)
         //Inner Api
         innermodel = G->get_inner_api();
 
-        // Remove existing pan-tilt target
-        if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
-        {
-            auto nose = innermodel->transformS("world", QVec::vec3(1000,0,0),viriato_head_camera_name).value();
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(),nose.y(),nose.z()});
-            G->update_node(pan_tilt.value());
-        }
-
         // Set base speed reference to 0
         if(auto robot = G->get_node(this->robot_name); robot.has_value())
         {
@@ -103,6 +95,15 @@ void SpecificWorker::compute()
     check_new_dummy_values_for_coppelia();
     check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
+
+//    // Remove existing pan-tilt target
+//    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+//    {
+//        const auto nose = innermodel->transformS("world", QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
+//        G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(), nose.y(), nose.z()});
+//        G->update_node(pan_tilt.value());
+//        nose.print("nose");
+//    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +204,7 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
 void SpecificWorker::update_pantilt_position()
 {
     static std::vector<float> last_state{0.0, 0.0};
-    static std::vector<float> epsilon{0.1, 0.1};
+    static std::vector<float> epsilon{0.05, 0.05};
 
     if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
     {
