@@ -151,7 +151,7 @@ void SpecificWorker::compute()
             // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
             // track object of interest
-            //track_object_of_interest();
+            track_object_of_interest();
 
         }
         else
@@ -271,13 +271,8 @@ void SpecificWorker::track_object_of_interest()
     auto pan_tilt = G->get_node(viriato_pan_tilt);
     if(object.has_value() and pan_tilt.has_value())
     {
-        // get object pose in camera coordinate frame
-        //auto pose = innermodel->transformS(camera_name, object_of_interest);
+        // get object pose in world coordinate frame
         auto pose = innermodel->transformS(world_node, object_of_interest);
-        // make it 200 mm vector
-        //auto n_pose = pose->normalize() * pose->norm2();
-        // transform to world coordinate frame so in Coppelia appears as the nose_target_dummy
-        //pose = innermodel->transformS(world_node, pose, camera_name);
         if (pose.has_value())
         {
             // get pan_tilt current target pose
@@ -289,7 +284,7 @@ void SpecificWorker::track_object_of_interest()
                 //if they are different modify G
                 if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                 {
-                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
                     G->update_node(pan_tilt.value());
                 }
             }
