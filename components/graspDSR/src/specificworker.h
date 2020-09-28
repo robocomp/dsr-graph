@@ -31,6 +31,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <Eigen/Dense>
@@ -96,6 +97,7 @@ private:
 
 	// Display utilities
     void show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses);
+    void draw_vertices(cv::Mat &img, std::vector<std::vector<float>> vertices_2d);
 };
 
 #endif

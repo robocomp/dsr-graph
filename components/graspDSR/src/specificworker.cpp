@@ -524,12 +524,23 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             std::vector<std::vector<float>> intrinsic_mat = this->get_camera_intrinsics();
             // project point cloud into pixel space
             std::vector<std::vector<float>> proj_vertices = this->project_vertices(obj_pcl, obj_rot, obj_trans, intrinsic_mat);
-            // TODO : draw projected point cloud on RGB image
+            // draw projected point cloud on RGB image
+            this->draw_vertices(img, proj_vertices);
         }
     }
     // create QImage and display it on the widget
     auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
+}
+
+void SpecificWorker::draw_vertices(cv::Mat &img, std::vector<std::vector<float>> vertices_2d)
+{
+    for (auto vertex : vertices_2d)
+    {
+        int x = std::max(0, std::min(img.cols, static_cast<int>(vertex.at(0))));
+        int y = std::max(0, std::min(img.rows, static_cast<int>(vertex.at(1))));
+        cv::circle(img, cv::Point(x,y), 1, cv::Scalar(255,0,0), cv::FILLED);
+    }
 }
 
 int SpecificWorker::startup_check()
