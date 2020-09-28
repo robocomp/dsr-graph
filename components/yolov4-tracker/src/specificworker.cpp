@@ -83,22 +83,16 @@ void SpecificWorker::initialize(int period)
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
-		{
 		    current_opts = current_opts | opts::tree;
-		}
 		if(graph_view)
-		{
+        {
 		    current_opts = current_opts | opts::graph;
 		    main = opts::graph;
 		}
 		if(qscene_2d_view)
-		{
 		    current_opts = current_opts | opts::scene;
-		}
 		if(osg_3d_view)
-		{
 		    current_opts = current_opts | opts::osg;
-		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		// custom_widget
 		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
@@ -204,10 +198,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam)
 {
-
     std::vector<Box> synth_box;
     //  get camera subAPI
-    RMat::Cam camera(527, 527, 608/2, 608/2);
+    static  std::unique_ptr<DSR::CameraAPI> camera_api = G->get_camera_api(rgb_cam);
 
     //320/np.tan(np.deg2rad(30))
     const double fx=527; const double fy=527;
