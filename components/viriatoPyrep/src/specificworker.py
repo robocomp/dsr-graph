@@ -253,7 +253,7 @@ class SpecificWorker(GenericWorker):
     ############################################
     def read_pan_tilt(self):
         mpan = RoboCompJointMotor.MotorState()
-        mpan.pos = self.viriato_head_camera_pan_joint.get_joint_position()
+        mpan.pos = self.viriato_head_camera_pan_joint.get_joint_position()  # rads
         mtilt = RoboCompJointMotor.MotorState()
         mtilt.pos = self.viriato_head_camera_tilt_joint.get_joint_position()
         motors = dict({self.viriato_head_camera_pan_joint_name: mpan,

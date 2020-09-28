@@ -90,6 +90,8 @@ void SpecificWorker::initialize(int period)
 
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+        objects_pcl = this->read_pcl_from_file();
+
         this->Period = period;
         timer.start(Period);
     }
@@ -255,6 +257,40 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
     }
 }
 
+std::vector<std::vector<float>> SpecificWorker::get_camera_intrinsics()
+{
+    // get head camera node
+    auto cam = G->get_node("viriato_head_camera_sensor");
+    if (cam.has_value())
+    {
+        try
+        {
+            // read intrinsic parameters from G
+            const auto width = G->get_attrib_by_name<rgb_width>(cam.value());
+            const auto height = G->get_attrib_by_name<rgb_height>(cam.value());
+            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
+            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
+            
+            // define camera intrinsic matrix
+            std::vector<std::vector<float>> intrinsic_mat;
+            intrinsic_mat.push_back(std::vector<float>{static_cast<float>(focalx.value()), 0.0, static_cast<float>(width.value())/2});
+            intrinsic_mat.push_back(std::vector<float>{0.0, static_cast<float>(focaly.value()), static_cast<float>(height.value())/2});
+            intrinsic_mat.push_back(std::vector<float>{0.0, 0.0, 1.0});
+
+            return intrinsic_mat;
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << __FILE__ << __FUNCTION__ << __LINE__ << " " << e.what() << std::endl;
+            std::terminate();
+        }
+    }
+    else
+    {
+        qFatal("Terminate in Compute. No node rgbd found");
+    }
+}
+
 /////////////////////////////////////////////////////////////////
 //                     G injection utilities
 /////////////////////////////////////////////////////////////////
@@ -351,6 +387,25 @@ vector<float> SpecificWorker::quat_to_euler(vector<float> quat)
     return angles;
 }
 
+vector<vector<float>> SpecificWorker::quat_to_rotm(vector<float> quat)
+{
+    // rotation matrix
+    vector<vector<float>> rot_mat;
+
+    // insert rotation matrix row one by one
+    rot_mat.push_back(vector<float>{static_cast<float>(pow(quat.at(3),2.0)+pow(quat.at(0),2.0)-pow(quat.at(1),2.0)-pow(quat.at(2),2.0)),
+                                    2*quat.at(0)*quat.at(1)-2*quat.at(2)*quat.at(3),
+                                    2*quat.at(0)*quat.at(2)+2*quat.at(1)*quat.at(3)});
+    rot_mat.push_back(vector<float>{2*quat.at(0)*quat.at(1)+2*quat.at(2)*quat.at(3),
+                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)+pow(quat.at(1),2.0)-pow(quat.at(2),2.0)),
+                                    2*quat.at(1)*quat.at(2)+2*quat.at(0)*quat.at(3)});
+    rot_mat.push_back(vector<float>{2*quat.at(0)*quat.at(2)-2*quat.at(1)*quat.at(3),
+                                    2*quat.at(1)*quat.at(2)-2*quat.at(0)*quat.at(3),
+                                    static_cast<float>(pow(quat.at(3),2.0)-pow(quat.at(0),2.0)-pow(quat.at(1),2.0)+pow(quat.at(2),2.0))});
+
+    return rot_mat;
+}
+
 vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float> dest, float factor)
 {
     // interpolate between the source and destination positions with the given factor
@@ -372,12 +427,69 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
 }
 
 /////////////////////////////////////////////////////////////////
+//                     IO utilities
+/////////////////////////////////////////////////////////////////
+
+std::map<std::string,std::vector<std::vector<float>>> SpecificWorker::read_pcl_from_file()
+{
+    std::vector<std::string> filenames;
+    std::map<std::string, std::vector<std::vector<float>>> data;
+
+    if(boost::filesystem::is_directory("objects-pcl"))
+    {
+        for(auto& entry : boost::make_iterator_range(boost::filesystem::directory_iterator("objects-pcl"), {}))
+        {
+            filenames.push_back(entry.path().string());
+        }
+    }
+
+    for (auto filename : filenames)
+    {
+        std::ifstream file(filename);
+        std::string line;
+        std::vector<std::vector<float>> pcl;
+
+        while (std::getline(file, line))
+        {
+            float value;
+            std::stringstream ss(line);
+            std::vector<float> point;
+
+            while (ss >> value)
+            {
+                point.push_back(value);
+            }
+            pcl.push_back(point);
+        }
+
+        data.insert({filename.substr(12, filename.size()-16), pcl});
+    }
+
+    return data;
+}
+
+/////////////////////////////////////////////////////////////////
 //                     Display utilities
 /////////////////////////////////////////////////////////////////
 
 void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses)
 {
-    // TODO : draw the DNN-estimated poses on the displayed image
+    // visualize the pose of the target object to be grasped
+    for (auto pose : poses)
+    {
+        if (pose.objectname.compare(grasp_object) == 0)
+        {
+            // read object point cloud and pose
+            std::vector<std::vector<float>> obj_pcl = objects_pcl.at(pose.objectname);
+            std::vector<float> obj_trans = std::vector<float>{pose.x, pose.y, pose.z};
+            std::vector<std::vector<float>> obj_rot = this->quat_to_rotm(std::vector<float>{pose.qx, pose.qy, pose.qz, pose.qw});
+            // get camera intrinsic matrix
+            std::vector<std::vector<float>> intrinsic_mat = this->get_camera_intrinsics();
+            // TODO : project point cloud into pixel space
+            // TODO : draw projected point cloud on RGB image
+        }
+    }
+    // create QImage and display it on the widget
     auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
 }
