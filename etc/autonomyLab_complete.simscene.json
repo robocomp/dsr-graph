@@ -1679,10 +1679,6 @@
                         "type": 0,
                         "value": "Blue"
                     },
-                    "depth.cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
                     "depthFactor": {
                         "type": 2,
                         "value": 0

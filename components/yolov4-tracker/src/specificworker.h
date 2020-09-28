@@ -67,6 +67,7 @@ private:
     std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerAPI> innermodel;
 
+
     //DSR params
     std::string agent_name;
     std::string cfg_file;
