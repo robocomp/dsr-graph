@@ -106,24 +106,67 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 	}
 
+    //Inner Api
+    auto innermodel = G->get_inner_api();
+    std::cout << "Initialize worker" << std::endl;
+    DSR::Node root = G->get_node_root().value();
+    //create some nodes and RT edges to test inner_api
+    DSR::Node node1 = add_node("transform", root.id(), G->get_attrib_by_name<level_att>(root).value()+1);
+    DSR::Node node2 = add_node("transform", node1.id(), G->get_attrib_by_name<level_att>(node1).value()+1);
+    DSR::Node node3 = add_node("transform", node2.id(),G->get_attrib_by_name<level_att>(node2).value()+1);
+
+    add_rt_edge(root.id(), node1.id(), {0,0,0}, {0,0,0}); //identity
+    add_rt_edge(node1.id(), node2.id(), {1000,1000,1000}, {0,0,0}); //test translation
+    add_rt_edge(node2.id(), node3.id(), {0, 0, 0}, {1.57079632679, 1.57079632679, 1.57079632679}); //test rotation
+
+
+    auto n1_root_a = innermodel->getTransformationMatrixS(node1.name(), root.name());
+    auto n2_n1_a = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n3_n2_a = innermodel->getTransformationMatrixS(node3.name(), node2.name());
+    auto n3_root_a = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+
+    //get same value for transformation
+    auto n1_root_b = innermodel->getTransformationMatrixS(node1.name(), root.name());
+    auto n2_n1_b = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n3_n2_b = innermodel->getTransformationMatrixS(node3.name(), node2.name());
+    auto n3_root_b = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+
+    //check cached values
+    assertm(compare_matrix(n1_root_a.value(),n1_root_b.value()) == true, "No translation, rotation, test");
+    assertm(compare_matrix(n2_n1_a.value(),n2_n1_b.value()) == true, "Translation test");
+    assertm(compare_matrix(n3_n2_a.value(),n3_n2_b.value()) == true, "Rotation test");
+    assertm(compare_matrix(n3_root_a.value(),n3_root_b.value()) == true, "Combined test");
+
+    //change intermediate node => transform involving edge n2->n1 should changed
+    add_rt_edge(node1.id(), node2.id(),{0,0,0}, {0,0,0});
+    auto n1_root_c = innermodel->getTransformationMatrixS(node1.name(), root.name());
+    auto n2_n1_c = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n3_n2_c = innermodel->getTransformationMatrixS(node3.name(), node2.name());
+    auto n3_root_c = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+
+    assertm(compare_matrix(n1_root_a.value(),n1_root_c.value()) == true, "No translation rotation ");
+    assertm(compare_matrix(n3_n2_a.value(),n3_n2_c.value()) == true, "Rotation test");
+    assertm(compare_matrix(n3_root_a.value(),n3_root_c.value()) == false, "Combined test");
+    assertm(compare_matrix(n2_n1_a.value(),n2_n1_c.value()) == false, "Translation test");
+
+    //change intermediate node => getting initial values again
+    add_rt_edge(node1.id(), node2.id(),{1000, 1000, 1000}, {0,0,0});
+    auto n1_root_d = innermodel->getTransformationMatrixS(node1.name(), root.name());
+    auto n2_n1_d = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n3_n2_d = innermodel->getTransformationMatrixS(node3.name(), node2.name());
+    auto n3_root_d = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+
+    assertm(compare_matrix(n1_root_a.value(),n1_root_d.value()) == true, "No translation rotation ");
+    assertm(compare_matrix(n3_n2_a.value(),n3_n2_d.value()) == true, "Rotation test");
+    assertm(compare_matrix(n3_root_a.value(),n3_root_d.value()) == true, "Combined test");
+    assertm(compare_matrix(n2_n1_a.value(),n2_n1_d.value()) == true, "Translation test");
+
+    std::cout<<"ALL TESTS PASSED"<<std::endl;
+    exit(0);
 }
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
 }
 
 int SpecificWorker::startup_check()
@@ -132,11 +175,54 @@ int SpecificWorker::startup_check()
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
+//TODO: parent and level must be inserted automatically when new edge is created
+DSR::Node SpecificWorker::add_node(const std::string &type, std::uint32_t parent, int level)
+{
+    DSR::Node node;
+    node.type(type);
+    G->add_or_modify_attrib_local<pos_x_att>(node, 100.0f);
+    G->add_or_modify_attrib_local<pos_y_att>(node, 130.0f);
+    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
+    G->add_or_modify_attrib_local<parent_att>(node, parent);
+    G->add_or_modify_attrib_local<level_att>(node, level);
+    try
+    {
+        G->insert_node(node);
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+    }
+    return node;
+}
 
+void SpecificWorker::add_rt_edge(int from, int to, std::vector<float> trans, std::vector<float> rot)
+{
+    std::optional<DSR::Node> from_node = G->get_node(from);
+    std::optional<DSR::Node> to_node = G->get_node(to);
+    if (from_node.has_value() and to_node.has_value())
+    {
+        try {
+            G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+        }
+        catch (const std::exception &e) {
+            std::cout << __FUNCTION__ << e.what() << std::endl;
+        }
+    }
+}
 
-
-
-/**************************************/
-// From the RoboCompDSRGetID you can call this methods:
-// this->dsrgetid_proxy->getID(...)
-
+bool SpecificWorker::compare_matrix(const RTMat &mat1, const RTMat &mat2)
+{
+    bool equal = true;
+    for(int i=0;i < mat1.getRows();i++)
+    {
+        for(int j=0;j < mat1.getCols();j++)
+        {
+            if(mat1(i,j) != mat2(i,j)) {
+                equal = false;
+                break;
+            }
+        }
+    }
+    return equal;
+}

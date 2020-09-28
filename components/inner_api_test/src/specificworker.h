@@ -28,6 +28,9 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <cassert>
+// Use (void) to silent unused warnings.
+#define assertm(exp, msg) assert(((void)msg, exp))
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 
@@ -39,7 +42,10 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
+private:
+    DSR::Node add_node(const std::string &type, std::uint32_t parent, int level);
+    void add_rt_edge(int from, int to, std::vector<float> trans, std::vector<float> rot);
+    bool compare_matrix(const RTMat &mat1, const RTMat &mat2);
 
 public slots:
 	void compute();
