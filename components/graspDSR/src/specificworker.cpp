@@ -448,9 +448,9 @@ vector<vector<float>> SpecificWorker::project_vertices(vector<vector<float>> ver
     }
 
     // perform vertices transformation
-    Eigen::MatrixX3d rot_vertices = rot_mat*vertices_mat.transpose();
+    Eigen::MatrixXd rot_vertices = rot_mat*vertices_mat.transpose();
     rot_vertices.colwise() += trans_vec;
-    Eigen::MatrixX3d proj_vertices = intrinsic_mat*rot_vertices;
+    Eigen::MatrixXd proj_vertices = intrinsic_mat*rot_vertices;
 
     // prepare and normalize 2D vertices from 3D vertices
     vector<vector<float>> pixel_vertices;
