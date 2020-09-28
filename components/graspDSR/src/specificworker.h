@@ -33,6 +33,7 @@
 #include <opencv2/highgui.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <Eigen/Dense>
 
 class SpecificWorker : public GenericWorker
 {
@@ -80,6 +81,7 @@ private:
 	vector<float> quat_to_euler(vector<float> quat);
 	vector<vector<float>> quat_to_rotm(vector<float> quat);
 	vector<float> interpolate_trans(vector<float> src, vector<float> dest, float factor);
+    vector<vector<float>> project_vertices(vector<vector<float>> vertices, vector<vector<float>> rot, vector<float> trans, vector<vector<float>> intrinsics);
 
 	// G read utilities
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
