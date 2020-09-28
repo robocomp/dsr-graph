@@ -31,8 +31,10 @@
 #include "dsr/gui/dsr_gui.h"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <Eigen/Dense>
 
 class SpecificWorker : public GenericWorker
 {
@@ -80,6 +82,7 @@ private:
 	vector<float> quat_to_euler(vector<float> quat);
 	vector<vector<float>> quat_to_rotm(vector<float> quat);
 	vector<float> interpolate_trans(vector<float> src, vector<float> dest, float factor);
+    vector<vector<float>> project_vertices(vector<vector<float>> vertices, vector<vector<float>> rot, vector<float> trans, vector<vector<float>> intrinsics);
 
 	// G read utilities
 	RoboCompCameraRGBDSimple::TImage get_rgb_from_G();
@@ -94,6 +97,7 @@ private:
 
 	// Display utilities
     void show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::PoseType poses);
+    void draw_vertices(cv::Mat &img, std::vector<std::vector<float>> vertices_2d);
 };
 
 #endif
