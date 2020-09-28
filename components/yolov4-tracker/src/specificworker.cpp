@@ -210,12 +210,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     RMat::Cam camera(527, 527, 608/2, 608/2);
 
     //320/np.tan(np.deg2rad(30))
-    auto project = [](const QVec &p)
-            {
-                static const double fx=527; static const double fy=527;
-                static const int centerx=608/2; static const int centery=608/2;
-                return QVec::vec2(fx*p.y()/p.x() + centerx, fy*p.z()/p.x() + centery);
-            };
+    const double fx=527; const double fy=527;
+    const int center_x=608/2; const int center_y=608/2;
+    auto project = [fx, fy, center_x, center_y](const QVec &p)
+            { return QVec::vec2(fx*p.y()/p.x() + center_x, fy*p.z()/p.x() + center_y);  };
 
     for(auto &&object_name : object_names)
     {
