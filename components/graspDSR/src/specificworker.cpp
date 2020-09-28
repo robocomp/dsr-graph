@@ -426,6 +426,43 @@ vector<float> SpecificWorker::interpolate_trans(vector<float> src, vector<float>
     return interp_trans;
 }
 
+vector<vector<float>> SpecificWorker::project_vertices(vector<vector<float>> vertices, vector<vector<float>> rot, vector<float> trans, vector<vector<float>> intrinsics)
+{
+    // initialize eigen vectors and matrices
+    Eigen::Matrix3d intrinsic_mat;
+    intrinsic_mat << intrinsics.at(0).at(0), intrinsics.at(0).at(1), intrinsics.at(0).at(2),
+                    intrinsics.at(1).at(0), intrinsics.at(1).at(1), intrinsics.at(1).at(2),
+                    intrinsics.at(2).at(0), intrinsics.at(2).at(1), intrinsics.at(2).at(2);
+
+    Eigen::Vector3d trans_vec(trans.at(0), trans.at(1), trans.at(2));
+
+    Eigen::Matrix3d rot_mat;
+    rot_mat << rot.at(0).at(0), rot.at(0).at(1), rot.at(0).at(2),
+            rot.at(1).at(0), rot.at(1).at(1), rot.at(1).at(2),
+            rot.at(2).at(0), rot.at(2).at(1), rot.at(2).at(2);
+
+    Eigen::MatrixXd vertices_mat(vertices.size(), 3);
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        vertices_mat.row(i) = Eigen::VectorXd::Map(reinterpret_cast<const double *>(&vertices.at(i).at(0)), 3);
+    }
+
+    // perform vertices transformation
+    Eigen::MatrixX3d rot_vertices = rot_mat*vertices_mat.transpose();
+    rot_vertices.colwise() += trans_vec;
+    Eigen::MatrixX3d proj_vertices = intrinsic_mat*rot_vertices;
+
+    // prepare and normalize 2D vertices from 3D vertices
+    vector<vector<float>> pixel_vertices;
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        Eigen::Vector3d vertex_3d = proj_vertices.col(i);
+        pixel_vertices.push_back(vector<float>{static_cast<float>(vertex_3d(0)/(vertex_3d(2)+1e-5)), static_cast<float>(vertex_3d(1)/(vertex_3d(2)+1e-5))});
+    }
+
+    return pixel_vertices;
+}
+
 /////////////////////////////////////////////////////////////////
 //                     IO utilities
 /////////////////////////////////////////////////////////////////
@@ -485,7 +522,8 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             std::vector<std::vector<float>> obj_rot = this->quat_to_rotm(std::vector<float>{pose.qx, pose.qy, pose.qz, pose.qw});
             // get camera intrinsic matrix
             std::vector<std::vector<float>> intrinsic_mat = this->get_camera_intrinsics();
-            // TODO : project point cloud into pixel space
+            // project point cloud into pixel space
+            std::vector<std::vector<float>> proj_vertices = this->project_vertices(obj_pcl, obj_rot, obj_trans, intrinsic_mat);
             // TODO : draw projected point cloud on RGB image
         }
     }
