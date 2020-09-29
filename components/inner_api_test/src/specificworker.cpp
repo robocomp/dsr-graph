@@ -119,16 +119,16 @@ void SpecificWorker::initialize(int period)
     add_rt_edge(node1.id(), node2.id(), {1000,1000,1000}, {0,0,0}); //test translation
     add_rt_edge(node2.id(), node3.id(), {0, 0, 0}, {1.57079632679, 1.57079632679, 1.57079632679}); //test rotation
 
-    auto n1_root_a = innermodel->getTransformationMatrixS(node1.name(), root.name());
-    auto n2_n1_a = innermodel->getTransformationMatrixS(node2.name(), node1.name());
-    auto n3_n2_a = innermodel->getTransformationMatrixS(node3.name(), node2.name());
-    auto n3_root_a = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n1_root_a = innermodel->get_transformation_matrix(node1.name(), root.name());
+    auto n2_n1_a = innermodel->get_transformation_matrix(node2.name(), node1.name());
+    auto n3_n2_a = innermodel->get_transformation_matrix(node3.name(), node2.name());
+    auto n3_root_a = innermodel->get_transformation_matrix(node2.name(), node1.name());
 
     //get same value for transformation
-    auto n1_root_b = innermodel->getTransformationMatrixS(node1.name(), root.name());
-    auto n2_n1_b = innermodel->getTransformationMatrixS(node2.name(), node1.name());
-    auto n3_n2_b = innermodel->getTransformationMatrixS(node3.name(), node2.name());
-    auto n3_root_b = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n1_root_b = innermodel->get_transformation_matrix(node1.name(), root.name());
+    auto n2_n1_b = innermodel->get_transformation_matrix(node2.name(), node1.name());
+    auto n3_n2_b = innermodel->get_transformation_matrix(node3.name(), node2.name());
+    auto n3_root_b = innermodel->get_transformation_matrix(node2.name(), node1.name());
 
     //check cached values
     assertm(compare_matrix(n1_root_a.value(),n1_root_b.value()) == true, "No translation, rotation, test");
@@ -138,10 +138,10 @@ void SpecificWorker::initialize(int period)
 
     //change intermediate node => transform involving edge n2->n1 should changed
     add_rt_edge(node1.id(), node2.id(),{0,0,0}, {0,0,0});
-    auto n1_root_c = innermodel->getTransformationMatrixS(node1.name(), root.name());
-    auto n2_n1_c = innermodel->getTransformationMatrixS(node2.name(), node1.name());
-    auto n3_n2_c = innermodel->getTransformationMatrixS(node3.name(), node2.name());
-    auto n3_root_c = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n1_root_c = innermodel->get_transformation_matrix(node1.name(), root.name());
+    auto n2_n1_c = innermodel->get_transformation_matrix(node2.name(), node1.name());
+    auto n3_n2_c = innermodel->get_transformation_matrix(node3.name(), node2.name());
+    auto n3_root_c = innermodel->get_transformation_matrix(node2.name(), node1.name());
 
     assertm(compare_matrix(n1_root_a.value(),n1_root_c.value()) == true, "No translation rotation ");
     assertm(compare_matrix(n3_n2_a.value(),n3_n2_c.value()) == true, "Rotation test");
@@ -150,10 +150,10 @@ void SpecificWorker::initialize(int period)
 
     //change intermediate node => getting initial values again
     add_rt_edge(node1.id(), node2.id(),{1000, 1000, 1000}, {0,0,0});
-    auto n1_root_d = innermodel->getTransformationMatrixS(node1.name(), root.name());
-    auto n2_n1_d = innermodel->getTransformationMatrixS(node2.name(), node1.name());
-    auto n3_n2_d = innermodel->getTransformationMatrixS(node3.name(), node2.name());
-    auto n3_root_d = innermodel->getTransformationMatrixS(node2.name(), node1.name());
+    auto n1_root_d = innermodel->get_transformation_matrix(node1.name(), root.name());
+    auto n2_n1_d = innermodel->get_transformation_matrix(node2.name(), node1.name());
+    auto n3_n2_d = innermodel->get_transformation_matrix(node3.name(), node2.name());
+    auto n3_root_d = innermodel->get_transformation_matrix(node2.name(), node1.name());
 
     assertm(compare_matrix(n1_root_a.value(),n1_root_d.value()) == true, "No translation rotation ");
     assertm(compare_matrix(n3_n2_a.value(),n3_n2_d.value()) == true, "Rotation test");
