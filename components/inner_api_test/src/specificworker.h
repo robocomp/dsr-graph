@@ -43,7 +43,7 @@ public:
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
 private:
-    DSR::Node add_node(const std::string &type, std::uint32_t parent, int level);
+    DSR::Node add_node(const std::string &type, std::uint32_t parent);
     void add_rt_edge(int from, int to, std::vector<float> trans, std::vector<float> rot);
     bool compare_matrix(const RTMat &mat1, const RTMat &mat2);
 
