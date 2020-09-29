@@ -120,7 +120,7 @@ void SpecificWorker::compute()
     auto keys = G->getKeys();
     random_selector<> selector{};
     auto t1 = std::chrono::high_resolution_clock::now();
-    for (auto i : iter::range(10000))
+    for (auto i : iter::range(100000))
     {
         auto origen = selector(keys);
         auto dest = selector(keys);
@@ -136,7 +136,7 @@ void SpecificWorker::compute()
 
         auto orig_name = orig_n.value().name();
         auto dest_name = dest_n.value().name();
-        QVec qr = innermodel->transform_axis(dest_name, orig_name).value();
+        QVec qr = innermodel->transform(dest_name, orig_name).value();
         //qr.print("qmat:");
         //innermodel->get_transformation_matrix(dest_name, orig_name).value().print("trans mat: ");
         //  qInfo() << "-----------------------------";
@@ -146,7 +146,7 @@ void SpecificWorker::compute()
     std::cout << duration << std::endl;
 
     t1 = std::chrono::high_resolution_clock::now();
-    for (auto i : iter::range(10000))
+    for (auto i : iter::range(100000))
     {
         auto origen = selector(keys);
         auto dest = selector(keys);
@@ -161,7 +161,7 @@ void SpecificWorker::compute()
         auto orig_name = orig_n.value().name();
         auto dest_name = dest_n.value().name();
 
-        auto r = inner_eigen->transform_axis(dest_name, orig_name);
+        auto r = inner_eigen->transform(dest_name, orig_name);
     }
     t2 = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
