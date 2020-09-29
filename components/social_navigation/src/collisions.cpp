@@ -72,11 +72,11 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
 bool Collisions::collide(std::shared_ptr<DSR::InnerAPI> inner, const std::string &node_a_name, const std::string &node_b_name)
 {
     //std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
-    QMat r1q = inner->getTransformationMatrixS("world", node_a_name).value();
+    QMat r1q = inner->get_transformation_matrix("world", node_a_name).value();
     fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
     fcl::Vec3f T1( r1q(0,3), r1q(1,3), r1q(2,3) );
 
-    QMat r2q = inner->getTransformationMatrixS("world", node_b_name).value();
+    QMat r2q = inner->get_transformation_matrix("world", node_b_name).value();
     fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
     fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
 
