@@ -67,8 +67,8 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     if(current_target.active.load() == false)
         return State::IDLE;
 
-    currentRobotPose = innerModel->transformS6D("world", robot_name).value();
-    auto nose_3d = innerModel->transformS("world", QVec::vec3(0, 0, 250), robot_name).value();
+    currentRobotPose = innerModel->transform_axis("world", robot_name).value();
+    auto nose_3d = innerModel->transform("world", QVec::vec3(0, 0, 250), robot_name).value();
     currentRobotNose = QPointF(nose_3d.x(), nose_3d.z());
     LaserData laser_data = read_laser_from_G();
     const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);
@@ -162,10 +162,10 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
         }
     }
     // get target coordinates in world
-    auto tc = innerModel->transformS("world", target.name()).value();
+    auto tc = innerModel->transform("world", target.name()).value();
     QVector2D target_center(tc.x(), tc.z());
     // get robot coordinates in world
-    auto rc = innerModel->transformS("world", robot_name).value();
+    auto rc = innerModel->transform("world", robot_name).value();
     QVector2D robot_center(rc.x(), rc.z());
     std::vector<QVector2D> candidates;
     std::string target_name = target.name();
@@ -598,10 +598,10 @@ template<typename TMap, typename TController>
 QPolygonF Navigation<TMap, TController>::getRobotPolygon()
 {
     QPolygonF robotP;
-    auto bLWorld = innerModel->transformS("world", robotBottomLeft ,robot_name);
-    auto bRWorld = innerModel->transformS("world", robotBottomRight ,robot_name);
-    auto tRWorld = innerModel->transformS("world", robotTopRight ,robot_name);
-    auto tLWorld = innerModel->transformS("world", robotTopLeft ,robot_name);
+    auto bLWorld = innerModel->transform("world", robotBottomLeft ,robot_name);
+    auto bRWorld = innerModel->transform("world", robotBottomRight ,robot_name);
+    auto tRWorld = innerModel->transform("world", robotTopRight ,robot_name);
+    auto tLWorld = innerModel->transform("world", robotTopLeft ,robot_name);
     robotP << QPointF(bLWorld.value().x(),bLWorld.value().z());
     robotP << QPointF(bRWorld.value().x(),bRWorld.value().z());
     robotP << QPointF(tRWorld.value().x(),tRWorld.value().z());
