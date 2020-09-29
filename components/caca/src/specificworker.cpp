@@ -134,9 +134,9 @@ void SpecificWorker::compute()
 
         auto orig_name = orig_n.value().name();
         auto dest_name = dest_n.value().name();
-        QVec qr = innermodel->transformS(dest_name, QVec::vec3(100, -50, 10), orig_name).value();
+        QVec qr = innermodel->transform(dest_name, QVec::vec3(100, -50, 10), orig_name).value();
         qr.print("qmat:");
-        innermodel->getTransformationMatrixS(dest_name, orig_name).value().print("trans mat: ");
+        innermodel->get_transformation_matrix(dest_name, orig_name).value().print("trans mat: ");
         qInfo() << "-----------------------------";
         auto r = inner_eigen->transformS(dest_name, Eigen::Vector3d(100, -50, 10), orig_name);
         std::cout << r.value().format(CommaInitFmt) << std::endl;
