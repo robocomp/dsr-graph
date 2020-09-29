@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
         //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            const auto nose = innermodel->transformS("world", QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
+            const auto nose = innermodel->transform("world", QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(), nose.y(), nose.z()});
             G->update_node(pan_tilt.value());
         }
