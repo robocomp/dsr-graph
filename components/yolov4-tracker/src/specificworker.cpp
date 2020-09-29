@@ -77,8 +77,9 @@ void SpecificWorker::initialize(int period)
 
         // innermodel
         innermodel = G->get_inner_api();
+        inner_eigen = G->get_inner_eigen_api();
 
-		// Graph viewer
+        // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
@@ -225,6 +226,16 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,40, h), object_name).value()));
             bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40, -40, h), object_name).value()));
             bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
+
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value()));
+//            
 
             // Compute a bounding box of pixel coordinates
             // Sort the coordinates x
