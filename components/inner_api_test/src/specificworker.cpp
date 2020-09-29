@@ -111,14 +111,13 @@ void SpecificWorker::initialize(int period)
     std::cout << "Initialize worker" << std::endl;
     DSR::Node root = G->get_node_root().value();
     //create some nodes and RT edges to test inner_api
-    DSR::Node node1 = add_node("transform", root.id(), G->get_attrib_by_name<level_att>(root).value()+1);
-    DSR::Node node2 = add_node("transform", node1.id(), G->get_attrib_by_name<level_att>(node1).value()+1);
-    DSR::Node node3 = add_node("transform", node2.id(),G->get_attrib_by_name<level_att>(node2).value()+1);
+    DSR::Node node1 = add_node("transform", root.id());
+    DSR::Node node2 = add_node("transform", node1.id());
+    DSR::Node node3 = add_node("transform", node2.id());
 
     add_rt_edge(root.id(), node1.id(), {0,0,0}, {0,0,0}); //identity
     add_rt_edge(node1.id(), node2.id(), {1000,1000,1000}, {0,0,0}); //test translation
     add_rt_edge(node2.id(), node3.id(), {0, 0, 0}, {1.57079632679, 1.57079632679, 1.57079632679}); //test rotation
-
 
     auto n1_root_a = innermodel->getTransformationMatrixS(node1.name(), root.name());
     auto n2_n1_a = innermodel->getTransformationMatrixS(node2.name(), node1.name());
@@ -176,7 +175,7 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 //TODO: parent and level must be inserted automatically when new edge is created
-DSR::Node SpecificWorker::add_node(const std::string &type, std::uint32_t parent, int level)
+DSR::Node SpecificWorker::add_node(const std::string &type, std::uint32_t parent)
 {
     DSR::Node node;
     node.type(type);
@@ -184,7 +183,6 @@ DSR::Node SpecificWorker::add_node(const std::string &type, std::uint32_t parent
     G->add_or_modify_attrib_local<pos_y_att>(node, 130.0f);
     G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
     G->add_or_modify_attrib_local<parent_att>(node, parent);
-    G->add_or_modify_attrib_local<level_att>(node, level);
     try
     {
         G->insert_node(node);
