@@ -119,7 +119,7 @@ void SpecificWorker::compute()
 
     auto keys = G->getKeys();
     random_selector<> selector{};
-    for (auto i : iter::range(100))
+    for (auto i : iter::range(1000))
     {
         auto origen = selector(keys);
         auto dest = selector(keys);
@@ -136,16 +136,20 @@ void SpecificWorker::compute()
         auto dest_name = dest_n.value().name();
         QVec qr = innermodel->transformS(dest_name, QVec::vec3(100, -50, 10), orig_name).value();
         qr.print("qmat:");
-//        innermodel->getTransformationMatrixS(dest_name, orig_name).value().print("trans mat: ");
-//        qInfo() << "-----------------------------";
-//        auto r = inner_eigen->transformS(dest_name, Eigen::Vector3d(100, -50, 10), orig_name);
-//        std::cout << r.value().format(CommaInitFmt) << std::endl;
-//        auto tm = inner_eigen->getTransformationMatrixS(dest_name, orig_name);
-//        std::cout << tm.value().matrix().format(CleanFmt) << std::endl;
-//
-//        Eigen::Vector3d rs;
-//        rs << qr(0), qr(1), qr(2);
-//        std::cout << "\n" << (r.value() - rs).squaredNorm() << std::endl;
+        innermodel->getTransformationMatrixS(dest_name, orig_name).value().print("trans mat: ");
+        qInfo() << "-----------------------------";
+        auto r = inner_eigen->transformS(dest_name, Eigen::Vector3d(100, -50, 10), orig_name);
+        std::cout << r.value().format(CommaInitFmt) << std::endl;
+        auto tm = inner_eigen->getTransformationMatrixS(dest_name, orig_name);
+        std::cout << tm.value().matrix().format(CleanFmt) << std::endl;
+
+        Eigen::Vector3d rs;
+        rs << qr(0), qr(1), qr(2);
+        if( auto error = (r.value() - rs).squaredNorm() ; error > 0.001)
+            std::terminate();
+        else
+            std::cout << "\n" << error << std::endl;
+
 
         qInfo() << "-----------------------------";
         qInfo() << "-----------------------------";

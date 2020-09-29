@@ -1248,7 +1248,7 @@
                     },
                     "parent": {
                         "type": 6,
-                        "value": 2
+                        "value": 200
                     },
                     "pos_x": {
                         "type": 2,
@@ -1696,10 +1696,6 @@
                     "color": {
                         "type": 0,
                         "value": "Blue"
-                    },
-                    "depth.cameraID": {
-                        "type": 1,
-                        "value": 0
                     },
                     "depthFactor": {
                         "type": 2,
