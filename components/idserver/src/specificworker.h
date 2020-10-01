@@ -31,6 +31,10 @@
 #include "dsr/gui/dsr_gui.h"
 #include <QHBoxLayout>
 
+// Use (void) to silent unused warnings.
+#define assertm(exp, msg) assert(((void)msg, exp))
+
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -38,10 +42,13 @@ public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-	void initialize();
+
 
 	//Interface DSRGetID
 	int DSRGetID_getID();
+private:
+    void initialize();
+    void check_rt_tree(const DSR::Node &node);
 
 public slots:
 	void compute();
