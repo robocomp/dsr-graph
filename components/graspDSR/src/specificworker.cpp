@@ -298,7 +298,7 @@ std::vector<std::vector<float>> SpecificWorker::get_camera_intrinsics()
 void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses)
 {
     // get innermodel sub-API
-    auto innermodel = G->get_inner_api();
+    auto innermodel = G->get_inner_eigen_api();
     // get a copy of world node
     auto world = G->get_node("world");
     // loop over each estimated object pose
@@ -311,14 +311,9 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             vector<float> angles = this->quat_to_euler(quat);
 
             // re-project estimated poses into world coordinates
-            QVec orig_point = QVec(6);
-            orig_point.setItem(0, pose.x);
-            orig_point.setItem(1, pose.y);
-            orig_point.setItem(2, pose.z);
-            orig_point.setItem(3, angles.at(0));
-            orig_point.setItem(4, angles.at(1));
-            orig_point.setItem(5, angles.at(2));
-            auto final_pose = innermodel->transform("world", orig_point, "camera_pose");
+            Eigen::Matrix<double, 6, 1> orig_point;
+            orig_point << pose.x, pose.y, pose.z, angles.at(0), angles.at(1), angles.at(2);
+            auto final_pose = innermodel->transform_axis("world", orig_point, "camera_pose");
 
             // get object node id (if exists)
             auto id = G->get_id_from_name(pose.objectname);
@@ -348,8 +343,8 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             }
 
             // inject estimated object pose into graph
-            vector<float> trans{static_cast<float>(final_pose->x()), static_cast<float>(final_pose->y()), static_cast<float>(final_pose->z())};
-            vector<float> rot{static_cast<float>(final_pose->rx()), static_cast<float>(final_pose->ry()), static_cast<float>(final_pose->rz())};
+            vector<float> trans{static_cast<float>(final_pose.value()(0,0)), static_cast<float>(final_pose.value()(1,0)), static_cast<float>(final_pose.value()(2,0))};
+            vector<float> rot{static_cast<float>(final_pose.value()(3,0)), static_cast<float>(final_pose.value()(4,0)), static_cast<float>(final_pose.value()(5,0))};
             G->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
 
             // ignore rest of objects
