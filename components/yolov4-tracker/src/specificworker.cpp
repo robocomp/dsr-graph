@@ -235,7 +235,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
 //            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value()));
 //            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value()));
 //            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value()));
-//            
+//
 
             // Compute a bounding box of pixel coordinates
             // Sort the coordinates x

@@ -152,7 +152,6 @@ void SpecificWorker::compute()
 
     auto state = navigation.update();
     navigation.print_state(state);
-
 }
 
 void  SpecificWorker::moveRobot()

@@ -114,9 +114,71 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+    check_both();
+
+}
+
+void SpecificWorker::check_both()
+{
     Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
     Eigen::IOFormat CleanFmt(Eigen::StreamPrecision, 0, ", ", "\n", "[", "]");
 
+    auto keys = G->getKeys();
+    random_selector<> selector{};
+    auto t1 = std::chrono::high_resolution_clock::now();
+    for (auto i : iter::range(1000))
+    {
+        auto origen = selector(keys);
+        auto dest = selector(keys);
+        auto orig_n = G->get_node(origen);
+        auto dest_n = G->get_node(dest);
+        if (not orig_n.has_value() or not dest_n.has_value())
+        {
+            std::cout << "nodes " << origen << ", " << dest << std::endl;
+            continue;
+        };
+        // qInfo() << origen << G->get_parent_id(orig_n.value()).value() << dest
+        //         << G->get_parent_id(dest_n.value()).value();
+
+        auto orig_name = orig_n.value().name();
+        auto dest_name = dest_n.value().name();
+        QVec qr = innermodel->transform(dest_name, QVec::vec3(100, -50, 10), orig_name).value();
+        qr.print("qmat:");
+        innermodel->get_transformation_matrix(dest_name, orig_name).value().print("trans mat: ");
+
+        qInfo() << "-----------------------------";
+
+        auto r = inner_eigen->transform(dest_name, Eigen::Vector3d(100, -50, 10), orig_name);
+        if (r.has_value())
+        {
+            std::cout << r.value().format(CommaInitFmt) << std::endl;
+            auto tm = inner_eigen->get_transformation_matrix(dest_name, orig_name);
+            std::cout << tm.value().matrix().format(CleanFmt) << std::endl;
+        }
+        else
+        {
+            qInfo("SHIT");
+            std::terminate();
+        }
+
+        Eigen::Vector3d rs;
+        rs << qr(0), qr(1), qr(2);
+        if( auto error = (r.value() - rs).squaredNorm() ; error > 0.001)
+        {
+            qInfo("NOT EQUAL");
+            std::terminate();
+        }
+        else
+            std::cout << "\n" << error << std::endl;
+
+        qInfo() << "-----------------------------";
+        qInfo() << "-----------------------------";
+
+    }
+}
+
+void SpecificWorker::test_speed()
+{
     auto keys = G->getKeys();
     random_selector<> selector{};
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -131,8 +193,8 @@ void SpecificWorker::compute()
             std::cout << "nodes " << origen << ", " << dest << std::endl;
             continue;
         };
-       // qInfo() << origen << G->get_parent_id(orig_n.value()).value() << dest
-       //         << G->get_parent_id(dest_n.value()).value();
+        // qInfo() << origen << G->get_parent_id(orig_n.value()).value() << dest
+        //         << G->get_parent_id(dest_n.value()).value();
 
         auto orig_name = orig_n.value().name();
         auto dest_name = dest_n.value().name();
@@ -167,23 +229,7 @@ void SpecificWorker::compute()
     duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
     std::cout << duration << std::endl;
 
-//        auto r = inner_eigen->transform(dest_name, Eigen::Vector3d(100, -50, 10), orig_name);
-//        std::cout << r.value().format(CommaInitFmt) << std::endl;
-//        auto tm = inner_eigen->get_transformation_matrix(dest_name, orig_name);
-//        std::cout << tm.value().matrix().format(CleanFmt) << std::endl;
-//
-//        Eigen::Vector3d rs;
-//        rs << qr(0), qr(1), qr(2);
-//        if( auto error = (r.value() - rs).squaredNorm() ; error > 0.001)
-//            std::terminate();
-//        else
-//            std::cout << "\n" << error << std::endl;
-//
-//        qInfo() << "-----------------------------";
-//        qInfo() << "-----------------------------";
-
 }
-
 int SpecificWorker::startup_check()
 {
     std::cout << "Startup check" << std::endl;

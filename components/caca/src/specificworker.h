@@ -98,6 +98,9 @@ private:
     QHBoxLayout mainLayout;
     bool startup_check_flag;
 
+    void check_both();
+    void test_speed();
+
 };
 
 #endif
