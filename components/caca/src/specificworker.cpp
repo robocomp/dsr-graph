@@ -114,8 +114,8 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    check_both();
-
+    //check_both();
+    test_speed();
 }
 
 void SpecificWorker::check_both()

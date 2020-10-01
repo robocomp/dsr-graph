@@ -12,6 +12,7 @@ SET ( SOURCES
   $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
   $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
   $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
   $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
