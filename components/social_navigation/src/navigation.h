@@ -51,18 +51,18 @@ class Navigation
         State update();
         std::string checkPathState();
         void newRandomTarget();
-        void newTarget(QPointF newT);
+        void newTarget(Mat::Vector2d newT);
         void print_state(State state) const;
-        std::tuple<SearchState, QVector2D> search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y);
+        std::tuple<SearchState, Mat::Vector2d> search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x={}, std::optional<float> y={});
 
         // Target
         struct Target : public std::mutex
         {
-            QPointF p;
+            Mat::Vector2d p;
             std::atomic_bool active = false;
             std::atomic_bool blocked = true;
             std::atomic_bool humanBlock = false;
-            bool operator==(const QPointF &t) const { return p==t; };
+            bool operator==(const Mat::Vector2d &t) const { return p==t; };
         };
         Target current_target;
         bool robotAutoMov = false;
@@ -76,6 +76,7 @@ class Navigation
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<Collisions> collisions;
         std::shared_ptr<DSR::InnerAPI> innerModel;
+        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> configparams;
 
         //typedef struct { float dist; float angle;} LocalPointPol;
@@ -89,7 +90,8 @@ class Navigation
 
         TMap grid;
         TController controller;
-        std::string robot_name = "omnirobot";
+        const std::string robot_name = "omnirobot";
+        const std::string world_name = "world";
         Grid<>::Dimensions dim;
 
         // Scene

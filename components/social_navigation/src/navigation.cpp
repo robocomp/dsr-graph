@@ -11,6 +11,7 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     qDebug()<<"Navigation - "<< __FUNCTION__;
     G = graph;
     innerModel = G->get_inner_api();
+    inner_eigen = G->get_inner_eigen_api();
     configparams = configparams_;
     viewer_2d = scene;
     //robot_name = configparams_->at("RobotName").value;
@@ -85,7 +86,7 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     cleanPoints(laser_poly);
     addPoints(laser_poly);
     drawRoad(laser_poly);
-    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laser_data, current_target.p, currentRobotPose,  currentRobotNose );
+    auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laser_data, QPointF(current_target.p.x(),current_target.p.y()), currentRobotPose,  currentRobotNose );
 
     if (blocked)
     {
@@ -142,35 +143,37 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
 
 
 template<typename TMap, typename TController>
-std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
+std::tuple<typename Navigation<TMap, TController>::SearchState, Mat::Vector2d> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
 {
-    //  std::cout << __FUNCTION__ << " " << target.id() << " " << x.value() << " " << y.value() << std::endl;
+    std::cout << __FUNCTION__ << " " << target.id() << " "  << std::endl;
     // if x,y not empty
     if(x.has_value() and y.has_value())
     {
         // if already in current_target return
-        if (this->current_target.p == QPointF(x.value(), y.value()))
+        if (this->current_target.p == Mat::Vector2d(x.value(), y.value()))
         {
             //qInfo() << __FUNCTION__  << "Exit same point";
-            return std::make_tuple(SearchState::AT_TARGET, QVector2D());
+            return std::make_tuple(SearchState::AT_TARGET, Mat::Vector2d());
         }
         // if node is floor_plane take coordinates directly
         if (target.id() == 11) // floor
         {
-            this->newTarget(QPointF(x.value(), y.value()));
-            return std::make_tuple(SearchState::NEW_TARGET, QVector2D(x.value(), y.value()));
+            this->newTarget(Mat::Vector2d(x.value(), y.value()));
+            return std::make_tuple(SearchState::NEW_TARGET, Mat::Vector2d(x.value(), y.value()));
         }
     }
-    // get target coordinates in world
-    auto tc = innerModel->transform("world", target.name()).value();
-    QVector2D target_center(tc.x(), tc.z());
-    // get robot coordinates in world
-    auto rc = innerModel->transform("world", robot_name).value();
-    QVector2D robot_center(rc.x(), rc.z());
-    std::vector<QVector2D> candidates;
-    std::string target_name = target.name();
 
-    // search the whole grid. It could be
+    std::string target_name = target.name();
+    // get target coordinates in world
+    Mat::Vector3d tc = inner_eigen->transform(world_name, target.name()).value();
+    //QVector2D target_center(tc.x(), tc.z());
+    Mat::Vector2d target_center(tc.x(), tc.y());
+    // get robot coordinates in world
+    Mat::Vector3d rc = inner_eigen->transform(world_name, robot_name).value();
+    //QVector2D robot_center(rc.x(), rc.z());
+    Mat::Vector2d robot_center(rc.x(), rc.y());
+    //std::vector<QVector2D> candidates;
+    std::vector<Mat::Vector2d> candidates;
 
     // search in a spiral pattern away from object for the first free cell
     long int x_pos = target_center.x();
@@ -182,14 +185,14 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
         {
             const auto &k = Grid<>::Key(x_pos, y_pos);
             if (grid.isFree(k))
-                candidates.emplace_back(QVector2D(x_pos, y_pos));
+                candidates.emplace_back(Mat::Vector2d (x_pos, y_pos));
             x_pos = x_pos + d;
         }
         while (2 * y_pos * d < i)
         {
            const auto &k = Grid<>::Key(x_pos, y_pos);
            if (grid.isFree(k))
-                candidates.emplace_back(QVector2D(x_pos, y_pos));
+                candidates.emplace_back(Mat::Vector2d(x_pos, y_pos));
             y_pos = y_pos + d;
         }
         d = -1 * d;
@@ -210,13 +213,13 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, QVector2D> Navig
     if(candidates.size() > 0)
     {
         std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
-            return (robot_center - p1).length() < (robot_center - p2).length();
+            return (robot_center - p1).norm() < (robot_center - p2).norm();
         });
-        this->newTarget(candidates.front().toPointF());
+        this->newTarget(candidates.front());
         return std::make_tuple(SearchState::NEW_TARGET, candidates.front());
     }
     else
-        return std::make_tuple(SearchState::NO_TARGET_FOUND, QVector2D());
+        return std::make_tuple(SearchState::NO_TARGET_FOUND, Mat::Vector2d());
 }
 
 
@@ -304,19 +307,19 @@ void Navigation<TMap, TController>::newRandomTarget()
     auto width = std::max(collisions->outerRegion.left(), collisions->outerRegion.right()) - hmin;
     auto vmin = std::min(collisions->outerRegion.top(), collisions->outerRegion.bottom());
     auto height = std::max(collisions->outerRegion.top(), collisions->outerRegion.bottom()) - vmin;
-    auto x = hmin + (double)rand() * width / (double)RAND_MAX;
-    auto z = vmin + (double)rand() * height/ (double)RAND_MAX;
+    auto y = hmin + (double)rand() * width / (double)RAND_MAX;
+    auto x = vmin + (double)rand() * height/ (double)RAND_MAX;
     this->current_target.lock();
     current_target.active.store(true);
     current_target.blocked.store(true);
-    current_target.p = QPointF(x,z);
+    current_target.p = Mat::Vector2d(x, y);
 
     this->current_target.unlock();
-    qDebug()<<"New Random Target" << current_target.p;
+    std::cout << __FUNCTION__ << "New Random Target" << current_target.p << std::endl;
 }
 
 template<typename TMap, typename TController>
-void Navigation<TMap, TController>::newTarget(QPointF newT)
+void Navigation<TMap, TController>::newTarget(Mat::Vector2d newT)
 {
     std::cout << "Navigation:" << __FUNCTION__  << " arrived " << newT << std::endl;
     if(stopMovingRobot)
@@ -351,7 +354,7 @@ bool Navigation<TMap, TController>::findNewPath()
         auto target = this->current_target.p;
     this->current_target.unlock();
 
-    std::list<QPointF> path = grid.computePath(currentRobotNose, target);
+    std::list<QPointF> path = grid.computePath(currentRobotNose, QPointF(target.x(), target.y()));
 
     if (path.size() > 0)
     {
@@ -708,9 +711,9 @@ void Navigation<TMap, TController>::print_state( State state) const
         case State::IDLE: qInfo() << "Nav state: IDLE"; break;
         case State::DUMMY: break;
         case State::AT_TARGET:
-            auto p = QPointF(currentRobotPose.x(), currentRobotPose.z());
-            qInfo() << "Nav state: *** TARGET ACHIEVED ***  Target -> " << current_target.p << " Current pose -> "
-                    <<  p << "Error -> " << QVector2D(p - current_target.p).length();
+            auto p = Mat::Vector2d(currentRobotPose.x(), currentRobotPose.z());
+            std::cout << "Nav state: *** TARGET ACHIEVED ***  Target -> " << current_target.p << " Current pose -> "
+                    <<  p << " Error -> " << (p - current_target.p).norm() << std::endl;
             break;
     }
     state_ant = state;

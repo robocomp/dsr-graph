@@ -32,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
+	//G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -60,9 +60,12 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
-		// Graph viewer
+        // Ignore attributes from G
+        G->set_ignored_attributes<rgb_att, depth_att, dists_att, angles_att>();
+
+        // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
