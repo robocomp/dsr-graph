@@ -88,7 +88,7 @@ void SpecificWorker::initialize(int period)
         G->set_ignored_attributes<rgb_att, depth_att>();
 
         //Custom widget
-		custom_widget.show();
+        dsr_viewer->add_custom_widget_to_dock("Social Navigation", &custom_widget);
 		connect(custom_widget.autoMov_checkbox, SIGNAL(clicked()),this, SLOT(checkRobotAutoMovState()));
     	connect(custom_widget.robotMov_checkbox, SIGNAL(clicked()),this, SLOT(moveRobot()));
     	connect(custom_widget.ki_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
