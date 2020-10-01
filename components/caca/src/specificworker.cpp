@@ -126,7 +126,7 @@ void SpecificWorker::check_both()
     auto keys = G->getKeys();
     random_selector<> selector{};
     auto t1 = std::chrono::high_resolution_clock::now();
-    for (auto i : iter::range(1000))
+    for (auto i : iter::range(10000))
     {
         auto origen = selector(keys);
         auto dest = selector(keys);
