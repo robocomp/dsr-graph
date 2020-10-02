@@ -69,7 +69,9 @@ void SpecificWorker::initialize(int period)
         //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            const auto nose = innermodel->transform("world", QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
+            auto bState = update_omirobot();
+            const auto nose = innermodel->transform(world_name, QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
+            std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(), nose.y(), nose.z()});
             G->update_node(pan_tilt.value());
         }
@@ -185,6 +187,7 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
                           std::vector<float>{last_state.x, last_state.z, last_state.alpha},
                           std::vector<float>{1, 1, 0.1}))
         {
+            qInfo() << "angle " << bState.alpha;
             auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
             G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
             G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
