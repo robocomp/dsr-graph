@@ -12,6 +12,8 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
     G = graph;
     innerModel = G->get_inner_api();
     inner_eigen = G->get_inner_eigen_api();
+    rt_api = G->get_rt_api();
+
     configparams = configparams_;
     viewer_2d = scene;
     //robot_name = configparams_->at("RobotName").value;
@@ -53,10 +55,10 @@ void Navigation<TMap, TController>::initialize( const std::shared_ptr<DSR::DSRGr
 
     robotXWidth = std::stof(configparams->at("RobotXWidth").value);
     robotZLong = std::stof(configparams->at("RobotZLong").value);
-    robotBottomLeft     = QVec::vec3( - robotXWidth / 2 - 100, 0, - robotZLong / 2 - 100);
-    robotBottomRight    = QVec::vec3( + robotXWidth / 2 + 100, 0, - robotZLong / 2 - 100);
-    robotTopRight       = QVec::vec3( + robotXWidth / 2 + 100, 0, + robotZLong / 2 + 100);
-    robotTopLeft        = QVec::vec3( - robotXWidth / 2 - 100, 0, + robotZLong / 2 + 100);
+    robotBottomLeft     = Mat::Vector3d ( - robotXWidth / 2 - 100, 0, - robotZLong / 2 - 100);
+    robotBottomRight    = Mat::Vector3d ( + robotXWidth / 2 + 100, 0, - robotZLong / 2 - 100);
+    robotTopRight       = Mat::Vector3d ( + robotXWidth / 2 + 100, 0, + robotZLong / 2 + 100);
+    robotTopLeft        = Mat::Vector3d ( - robotXWidth / 2 - 100, 0, + robotZLong / 2 + 100);
 };
 
 template<typename TMap, typename TController>
@@ -68,9 +70,9 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     if(current_target.active.load() == false)
         return State::IDLE;
 
-    currentRobotPose = innerModel->transform_axis("world", robot_name).value();
-    auto nose_3d = innerModel->transform("world", QVec::vec3(0, 0, 250), robot_name).value();
-    currentRobotNose = QPointF(nose_3d.x(), nose_3d.z());
+    currentRobotPose = inner_eigen->transform_axis("world", robot_name).value();
+    auto nose_3d = inner_eigen->transform("world", Mat::Vector3d(250, 0, 0), robot_name).value();
+    currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
     LaserData laser_data = read_laser_from_G();
     const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);
     currentRobotPolygon = getRobotPolygon();
@@ -86,6 +88,8 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
     cleanPoints(laser_poly);
     addPoints(laser_poly);
     drawRoad(laser_poly);
+
+    // controller
     auto [success, blocked, active, xVel, zVel, rotVel] = controller.update(pathPoints, laser_data, QPointF(current_target.p.x(),current_target.p.y()), currentRobotPose,  currentRobotNose );
 
     if (blocked)
@@ -141,31 +145,32 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
 // - search a free grid point satisfying the restrictions
 
 
-
 template<typename TMap, typename TController>
-std::tuple<typename Navigation<TMap, TController>::SearchState, Mat::Vector2d> Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y)
+std::tuple<typename Navigation<TMap, TController>::SearchState, Mat::Vector2d>
+        Navigation<TMap, TController>::search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot)
 {
-    std::cout << __FUNCTION__ << " " << target.id() << " "  << std::endl;
+    static Eigen::IOFormat CleanFmt(Eigen::StreamPrecision, 0, ", ", "\n", "[", "]");
+    static Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+
+    std::cout << __FUNCTION__ << " Target id:" << target.id() << std::endl;
+    std::cout << inner_eigen->transform(world_name, target.name()).value().format(CleanFmt) << std::endl;
     // if x,y not empty
-    if(x.has_value() and y.has_value())
+    if(not params.empty())
     {
         // if already in current_target return
-        if (this->current_target.p == Mat::Vector2d(x.value(), y.value()))
-        {
-            //qInfo() << __FUNCTION__  << "Exit same point";
+        if (this->current_target.p == Mat::Vector2d(params.at("x"), params.at("y")))
             return std::make_tuple(SearchState::AT_TARGET, Mat::Vector2d());
-        }
         // if node is floor_plane take coordinates directly
-        if (target.id() == 11) // floor
+        if (target.name() == floor_name) // floor
         {
-            this->newTarget(Mat::Vector2d(x.value(), y.value()));
-            return std::make_tuple(SearchState::NEW_TARGET, Mat::Vector2d(x.value(), y.value()));
+            this->newTarget(Mat::Vector2d(params.at("x"), params.at("y")));
+            return std::make_tuple(SearchState::NEW_TARGET, Mat::Vector2d(params.at("x"), params.at("y")));
         }
     }
-
     std::string target_name = target.name();
     // get target coordinates in world
     Mat::Vector3d tc = inner_eigen->transform(world_name, target.name()).value();
+    std::cout << __FUNCTION__ << tc.format(CommaInitFmt) << std::endl;
     //QVector2D target_center(tc.x(), tc.z());
     Mat::Vector2d target_center(tc.x(), tc.y());
     // get robot coordinates in world
@@ -187,6 +192,8 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, Mat::Vector2d> N
             if (grid.isFree(k))
                 candidates.emplace_back(Mat::Vector2d (x_pos, y_pos));
             x_pos = x_pos + d;
+            if(candidates.size() > 0)   // arbitrary number hard to fix
+                break;
         }
         while (2 * y_pos * d < i)
         {
@@ -194,10 +201,10 @@ std::tuple<typename Navigation<TMap, TController>::SearchState, Mat::Vector2d> N
            if (grid.isFree(k))
                 candidates.emplace_back(Mat::Vector2d(x_pos, y_pos));
             y_pos = y_pos + d;
+            if(candidates.size() > 0)   // arbitrary number hard to fix
+                break;
         }
         d = -1 * d;
-        if(candidates.size() > 10)   // arbitrary number hard to fix
-            break;
     }
 //    for( const auto &[key, val] : grid)
 //        if(val.free and grid.cellNearToOccupiedCellByObject(key, target_name))
@@ -321,7 +328,8 @@ void Navigation<TMap, TController>::newRandomTarget()
 template<typename TMap, typename TController>
 void Navigation<TMap, TController>::newTarget(Mat::Vector2d newT)
 {
-    std::cout << "Navigation:" << __FUNCTION__  << " arrived " << newT << std::endl;
+    static Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+    std::cout << "Navigation:" << __FUNCTION__  << " arrived " << newT.format(CommaInitFmt) << std::endl;
     if(stopMovingRobot)
     {
         stopRobot();
@@ -601,14 +609,14 @@ template<typename TMap, typename TController>
 QPolygonF Navigation<TMap, TController>::getRobotPolygon()
 {
     QPolygonF robotP;
-    auto bLWorld = innerModel->transform("world", robotBottomLeft ,robot_name);
-    auto bRWorld = innerModel->transform("world", robotBottomRight ,robot_name);
-    auto tRWorld = innerModel->transform("world", robotTopRight ,robot_name);
-    auto tLWorld = innerModel->transform("world", robotTopLeft ,robot_name);
-    robotP << QPointF(bLWorld.value().x(),bLWorld.value().z());
-    robotP << QPointF(bRWorld.value().x(),bRWorld.value().z());
-    robotP << QPointF(tRWorld.value().x(),tRWorld.value().z());
-    robotP << QPointF(tLWorld.value().x(),tLWorld.value().z());
+    auto bLWorld = inner_eigen->transform(world_name, robotBottomLeft, robot_name);
+    auto bRWorld = inner_eigen->transform(world_name, robotBottomRight, robot_name);
+    auto tRWorld = inner_eigen->transform(world_name, robotTopRight, robot_name);
+    auto tLWorld = inner_eigen->transform(world_name, robotTopLeft, robot_name);
+    robotP << QPointF(bLWorld.value().x(),bLWorld.value().y());
+    robotP << QPointF(bRWorld.value().x(),bRWorld.value().y());
+    robotP << QPointF(tRWorld.value().x(),tRWorld.value().y());
+    robotP << QPointF(tLWorld.value().x(),tLWorld.value().y());
     return robotP;
 }
 
@@ -625,10 +633,10 @@ std::tuple<QPolygonF, std::vector<QPointF>> Navigation<TMap, TController>::updat
     for (const auto &[angle, dist] : iter::zip(angles, dists))
     {
         //convert laser polar coordinates to cartesian
-        float x = dist*sin(angle); float z = dist*cos(angle);
-        QVec laserWorld = innerModel->transform("world", QVec::vec3(x, 0, z), "laser").value(); //OJO CON LOS NOMBRES
-        laser_poly << QPointF(x, z);
-        laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.z()));
+        float x = dist*cos(angle); float y = dist*sin(angle);
+        Mat::Vector3d laserWorld = inner_eigen->transform(world_name, Mat::Vector3d (x, y, 0), laser_name).value();
+        laser_poly << QPointF(x, y);
+        laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.y()));
     }
     return std::make_tuple(laser_poly, laser_cart);
 }
@@ -637,11 +645,10 @@ template<typename TMap, typename TController>
 QPointF Navigation<TMap, TController>::getRobotNose()
 {
     //        qDebug()<<"Navigation - "<< __FUNCTION__;
-    auto robot = QPointF(currentRobotPose.x(),currentRobotPose.z());
+    auto robot = QPointF(currentRobotPose.x(),currentRobotPose.y());
 
     //    return (robot + QPointF( (robotZLong/2 + 200) * sin(currentRobotPose.ry()), (robotZLong/2 + 200) * cos(currentRobotPose.ry())));
-    return (robot + QPointF(250*sin(currentRobotPose.ry()),250*cos(currentRobotPose.ry())));
-
+    return (robot + QPointF(250*sin(currentRobotPose(5)),250*cos(currentRobotPose(5))));
 }
 
 

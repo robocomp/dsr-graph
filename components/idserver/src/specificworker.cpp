@@ -70,7 +70,7 @@ void SpecificWorker::initialize(int period)
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
         //check RT tree
         check_rt_tree(G->get_node_root().value());
-        //G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
+        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
@@ -81,7 +81,7 @@ void SpecificWorker::initialize(int period)
 		}
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
-        this->Period = 100;
+        this->Period = 200;
 
         // Compute max Id in G
         get_max_id_from_G();

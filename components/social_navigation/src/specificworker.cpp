@@ -112,6 +112,8 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     //   static Navigation<Grid<>,Controller>::SearchState last_state;
+    //Eigen::IOFormat CleanFmt(Eigen::StreamPrecision, 0, ", ", "\n", "[", "]");
+    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
 
     if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
     {
@@ -124,7 +126,20 @@ void SpecificWorker::compute()
             if (auto target_o = G->get_node(current_plan.target_place); target_o.has_value())
             {
                 auto target = target_o.value();
-                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target, robot);
+                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target, current_plan.params, robot);
+                switch (search_state)
+                {
+                    case Navigation<Grid<>, Controller>::SearchState::NEW_TARGET:
+                        std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt) << std::endl;
+                        current_plan.is_active = true;
+                        break;
+                    case Navigation<Grid<>, Controller>::SearchState::AT_TARGET:
+                        std::cout << __FUNCTION__ << " At target " <<  std::endl;
+                        current_plan.is_active = true;
+                        break;
+                    case Navigation<Grid<>, Controller>::SearchState::NO_TARGET_FOUND:
+                        std::cout << __FUNCTION__ << " No target found: " <<  std::endl; break;
+                }
             }
         } else if (current_plan.is_active)// keep working on current_plan
         {
@@ -265,9 +280,9 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                                         QJsonObject action_params = action_0.value("params").toObject();
                                         QString object = action_params.value("object").toString();
                                         QJsonArray location = action_params.value("location").toArray();
-                                        int x = location.at(0).toInt();
-                                        int z = location.at(1).toInt();
-                                        float alpha = location.at(2).toDouble();
+                                        plan.params["x"] = location.at(0).toDouble();
+                                        plan.params["y"] = location.at(1).toDouble();
+                                        plan.params["angle"] = location.at(2).toDouble();
                                         plan.action = Plan::Actions::GOTO;
                                         plan.target_place = object.toStdString();
                                     }
