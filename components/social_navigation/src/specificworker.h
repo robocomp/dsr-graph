@@ -47,7 +47,7 @@ class Plan
         enum class Actions {GOTO};
         Actions action;
         std::string target_place;
-        std::map<std::string, int> params;
+        std::map<std::string, double> params;
         bool is_active = false;
         void print()
         {
@@ -86,8 +86,10 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::InnerAPI> innermodel;
+        std::shared_ptr<DSR::RT_API> rt_api;
 
-        //DSR params
+
+    //DSR params
         std::string agent_name;
         int agent_id;
         bool read_dsr;

@@ -29,7 +29,7 @@ void Controller::initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, s
     }
 }
 
-Controller::retUpdate Controller::update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const QVec &robotPose, const QPointF &robotNose)
+Controller::retUpdate Controller::update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const Mat::Vector6d &robotPose, const QPointF &robotNose)
 {
     qDebug() << "Controller - "<< __FUNCTION__;
     if(points.size() < 2)
