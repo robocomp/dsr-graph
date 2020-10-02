@@ -68,6 +68,8 @@ private:
     const std::string viriato_head_camera_tilt_joint = "viriato_head_camera_tilt_joint";
     const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
     const std::string robot_name = "omnirobot";
+    const std::string world_name = "world";
+
 
     // ATTRIBUTE NAMES
     const std::string nose_target = "viriato_head_pan_tilt_nose_target";
