@@ -7,10 +7,9 @@
 #include <cppitertools/zip.hpp>
 #include <iomanip>
 
-void Controller::initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_)
+void Controller::initialize(std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_)
 {
     qDebug()<< "Controller - " << __FUNCTION__;
-    innerModel = innerModel_;
     this->time = QTime::currentTime();
     this->delay = delay*1000;	//msecs
     try
@@ -35,11 +34,12 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
     if(points.size() < 2)
         return retUpdate{false, false, false, 0, 0, 0};
 
+    // now x is forward direction and z corresponds to y, pointing leftwards
     float advVelx = 0.f, advVelz = 0.f, rotVel = 0.f;
     //auto firstPointInPath = points.front();
     bool active = true;
     bool blocked = false;
-    QPointF robot = QPointF(robotPose.x(), robotPose.z());
+    QPointF robot = QPointF(robotPose.x(), robotPose.y());
     // Compute euclidean distance to target
     float euc_dist_to_target = QVector2D(robot - target).length();
 
@@ -51,14 +51,15 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
               return res;
             };
 
+    // Target achieved
     if ( (points.size() < 3) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
     {
-        advVelz = 0;  rotVel = 0;
+        advVelx = 0;  advVelz= 0; rotVel = 0;
         active = false;
         std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 3 " << (points.size() < 3)
                   << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
                   << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
-        return std::make_tuple(true, blocked, active, advVelx, advVelz, rotVel);
+        return std::make_tuple(true, blocked, active, advVelz, advVelx, rotVel);  //side, adv, rot
     }
 
     /// Compute rotational speed
@@ -70,8 +71,7 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
         rotVel = 0.f;
 
     /// Compute advance speed
-    std::min(advVelz = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
-
+    std::min(advVelx = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};
@@ -81,13 +81,13 @@ Controller::retUpdate Controller::update(std::vector<QPointF> points, const Lase
         float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
         float diff = limit - dist;
         if (diff >= 0)
-            total = total + QVector2D(-diff * sin(angle), -diff * cos(angle));
+            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
     }
     QVector2D bumperVel = total * KB;  // Parameter set in slidebar
-    if (abs(bumperVel.x()) < MAX_SIDE_SPEED)
-        advVelx = bumperVel.x();
+    if (abs(bumperVel.y()) < MAX_SIDE_SPEED)
+        advVelz = bumperVel.y();
 
-    return std::make_tuple (true, blocked, active, advVelx, advVelz, rotVel);
+    return std::make_tuple (true, blocked, active, advVelz, advVelx, rotVel); //side, adv, rot
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

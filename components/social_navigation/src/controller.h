@@ -22,7 +22,7 @@ class Controller
 
     public:
         using retUpdate = std::tuple <bool, bool, bool, float, float, float>;
-        void initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_);
+        void initialize(std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_);
         retUpdate update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const Mat::Vector6d &robotPose, const QPointF &robotNose);
 
     private:

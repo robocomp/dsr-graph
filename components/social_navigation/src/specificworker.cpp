@@ -141,7 +141,8 @@ void SpecificWorker::compute()
                         std::cout << __FUNCTION__ << " No target found: " <<  std::endl; break;
                 }
             }
-        } else if (current_plan.is_active)// keep working on current_plan
+        }
+        else if (current_plan.is_active)// keep working on current_plan
         {
             auto state = navigation.update();
             navigation.print_state(state);
@@ -235,25 +236,15 @@ void  SpecificWorker::checkRobotAutoMovState()
 
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
+    using namespace std::placeholders;
     if( auto target_node = G->get_node(id); target_node.has_value())
     {
-        if (auto robot = G->get_node(robot_name); robot.has_value())
-        {
-            std::cout << __FUNCTION__ << " :" << pos_x << " " << pos_y << " " << id << " " << target_node->name() << std::endl;
-            G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
-            G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) pos_x);
-            G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) pos_y);
-            G->update_node(robot.value());
-        }
-        else
-        {
-            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
-        }
+        const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," +std::to_string(0) + "]";
+        const std::string plan = "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + target_node.value().name() + "\"}}]}";
+        plan_buffer.put(plan, std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
     }
     else
-    {
         qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
-    }
 }
 
 ///////////////////////////////////////////////////
@@ -262,66 +253,40 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
 {
     //check node type
+    using namespace std::placeholders;
     if (type == "intention")
     {
         auto node = G->get_node(id);
-        if(auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name()==robot_name)
+        if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {
             std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
             if (plan.has_value())
-                plan_buffer.put(plan.value(), [](auto &plan_string, auto &plan) {
-                                    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan_string).toUtf8());
-                                    QJsonObject planJson = doc.object();
-                                    QJsonArray actionArray = planJson.value("plan").toArray();
-                                    QJsonObject action_0 = actionArray.at(0).toObject();
-                                    QString action = action_0.value("action").toString();
-                                    if (action == "goto")
-                                    {
-                                        QJsonObject action_params = action_0.value("params").toObject();
-                                        QString object = action_params.value("object").toString();
-                                        QJsonArray location = action_params.value("location").toArray();
-                                        plan.params["x"] = location.at(0).toDouble();
-                                        plan.params["y"] = location.at(1).toDouble();
-                                        plan.params["angle"] = location.at(2).toDouble();
-                                        plan.action = Plan::Actions::GOTO;
-                                        plan.target_place = object.toStdString();
-                                    }
-                                });
+                  plan_buffer.put(plan.value(), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
         }
     }
 }
 
-///////////////////////////////////////////////////////////////////////
-//void SpecificWorker::parse_json_plan(const std::string &plan)
-//{
-//    std::cout << __FUNCTION__ << " New target from G:" <<plan << std::endl;
-//    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan).toUtf8());
-//    QJsonObject planJson = doc.object();
-//    QJsonArray actionArray = planJson.value("plan").toArray();
-//    QJsonObject action_0 = actionArray.at(0).toObject();
-//    QString action = action_0.value("action").toString();
-//    if(action == "goto")
-//    {
-//        QJsonObject action_params = action_0.value("params").toObject();
-//        QString object = action_params.value("object").toString();
-//        QJsonArray location = action_params.value("location").toArray();
-//        int x = location.at(0).toInt();
-//        int z = location.at(1).toInt();
-//        float alpha = location.at(2).toDouble();
-//
-//        std::cout << "New plan: [GOTO " << object.toStdString() << " AT (" << x << "," << z << "," << alpha << ")" << std::endl;
-//
-//
-////TODO: Way to achieve target must be changed
-////  std::cout << "TARGET: " << object.toStdString() << " location: " << x << "," << z << "," << alpha << std::endl;
-////        if(auto node = G->get_node(object.toStdString()); node.has_value())
-////        {
-////            new_target_from_mouse(x, z, node.value().id());
-////        }
-//    }
-//}
-//
-
+//////////////////////////////////////////////7
+/// parser form JSON plan to Plan structure
+void SpecificWorker::json_to_plan(const std::string &plan_string, Plan &plan)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan_string).toUtf8());
+    QJsonObject planJson = doc.object();
+    QJsonArray actionArray = planJson.value("plan").toArray();
+    QJsonObject action_0 = actionArray.at(0).toObject();
+    QString action = action_0.value("action").toString();
+    if (action == "goto")
+    {
+        QJsonObject action_params = action_0.value("params").toObject();
+        QString object = action_params.value("object").toString();
+        QJsonArray location = action_params.value("location").toArray();
+        plan.params["x"] = location.at(0).toDouble();
+        plan.params["y"] = location.at(1).toDouble();
+        plan.params["angle"] = location.at(2).toDouble();
+        plan.action = Plan::Actions::GOTO;
+        plan.target_place = object.toStdString();
+    }
+}
 
 ///////////////////////////////////////////////////
 /// GUI
@@ -355,4 +320,35 @@ int SpecificWorker::startup_check()
 /**************************************/
 // From the RoboCompSocialRules you can use this types:
 // RoboCompSocialRules::SRObject
+//if (auto robot = G->get_node(robot_name); robot.has_value())
+//        {
+//            std::cout << __FUNCTION__ << " :" << pos_x << " " << pos_y << " " << id << " " << target_node->name() << std::endl;
+//            G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
+//            G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) pos_x);
+//            G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) pos_y);
+//            G->update_node(robot.value());
+//        }
+//        else
+//        {
+//            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+//        }
 
+
+//                plan_buffer.put(plan.value(), [](auto &plan_string, auto &plan) {
+//                    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan_string).toUtf8());
+//                    QJsonObject planJson = doc.object();
+//                    QJsonArray actionArray = planJson.value("plan").toArray();
+//                    QJsonObject action_0 = actionArray.at(0).toObject();
+//                    QString action = action_0.value("action").toString();
+//                    if (action == "goto")
+//                    {
+//                        QJsonObject action_params = action_0.value("params").toObject();
+//                        QString object = action_params.value("object").toString();
+//                        QJsonArray location = action_params.value("location").toArray();
+//                        plan.params["x"] = location.at(0).toDouble();
+//                        plan.params["y"] = location.at(1).toDouble();
+//                        plan.params["angle"] = location.at(2).toDouble();
+//                        plan.action = Plan::Actions::GOTO;
+//                        plan.target_place = object.toStdString();
+//                    }
+//                });

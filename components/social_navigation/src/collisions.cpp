@@ -5,7 +5,7 @@
 
 void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_)
 {
-    qDebug()<<"Collisions - " <<__FUNCTION__;
+    qDebug() << "Collisions - " <<__FUNCTION__;
     G = graph_;
     //read from World (DSR node)
     std::optional<Node> world_node = G->get_node(world_name);
@@ -43,7 +43,7 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
     std::optional<Node> world = G_copy.get_node(world_name);
     std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
     G_copy.insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
-    std::shared_ptr<DSR::InnerAPI> inner = G_copy.get_inner_api();
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy.get_inner_eigen_api();
 
     //// Check if the robot at the target collides with any object in restNodes
     bool collision = false;
@@ -52,7 +52,7 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
         {
             try
             {
-                collision = collide(inner, in, out);
+                collision = collide(inner_eigen, in, out);
             }
             catch (QString &s)
             {
@@ -69,21 +69,20 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
     return std::make_tuple(true, "");;
 }
 
-bool Collisions::collide(std::shared_ptr<DSR::InnerAPI> inner, const std::string &node_a_name, const std::string &node_b_name)
+bool Collisions::collide(std::shared_ptr<DSR::InnerEigenAPI> inner_eigen, const std::string &node_a_name, const std::string &node_b_name)
 {
     //std::cout << "collide " << node_a_name << " to "<< node_b_name << std::endl;
-    QMat r1q = inner->get_transformation_matrix("world", node_a_name).value();
+    Mat::RTMat r1q = inner_eigen->get_transformation_matrix(world_name, node_a_name).value();
     fcl::Matrix3f R1( r1q(0,0), r1q(0,1), r1q(0,2), r1q(1,0), r1q(1,1), r1q(1,2), r1q(2,0), r1q(2,1), r1q(2,2) );
     fcl::Vec3f T1( r1q(0,3), r1q(1,3), r1q(2,3) );
-
-    QMat r2q = inner->get_transformation_matrix("world", node_b_name).value();
+    Mat::RTMat r2q = inner_eigen->get_transformation_matrix(world_name, node_b_name).value();
     fcl::Matrix3f R2( r2q(0,0), r2q(0,1), r2q(0,2), r2q(1,0), r2q(1,1), r2q(1,2), r2q(2,0), r2q(2,1), r2q(2,2) );
     fcl::Vec3f T2( r2q(0,3), r2q(1,3), r2q(2,3) );
 
     fcl::CollisionRequest request;
     fcl::CollisionResult result;
-    fcl::CollisionObject* n1 = get_collision_object(inner, node_a_name);
-    fcl::CollisionObject* n2 = get_collision_object(inner, node_b_name);
+    fcl::CollisionObject* n1 = get_collision_object(node_a_name);
+    fcl::CollisionObject* n2 = get_collision_object(node_b_name);
 
     if (n1 != nullptr and n2 != nullptr)
     {
@@ -120,7 +119,7 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
 }
 
 //returns collison object, creates it if does not exist
-fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const std::string& node_name)
+fcl::CollisionObject* Collisions::get_collision_object(const std::string& node_name)
 {
     if (collision_objects.find(node_name) == collision_objects.end())
     {
@@ -129,11 +128,11 @@ fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::Inne
         if (node.has_value())
         {
             if( node.value().type() == "plane" )
-                collision_objects[node_name] = create_plane_collision_object(inner, node.value());
+                collision_objects[node_name] = create_plane_collision_object(node.value());
             else
             {
                 if( node.value().type() == "mesh")
-                    collision_objects[node_name] = create_mesh_collision_object(inner, node.value());
+                    collision_objects[node_name] = create_mesh_collision_object(node.value());
                 else
                     collision_objects[node_name] = nullptr;
             }
@@ -142,7 +141,7 @@ fcl::CollisionObject* Collisions::get_collision_object(std::shared_ptr<DSR::Inne
     return collision_objects[node_name];
 }
 
-fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
+fcl::CollisionObject* Collisions::create_mesh_collision_object(const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<std::string> meshPath = G->get_attrib_by_name<path>(node);
@@ -180,7 +179,7 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(std::shared_ptr<D
     return collision_object;
 }
 
-fcl::CollisionObject* Collisions::create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node)
+fcl::CollisionObject* Collisions::create_plane_collision_object(const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<int> width = G->get_attrib_by_name<width_att>(node);
