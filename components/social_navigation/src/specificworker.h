@@ -53,6 +53,8 @@ class Plan
         {
             std::cout << "------ Begin Plan ----------" << std::endl;
             std::cout << "\t Action: " << action_strings[action] << " Taget_place: " << target_place << std::endl;
+            for(auto &&[k,v]: params)
+                std::cout << "\t par1: " << k << " : " << std::to_string(v) << std::endl;
             std::cout << "------ End Plan ----------" << std::endl;
         };
     private:
@@ -123,6 +125,7 @@ class SpecificWorker : public GenericWorker
         //Plan
         Plan current_plan;
         DoubleBuffer<std::string, Plan> plan_buffer;
+        void json_to_plan(const std::string &plan_string, Plan &plan);
 };
 
 #endif

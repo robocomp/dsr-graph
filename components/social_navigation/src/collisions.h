@@ -144,12 +144,12 @@ class Collisions
         std::string world_name = "world";
 
 
-    void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
-        bool collide(std::shared_ptr<DSR::InnerAPI> innerModel, const std::string &node_a_name, const std::string &node_b_name);
+        void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
+        bool collide(std::shared_ptr<DSR::InnerEigenAPI> inner_eigen, const std::string &node_a_name, const std::string &node_b_name);
         // returns collison object, creates it if does not exist
-        fcl::CollisionObject* get_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const std::string& node_name);
-        fcl::CollisionObject* create_mesh_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
-        fcl::CollisionObject* create_plane_collision_object(std::shared_ptr<DSR::InnerAPI> inner, const Node &node);
+        fcl::CollisionObject* get_collision_object(const std::string& node_name);
+        fcl::CollisionObject* create_mesh_collision_object(const Node &node);
+        fcl::CollisionObject* create_plane_collision_object(const Node &node);
 };
 
 #endif //COLLISIONS_H
