@@ -30,8 +30,8 @@
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
-
 #include <custom_widget.h>
+#include  "../../etc/viriato_graph_names.h"
 
 using namespace DSR;
 
@@ -58,11 +58,7 @@ private:
     std::optional<Node> get_intent_node(bool create = false);
     std::string generate_json_plan(QList<QJsonObject> actions);
     QJsonObject goto_action_to_json(std::string object_name, std::vector<float> location);
-private:
-    
-    //TODO: robot name must be obtained from config file
-    std::string robot_name = "omnirobot";
-    
+
     //local widget
     Custom_widget custom_widget;
     

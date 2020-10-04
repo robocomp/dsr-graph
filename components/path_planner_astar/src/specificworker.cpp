@@ -17,6 +17,8 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <cppitertools/zip.hpp>
+#include <algorithm>
 
 /**
 * \brief Default constructor
@@ -59,7 +61,7 @@ void SpecificWorker::initialize(int period)
 	else
 	{
 		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
         // Graph viewer
@@ -86,7 +88,7 @@ void SpecificWorker::initialize(int period)
         G->set_ignored_attributes<rgb_att, depth_att>();
 
         // Custom widget
-        dsr_viewer->add_custom_widget_to_dock("Social Navigation", &custom_widget);
+        dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
@@ -114,35 +116,73 @@ void SpecificWorker::compute()
         {
             current_plan = plan_o.value();
             current_plan.print();
+            auto intention_node = G->get_nodes_by_type(intention_type).front();
             if (auto target_o = G->get_node(current_plan.target_place); target_o.has_value())
             {
                 auto target = target_o.value();
-                if (auto path_to_target_o = G->get_node(path_to_target_name); path_to_target_o.has_value())
+                const auto &[search_state, candidate] = search_a_feasible_target(target, current_plan.params, robot);
+                std::list<QPointF> path;
+                std::vector<QPointF> vpath;  //to convert from list
+                QPointF currentRobotNose;
+                Mat::Vector3d nose_3d;
+                switch (search_state)
                 {
-                    const auto &[search_state, candidate] = search_a_feasible_target(target, current_plan.params, robot);
-                    std::list<QPointF> path;
-                    QPointF currentRobotNose;
-                    Mat::Vector3d nose_3d;
-                    switch (search_state)
-                    {
-                        case SearchState::NEW_TARGET:
-                            std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt)
-                                      << std::endl;
-                            break;
-                        case SearchState::NEW_FLOOR_TARGET:
-                            std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt)
-                                      << std::endl;
-                            nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(250, 0, 0), robot_name).value();
-                            currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
-                            path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
-                            break;
-                        case SearchState::AT_TARGET:
-                            std::cout << __FUNCTION__ << " At target " << std::endl;
-                            break;
-                        case SearchState::NO_TARGET_FOUND:
-                            std::cout << __FUNCTION__ << " No target found: " << std::endl;
-                            break;
-                    }
+                    case SearchState::NEW_TARGET:
+                        std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt)
+                                  << std::endl;
+                        break;
+                    case SearchState::NEW_FLOOR_TARGET:
+                        std::cout << __FUNCTION__ << " Candidate found on floor: " << std::endl;
+                        nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(250, 0, 0), robot_name).value();
+                        currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
+                        path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
+                        vpath = { std::make_move_iterator(std::begin(path)), std::make_move_iterator(std::end(path))};
+                        qInfo() << " Path size: " << path.size();
+                        for(auto &&p: path)
+                            qInfo() << p ;
+                        if(not path.empty())
+                        {
+                            std::vector<float> x_values; x_values.reserve(path.size());
+                            std::transform(path.cbegin(), path.cend(), std::back_inserter(x_values),
+                                           [](const auto &value) { return value.x();});
+                            std::vector<float> y_values; y_values.reserve(path.size());
+                            std::transform(path.cbegin(), path.cend(), std::back_inserter(y_values),
+                                           [](const auto &value) { return value.y();});
+                            if(auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+                            {
+                                auto path_to_target_node = node_paths.front();
+                                G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                                G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                                G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float)candidate.x());
+                                G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float)candidate.y());
+                                G->update_node(path_to_target_node);
+                            }
+                            else // create path_to_target_node with the solution path
+                            {
+                                auto path_to_target_node = Node(agent_id, path_to_target_type);
+                                G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                                G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                                G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float)-150);
+                                G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float)-400);
+                                G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention_node.id());
+                                G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+                                G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+                                G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float)candidate.x());
+                                G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float)candidate.y());
+
+                                auto id = G->insert_node(path_to_target_node);
+                                auto edge_to_intention = Edge(id.value(), intention_node.id(), think_type, agent_id);
+                                G->insert_or_assign_edge(edge_to_intention);
+                            }
+                            draw_path(vpath, &widget_2d->scene);
+                        }
+                        break;
+                    case SearchState::AT_TARGET:
+                        std::cout << __FUNCTION__ << " At target " << std::endl;
+                        break;
+                    case SearchState::NO_TARGET_FOUND:
+                        std::cout << __FUNCTION__ << " No target found: " << std::endl;
+                        break;
                 }
             }
         }
@@ -197,7 +237,7 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
     if(not params.empty())
     {
         // if already in current_target return
-        if (this->current_plan.is_location(Mat::Vector2d(params.at("x"), params.at("y"))))
+        if (this->current_plan.is_location(Mat::Vector2d(rc.x(), rc.y())))
             return std::make_tuple(SearchState::AT_TARGET, Mat::Vector2d());
         // if node is floor_plane take coordinates directly
         if (target.name() == floor_name) // floor
@@ -309,7 +349,49 @@ void SpecificWorker::json_to_plan(const std::string &plan_string, Plan &plan)
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
+void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d)
+{
+    static std::vector<QGraphicsLineItem *> scene_road_points;
+    qDebug() << __FUNCTION__;
+    ///////////////////////
+    // Preconditions
+    ///////////////////////
+    if (path.size() == 0)
+        return;
 
+    //clear previous points
+    for (QGraphicsLineItem* item : scene_road_points)
+        viewer_2d->removeItem((QGraphicsItem*)item);
+    scene_road_points.clear();
+//
+    /// Draw all points
+    QGraphicsLineItem *line1, *line2;
+    std::string color;
+    for (unsigned int i = 1; i < path.size(); i++)
+    {
+        QPointF &w = path[i];
+        QPointF &wAnt = path[i - 1];
+        if (w == wAnt) //avoid calculations on equal points
+            continue;
+
+        QLine2D li(QVec::vec2(wAnt.x(), wAnt.y()), QVec::vec2(w.x(), w.y()));
+        QLine2D lp = li.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
+        QVec p1 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), 200);
+        QVec p2 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), -200);
+        QLineF qli(wAnt, w);
+        QLineF qli_perp(p1.toQPointF(), p2.toQPointF());
+
+        if(i == 1 or i == path.size()-1)
+            color = "#FF0000"; //Red
+
+        line1 = viewer_2d->addLine(qli, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qli_perp, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line1->setZValue(2000);
+        line2->setZValue(2000);
+        scene_road_points.push_back(line1);
+        scene_road_points.push_back(line2);
+    }
+}
 
 int SpecificWorker::startup_check()
 {

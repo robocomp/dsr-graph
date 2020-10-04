@@ -172,7 +172,6 @@ void SpecificWorker::set_mission_slot()
 ///////////////////////////////////////////////////////////////////////
 std::optional<Node> SpecificWorker::get_intent_node(bool create)
 {
-    //get intent node
     auto intent_nodes = G->get_nodes_by_type("intention");
     for (auto node : intent_nodes)
     {

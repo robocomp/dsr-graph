@@ -29,14 +29,13 @@
 #include "grid.cpp"
 #include "grid.h"
 #include <custom_widget.h>
-#include "dsr/api/dsr_api.h"
-#include "dsr/gui/dsr_gui.h"
-#include "dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h"
+#include <dsr/api/dsr_api.h>
+#include <dsr/gui/dsr_gui.h>
+#include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include <localPerson.h>
-#include <cppitertools/zip.hpp>
-#include <algorithm>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
+#include  "../../etc/viriato_graph_names.h"
 
 class Plan
 {
@@ -84,12 +83,6 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
 
-        // NAMES
-        const std::string robot_name = "omnirobot";
-        const std::string path_to_target_name = "path_to_target_name";
-        const std::string world_name = "world";
-        const std::string floor_name = "infiniteFloor";
-
         //DSR params
         std::string agent_name;
         std::string dsr_input_file;
@@ -126,6 +119,7 @@ class SpecificWorker : public GenericWorker
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         Grid<>::Dimensions dim;
+        void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d);
 
 };
 
