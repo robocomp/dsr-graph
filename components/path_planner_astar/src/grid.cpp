@@ -35,7 +35,7 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                                                                                                          (float) j, 10},
                                                                                       std::vector<float>{0.0, 0.0,
                                                                                                          0.0});
-                fmap.emplace(Key(i, j), T{count++, free, false, 1.f, node_name});
+                fmap.emplace(Key(i, j), T{count++, free, true, 1.f, node_name});
             }
             std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
         }
