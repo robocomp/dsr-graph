@@ -71,7 +71,7 @@ typename Navigation<TMap, TController>::State Navigation<TMap, TController>::upd
         return State::IDLE;
 
     currentRobotPose = inner_eigen->transform_axis(world_name, robot_name).value();
-    auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(250, 0, 0), robot_name).value();
+    auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
     currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
     LaserData laser_data = read_laser_from_G();
     const auto &[laser_poly, laser_cart] = updateLaserPolygon(laser_data);
