@@ -119,7 +119,7 @@ class SpecificWorker : public GenericWorker
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         Grid<>::Dimensions dim;
-        void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d);
+        void draw_path( std::list<QPointF> &path, QGraphicsScene *viewer_2d);
 
 };
 

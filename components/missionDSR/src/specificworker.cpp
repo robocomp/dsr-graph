@@ -191,7 +191,8 @@ std::optional<Node> SpecificWorker::get_intent_node(bool create)
             node.type("intention");
             G->add_or_modify_attrib_local<parent_att>(node,  robot.value().id());
             G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(robot.value()).value() + 1);
-                
+            G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float)-90);
+            G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float)-354;
             try
             {     
                 std::optional<int> new_id = G->insert_node(node);

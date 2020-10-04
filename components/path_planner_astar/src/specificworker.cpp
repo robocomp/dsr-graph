@@ -18,6 +18,7 @@
  */
 #include "specificworker.h"
 #include <cppitertools/zip.hpp>
+#include <cppitertools/sliding_window.hpp>
 #include <algorithm>
 
 /**
@@ -92,10 +93,14 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
-		path_planner_initialize(&widget_2d->scene, true, "viriato-200.grid");
+		path_planner_initialize(&widget_2d->scene, false, "viriato-200-vrep.grid");
 
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
+
+		// check for existing intention node
+		if(auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
+            this->update_node_slot(intentions.front().id(), "intention");
 
 		this->Period = 100;
 		timer.start(Period);
@@ -122,7 +127,6 @@ void SpecificWorker::compute()
                 auto target = target_o.value();
                 const auto &[search_state, candidate] = search_a_feasible_target(target, current_plan.params, robot);
                 std::list<QPointF> path;
-                std::vector<QPointF> vpath;  //to convert from list
                 QPointF currentRobotNose;
                 Mat::Vector3d nose_3d;
                 switch (search_state)
@@ -133,11 +137,10 @@ void SpecificWorker::compute()
                         break;
                     case SearchState::NEW_FLOOR_TARGET:
                         std::cout << __FUNCTION__ << " Candidate found on floor: " << std::endl;
-                        nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(250, 0, 0), robot_name).value();
+                        nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
                         currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
                         path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
-                        vpath = { std::make_move_iterator(std::begin(path)), std::make_move_iterator(std::end(path))};
-                        qInfo() << " Path size: " << path.size();
+                        qInfo() << __FUNCTION__ << " Path size: " << path.size();
                         for(auto &&p: path)
                             qInfo() << p ;
                         if(not path.empty())
@@ -174,7 +177,7 @@ void SpecificWorker::compute()
                                 auto edge_to_intention = Edge(id.value(), intention_node.id(), think_type, agent_id);
                                 G->insert_or_assign_edge(edge_to_intention);
                             }
-                            draw_path(vpath, &widget_2d->scene);
+                            draw_path(path, &widget_2d->scene);
                         }
                         break;
                     case SearchState::AT_TARGET:
@@ -349,7 +352,7 @@ void SpecificWorker::json_to_plan(const std::string &plan_string, Plan &plan)
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
-void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d)
+void SpecificWorker::draw_path(std::list<QPointF> &path, QGraphicsScene* viewer_2d)
 {
     static std::vector<QGraphicsLineItem *> scene_road_points;
     qDebug() << __FUNCTION__;
@@ -363,29 +366,32 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     for (QGraphicsLineItem* item : scene_road_points)
         viewer_2d->removeItem((QGraphicsItem*)item);
     scene_road_points.clear();
-//
+
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
     for (unsigned int i = 1; i < path.size(); i++)
+    for(auto &&p_pair : iter::sliding_window(path, 2))
     {
-        QPointF &w = path[i];
-        QPointF &wAnt = path[i - 1];
-        if (w == wAnt) //avoid calculations on equal points
+        if(p_pair.size() < 2)
             continue;
-
-        QLine2D li(QVec::vec2(wAnt.x(), wAnt.y()), QVec::vec2(w.x(), w.y()));
-        QLine2D lp = li.getPerpendicularLineThroughPoint(QVec::vec2(w.x(), w.y()));
-        QVec p1 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), 200);
-        QVec p2 = lp.pointAlongLineStartingAtP1AtLanda(QVec::vec2(w.x(),w.y()), -200);
-        QLineF qli(wAnt, w);
-        QLineF qli_perp(p1.toQPointF(), p2.toQPointF());
+        Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+        Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+        Mat::Vector2d dir = a_point - b_point;
+        Mat::Vector2d dir_perp = dir.unitOrthogonal();
+        Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+        Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+        auto left = segment_perp.pointAt(50);
+        auto right = segment_perp.pointAt(-50);
+        QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+        QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
         if(i == 1 or i == path.size()-1)
-            color = "#FF0000"; //Red
+            color = "#00FF00"; //Green
 
-        line1 = viewer_2d->addLine(qli, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
-        line2 = viewer_2d->addLine(qli_perp, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+
         line1->setZValue(2000);
         line2->setZValue(2000);
         scene_road_points.push_back(line1);
