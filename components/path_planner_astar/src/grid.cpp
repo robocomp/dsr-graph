@@ -13,7 +13,7 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
     G = graph_;
     uint count = 0;
     dim = dim_;
-    qDebug() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
     fmap.clear();
     fmap_aux.clear();
 
@@ -26,13 +26,19 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
     {
         std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
         auto G_copy = G->G_copy();
-
         for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
+        {
             for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
             {
-                auto [free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy, std::vector<float>{(float) i, 10.0, (float) j}, std::vector<float>{0.0, 0.0, 0.0});
+                auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy,
+                                                                                      std::vector<float>{(float) i,
+                                                                                                         (float) j, 10},
+                                                                                      std::vector<float>{0.0, 0.0,
+                                                                                                         0.0});
                 fmap.emplace(Key(i, j), T{count++, free, false, 1.f, node_name});
             }
+            std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
+        }
         fmap_aux = fmap;
         if(not file_name.empty())
             saveToFile(file_name);
@@ -289,7 +295,7 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
         {
             if (n.second.free == false)
             {
-                QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x,n.first.z)) ;
+                QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x, n.first.z)) ;
                 if (vec.length() < dist)
                 {
                     dist = vec.length();
@@ -374,9 +380,8 @@ void Grid<T>::draw(QGraphicsScene* scene)
 {
     //clear previous points
     for (QGraphicsRectItem* item : scene_grid_points)
-    {
         scene->removeItem((QGraphicsItem*)item);
-    }
+
     scene_grid_points.clear();
     //create new representation
     std::string color;
@@ -403,7 +408,7 @@ void Grid<T>::draw(QGraphicsScene* scene)
             color = "#B40404";
 
         QColor my_color = QColor(QString::fromStdString(color));
-        my_color.setAlpha(60);
+        //my_color.setAlpha(60);
         QGraphicsRectItem* aux = scene->addRect(key.x, key.z, 50, 50, QPen(my_color), QBrush(my_color));
         aux->setZValue(1);
         scene_grid_points.push_back(aux);

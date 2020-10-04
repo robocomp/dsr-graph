@@ -70,13 +70,13 @@ void SpecificWorker::initialize(int period)
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
             auto bState = update_omirobot();
-            const auto nose = innermodel->transform(world_name, QVec::vec3(1000,0,0),viriato_head_camera_pan_tilt).value();
+            const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
             std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(), nose.y(), nose.z()});
             G->update_node(pan_tilt.value());
         }
          //Set base speed reference to 0
-        if(auto robot = G->get_node(this->robot_name); robot.has_value())
+        if(auto robot = G->get_node(robot_name); robot.has_value())
         {
             G->insert_or_assign_attrib<ref_adv_speed_att>(robot.value(), (float)0);
             G->insert_or_assign_attrib<ref_rot_speed_att>(robot.value(), (float)0);
@@ -234,10 +234,10 @@ void SpecificWorker::update_pantilt_position()
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseState& bState)
 {
-    auto robot = G->get_node(this->robot_name);
+    auto robot = G->get_node(robot_name);
     if (not robot.has_value())
     {
-        qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(this->robot_name);
+        qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(robot_name);
         return;
     }
     auto ref_adv_speed = G->get_attrib_by_name<ref_adv_speed_att>(robot.value());
