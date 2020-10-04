@@ -48,7 +48,7 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '../../etc/autonomy_lab_before_rotation.ttt'
+        SCENE_FILE = '../../etc/autonomy_lab.ttt'
         #SCENE_FILE = '../../etc/youbot.ttt'
         #SCENE_FILE = '/home/pbustos/software/PyRep/examples/scene_youbot_navigation.ttt'
 
