@@ -126,7 +126,7 @@ void SpecificWorker::compute()
             LaserData laser_data = read_laser_from_G();
             const auto &[laser_poly, laser_cart] = update_laser_polygon(laser_data);
             auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
-            //compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
+            compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
             clean_points(path, laser_poly, current_robot_polygon);
             add_points(path, laser_poly, current_robot_polygon);
             draw_path(path, &widget_2d->scene);
@@ -163,6 +163,8 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         auto p1 = QVector2D(group[0]);
         auto p2 = QVector2D(group[1]);
         auto p3 = QVector2D(group[2]);
+        if(p1==p2 or p2==p3)
+            continue;
         QPointF p = group[1];
         int index_of_p_in_path = i+1;  //index of p in path
 
@@ -203,7 +205,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
         // compute forces from laser on visible point
 //       else
-        {
+       // {
             // vector holding a) distance from laser tip to p, vector from laser tip to p, laser tip plane coordinates
             std::vector<std::tuple<float, QVector2D, QPointF>> distances;
             // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
@@ -221,7 +223,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             });
             min_dist = std::get<float>(*min);
             eforce = std::get<QVector2D>(*min);
-        }
+        //}
         /// Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
         /// a logarithmic law can be used to compute de force from the distance.
         /// To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
@@ -254,7 +256,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         // A.2) Does not move underneath the robot.
         // A.3) Does not exit the laser polygon
         QPointF temp_p = p + total.toPointF();
-        qDebug()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
+        qInfo()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
         if (is_point_visitable(temp_p) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
@@ -294,6 +296,7 @@ void SpecificWorker::clean_points(std::vector<QPointF> &path, const QPolygonF &l
             continue;
 
         float dist = QVector2D(p1 - p2).length();
+        qDebug() << __FUNCTION__ << " dist <" << dist << 0.5 * ROAD_STEP_SEPARATION;
         if (dist < 0.5 * ROAD_STEP_SEPARATION)
             points_to_remove.push_back(p2);
 
@@ -303,7 +306,7 @@ void SpecificWorker::clean_points(std::vector<QPointF> &path, const QPolygonF &l
             points_to_remove.push_back(p2);
         }
     }
-    qInfo() << "Removed: " << points_to_remove.size();
+    qDebug() << __FUNCTION__ << "Removed: " << points_to_remove.size();
     for (auto &&p : points_to_remove)
         path.erase(std::remove_if(path.begin(), path.end(), [p](auto &r) { return p == r; }), path.end());
 }
@@ -321,6 +324,7 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
             continue;
 
         float dist = QVector2D(p1 - p2).length();
+        qDebug() << __FUNCTION__ << " dist >" << dist << ROAD_STEP_SEPARATION;
         if (dist > ROAD_STEP_SEPARATION)
         {
             //Crucial que el punto se ponga mas cerca que la condición de entrada
@@ -329,7 +333,7 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
             points_to_insert.emplace_back(k + 1, QPointF{line.pointAt(l)});
         }
     }
-    qInfo() << "Added: " << points_to_insert.size();
+    qDebug() << __FUNCTION__ << "Added: " << points_to_insert.size();
     for (const auto &[l, p] : iter::enumerate(points_to_insert))
     {
         if ( not current_robot_polygon.containsPoint(std::get<QPointF>(p), Qt::OddEvenFill))
