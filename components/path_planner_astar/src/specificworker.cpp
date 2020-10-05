@@ -93,7 +93,7 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
-		path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.grid");
+		path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
 
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
