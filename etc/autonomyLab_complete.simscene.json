@@ -5,11 +5,11 @@
                 "attribute": {
                     "OuterRegionBottom": {
                         "type": 1,
-                        "value": -4250
+                        "value": -7500
                     },
                     "OuterRegionLeft": {
                         "type": 1,
-                        "value": 2000
+                        "value": 7500
                     },
                     "OuterRegionRight": {
                         "type": 1,
@@ -17,7 +17,7 @@
                     },
                     "OuterRegionTop": {
                         "type": 1,
-                        "value": 4250
+                        "value": 7500
                     },
                     "color": {
                         "type": 0,
