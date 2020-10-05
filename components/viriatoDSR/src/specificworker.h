@@ -30,7 +30,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include "doublebuffer/DoubleBuffer.h"
-#include  "../../etc/viriato_graph_names.h"
+#include  "../../../etc/viriato_graph_names.h"
 
 class SpecificWorker : public GenericWorker
 {

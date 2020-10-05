@@ -72,7 +72,7 @@ void SpecificWorker::initialize(int period)
             auto bState = update_omirobot();
             const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
             std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(), nose.y(), nose.z()});
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
          //Set base speed reference to 0
@@ -139,7 +139,7 @@ void SpecificWorker::update_rgbd()
             G->add_or_modify_attrib_local<alivetime>(node.value(), depth.alivetime);
             G->update_node(node.value());
         }
-    } else std::this_thread::yield();
+    } //else std::this_thread::yield();
 }
 
 void SpecificWorker::update_laser()
@@ -162,7 +162,7 @@ void SpecificWorker::update_laser()
             G->update_node(node.value());
         }
     }
-    else std::this_thread::yield();
+    //else std::this_thread::yield();
 }
 
 RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
@@ -198,8 +198,8 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
             return bState;
         }
     }
-    else
-        std::this_thread::yield();
+    //else
+    //    std::this_thread::yield();
     return last_state;
 }
 
