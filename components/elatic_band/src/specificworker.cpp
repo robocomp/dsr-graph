@@ -120,6 +120,7 @@ void SpecificWorker::compute()
             path = path_o.value();
         else
         {
+            qInfo() << "Path: " << path.size();
             auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
             auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
             LaserData laser_data = read_laser_from_G();
@@ -302,6 +303,7 @@ void SpecificWorker::clean_points(std::vector<QPointF> &path, const QPolygonF &l
             points_to_remove.push_back(p2);
         }
     }
+    qInfo() << "Removed: " << points_to_remove.size();
     for (auto &&p : points_to_remove)
         path.erase(std::remove_if(path.begin(), path.end(), [p](auto &r) { return p == r; }), path.end());
 }
@@ -327,6 +329,7 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
             points_to_insert.emplace_back(k + 1, QPointF{line.pointAt(l)});
         }
     }
+    qInfo() << "Added: " << points_to_insert.size();
     for (const auto &[l, p] : iter::enumerate(points_to_insert))
     {
         if ( not current_robot_polygon.containsPoint(std::get<QPointF>(p), Qt::OddEvenFill))
@@ -445,7 +448,6 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
-    for (unsigned int i = 1; i < path.size(); i++)
     for(auto &&p_pair : iter::sliding_window(path, 2))
     {
         if(p_pair.size() < 2)
@@ -461,8 +463,8 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
         QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
         QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
-        if(i == 1 or i == path.size()-1)
-            color = "#00FF00"; //Green
+//        if(i == 1 or i == path.size()-1)
+//            color = "#00FF00"; //Green
 
         line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
         line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
