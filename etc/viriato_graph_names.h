@@ -20,5 +20,6 @@ const std::string laser_type = "laser";
 
 // EDGES TYPES
 const std::string think_type = "thinks";
+const std::string has_type = "has";
 
 
