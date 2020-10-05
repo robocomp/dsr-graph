@@ -74,8 +74,9 @@ class SpecificWorker : public GenericWorker
         void initialize(int period);
         void new_target_from_mouse(int pos_x, int pos_y, int id);
         void update_node_slot(const std::int32_t id, const std::string &type);
+        void update_attrs_slot(const std::int32_t id, const std::map<string, DSR::Attribute> &attribs);
 
-    private:
+private:
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
@@ -108,7 +109,7 @@ class SpecificWorker : public GenericWorker
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 
-    //elastic band
+        //elastic band
         const float ROBOT_LENGTH = 500;
         const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
         float KE = 40;

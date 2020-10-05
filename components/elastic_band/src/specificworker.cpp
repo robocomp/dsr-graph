@@ -82,12 +82,13 @@ void SpecificWorker::initialize(int period)
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
 		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
-        
-		//Inner Api
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::update_attrs_slot);
+
+        //Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, depth_att>();
+        //G->set_ignored_attributes<rgb_att, depth_att>();
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
@@ -123,11 +124,12 @@ void SpecificWorker::compute()
         }
         else
         {
-            if(auto ldata = laser_buffer.try_get(); ldata.has_value())
+            if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
             {
-                qInfo() << "Path: " << path.size();
-                for (auto &&p:path)
-                    qInfo() << p;
+                const auto &[laser_poly, laser_cart] = laser_data.value();
+                //               qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
+                // for (auto &&p:path)
+                //      qInfo() << p;
                 auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
                 auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
                 //LaserData laser_data = read_laser_from_G();
@@ -437,32 +439,42 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
             }
         }
     }
-    else if (type == laser_type)
+    else if (type == laser_type)    // Laser node updated
     {
+        //qInfo() << __FUNCTION__ << " laser node change";
         if( auto node = G->get_node(id); node.has_value())
         {
             auto angles = G->get_attrib_by_name<angles_att>(node.value());
             auto dists = G->get_attrib_by_name<dists_att>(node.value());
             if(dists.has_value() and angles.has_value())
-                laser_buffer.put(std::make_tuple(angles, dists), [](const LaserData &)
-                            {
-                                QPolygonF laser_poly;
-                                std::vector<QPointF> laser_cart;
-                                const auto &[angles, dists] = lData;
-                                for (const auto &[angle, dist] : iter::zip(angles, dists))
-                                {
-                                    //convert laser polar coordinates to cartesian
-                                    float x = dist*sin(angle); float y = dist*cos(angle); //CHECK SIN SIGN
-                                    Mat::Vector3d laserWorld = inner_eigen->transform(world_name, Mat::Vector3d (x, y, 0), laser_name).value();
-                                    laser_poly << QPointF(x, y);
-                                    laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.y()));
-                                }
-                                return std::make_tuple(laser_poly, laser_cart);
-                            });
+            {
+                if(dists.value().get().empty() or angles.value().get().empty()) return;
+                //qInfo() << __FUNCTION__ << dists->get().size();
+                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
+                                 [this](const LaserData &in, std::tuple<QPolygonF,std::vector<QPointF>> &out) {
+                                     QPolygonF laser_poly;
+                                     std::vector<QPointF> laser_cart;
+                                     const auto &[angles, dists] = in;
+                                     for (const auto &[angle, dist] : iter::zip(angles, dists))
+                                     {
+                                         //convert laser polar coordinates to cartesian
+                                         float x = dist * sin(angle);
+                                         float y = dist * cos(angle);
+                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
+                                         laser_poly << QPointF(x, y);
+                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+                                     }
+                                     out = std::make_tuple(laser_poly, laser_cart);
+                                 });
+            }
         }
     }
 }
 
+void SpecificWorker::update_attrs_slot(const std::int32_t id, const std::map<string, DSR::Attribute> &attribs)
+{
+    //qInfo() << "Update attr " << id;
+}
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
