@@ -16,6 +16,7 @@ const std::string glass_1_name= "glass_1";
 //NODE TYPES
 const std::string path_to_target_type = "path_to_target";
 const std::string intention_type = "intention";
+const std::string laser_type = "laser";
 
 // EDGES TYPES
 const std::string think_type = "thinks";
