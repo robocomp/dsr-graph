@@ -95,10 +95,9 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
-		elastic_band_initialize(&widget_2d->scene, false, "viriato-200-vrep.grid");
+		elastic_band_initialize();
 
         widget_2d->set_draw_laser(true);
-		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
 		// check for existing intention node
 		if(auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
@@ -139,12 +138,13 @@ void SpecificWorker::compute()
                 clean_points(path, laser_poly, current_robot_polygon);
                 add_points(path, laser_poly, current_robot_polygon);
                 draw_path(path, &widget_2d->scene);
+                save_path_in_G(path);
             }
         }
     }
 }
 
-void SpecificWorker::elastic_band_initialize(QGraphicsScene *scene, bool read_from_file, const std::string file_name)
+void SpecificWorker::elastic_band_initialize()
 {
     robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
     robotZLong = std::stof(conf_params->at("RobotZLong").value);
