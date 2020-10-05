@@ -31,6 +31,8 @@ NavigationAgent.PlannerGraphMaxDistanceToSearch = 2500 #mm
 NavigationAgent.MinimunDetectableRotation = 0.03			# to accept a new target
 NavigationAgent.MinimunDetectableTranslation = 7 			# to accept a new target
 
+NavigationAgent.ExcludedObjectsInCollisionCheck = infiniteFloor
+
 #world region definition
 #NavigationAgent.OuterRegionLeft = -3000
 #NavigationAgent.OuterRegionRight = 7000
