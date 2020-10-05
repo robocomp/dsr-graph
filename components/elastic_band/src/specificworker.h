@@ -117,7 +117,7 @@ private:
 
         LaserData read_laser_from_G();
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
-        void elastic_band_initialize(  QGraphicsScene *scene, bool read_from_file = false, const std::string file_name = std::string());
+        void elastic_band_initialize( );
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d);
@@ -131,6 +131,7 @@ private:
                             const QPointF &current_robot_nose);
         void add_points(std::vector<QPointF> &path, const QPolygonF &laser_poly,  const QPolygonF &current_robot_polygon);
         void clean_points(std::vector<QPointF> &path, const QPolygonF &laser_poly,  const QPolygonF &current_robot_polygon);
+        void save_path_in_G(const std::vector<QPointF> &path);
 };
 
 #endif
