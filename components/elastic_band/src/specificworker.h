@@ -114,15 +114,14 @@ private:
         const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
         float KE = 40;
         float KI = 320;
+        std::uint32_t last_path_id;  // ID of last path node that came through the slot
 
-        LaserData read_laser_from_G();
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
         void elastic_band_initialize( );
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d);
         QPolygonF get_robot_polygon();
-        std::tuple<QPolygonF, std::vector<QPointF>> update_laser_polygon(const LaserData &lData);
         bool is_visible(QPointF p, const QPolygonF &laser_poly);
         bool is_point_visitable(QPointF point);
 

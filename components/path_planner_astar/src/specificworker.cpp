@@ -109,16 +109,15 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // static Navigation<Grid<>,Controller>::SearchState last_state;
-    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
-    if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
+    //Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+    // Check for new plan
+    if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
-        auto robot = robot_o.value();
-        // Check for new plan
-        if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
+        current_plan = plan_o.value();
+        current_plan.print();
+        if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
         {
-            current_plan = plan_o.value();
-            current_plan.print();
+           auto robot = robot_o.value();
             if( auto intention_nodes = G->get_nodes_by_type(intention_type); not intention_nodes.empty())
             {
                 auto intention_node = intention_nodes.front();
@@ -132,8 +131,6 @@ void SpecificWorker::compute()
                     switch (search_state)
                     {
                         case SearchState::NEW_TARGET:
-                            std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt)
-                                      << std::endl;
                             break;
                         case SearchState::NEW_FLOOR_TARGET:
                             std::cout << __FUNCTION__ << " Candidate found on floor: " << std::endl;
