@@ -71,7 +71,7 @@ void SpecificWorker::initialize(int period)
         //check RT tree
         check_rt_tree(G->get_node_root().value());
 
-        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
+        //G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;

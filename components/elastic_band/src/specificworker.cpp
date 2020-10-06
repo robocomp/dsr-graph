@@ -138,7 +138,7 @@ void SpecificWorker::compute()
                 clean_points(path, laser_poly, current_robot_polygon);
                 add_points(path, laser_poly, current_robot_polygon);
                 draw_path(path, &widget_2d->scene);
-                save_path_in_G(path);
+                //save_path_in_G(path);
             }
         }
     }
