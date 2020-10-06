@@ -231,6 +231,8 @@ void SpecificWorker::update_pantilt_position()
     }
 }
 
+//// CHANGE THESE ONES BY SIGNAL SLOTS
+
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseState& bState)
 {
@@ -262,7 +264,7 @@ void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseStat
         qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
         try
         {
-                omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
+                omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value());
 
                 //                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
                 //                          << " Rot: " << ref_rot_speed.value()
