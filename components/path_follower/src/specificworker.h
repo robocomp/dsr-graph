@@ -65,18 +65,26 @@ class SpecificWorker : public GenericWorker
 
     public:
         SpecificWorker(TuplePrx tprx, bool startup_check);
+
         ~SpecificWorker();
+
         bool setParams(RoboCompCommonBehavior::ParameterList params);
 
     public slots:
+
         void compute();
+
         int startup_check();
+
         void initialize(int period);
+
         void new_target_from_mouse(int pos_x, int pos_y, int id);
+
         void update_node_slot(const std::int32_t id, const std::string &type);
+
         void update_attrs_slot(const std::int32_t id, const std::map<string, DSR::Attribute> &attribs);
 
-private:
+    private:
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
@@ -101,20 +109,39 @@ private:
         Custom_widget custom_widget;
 
         //drawing
-        DSR::QScene2dViewer* widget_2d;
+        DSR::QScene2dViewer *widget_2d;
 
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
 
         //Signal subscription
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
-        DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
+        DoubleBuffer<LaserData, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>>> laser_buffer;
 
         //elastic band
         const float ROBOT_LENGTH = 500;  //GET FROM G
+        float MAX_ADV_SPEED;
+        float MAX_ROT_SPEED;
+        float MAX_SIDE_SPEED;
+        float MAX_LAG; //ms
+        float ROBOT_RADIUS_MM; //mm
+        const float FINAL_DISTANCE_TO_TARGET = 100; //mm
+        float KB = 2.0;
 
-        void path_follower_initialize( );
+        void path_follower_initialize();
+
+        std::tuple<float, float, float>
+        update(const std::vector<QPointF> &path, const LaserData &laser_data, const QPointF &robot_pose,
+               const QPointF &robot_nose, const QPointF &target);
+
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
-};
 
+        float exponentialFunction(float value, float xValue, float yValue, float min);
+
+        float rewrapAngleRestricted(const float angle);
+
+        QPointF current_target;
+
+        void send_command_to_robot(const std::tuple<float, float, float> &speeds);
+};
 #endif

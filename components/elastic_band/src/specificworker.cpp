@@ -100,8 +100,8 @@ void SpecificWorker::initialize(int period)
         widget_2d->set_draw_laser(true);
 
 		// check for existing intention node
-		if(auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
-            this->update_node_slot(intentions.front().id(), "intention");
+		if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
+            this->update_node_slot(paths.front().id(), path_to_target_type);
 
 		this->Period = 100;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
@@ -112,34 +112,30 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     static std::vector<QPointF> path;
-    if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
+
+    // Check for existing path_to_target_nodes
+    if (auto path_o = path_buffer.try_get(); path_o.has_value())
     {
-        auto robot = robot_o.value();
-        // Check for existing path_to_target_nodes
-        if (auto path_o = path_buffer.try_get(); path_o.has_value())
+        path.clear();
+        path = path_o.value();
+    }
+    else
+    {
+        if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
         {
-            path.clear();
-            path = path_o.value();
-        }
-        else
-        {
-            if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
-            {
-                const auto &[laser_poly, laser_cart] = laser_data.value();
-                //               qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
-                // for (auto &&p:path)
-                //      qInfo() << p;
-                auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
-                auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-                //LaserData laser_data = read_laser_from_G();
-                //const auto &[laser_poly, laser_cart] = update_laser_polygon(laser_data);
-                auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
-                compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
-                clean_points(path, laser_poly, current_robot_polygon);
-                add_points(path, laser_poly, current_robot_polygon);
-                draw_path(path, &widget_2d->scene);
-                //save_path_in_G(path);
-            }
+            const auto &[laser_poly, laser_cart] = laser_data.value();
+            // qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
+            // for (auto &&p:path) qInfo() << p;
+            auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
+            auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
+            //LaserData laser_data = read_laser_from_G();
+            //const auto &[laser_poly, laser_cart] = update_laser_polygon(laser_data);
+            auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
+            compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
+            clean_points(path, laser_poly, current_robot_polygon);
+            add_points(path, laser_poly, current_robot_polygon);
+            draw_path(path, &widget_2d->scene);
+            save_path_in_G(path);
         }
     }
 }
@@ -266,7 +262,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         // A.2) Does not move underneath the robot.
         // A.3) Does not exit the laser polygon
         QPointF temp_p = p + total.toPointF();
-        qInfo()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
+        //qInfo()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
         if (is_point_visitable(temp_p) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill))
             //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
             //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
@@ -356,24 +352,6 @@ bool SpecificWorker::is_point_visitable(QPointF point)
     return true;  //// NEEDS the GRID
 }
 
-SpecificWorker::LaserData SpecificWorker::read_laser_from_G()
-{
-    qDebug() << __FUNCTION__ << "reading from DSR laser node";
-    if (auto laser_node = G->get_node(laser_name); laser_node.has_value())
-    {
-        const auto lAngles = G->get_attrib_by_name<angles_att>(laser_node.value());
-        const auto lDists = G->get_attrib_by_name<dists_att>(laser_node.value());
-        if (lAngles.has_value() and lDists.has_value())
-        {
-            return std::make_tuple(lAngles.value(), lDists.value());
-        }
-        else
-            qFatal("Terminate due to attributes angles or dists not found");
-    }
-    else
-        qFatal("Terminate due to laser node not found ");
-}
-
 QPolygonF SpecificWorker::get_robot_polygon()
 {
     QPolygonF robotP;
@@ -388,27 +366,23 @@ QPolygonF SpecificWorker::get_robot_polygon()
     return robotP;
 }
 
-std::tuple<QPolygonF, std::vector<QPointF>> SpecificWorker::update_laser_polygon(const std::tuple<std::vector<float>, std::vector<float>> &lData)
-{
-    QPolygonF laser_poly;
-    std::vector<QPointF> laser_cart;
-
-    const auto &[angles, dists] = lData;
-    for (const auto &[angle, dist] : iter::zip(angles, dists))
-    {
-        //convert laser polar coordinates to cartesian
-        float x = dist*sin(angle); float y = dist*cos(angle); //CHECK SIN SIGN
-        Mat::Vector3d laserWorld = inner_eigen->transform(world_name, Mat::Vector3d (x, y, 0), laser_name).value();
-        laser_poly << QPointF(x, y);
-        laser_cart.push_back(QPointF(laserWorld.x(),laserWorld.y()));
-    }
-    return std::make_tuple(laser_poly, laser_cart);
-}
-
 bool SpecificWorker::is_visible(QPointF p, const QPolygonF &laser_poly)
 {
     std::optional<Mat::Vector3d> pointInLaser = inner_eigen->transform(laser_name, Mat::Vector3d (p.x(),p.y(), 0), world_name);
     return laser_poly.containsPoint(QPointF(pointInLaser.value().x(), pointInLaser.value().y()), Qt::OddEvenFill);
+}
+
+void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)
+{
+    if( auto node_path = G->get_node(last_path_id); node_path.has_value())
+    {
+        std::vector<float> x_points, y_points;
+        for(const auto &p : path)
+        { x_points.emplace_back(p.x()); y_points.emplace_back(p.y());  }
+        G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_points);
+        G->add_or_modify_attrib_local<path_y_values_att>(node_path.value(), y_points);
+        G->update_node(node_path.value());
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -423,7 +397,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 ///////////////////////////////////////////////////
 void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
 {
-    //check node type
+    // PATH_TO_TARGET
     if (type == path_to_target_type)
     {
         if( auto node = G->get_node(id); node.has_value())
@@ -436,6 +410,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                 for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
                     path.emplace_back(QPointF(x, y));
                 path_buffer.put(path);
+                last_path_id = id;
             }
         }
     }
