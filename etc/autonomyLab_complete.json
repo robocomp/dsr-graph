@@ -5773,38 +5773,6 @@
                         "type": 0,
                         "value": "Blue"
                     },
-                    "depth.cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "depthFactor": {
-                        "type": 2,
-                        "value": 0
-                    },
-                    "depth_cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "depth_height": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "depth_width": {
-                        "type": 1,
-                        "value": 640
-                    },
-                    "focal": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "focalx": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "focaly": {
-                        "type": 1,
-                        "value": 369
-                    },
                     "height": {
                         "type": 1,
                         "value": 480
@@ -5812,11 +5780,6 @@
                     "ifconfig": {
                         "type": 0,
                         "value": "40000,50000"
-                    },
-                    "img_depth": {
-                        "type": 5,
-                        "value": [
-                        ]
                     },
                     "level": {
                         "type": 1,
@@ -5841,43 +5804,6 @@
                     "pos_y": {
                         "type": 2,
                         "value": 14.53627
-                    },
-                    "rgb": {
-                        "type": 5,
-                        "value": [
-                        ]
-                    },
-                    "rgb.cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "rgb_alivetime": {
-                        "type": 1,
-                        "value": 1599986092
-                    },
-                    "rgb_cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "rgb_depth": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "rgb_focalx": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "rgb_focaly": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "rgb_height": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "rgb_width": {
-                        "type": 1,
-                        "value": 640
                     },
                     "width": {
                         "type": 1,

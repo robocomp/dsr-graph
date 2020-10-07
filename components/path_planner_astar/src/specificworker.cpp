@@ -86,7 +86,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, img_depth, dists_att, angles_att>();
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
@@ -202,10 +202,10 @@ void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_fr
 {
     QRectF outerRegion;
     auto world_node = G->get_node(world_name).value();
-    outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft>(world_node).value());
-    outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight>(world_node).value());
-    outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom>(world_node).value());
-    outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop>(world_node).value());
+    outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node).value());
+    outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node).value());
+    outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node).value());
+    outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop_att>(world_node).value());
     if(outerRegion.isNull())
     {
         qWarning() << __FILE__ << __FUNCTION__ << "Outer region of the scene could not be found in G. Aborting";

@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, depth_att, dists_att, angles_att>();
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
 
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
