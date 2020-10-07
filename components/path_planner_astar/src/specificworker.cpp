@@ -86,7 +86,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, depth_att>();
+        G->set_ignored_attributes<rgb_att, img_depth, dists_att, angles_att>();
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);

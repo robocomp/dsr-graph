@@ -89,7 +89,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        //G->set_ignored_attributes<rgb_att, depth_att>();
+        G->set_ignored_attributes<rgb_att, img_depth>();
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path follower", &custom_widget);
@@ -122,20 +122,18 @@ void SpecificWorker::compute()
         path.clear();
         path = path_o.value();
     }
-    else    // KEEP WORKING IN OLD ONE
+    // keep controlling
+    if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
     {
-        if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
-        {
-            const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
-            // qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
-            // for (auto &&p:path) qInfo() << p;
-            auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
-            auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
-            auto robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-            auto robot_pose = QPointF(robot_pose_3d.x(), robot_pose_3d.y());
-            auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
-            send_command_to_robot(speeds);
-        }
+        const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
+        // qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
+        // for (auto &&p:path) qInfo() << p;
+        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
+        auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
+        auto robot_nose = QPointF(nose_3d.x(), nose_3d.y());
+        auto robot_pose = QPointF(robot_pose_3d.x(), robot_pose_3d.y());
+        auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
+        send_command_to_robot(speeds);
     }
 }
 
@@ -190,21 +188,23 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     // Target achieved
     if ( (path.size() < 3) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
     {
-    advVelx = 0;  advVelz= 0; rotVel = 0;
-    active = false;
-    std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 3 " << (path.size() < 3)
-    << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
-    << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
-    //return std::make_tuple(true, blocked, active, advVelz, advVelx, rotVel);  //side, adv, rot
+        advVelx = 0;  advVelz= 0; rotVel = 0;
+        active = false;
+        std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 3 " << (path.size() < 3)
+        << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
+        << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
+        return std::make_tuple(0,0,0);  //adv, side, rot
     }
 
     /// Compute rotational speed
     QLineF robot_to_nose(robot, robot_nose);
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robot_nose, path[1]))));
-    if(angle >= 0) rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
-    else rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
+    if(angle >= 0)
+        rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
+    else
+        rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
     if(euc_dist_to_target < 4*FINAL_DISTANCE_TO_TARGET)
-    rotVel = 0.f;
+        rotVel = 0.f;
 
     /// Compute advance speed
     std::min(advVelx = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
@@ -224,7 +224,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     advVelz = bumperVel.y();
 
     //qInfo() << advVelz << advVelx << rotVel;
-    return std::make_tuple(advVelz, advVelx, rotVel);
+    return std::make_tuple(0, 0, rotVel);
     //return std::make_tuple (true, blocked, active, advVelz, advVelx, rotVel); //side, adv, rot
 }
 

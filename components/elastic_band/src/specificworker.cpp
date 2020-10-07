@@ -88,10 +88,10 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        //G->set_ignored_attributes<rgb_att, depth_att>();
+        G->set_ignored_attributes<rgb_att, img_depth>();
 
         // Custom widget
-        dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
+        dsr_viewer->add_custom_widget_to_dock("Elastic band", &custom_widget);
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
