@@ -90,7 +90,7 @@ void SpecificWorker::initialize(int period)
 
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-        objects_pcl = this->read_pcl_from_file();
+        objects_pcl = this->read_pcl_from_file(); // read objects point cloud for poses visualization
 
         this->Period = period;
         timer.start(Period);
@@ -464,6 +464,7 @@ vector<vector<float>> SpecificWorker::project_vertices(vector<vector<float>> ver
 
 std::map<std::string,std::vector<std::vector<float>>> SpecificWorker::read_pcl_from_file()
 {
+    // read objects point cloud from text files and save them to std::map
     std::vector<std::string> filenames;
     std::map<std::string, std::vector<std::vector<float>>> data;
 
@@ -523,6 +524,9 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             this->draw_vertices(img, proj_vertices);
         }
     }
+    // show final RGB image
+    cv::imshow("DNN-Estimated Poses", img);
+    cv::waitKey(1);
     // create QImage and display it on the widget
     auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
@@ -530,6 +534,7 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
 
 void SpecificWorker::draw_vertices(cv::Mat &img, std::vector<std::vector<float>> vertices_2d)
 {
+    // draw 2D projected points on RGB image
     for (auto vertex : vertices_2d)
     {
         int x = std::max(0, std::min(img.cols, static_cast<int>(vertex.at(0))));
