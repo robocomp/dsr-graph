@@ -1045,7 +1045,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/alab/textures/wood.jpg"
+                        "value": "#999999"
                     },
                     "width": {
                         "type": 1,
@@ -1216,7 +1216,19 @@
                     "width": {
                         "type": 1,
                         "value": 1
-                    }
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
+                    }                    
                 },
                 "id": 201,
                 "links": [],
