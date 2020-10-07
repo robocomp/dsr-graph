@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="rgb_image_tab">
       <attribute name="title">
@@ -76,7 +76,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>cup_1</string>
+        <string>mug_1</string>
        </property>
        <attribute name="buttonGroup">
         <string notr="true">object_sel_group</string>
