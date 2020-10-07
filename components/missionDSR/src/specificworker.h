@@ -31,7 +31,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <custom_widget.h>
-#include  "../../etc/viriato_graph_names.h"
+#include  "../../../etc/viriato_graph_names.h"
 
 using namespace DSR;
 

@@ -60,7 +60,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
+        G->set_ignored_attributes<cam_rgb_att, laser_dists_att, laser_angles_att, cam_depth_att>();
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
