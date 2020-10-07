@@ -127,7 +127,7 @@ def main(input_file, output_file):
     root = tree.getroot()
 
     # insert world node
-    w_node = create_node("world", "world", [("parent", 0), ("level", 0), ("OuterRegionBottom", -4250), ("OuterRegionLeft", -2000), ("OuterRegionRight",7500), ("OuterRegionTop",4250)])
+    w_node = create_node("world", "world", [("parent", 0), ("level", 0), ("OuterRegionBottom", -7500), ("OuterRegionLeft", -7500), ("OuterRegionRight", 7500), ("OuterRegionTop", 7500)])
     new_json["DSRModel"]["symbols"][str(w_node["id"])] = w_node
 
     print("\nElements found:")
@@ -149,7 +149,7 @@ def main(input_file, output_file):
             if type:
                 others = convert_size_to_parameters(type, size)
                 if "floor" in name.lower():
-                    others += [("texture", "/home/robocomp/robocomp/components/dsr-graph/etc/alab/textures/wood.jpg")]
+                    others += [("texture", "#999999")]
                 else:
                     others += convert_color_to_texture(type, color)
                 n_node = create_node(name, type, others)
@@ -188,6 +188,19 @@ def main(input_file, output_file):
             new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
             # merge dictionaries
             new_json["DSRModel"]["symbols"] = {**(new_json["DSRModel"]["symbols"]), **(viriato["DSRModel"]["symbols"])}
+
+    furniture_file = '/home/robocomp/robocomp/components/dsr-graph/etc/furniture.json'
+    if os.path.isfile(furniture_file):
+        with open(furniture_file) as json_file:
+            print("Adding furniture")
+            furniture = json.load(json_file)
+
+            new_edge = create_edge(w_node["id"], 23, "RT", [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+            new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
+            new_edge = create_edge(w_node["id"], 60, "RT", [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+            new_json["DSRModel"]["symbols"][str(w_node["id"])]["links"].append(new_edge)
+            # merge dictionaries
+            new_json["DSRModel"]["symbols"] = {**(new_json["DSRModel"]["symbols"]), **(furniture["DSRModel"]["symbols"])}
 
     # write to file
     with open(output_file, 'w') as outfile:
