@@ -85,7 +85,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, depth_att>();
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
         //Custom widget
         dsr_viewer->add_custom_widget_to_dock("Social Navigation", &custom_widget);
