@@ -11,10 +11,10 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     std::optional<Node> world_node = G->get_node(world_name);
     if(world_node.has_value())
     {
-        outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft>(world_node.value()).value());
-        outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight>(world_node.value()).value());
-        outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom>(world_node.value()).value());
-        outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop>(world_node.value()).value());
+        outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node.value()).value());
+        outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node.value()).value());
+        outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node.value()).value());
+        outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop_att>(world_node.value()).value());
     }
     if(outerRegion.isNull())
     {
@@ -144,7 +144,7 @@ fcl::CollisionObject* Collisions::get_collision_object(const std::string& node_n
 fcl::CollisionObject* Collisions::create_mesh_collision_object(const Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
-    std::optional<std::string> meshPath = G->get_attrib_by_name<path>(node);
+    std::optional<std::string> meshPath = G->get_attrib_by_name<path_att>(node);
     osg::ref_ptr<osg::Node> osgnode_ = osgDB::readNodeFile(meshPath.value());
     if (osgnode_ != NULL)
     {

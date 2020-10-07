@@ -72,7 +72,7 @@ void SpecificWorker::initialize(int period)
             auto bState = update_omirobot();
             const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
             std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
          //Set base speed reference to 0
@@ -119,24 +119,23 @@ void SpecificWorker::update_rgbd()
         auto node = G->get_node(viriato_head_camera_name);
         if (node.has_value())
         {
-            G->add_or_modify_attrib_local<rgb_att>(node.value(), rgb.image);
-            G->add_or_modify_attrib_local<rgb_width>(node.value(), rgb.width);
-            G->add_or_modify_attrib_local<rgb_height>(node.value(), rgb.height);
-            G->add_or_modify_attrib_local<rgb_depth>(node.value(), rgb.depth);
-            G->add_or_modify_attrib_local<rgb_cameraID>(node.value(), rgb.cameraID);
-            G->add_or_modify_attrib_local<rgb_focalx>(node.value(), rgb.focalx);
-            G->add_or_modify_attrib_local<rgb_focaly>(node.value(), rgb.focaly);
-            G->add_or_modify_attrib_local<rgb_alivetime>(node.value(), rgb.alivetime);
-
+            G->add_or_modify_attrib_local<cam_rgb_att>(node.value(), rgb.image);
+            G->add_or_modify_attrib_local<cam_rgb_width_att>(node.value(), rgb.width);
+            G->add_or_modify_attrib_local<cam_rgb_height_att>(node.value(), rgb.height);
+            G->add_or_modify_attrib_local<cam_rgb_depth_att>(node.value(), rgb.depth);
+            G->add_or_modify_attrib_local<cam_rgb_cameraID_att>(node.value(), rgb.cameraID);
+            G->add_or_modify_attrib_local<cam_rgb_focalx_att>(node.value(), rgb.focalx);
+            G->add_or_modify_attrib_local<cam_rgb_focaly_att>(node.value(), rgb.focaly);
+            G->add_or_modify_attrib_local<cam_rgb_alivetime_att>(node.value(), rgb.alivetime);
             // depth
-            G->add_or_modify_attrib_local<img_depth>(node.value(), depth.depth);
-            G->add_or_modify_attrib_local<depth_width>(node.value(), depth.width);
-            G->add_or_modify_attrib_local<depth_height>(node.value(), depth.height);
-            G->add_or_modify_attrib_local<focalx>(node.value(), depth.focalx);
-            G->add_or_modify_attrib_local<focaly>(node.value(), depth.focaly);
-            G->add_or_modify_attrib_local<depth_cameraID>(node.value(), depth.cameraID);
-            G->add_or_modify_attrib_local<depthFactor>(node.value(), depth.depthFactor);
-            G->add_or_modify_attrib_local<alivetime>(node.value(), depth.alivetime);
+            G->add_or_modify_attrib_local<cam_depth_att>(node.value(), depth.depth);
+            G->add_or_modify_attrib_local<cam_depth_width_att>(node.value(), depth.width);
+            G->add_or_modify_attrib_local<cam_depth_height_att>(node.value(), depth.height);
+            G->add_or_modify_attrib_local<cam_depth_focalx_att>(node.value(), depth.focalx);
+            G->add_or_modify_attrib_local<cam_depth_focaly_att>(node.value(), depth.focaly);
+            G->add_or_modify_attrib_local<cam_depth_cameraID_att>(node.value(), depth.cameraID);
+            G->add_or_modify_attrib_local<cam_depthFactor_att>(node.value(), depth.depthFactor);
+            G->add_or_modify_attrib_local<cam_depth_alivetime_att>(node.value(), depth.alivetime);
             G->update_node(node.value());
         }
     } //else std::this_thread::yield();
@@ -157,8 +156,8 @@ void SpecificWorker::update_laser()
         auto node = G->get_node("laser");
         if (node.has_value())
         {
-            G->add_or_modify_attrib_local<dists_att>(node.value(), dists);
-            G->add_or_modify_attrib_local<angles_att>(node.value(), angles);
+            G->add_or_modify_attrib_local<laser_dists_att>(node.value(), dists);
+            G->add_or_modify_attrib_local<laser_angles_att>(node.value(), angles);
             G->update_node(node.value());
         }
     }
@@ -308,7 +307,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
     static std::vector<float> ant_nose_target{10.0, 0.0, 0.0};
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
-        auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value());
+        auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value());
         //if (target.has_value() and are_different(target.value(), ant_nose_target, std::vector<float>{1, 1, 1}))
         //{
             // convert target to world reference

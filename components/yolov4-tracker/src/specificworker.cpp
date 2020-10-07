@@ -99,7 +99,7 @@ void SpecificWorker::initialize(int period)
 		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 		// ignore attributes
-        G->set_ignored_attributes<angles_att, dists_att, depth_att>();
+        G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_depth_att>();
         this->Period = period;
         timer.start(Period);
         READY_TO_GO = true;
@@ -113,8 +113,8 @@ void SpecificWorker::compute()
     {
         // get and process RGB image
         auto g_image = G->get_rgb_image(rgb_camera.value());
-        auto width = G->get_attrib_by_name<rgb_width>(rgb_camera.value());
-        auto height = G->get_attrib_by_name<rgb_height>(rgb_camera.value());
+        auto width = G->get_attrib_by_name<cam_rgb_width_att >(rgb_camera.value());
+        auto height = G->get_attrib_by_name<cam_rgb_height_att>(rgb_camera.value());
         if (width.has_value() and height.has_value())
         {
             // create opencv image
@@ -278,7 +278,7 @@ void SpecificWorker::track_object_of_interest()
         if (pose.has_value())
         {
             // get pan_tilt current target pose
-            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); current_pose.has_value())
             {
                 std::vector<float> kaka = current_pose.value();
                 std::vector<double> kk(kaka.begin(), kaka.end());
@@ -286,7 +286,7 @@ void SpecificWorker::track_object_of_interest()
                 //if they are different modify G
                 if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                 {
-                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
                     G->update_node(pan_tilt.value());
                 }
             }
