@@ -1068,7 +1068,7 @@
                     },
                     "texture": {
                         "type": 0,
-                        "value": "#999999"
+                        "value": "#BBBBBB"
                     },
                     "width": {
                         "type": 1,
