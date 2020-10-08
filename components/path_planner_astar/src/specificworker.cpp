@@ -106,10 +106,11 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 	}
 }
+//Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
 
 void SpecificWorker::compute()
 {
-    //Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+    // Update grid
     // Check for new plan
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
