@@ -134,7 +134,7 @@ void SpecificWorker::compute()
             compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
             clean_points(path, laser_poly, current_robot_polygon);
             add_points(path, laser_poly, current_robot_polygon);
-            draw_path(path, &widget_2d->scene);
+            draw_path(path, &widget_2d->scene, laser_poly);
             save_path_in_G(path);
         }
     }
@@ -189,7 +189,8 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
 
 //        // compute forces from map on not visible points
-//        if ((isVisible(p, laser_poly ) == false))
+        if ( not is_visible(p, laser_poly ))
+            continue;
 //        {
 //            auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
 //            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
@@ -242,9 +243,9 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         QVector2D f_force = magnitude * eforce.normalized();
 
         // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
-        QVector2D base_line = (p1 - p3).normalized();
-        const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
-        f_force = f_force - itangential;
+//        QVector2D base_line = (p1 - p3).normalized();
+//        const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
+//        f_force = f_force - itangential;
 
         // update node pos. KI and KE are approximating inverse Jacobians modules. This should be CHANGED
         // Directions are taken as the vector going from p to closest obstacle.
@@ -292,7 +293,7 @@ void SpecificWorker::clean_points(std::vector<QPointF> &path, const QPolygonF &l
         const auto &p1 = group[0];
         const auto &p2 = group[1];
 
-        if (!is_visible(p1, laser_poly) or is_visible(p2, laser_poly) == false) //not visible
+        if (not is_visible(p1, laser_poly) or not is_visible(p2, laser_poly)) //not visible
             continue;
 
         if (p2 == path.back())
@@ -326,7 +327,7 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
         auto &p1 = group[0];
         auto &p2 = group[1];
 
-        if (!is_visible(p1, laser_poly) or is_visible(p2, laser_poly) == false) //not visible
+        if ( not is_visible(p1, laser_poly) or not is_visible(p2, laser_poly)) //not visible
             continue;
 
         float dist = QVector2D(p1 - p2).length();
@@ -453,7 +454,7 @@ void SpecificWorker::update_attrs_slot(const std::int32_t id, const std::map<str
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
-void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d)
+void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d, const QPolygonF &laser_poly)
 {
     static std::vector<QGraphicsLineItem *> scene_road_points;
     qDebug() << __FUNCTION__;
@@ -489,6 +490,10 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
 //        if(i == 1 or i == path.size()-1)
 //            color = "#00FF00"; //Green
 
+        if(is_visible(QPointF(b_point.x(), b_point.y()), laser_poly))
+            color = "#F0FF00";
+        else
+            color = "#FF0000";
         line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
         line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
 

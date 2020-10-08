@@ -148,6 +148,7 @@ void SpecificWorker::compute()
         auto robot_pose = QPointF(robot_pose_3d.x(), robot_pose_3d.y());
         auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
         auto [adv,side,rot] =  send_command_to_robot(speeds);
+        std::cout << "---------------------------" << std::endl;
         std::cout << "Dist to target: " << std::endl;
         std::cout << "\t " << QVector2D(robot_pose - current_target).length() << std::endl;
         std::cout << "Ref speeds:  " << std::endl;
@@ -206,7 +207,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     };
 
     // Target achieved
-    if ( (path.size() < 3) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
+    if ( (path.size() < 3) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
     {
         advVel = 0;  sideVel= 0; rotVel = 0;
         active = false;
@@ -255,7 +256,6 @@ std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std:
     static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
 
     auto &[adv_, side_, rot_] = speeds;
-
     auto adv = (adv_conv * QVec::vec2(adv_,1.0))[0];
     auto rot = (rot_conv * QVec::vec2(rot_,1.0))[0];
     auto side = (side_conv * QVec::vec2(side_, 1.0))[0];

@@ -35,6 +35,7 @@ struct TCellDefault
     bool visited;
     float cost;
     std::string node_name;
+    bool
 
     // method to save the value
     void save(std::ostream &os) const {	os << free << " " << visited << " " << node_name; };
