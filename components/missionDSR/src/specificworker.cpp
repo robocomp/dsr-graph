@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -32,7 +33,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
+	//G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -60,9 +61,12 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
-		// Graph viewer
+        // Ignore attributes from G
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
+
+        // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
@@ -168,7 +172,6 @@ void SpecificWorker::set_mission_slot()
 ///////////////////////////////////////////////////////////////////////
 std::optional<Node> SpecificWorker::get_intent_node(bool create)
 {
-    //get intent node
     auto intent_nodes = G->get_nodes_by_type("intention");
     for (auto node : intent_nodes)
     {
@@ -185,10 +188,11 @@ std::optional<Node> SpecificWorker::get_intent_node(bool create)
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
             Node node;
-            node.type("intention");
+            node.type(intention_type);
             G->add_or_modify_attrib_local<parent_att>(node,  robot.value().id());
             G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(robot.value()).value() + 1);
-                
+            G->add_or_modify_attrib_local<pos_x_att>(node, (float)-90);
+            G->add_or_modify_attrib_local<pos_y_att>(node, (float)-354);
             try
             {     
                 std::optional<int> new_id = G->insert_node(node);
@@ -224,6 +228,8 @@ std::optional<Node> SpecificWorker::get_intent_node(bool create)
             std::terminate();
         }
     }
+    else
+        return {};
 }
 
 

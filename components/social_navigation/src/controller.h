@@ -10,8 +10,8 @@
 #include <cppitertools/range.hpp>
 #include <tuple>
 #include <QVector2D>
-
 #include <dsr/api/dsr_inner_api.h>
+#include <dsr/api/dsr_eigen_defs.h>
 
 class Controller
 {
@@ -22,8 +22,8 @@ class Controller
 
     public:
         using retUpdate = std::tuple <bool, bool, bool, float, float, float>;
-        void initialize(const std::shared_ptr<DSR::InnerAPI> &innerModel_, std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_);
-        retUpdate update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const QVec &robotPose, const QPointF &robotNose);
+        void initialize(std::shared_ptr<RoboCompCommonBehavior::ParameterList> params_);
+        retUpdate update(std::vector<QPointF> points, const LaserData &laser_data, const QPointF &target, const Mat::Vector6d &robotPose, const QPointF &robotNose);
 
     private:
         std::shared_ptr<DSR::InnerAPI> innerModel;

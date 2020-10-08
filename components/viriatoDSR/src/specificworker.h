@@ -30,6 +30,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include "doublebuffer/DoubleBuffer.h"
+#include  "../../../etc/viriato_graph_names.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -61,13 +62,6 @@ public slots:
 
 private:
     bool startup_check_flag;
-
-    // NODE NAMES
-    const std::string viriato_head_camera_pan_tilt = "viriato_head_camera_pan_tilt";
-    const std::string viriato_head_camera_pan_joint = "viriato_head_camera_pan_joint";
-    const std::string viriato_head_camera_tilt_joint = "viriato_head_camera_tilt_joint";
-    const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
-    const std::string robot_name = "omnirobot";
 
     // ATTRIBUTE NAMES
     const std::string nose_target = "viriato_head_pan_tilt_nose_target";

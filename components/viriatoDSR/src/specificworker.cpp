@@ -66,16 +66,17 @@ void SpecificWorker::initialize(int period)
         //Inner Api
         innermodel = G->get_inner_api();
 
-        // Remove existing pan-tilt target
+        //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            auto nose = innermodel->transformS("world", QVec::vec3(0,0,10),viriato_head_camera_name).value();
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{nose.x(),nose.y(),nose.z()});
+            auto bState = update_omirobot();
+            const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
+            std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
-
-        // Set base speed reference to 0
-        if(auto robot = G->get_node(this->robot_name); robot.has_value())
+         //Set base speed reference to 0
+        if(auto robot = G->get_node(robot_name); robot.has_value())
         {
             G->insert_or_assign_attrib<ref_adv_speed_att>(robot.value(), (float)0);
             G->insert_or_assign_attrib<ref_rot_speed_att>(robot.value(), (float)0);
@@ -103,6 +104,7 @@ void SpecificWorker::compute()
     check_new_dummy_values_for_coppelia();
     check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,27 +119,26 @@ void SpecificWorker::update_rgbd()
         auto node = G->get_node(viriato_head_camera_name);
         if (node.has_value())
         {
-            G->add_or_modify_attrib_local<rgb_att>(node.value(), rgb.image);
-            G->add_or_modify_attrib_local<rgb_width>(node.value(), rgb.width);
-            G->add_or_modify_attrib_local<rgb_height>(node.value(), rgb.height);
-            G->add_or_modify_attrib_local<rgb_depth>(node.value(), rgb.depth);
-            G->add_or_modify_attrib_local<rgb_cameraID>(node.value(), rgb.cameraID);
-            G->add_or_modify_attrib_local<rgb_focalx>(node.value(), rgb.focalx);
-            G->add_or_modify_attrib_local<rgb_focaly>(node.value(), rgb.focaly);
-            G->add_or_modify_attrib_local<rgb_alivetime>(node.value(), rgb.alivetime);
-
+            G->add_or_modify_attrib_local<cam_rgb_att>(node.value(), rgb.image);
+            G->add_or_modify_attrib_local<cam_rgb_width_att>(node.value(), rgb.width);
+            G->add_or_modify_attrib_local<cam_rgb_height_att>(node.value(), rgb.height);
+            G->add_or_modify_attrib_local<cam_rgb_depth_att>(node.value(), rgb.depth);
+            G->add_or_modify_attrib_local<cam_rgb_cameraID_att>(node.value(), rgb.cameraID);
+            G->add_or_modify_attrib_local<cam_rgb_focalx_att>(node.value(), rgb.focalx);
+            G->add_or_modify_attrib_local<cam_rgb_focaly_att>(node.value(), rgb.focaly);
+            G->add_or_modify_attrib_local<cam_rgb_alivetime_att>(node.value(), rgb.alivetime);
             // depth
-            G->add_or_modify_attrib_local<img_depth>(node.value(), depth.depth);
-            G->add_or_modify_attrib_local<depth_width>(node.value(), depth.width);
-            G->add_or_modify_attrib_local<depth_height>(node.value(), depth.height);
-            G->add_or_modify_attrib_local<focalx>(node.value(), depth.focalx);
-            G->add_or_modify_attrib_local<focaly>(node.value(), depth.focaly);
-            G->add_or_modify_attrib_local<depth_cameraID>(node.value(), depth.cameraID);
-            G->add_or_modify_attrib_local<depthFactor>(node.value(), depth.depthFactor);
-            G->add_or_modify_attrib_local<alivetime>(node.value(), depth.alivetime);
+            G->add_or_modify_attrib_local<cam_depth_att>(node.value(), depth.depth);
+            G->add_or_modify_attrib_local<cam_depth_width_att>(node.value(), depth.width);
+            G->add_or_modify_attrib_local<cam_depth_height_att>(node.value(), depth.height);
+            G->add_or_modify_attrib_local<cam_depth_focalx_att>(node.value(), depth.focalx);
+            G->add_or_modify_attrib_local<cam_depth_focaly_att>(node.value(), depth.focaly);
+            G->add_or_modify_attrib_local<cam_depth_cameraID_att>(node.value(), depth.cameraID);
+            G->add_or_modify_attrib_local<cam_depthFactor_att>(node.value(), depth.depthFactor);
+            G->add_or_modify_attrib_local<cam_depth_alivetime_att>(node.value(), depth.alivetime);
             G->update_node(node.value());
         }
-    } else std::this_thread::yield();
+    } //else std::this_thread::yield();
 }
 
 void SpecificWorker::update_laser()
@@ -155,12 +156,12 @@ void SpecificWorker::update_laser()
         auto node = G->get_node("laser");
         if (node.has_value())
         {
-            G->add_or_modify_attrib_local<dists_att>(node.value(), dists);
-            G->add_or_modify_attrib_local<angles_att>(node.value(), angles);
+            G->add_or_modify_attrib_local<laser_dists_att>(node.value(), dists);
+            G->add_or_modify_attrib_local<laser_angles_att>(node.value(), angles);
             G->update_node(node.value());
         }
     }
-    else std::this_thread::yield();
+    //else std::this_thread::yield();
 }
 
 RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
@@ -185,25 +186,26 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
                           std::vector<float>{last_state.x, last_state.z, last_state.alpha},
                           std::vector<float>{1, 1, 0.1}))
         {
+            qInfo() << "angle " << bState.alpha;
             auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
-            G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., bState.alpha, 0.});
-            G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x, 0., bState.z});
+            G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
+            G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
             G->modify_attrib_local<linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
-            G->modify_attrib_local<angular_speed_att>(edge, std::vector<float>{0, bState.rotV, 0});
+            G->modify_attrib_local<angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
             G->insert_or_assign_edge(edge);
             last_state = bState;
             return bState;
         }
     }
-    else
-        std::this_thread::yield();
+    //else
+    //    std::this_thread::yield();
     return last_state;
 }
 
 void SpecificWorker::update_pantilt_position()
 {
     static std::vector<float> last_state{0.0, 0.0};
-    static std::vector<float> epsilon{0.1, 0.1};
+    static std::vector<float> epsilon{0.05, 0.05};
 
     if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
     {
@@ -213,13 +215,14 @@ void SpecificWorker::update_pantilt_position()
         if( are_different(std::vector<float>{pan, tilt}, last_state, epsilon))
         {
             auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt);
+            auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint);
             auto pan_joint = G->get_node(viriato_head_camera_pan_joint);
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
-                G->insert_or_assign_edge_RT(pan_tilt.value(), 81, std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{0.0, pan, 0.0});
-                G->insert_or_assign_edge_RT(pan_joint.value(), 82, std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{-tilt, 0.0, 0.0});
+                G->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+                                            std::vector<float>{0.0, 0.0, pan});
+                G->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+                                            std::vector<float>{0.0, tilt, 0.0});
             }
             else
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
@@ -227,13 +230,15 @@ void SpecificWorker::update_pantilt_position()
     }
 }
 
+//// CHANGE THESE ONES BY SIGNAL SLOTS
+
 // Check if rotation_speed or advance_speed have changed and move the robot consequently
 void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseState& bState)
 {
-    auto robot = G->get_node(this->robot_name); //any omnirobot
+    auto robot = G->get_node(robot_name);
     if (not robot.has_value())
     {
-        qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(this->robot_name);
+        qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(robot_name);
         return;
     }
     auto ref_adv_speed = G->get_attrib_by_name<ref_adv_speed_att>(robot.value());
@@ -258,7 +263,7 @@ void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseStat
         qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
         try
         {
-                omnirobot_proxy->setSpeedBase(0, ref_adv_speed.value(), ref_rot_speed.value());
+                omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value());
 
                 //                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
                 //                          << " Rot: " << ref_rot_speed.value()
@@ -299,10 +304,10 @@ void SpecificWorker::check_new_dummy_values_for_coppelia()
 void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
     // zero position of nose
-    static std::vector<float> ant_nose_target{0.0, 0.0, 10.0};
+    static std::vector<float> ant_nose_target{10.0, 0.0, 0.0};
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
-        auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value());
+        auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value());
         //if (target.has_value() and are_different(target.value(), ant_nose_target, std::vector<float>{1, 1, 1}))
         //{
             // convert target to world reference

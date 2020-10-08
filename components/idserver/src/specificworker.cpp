@@ -68,7 +68,9 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-        //G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
+        //check RT tree
+        check_rt_tree(G->get_node_root().value());
+
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
@@ -79,7 +81,7 @@ void SpecificWorker::initialize(int period)
 		}
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
-         this->Period = 100;
+        this->Period = 200;
 
         // Compute max Id in G
         get_max_id_from_G();
@@ -102,6 +104,29 @@ void SpecificWorker::get_max_id_from_G()
             node_id = node.id();
     qInfo() << "MAX ID from file:" << node_id;
 }
+//Check RT tree is well built
+void SpecificWorker::check_rt_tree(const DSR::Node &node)
+{
+    std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> edges_map = G->get_edges(node.id());
+    if (edges_map.has_value()) {
+        for (const auto[pair, edge] : edges_map.value())
+        {
+            std::optional<DSR::Node> child = G->get_node(edge.to());
+            assertm(child.has_value() == true, "Edge without child node");
+            std::optional<std::uint32_t> parent_id = G->get_parent_id(child.value());
+            assertm(parent_id.has_value() == true, "Edge without parent node");
+            assertm(node.id() == parent_id.value(), "Inconsistency between edge and node parent");
+            std::optional<std::uint32_t> child_level = G->get_node_level(child.value());
+            assertm(child_level.has_value() == true, "Child without level attribute");
+            std::optional<std::uint32_t> node_level = G->get_node_level(node);
+            assertm(node_level.has_value() == true, "Parent without level attribute");
+            assertm(child_level.value() == (node_level.value()+1), "Inconsistency between parent and child levels");
+            check_rt_tree(child.value());
+        }
+    }
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////
 int SpecificWorker::startup_check()

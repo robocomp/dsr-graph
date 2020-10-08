@@ -23,6 +23,8 @@ SET ( SOURCES
   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_camera_api.cpp
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
   custom_widget.h
 )
 
