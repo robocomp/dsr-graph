@@ -111,11 +111,11 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
 	params["RobotName"] = aux;
 
-	configGetString( "NavigationAgent","MaxZSpeed", aux.value,"600");
-	params["MaxZSpeed"] = aux;
+	configGetString( "NavigationAgent","MaxAdvanceSpeed", aux.value,"600");
+	params["MaxAdvanceSpeed"] = aux;
 
-	configGetString( "NavigationAgent","MaxXSpeed", aux.value,"400");
-	params["MaxXSpeed"] = aux;
+	configGetString( "NavigationAgent","MaxSideSpeed", aux.value,"400");
+	params["MaxSideSpeed"] = aux;
 
 	configGetString( "NavigationAgent","MaxRotationSpeed", aux.value,"0.9");
 	params["MaxRotationSpeed"] = aux;
@@ -141,17 +141,17 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString( "NavigationAgent","PlannerGraphMaxDistanceToSearch", aux.value,"2500");
 	params["PlannerGraphMaxDistanceToSearch"] = aux;
 
-	configGetString( "NavigationAgent","OuterRegionLeft", aux.value,"0");
-	params["OuterRegionLeft"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionRight", aux.value,"6000");
-	params["OuterRegionRight"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionBottom", aux.value,"-4250");
-	params["OuterRegionBottom"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionTop", aux.value,"4250");
-	params["OuterRegionTop"] = aux;
+//	configGetString( "NavigationAgent","OuterRegionLeft", aux.value,"0");
+//	params["OuterRegionLeft"] = aux;
+//
+//	configGetString( "NavigationAgent","OuterRegionRight", aux.value,"6000");
+//	params["OuterRegionRight"] = aux;
+//
+//	configGetString( "NavigationAgent","OuterRegionBottom", aux.value,"-4250");
+//	params["OuterRegionBottom"] = aux;
+//
+//	configGetString( "NavigationAgent","OuterRegionTop", aux.value,"4250");
+//	params["OuterRegionTop"] = aux;
 
 	configGetString( "NavigationAgent","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
 	params["ExcludedObjectsInCollisionCheck"] = aux;

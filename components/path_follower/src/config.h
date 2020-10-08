@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "path_controller"
-#define SERVER_FULL_NAME   "RoboComp path_controller:: path_controller"
+#define PROGRAM_NAME    "path_follower"
+#define SERVER_FULL_NAME   "RoboComp path_follower:: path_follower"
 
 #endif

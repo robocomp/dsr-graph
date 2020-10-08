@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::path_controller
+/** \mainpage RoboComp::path_follower
  *
  * \section intro_sec Introduction
  *
- * The path_controller component...
+ * The path_follower component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd path_controller
+ * cd path_follower
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/path_controller --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/path_follower --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -85,10 +85,10 @@
 
 
 
-class path_controller : public RoboComp::Application
+class path_follower : public RoboComp::Application
 {
 public:
-	path_controller (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
+	path_follower (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
@@ -99,14 +99,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::path_controller::initialize()
+void ::path_follower::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::path_controller::run(int argc, char* argv[])
+int ::path_follower::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	::path_controller app(prefix, startup_check_flag);
+	::path_follower app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }
