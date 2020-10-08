@@ -69,7 +69,6 @@ void SpecificWorker::initialize(int period)
         //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            auto bState = update_omirobot();
             const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
             std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
@@ -101,6 +100,7 @@ void SpecificWorker::compute()
     auto bState = update_omirobot();
     update_rgbd();
     update_pantilt_position();
+    // change to slots
     check_new_dummy_values_for_coppelia();
     check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
@@ -290,7 +290,7 @@ void SpecificWorker::check_new_dummy_values_for_coppelia()
         if( x.has_value() and y.has_value())
             if(x.value() != current_base_target_x or y.value() != current_base_target_y)
             {
-                RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), 0.1, y.value(), 0.0, 0.0, 0.0};
+                RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), y.value(), 100, 0.0, 0.0, 0.0};
                 try
                 { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
                 catch (const Ice::Exception &e)
@@ -307,9 +307,9 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
     static std::vector<float> ant_nose_target{10.0, 0.0, 0.0};
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
-        auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value());
-        //if (target.has_value() and are_different(target.value(), ant_nose_target, std::vector<float>{1, 1, 1}))
-        //{
+        if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
+        //if ( are_different(target.value(), ant_nose_target, std::vector<float>{1, 1, 1}))
+        {
             // convert target to world reference
             RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
             try
@@ -317,7 +317,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
             catch (const Ice::Exception &e)
             { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
             ant_nose_target = target.value();
-        //}
+        }
     }
 }
 

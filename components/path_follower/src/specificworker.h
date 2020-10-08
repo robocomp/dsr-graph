@@ -62,26 +62,18 @@ class Plan
 class SpecificWorker : public GenericWorker
 {
     Q_OBJECT
-
     public:
         SpecificWorker(TuplePrx tprx, bool startup_check);
-
         ~SpecificWorker();
-
         bool setParams(RoboCompCommonBehavior::ParameterList params);
 
     public slots:
 
         void compute();
-
         int startup_check();
-
         void initialize(int period);
-
         void new_target_from_mouse(int pos_x, int pos_y, int id);
-
         void update_node_slot(const std::int32_t id, const std::string &type);
-
         void update_attrs_slot(const std::int32_t id, const std::map<string, DSR::Attribute> &attribs);
 
     private:
@@ -119,29 +111,24 @@ class SpecificWorker : public GenericWorker
 
         //elastic band
         const float ROBOT_LENGTH = 500;  //GET FROM G
-        float MAX_ADV_SPEED;
-        float MAX_ROT_SPEED;
-        float MAX_SIDE_SPEED;
-        float MAX_LAG; //ms
-        float ROBOT_RADIUS_MM; //mm
+        float MAX_ADV_SPEED = 1000;
+        float MAX_ROT_SPEED = 1;
+        float MAX_SIDE_SPEED = 1;
+        float MAX_LAG = 100; //ms
+        float ROBOT_RADIUS_MM = 250; //mm
         const float FINAL_DISTANCE_TO_TARGET = 100; //mm
         float KB = 2.0;
 
         void path_follower_initialize();
-
         std::tuple<float, float, float>
         update(const std::vector<QPointF> &path, const LaserData &laser_data, const QPointF &robot_pose,
                const QPointF &robot_nose, const QPointF &target);
-
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
-
         float exponentialFunction(float value, float xValue, float yValue, float min);
-
         float rewrapAngleRestricted(const float angle);
-
         QPointF current_target;
-
-        void send_command_to_robot(const std::tuple<float, float, float> &speeds);
+        std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);
+        bool robot_is_active = false;
 };
 #endif

@@ -88,16 +88,16 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, img_depth>();
+        G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Elastic band", &custom_widget);
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
+        if(widget_2d)
+            widget_2d->set_draw_laser(true);
 
 		// path planner
 		elastic_band_initialize();
-
-        widget_2d->set_draw_laser(true);
 
 		// check for existing intention node
 		if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
@@ -419,8 +419,8 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
         //qInfo() << __FUNCTION__ << " laser node change";
         if( auto node = G->get_node(id); node.has_value())
         {
-            auto angles = G->get_attrib_by_name<angles_att>(node.value());
-            auto dists = G->get_attrib_by_name<dists_att>(node.value());
+            auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
+            auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
             if(dists.has_value() and angles.has_value())
             {
                 if(dists.value().get().empty() or angles.value().get().empty()) return;
