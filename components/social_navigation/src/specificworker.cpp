@@ -33,7 +33,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
+	//G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -82,12 +82,13 @@ void SpecificWorker::initialize(int period)
         
 		//Inner Api
 		innermodel = G->get_inner_api();
+        inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<rgb_att, depth_att>();
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
         //Custom widget
-		custom_widget.show();
+        dsr_viewer->add_custom_widget_to_dock("Social Navigation", &custom_widget);
 		connect(custom_widget.autoMov_checkbox, SIGNAL(clicked()),this, SLOT(checkRobotAutoMovState()));
     	connect(custom_widget.robotMov_checkbox, SIGNAL(clicked()),this, SLOT(moveRobot()));
     	connect(custom_widget.ki_slider, SIGNAL (valueChanged(int)),this,SLOT(forcesSliderChanged(int)));
@@ -103,56 +104,93 @@ void SpecificWorker::initialize(int period)
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
 
-		this->Period = 200;
+		this->Period = 100;
 		timer.start(Period);
 	}
 }
 
 void SpecificWorker::compute()
 {
-    static Navigation<Grid<>,Controller>::SearchState last_state;
-    if( auto robot = G->get_node(robot_name); robot.has_value())
+    //   static Navigation<Grid<>,Controller>::SearchState last_state;
+    //Eigen::IOFormat CleanFmt(Eigen::StreamPrecision, 0, ", ", "\n", "[", "]");
+    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+
+    if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
     {
-        // check for base_target_values
-        if(auto target_id = G->get_attrib_by_name<target_node_id>(robot.value()); target_id.has_value())
+        auto robot = robot_o.value();
+        // Check for new plan
+        if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
         {
-            if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
+            current_plan = plan_o.value();
+            current_plan.print();
+            if (auto target_o = G->get_node(current_plan.target_place); target_o.has_value())
             {
-                auto x = G->get_attrib_by_name<base_target_x>(robot.value());
-                auto y = G->get_attrib_by_name<base_target_y>(robot.value());
-                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
+                auto target = target_o.value();
+                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target, current_plan.params, robot);
                 switch (search_state)
                 {
-                    case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
-                        G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) candidate.x());
-                        G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) candidate.y());
-                        G->update_node(robot.value());
-                        if(search_state != last_state)
-                            qInfo() << __FUNCTION__ << "At target";
+                    case Navigation<Grid<>, Controller>::SearchState::NEW_TARGET:
+                        std::cout << __FUNCTION__ << " Candidate found: " << candidate.format(CommaInitFmt) << std::endl;
+                        current_plan.is_active = true;
                         break;
-                    case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
-                        if(search_state != last_state)
-                            qInfo() << __FUNCTION__ << "At target";
+                    case Navigation<Grid<>, Controller>::SearchState::AT_TARGET:
+                        std::cout << __FUNCTION__ << " At target " <<  std::endl;
+                        current_plan.is_active = true;
                         break;
-                    case Navigation<Grid<>,Controller>::SearchState::NO_TARGET_FOUND:
-                        if(search_state != last_state)
-                            qInfo() << __FUNCTION__ << "No feasible target found";
-                        break;
+                    case Navigation<Grid<>, Controller>::SearchState::NO_TARGET_FOUND:
+                        std::cout << __FUNCTION__ << " No target found: " <<  std::endl; break;
                 }
-                last_state = search_state;
             }
-            else
-                qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
         }
-        else
-            qWarning() << __FILE__ << __FUNCTION__ << " No target node id found in G";
+        else if (current_plan.is_active)// keep working on current_plan
+        {
+            auto state = navigation.update();
+            navigation.print_state(state);
+        } else // do whatever you do without a plan
+        {}
     }
-    else
-        qWarning() << __FILE__ << __FUNCTION__ << " No node robot found in G";
 
-    auto state = navigation.update();
-    navigation.print_state(state);
+//    if( auto robot = G->get_node(robot_name); robot.has_value())
+//    {
+        // check for base_target_values
+//        if(auto target_id = G->get_attrib_by_name<target_node_id>(robot.value()); target_id.has_value())
+//        {
+//            if (auto target_node = G->get_node(target_id.value()); target_node.has_value())
+//            {
+//                auto x = G->get_attrib_by_name<base_target_x>(robot.value());
+//                auto y = G->get_attrib_by_name<base_target_y>(robot.value());
+//                const auto &[search_state, candidate] = navigation.search_a_feasible_target(target_node.value(), robot.value(), x, y);
+//                switch (search_state)
+//                {
+//                    case Navigation<Grid<>,Controller>::SearchState::NEW_TARGET:
+//                        G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) candidate.x());
+//                        G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) candidate.y());
+//                        G->update_node(robot.value());
+//                        if(search_state != last_state)
+//                            qInfo() << __FUNCTION__ << "At target";
+//                        break;
+//                    case Navigation<Grid<>,Controller>::SearchState::AT_TARGET:
+//                        if(search_state != last_state)
+//                            qInfo() << __FUNCTION__ << "At target";
+//                        break;
+//                    case Navigation<Grid<>,Controller>::SearchState::NO_TARGET_FOUND:
+//                        if(search_state != last_state)
+//                            qInfo() << __FUNCTION__ << "No feasible target found";
+//                        break;
+//                }
+//                last_state = search_state;
+//            }
+//            else
+//                qWarning() << __FILE__ << __FUNCTION__ << " No target node with id" << target_id.value() << "found";
+//        }
+//        else
+//            qWarning() << __FILE__ << __FUNCTION__ << " No target node id found in G";
+ //   }
+ //   else
+ //       qWarning() << __FILE__ << __FUNCTION__ << " No node robot found in G";
 
+//    auto state = navigation.update();
+//    navigation.print_state(state);
 }
 
 void  SpecificWorker::moveRobot()
@@ -198,74 +236,57 @@ void  SpecificWorker::checkRobotAutoMovState()
 
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
+    using namespace std::placeholders;
     if( auto target_node = G->get_node(id); target_node.has_value())
     {
-        if (auto robot = G->get_node(robot_name); robot.has_value())
-        {
-            std::cout << __FUNCTION__ << " :" << pos_x << " " << pos_y << " " << id << " " << target_node->name() << std::endl;
-            G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
-            G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) pos_x);
-            G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) pos_y);
-            G->update_node(robot.value());
-        }
-        else
-        {
-            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
-        }
+        const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," +std::to_string(0) + "]";
+        const std::string plan = "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + target_node.value().name() + "\"}}]}";
+        plan_buffer.put(plan, std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
     }
     else
-    {
         qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
-    }
 }
 
-//get changes on G nodes
+///////////////////////////////////////////////////
+/// Asynchronous changes on G nodes from G signals
+///////////////////////////////////////////////////
 void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
 {
     //check node type
+    using namespace std::placeholders;
     if (type == "intention")
     {
-        //check node robot
         auto node = G->get_node(id);
-        if(auto parent = G->get_parent_node(node.value()); parent.has_value())
+        if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {
-            if (parent.value().name() == robot_name)
-            {
-                std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
-                if (plan.has_value())
-                    new_target_from_G(plan.value());
-            }
+            std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
+            if (plan.has_value())
+                  plan_buffer.put(plan.value(), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
         }
     }
 }
 
-void SpecificWorker::new_target_from_G(const std::string &plan)
+//////////////////////////////////////////////7
+/// parser form JSON plan to Plan structure
+void SpecificWorker::json_to_plan(const std::string &plan_string, Plan &plan)
 {
-    std::cout << __FUNCTION__ << " New target from G:" <<plan << std::endl;
-    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan).toUtf8());
+    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan_string).toUtf8());
     QJsonObject planJson = doc.object();
     QJsonArray actionArray = planJson.value("plan").toArray();
     QJsonObject action_0 = actionArray.at(0).toObject();
     QString action = action_0.value("action").toString();
-    if(action == "goto")
+    if (action == "goto")
     {
         QJsonObject action_params = action_0.value("params").toObject();
         QString object = action_params.value("object").toString();
         QJsonArray location = action_params.value("location").toArray();
-        int x = location.at(0).toInt();
-        int z = location.at(1).toInt();
-        float alpha = location.at(2).toDouble();
-        
-//TODO: Way to achive target must be changed
-        std::cout << "TARGET: " << object.toStdString() << " location: " << x << "," << z << "," << alpha << std::endl;
-        if(auto node = G->get_node(object.toStdString()); node.has_value())
-        {
-            new_target_from_mouse(x, z, node.value().id());
-        }
+        plan.params["x"] = location.at(0).toDouble();
+        plan.params["y"] = location.at(1).toDouble();
+        plan.params["angle"] = location.at(2).toDouble();
+        plan.action = Plan::Actions::GOTO;
+        plan.target_place = object.toStdString();
     }
 }
-
-
 
 ///////////////////////////////////////////////////
 /// GUI
@@ -275,7 +296,7 @@ void SpecificWorker::sendRobotTo()
 {
     auto x =  custom_widget.x_spinbox->value();
     auto z =  custom_widget.z_spinbox->value();
-    navigation.newTarget(QPointF(x,z));
+    navigation.newTarget(Mat::Vector2d (x, z));
 }
 
 void SpecificWorker::stopRobot()
@@ -299,4 +320,35 @@ int SpecificWorker::startup_check()
 /**************************************/
 // From the RoboCompSocialRules you can use this types:
 // RoboCompSocialRules::SRObject
+//if (auto robot = G->get_node(robot_name); robot.has_value())
+//        {
+//            std::cout << __FUNCTION__ << " :" << pos_x << " " << pos_y << " " << id << " " << target_node->name() << std::endl;
+//            G->add_or_modify_attrib_local<target_node_id>(robot.value(), (int) target_node.value().id());
+//            G->add_or_modify_attrib_local<base_target_x>(robot.value(), (float) pos_x);
+//            G->add_or_modify_attrib_local<base_target_y>(robot.value(), (float) pos_y);
+//            G->update_node(robot.value());
+//        }
+//        else
+//        {
+//            qWarning() << __FILE__ << __FUNCTION__ << " No node robot found";
+//        }
 
+
+//                plan_buffer.put(plan.value(), [](auto &plan_string, auto &plan) {
+//                    QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(plan_string).toUtf8());
+//                    QJsonObject planJson = doc.object();
+//                    QJsonArray actionArray = planJson.value("plan").toArray();
+//                    QJsonObject action_0 = actionArray.at(0).toObject();
+//                    QString action = action_0.value("action").toString();
+//                    if (action == "goto")
+//                    {
+//                        QJsonObject action_params = action_0.value("params").toObject();
+//                        QString object = action_params.value("object").toString();
+//                        QJsonArray location = action_params.value("location").toArray();
+//                        plan.params["x"] = location.at(0).toDouble();
+//                        plan.params["y"] = location.at(1).toDouble();
+//                        plan.params["angle"] = location.at(2).toDouble();
+//                        plan.action = Plan::Actions::GOTO;
+//                        plan.target_place = object.toStdString();
+//                    }
+//                });

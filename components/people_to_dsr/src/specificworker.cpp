@@ -60,7 +60,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
-        G->set_ignored_attributes<rgb_att, dists_att, angles_att, img_depth>();
+        G->set_ignored_attributes<cam_rgb_att, laser_dists_att, laser_angles_att, cam_depth_att>();
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
@@ -137,7 +137,7 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
                 
 std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;                    
                     RTMat world_to_joint( 0.0, 0.0, 0.0, key.wx, key.wy, key.wz);
-                    auto world_to_parent = innermodel->getTransformationMatrixS(parent_name, "world");
+                    auto world_to_parent = innermodel->get_transformation_matrix(parent_name, "world");
                     
                     QVec joint_to_parentIA = (world_to_joint * world_to_parent.value() ).getTr();
                     std::vector<float> jtp{ joint_to_parentIA.x(), joint_to_parentIA.y(), joint_to_parentIA.z()};

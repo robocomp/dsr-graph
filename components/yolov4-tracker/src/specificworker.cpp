@@ -77,34 +77,29 @@ void SpecificWorker::initialize(int period)
 
         // innermodel
         innermodel = G->get_inner_api();
+        inner_eigen = G->get_inner_eigen_api();
 
-		// Graph viewer
+        // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
-		{
 		    current_opts = current_opts | opts::tree;
-		}
 		if(graph_view)
-		{
+        {
 		    current_opts = current_opts | opts::graph;
 		    main = opts::graph;
 		}
 		if(qscene_2d_view)
-		{
 		    current_opts = current_opts | opts::scene;
-		}
 		if(osg_3d_view)
-		{
 		    current_opts = current_opts | opts::osg;
-		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		// custom_widget
 		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 		// ignore attributes
-        G->set_ignored_attributes<angles_att, dists_att, depth_att>();
+        G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_depth_att>();
         this->Period = period;
         timer.start(Period);
         READY_TO_GO = true;
@@ -118,8 +113,8 @@ void SpecificWorker::compute()
     {
         // get and process RGB image
         auto g_image = G->get_rgb_image(rgb_camera.value());
-        auto width = G->get_attrib_by_name<rgb_width>(rgb_camera.value());
-        auto height = G->get_attrib_by_name<rgb_height>(rgb_camera.value());
+        auto width = G->get_attrib_by_name<cam_rgb_width_att >(rgb_camera.value());
+        auto height = G->get_attrib_by_name<cam_rgb_height_att>(rgb_camera.value());
         if (width.has_value() and height.has_value())
         {
             // create opencv image
@@ -204,11 +199,15 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
 
 std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam)
 {
-    std::string camera_name = "camera_pose";
     std::vector<Box> synth_box;
     //  get camera subAPI
-    RMat::Cam camera(527, 527, 608/2, 608/2);
+    static  std::unique_ptr<DSR::CameraAPI> camera_api = G->get_camera_api(rgb_cam);
+
     //320/np.tan(np.deg2rad(30))
+    const double fx=527; const double fy=527;
+    const int center_x=608/2; const int center_y=608/2;
+    auto project = [fx, fy, center_x, center_y](const QVec &p)
+            { return QVec::vec2(fx*p.y()/p.x() + center_x, fy*p.z()/p.x() + center_y);  };
 
     for(auto &&object_name : object_names)
     {
@@ -219,14 +218,25 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             std::vector<QVec> bb_in_camera;
             const float h = 150;
 
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,0,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,0,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,-0,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(40,h,-40), object_name).value()));
-            bb_in_camera.emplace_back(camera.project(innermodel->transformS(camera_name, QVec::vec3(-40,h,-40), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,-40,0), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40, 40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40, -40, h), object_name).value()));
+            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
+
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value()));
+//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value()));
+//
+
             // Compute a bounding box of pixel coordinates
             // Sort the coordinates x
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -248,6 +258,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             box.name = object_name;
             // store projection of bounding box
             synth_box.push_back(box);
+
+            //innermodel->transformS(camera_name, object_name).value().print("object");
+            //camera.print("camera");
+            //camera.project(innermodel->transformS(camera_name, object_name).value()).print("proj");
         }
     }
     return synth_box;
@@ -259,23 +273,20 @@ void SpecificWorker::track_object_of_interest()
     auto pan_tilt = G->get_node(viriato_pan_tilt);
     if(object.has_value() and pan_tilt.has_value())
     {
-        // get object pose in camera coordinate frame
-        //auto pose = innermodel->transformS(camera_name, object_of_interest);
-        auto pose = innermodel->transformS(world_node, object_of_interest);
-        // make it 200 mm vector
-        //auto n_pose = pose->normalize() * pose->norm2();
-        // transform to world coordinate frame so in Coppelia appears as the nose_target_dummy
-        //pose = innermodel->transformS(world_node, pose, camera_name);
+        // get object pose in world coordinate frame
+        auto pose = innermodel->transform(world_node, object_of_interest);
         if (pose.has_value())
         {
             // get pan_tilt current target pose
-            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target>(pan_tilt.value()); current_pose.has_value())
+            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); current_pose.has_value())
             {
-                QVec qcurrent_pose(current_pose.value());
+                std::vector<float> kaka = current_pose.value();
+                std::vector<double> kk(kaka.begin(), kaka.end());
+                QVec qcurrent_pose(kk);
                 //if they are different modify G
                 if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
                 {
-                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target>(pan_tilt.value(), std::vector<float>{pose.value().x(), pose.value().y(), pose.value().z()});
+                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
                     G->update_node(pan_tilt.value());
                 }
             }

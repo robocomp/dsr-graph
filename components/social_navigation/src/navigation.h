@@ -51,18 +51,18 @@ class Navigation
         State update();
         std::string checkPathState();
         void newRandomTarget();
-        void newTarget(QPointF newT);
+        void newTarget(Mat::Vector2d newT);
         void print_state(State state) const;
-        std::tuple<SearchState, QVector2D> search_a_feasible_target(const Node &target, const Node &robot, std::optional<float> x, std::optional<float> y);
+        std::tuple<SearchState, Mat::Vector2d> search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot);
 
         // Target
         struct Target : public std::mutex
         {
-            QPointF p;
+            Mat::Vector2d p;
             std::atomic_bool active = false;
             std::atomic_bool blocked = true;
             std::atomic_bool humanBlock = false;
-            bool operator==(const QPointF &t) const { return p==t; };
+            bool operator==(const Mat::Vector2d &t) const { return p==t; };
         };
         Target current_target;
         bool robotAutoMov = false;
@@ -76,6 +76,8 @@ class Navigation
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<Collisions> collisions;
         std::shared_ptr<DSR::InnerAPI> innerModel;
+        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+        std::shared_ptr<DSR::RT_API> rt_api;
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> configparams;
 
         //typedef struct { float dist; float angle;} LocalPointPol;
@@ -89,7 +91,10 @@ class Navigation
 
         TMap grid;
         TController controller;
-        std::string robot_name = "omnirobot";
+        const std::string robot_name = "omnirobot";
+        const std::string world_name = "world";
+        const std::string floor_name = "infiniteFloor";
+        const std::string laser_name = "laser";
         Grid<>::Dimensions dim;
 
         // Scene
@@ -107,9 +112,9 @@ class Navigation
         QPolygonF currentRobotPolygon;
         //laser_poly;
         //std::vector<QPointF> laser_cart;
-        QVec currentRobotPose;
+        Mat::Vector6d currentRobotPose;
         float robotXWidth, robotZLong; //robot dimensions read from config
-        QVec robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
+        Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         bool gridChanged = false;
         std::map<float, vector<QPolygonF>> mapCostObjects;
         std::vector<QGraphicsLineItem *> scene_road_points;
