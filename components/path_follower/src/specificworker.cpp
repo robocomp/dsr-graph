@@ -260,9 +260,9 @@ std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std:
     auto rot = (rot_conv * QVec::vec2(rot_,1.0))[0];
     auto side = (side_conv * QVec::vec2(side_, 1.0))[0];
     auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local<ref_adv_speed_att>(robot_node.value(),  (float)adv);
-    G->add_or_modify_attrib_local<ref_rot_speed_att>(robot_node.value(), (float)rot);
-    G->add_or_modify_attrib_local<ref_side_speed_att>(robot_node.value(),  (float)side);
+    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv);
+    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot);
+    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side);
     G->update_node(robot_node.value());
     return std::make_tuple(adv, side, rot);
 }

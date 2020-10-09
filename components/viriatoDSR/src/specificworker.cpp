@@ -77,9 +77,9 @@ void SpecificWorker::initialize(int period)
          //Set base speed reference to 0
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
-            G->insert_or_assign_attrib<ref_adv_speed_att>(robot.value(), (float)0);
-            G->insert_or_assign_attrib<ref_rot_speed_att>(robot.value(), (float)0);
-            G->insert_or_assign_attrib<ref_side_speed_att>(robot.value(), (float)0);
+            G->insert_or_assign_attrib<robot_ref_adv_speed_att>(robot.value(), (float)0);
+            G->insert_or_assign_attrib<robot_ref_rot_speed_att>(robot.value(), (float)0);
+            G->insert_or_assign_attrib<robot_ref_side_speed_att>(robot.value(), (float)0);
         }
 
         // Graph viewer
@@ -188,10 +188,10 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
         {
             qInfo() << "angle " << bState.alpha;
             auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
-            G->modify_attrib_local<rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
-            G->modify_attrib_local<translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
-            G->modify_attrib_local<linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
-            G->modify_attrib_local<angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
+            G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
+            G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
+            G->modify_attrib_local<robot_current_linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
+            G->modify_attrib_local<robot_current_angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
             G->insert_or_assign_edge(edge);
             last_state = bState;
             return bState;
@@ -241,9 +241,9 @@ void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseStat
         qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(robot_name);
         return;
     }
-    auto ref_adv_speed = G->get_attrib_by_name<ref_adv_speed_att>(robot.value());
-    auto ref_rot_speed = G->get_attrib_by_name<ref_rot_speed_att>(robot.value());
-    auto ref_side_speed = G->get_attrib_by_name<ref_side_speed_att>(robot.value());
+    auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
+    auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
+    auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
     if(not ref_adv_speed.has_value() or not ref_rot_speed.has_value() or not ref_side_speed.has_value())
     {
         qWarning() << __FUNCTION__ << " No valid attributes for robot speed";
