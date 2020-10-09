@@ -33,7 +33,7 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../etc/viriato_graph_names.h"
+#include  "../../../etc/viriato_graph_names.h"
 
 class Plan
 {
