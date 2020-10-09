@@ -10,7 +10,7 @@
 
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>, false)
 
 void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
 {

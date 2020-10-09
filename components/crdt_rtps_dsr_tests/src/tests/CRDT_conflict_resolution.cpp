@@ -10,7 +10,7 @@
 #include <fstream>
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const string>)
+REGISTER_TYPE(testattrib, std::reference_wrapper<const string>, false)
 
 void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
 {
