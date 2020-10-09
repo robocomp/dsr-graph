@@ -46,7 +46,7 @@
                         "dst": 2,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -54,7 +54,7 @@
                                     -1.5707937957238332
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3206.951,
@@ -69,7 +69,7 @@
                         "dst": 3,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -77,7 +77,7 @@
                                     -1.570792870700111
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     267.28200000000004,
@@ -92,7 +92,7 @@
                         "dst": 4,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -100,7 +100,7 @@
                                     -1.5708205690519443
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -1930.7069999999999,
@@ -115,7 +115,7 @@
                         "dst": 5,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -123,7 +123,7 @@
                                     -1.570792870700111
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3206.9260000000004,
@@ -138,7 +138,7 @@
                         "dst": 6,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -146,7 +146,7 @@
                                     -1.570792870700111
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     267.305,
@@ -161,7 +161,7 @@
                         "dst": 7,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -169,7 +169,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     3188.2980000000002,
@@ -184,7 +184,7 @@
                         "dst": 8,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -192,7 +192,7 @@
                                     -1.570792870700111
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     4233.299,
@@ -207,7 +207,7 @@
                         "dst": 9,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -215,7 +215,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     5279.831999999999,
@@ -230,7 +230,7 @@
                         "dst": 10,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -238,7 +238,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     3188.282,
@@ -253,7 +253,7 @@
                         "dst": 11,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -261,7 +261,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     5329.831,
@@ -276,7 +276,7 @@
                         "dst": 12,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -284,7 +284,7 @@
                                     -1.570792870700111
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     4258.286,
@@ -299,7 +299,7 @@
                         "dst": 13,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -307,7 +307,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3925.933,
@@ -322,7 +322,7 @@
                         "dst": 14,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -330,7 +330,7 @@
                                     2.740164611111111e-06
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3925.9460000000004,
@@ -345,7 +345,7 @@
                         "dst": 15,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -1.5707955410516112,
@@ -353,7 +353,7 @@
                                     -1.5707969896736664
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3299.9390000000003,
@@ -368,7 +368,7 @@
                         "dst": 16,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -376,7 +376,7 @@
                                     3.141589458948389
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -2817.708,
@@ -391,7 +391,7 @@
                         "dst": 17,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -1.5707955410516112,
@@ -399,7 +399,7 @@
                                     -1.570797129299889
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -3299.935,
@@ -414,7 +414,7 @@
                         "dst": 18,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -422,7 +422,7 @@
                                     3.141589458948389
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -2817.7059999999997,
@@ -437,7 +437,7 @@
                         "dst": 19,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -4.886917777777777e-07,
@@ -445,7 +445,7 @@
                                     -1.5708205690519443
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     3269.2929999999997,
@@ -460,7 +460,7 @@
                         "dst": 20,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     -0.0,
@@ -468,7 +468,7 @@
                                     -0.0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -483,7 +483,7 @@
                         "dst": 200,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -491,7 +491,7 @@
                                     0.0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -506,7 +506,7 @@
                         "dst": 23,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -514,7 +514,7 @@
                                     0.0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -529,7 +529,7 @@
                         "dst": 60,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -537,7 +537,7 @@
                                     0.0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0.0,
@@ -1114,15 +1114,15 @@
                         "type": 2,
                         "value": -300.738739
                     },
-                    "ref_adv_speed": {
+                    "robot_ref_adv_speed": {
                         "type": 2,
                         "value": 0
                     },
-                    "ref_rot_speed": {
+                    "robot_ref_rot_speed": {
                         "type": 2,
                         "value": 0
                     },
-                    "ref_side_speed": {
+                    "robot_ref_side_speed": {
                         "type": 2,
                         "value": 0
                     }
@@ -1133,7 +1133,7 @@
                         "dst": 201,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     3.14,
@@ -1141,7 +1141,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1156,7 +1156,7 @@
                         "dst": 202,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1164,7 +1164,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1179,7 +1179,7 @@
                         "dst": 206,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1187,7 +1187,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1275,7 +1275,7 @@
                         "dst": 203,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1283,7 +1283,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1298,7 +1298,7 @@
                         "dst": 204,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1306,7 +1306,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     100,
@@ -1321,7 +1321,7 @@
                         "dst": 205,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1329,7 +1329,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -100,
@@ -1346,7 +1346,7 @@
             },
             "203": {
                 "attribute": {
-                    "angles": {
+                    "laser_angles": {
                         "type": 3,
                         "value": []
                     },
@@ -1354,7 +1354,7 @@
                         "type": 0,
                         "value": "GreenYellow"
                     },
-                    "dists": {
+                    "laser_dists": {
                         "type": 3,
                         "value": []
                     },
@@ -1517,7 +1517,7 @@
                         "dst": 207,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1525,7 +1525,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1569,7 +1569,7 @@
                         "dst": 208,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     1.0471975803375244,
@@ -1577,7 +1577,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1625,7 +1625,7 @@
                         "dst": 209,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1633,7 +1633,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1677,7 +1677,7 @@
                         "dst": 210,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1685,7 +1685,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1702,45 +1702,9 @@
             },
             "210": {
                 "attribute": {
-                    "alivetime": {
-                        "type": 1,
-                        "value": 1599986092
-                    },
                     "color": {
                         "type": 0,
                         "value": "Blue"
-                    },
-                    "depth.cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "depthFactor": {
-                        "type": 2,
-                        "value": 0
-                    },
-                    "depth_cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "depth_height": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "depth_width": {
-                        "type": 1,
-                        "value": 640
-                    },
-                    "focal": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "focalx": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "focaly": {
-                        "type": 1,
-                        "value": 369
                     },
                     "height": {
                         "type": 1,
@@ -1749,10 +1713,6 @@
                     "ifconfig": {
                         "type": 0,
                         "value": "40000,50000"
-                    },
-                    "img_depth": {
-                        "type": 5,
-                        "value": []
                     },
                     "level": {
                         "type": 1,
@@ -1769,42 +1729,6 @@
                     "pos_y": {
                         "type": 2,
                         "value": 14.53627
-                    },
-                    "rgb": {
-                        "type": 5,
-                        "value": []
-                    },
-                    "rgb.cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "rgb_alivetime": {
-                        "type": 1,
-                        "value": 1599986092
-                    },
-                    "rgb_cameraID": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "rgb_depth": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "rgb_focalx": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "rgb_focaly": {
-                        "type": 1,
-                        "value": 369
-                    },
-                    "rgb_height": {
-                        "type": 1,
-                        "value": 480
-                    },
-                    "rgb_width": {
-                        "type": 1,
-                        "value": 640
                     },
                     "width": {
                         "type": 1,
@@ -1845,7 +1769,7 @@
                         "dst": 24,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1853,7 +1777,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     1400,
@@ -1868,7 +1792,7 @@
                         "dst": 28,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1876,7 +1800,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -500,
@@ -1891,7 +1815,7 @@
                         "dst": 34,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1899,7 +1823,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -2800,
@@ -1914,7 +1838,7 @@
                         "dst": 38,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1922,7 +1846,7 @@
                                     1.57
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -2000,
@@ -1966,7 +1890,7 @@
                         "dst": 25,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1974,7 +1898,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1989,7 +1913,7 @@
                         "dst": 26,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -1997,7 +1921,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     6,
@@ -2012,7 +1936,7 @@
                         "dst": 27,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     3.1415927410125732,
@@ -2020,7 +1944,7 @@
                                     3.1415927410125732
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -150,
@@ -2196,7 +2120,7 @@
                         "dst": 29,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2204,7 +2128,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2219,7 +2143,7 @@
                         "dst": 30,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2227,7 +2151,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -520,
@@ -2242,7 +2166,7 @@
                         "dst": 31,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2250,7 +2174,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -520,
@@ -2265,7 +2189,7 @@
                         "dst": 32,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2273,7 +2197,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     520,
@@ -2288,7 +2212,7 @@
                         "dst": 33,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2296,7 +2220,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     520,
@@ -2604,7 +2528,7 @@
                         "dst": 35,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2612,7 +2536,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2627,7 +2551,7 @@
                         "dst": 36,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2635,7 +2559,7 @@
                                     1.505387544631958
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     240,
@@ -2650,7 +2574,7 @@
                         "dst": 37,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2658,7 +2582,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2834,7 +2758,7 @@
                         "dst": 39,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2842,7 +2766,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2857,7 +2781,7 @@
                         "dst": 40,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2865,7 +2789,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -375,
@@ -2880,7 +2804,7 @@
                         "dst": 41,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2888,7 +2812,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -375,
@@ -2903,7 +2827,7 @@
                         "dst": 42,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2911,7 +2835,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     375,
@@ -2926,7 +2850,7 @@
                         "dst": 43,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -2934,7 +2858,7 @@
                                     1.5707999467849731
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     375,
@@ -3330,7 +3254,7 @@
                         "dst": 64,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3338,7 +3262,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     2900,
@@ -3353,7 +3277,7 @@
                         "dst": 68,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3361,7 +3285,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     1500,
@@ -3376,7 +3300,7 @@
                         "dst": 71,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3384,7 +3308,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -100,
@@ -3428,7 +3352,7 @@
                         "dst": 65,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3436,7 +3360,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -50,
@@ -3451,7 +3375,7 @@
                         "dst": 66,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3459,7 +3383,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -100,
@@ -3474,7 +3398,7 @@
                         "dst": 67,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3482,7 +3406,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     -400,
@@ -3658,7 +3582,7 @@
                         "dst": 69,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3666,7 +3590,7 @@
                                     0
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
@@ -3681,7 +3605,7 @@
                         "dst": 70,
                         "label": "RT",
                         "linkAttribute": {
-                            "rotation_euler_xyz": {
+                            "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
                                     3.1415927410125732,
@@ -3689,7 +3613,7 @@
                                     3.1415927410125732
                                 ]
                             },
-                            "translation": {
+                            "rt_translation": {
                                 "type": 3,
                                 "value": [
                                     0,
