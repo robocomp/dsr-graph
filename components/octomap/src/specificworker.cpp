@@ -96,14 +96,17 @@ void SpecificWorker::initialize(int period)
 
         //Custom widget
         graph_viewer->add_custom_widget_to_dock("Octomap", &custom_widget);
+        custom_widget.show();
 
         // Octomap
-		octo = std::make_unique<octomap::OcTree>(1);
-        auto octree_drawer = new octomap::OcTreeDrawer();
-		custom_widget.addSceneObject(octree_drawer);
-
-		// initialize from file or G
+		octo = new octomap::OcTree(0.1);
 		//initialize_octomap(false, "octomap.map");
+        otr.id = 0;
+        otr.octree_drawer = new octomap::OcTreeDrawer();
+        otr.octree_drawer->enableOcTree();
+        otr.octree = octo;
+        otr.origin = octomap::pose6d();
+        custom_widget.addSceneObject(otr.octree_drawer);
 
 		this->Period = period;
 		timer.start(Period);
@@ -112,13 +115,81 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
+    static octomap::point3d robot_pose{0,0,0};
+    if( const auto r_pose = robot_pose_buffer.try_get(); r_pose.has_value())
+        robot_pose = r_pose.value();
+    if( const auto scan = laser_buffer.try_get(); scan.has_value())
     {
-        for(const auto &point : laser_data.value())
-            octo->updateNode(point, true);
+        octo->insertPointCloud(scan.value(), robot_pose, 10);
         std::cout << octo->size() << std::endl;
-        // if changes, publish in G
     }
+    //octo->updateInnerOccupancy();
+    show_OcTree();
+}
+
+void SpecificWorker::show_OcTree()
+{
+    // update viewer stat
+    double minX, minY, minZ, maxX, maxY, maxZ;
+    minX = minY = minZ = -10; // min bbx for drawing
+    maxX = maxY = maxZ = 10;  // max bbx for drawing
+    double sizeX, sizeY, sizeZ;
+    sizeX = sizeY = sizeZ = 0.;
+    size_t memoryUsage = 0;
+    size_t num_nodes = 0;
+    size_t memorySingleNode = 0;
+
+    // get map bbx
+    double lminX, lminY, lminZ, lmaxX, lmaxY, lmaxZ;
+    otr.octree->getMetricMin(lminX, lminY, lminZ);
+    otr.octree->getMetricMax(lmaxX, lmaxY, lmaxZ);
+    // transform to world coords using map origin
+    octomap::point3d pmin(lminX, lminY, lminZ);
+    octomap::point3d pmax(lmaxX, lmaxY, lmaxZ);
+    pmin = otr.origin.transform(pmin);
+    pmax = otr.origin.transform(pmax);
+    lminX = pmin.x(); lminY = pmin.y(); lminZ = pmin.z();
+    lmaxX = pmax.x(); lmaxY = pmax.y(); lmaxZ = pmax.z();
+    // update global bbx
+    if (lminX < minX) minX = lminX;
+    if (lminY < minY) minY = lminY;
+    if (lminZ < minZ) minZ = lminZ;
+    if (lmaxX > maxX) maxX = lmaxX;
+    if (lmaxY > maxY) maxY = lmaxY;
+    if (lmaxZ > maxZ) maxZ = lmaxZ;
+    double lsizeX, lsizeY, lsizeZ;
+    // update map stats
+    otr.octree->getMetricSize(lsizeX, lsizeY, lsizeZ);
+    if (lsizeX > sizeX) sizeX = lsizeX;
+    if (lsizeY > sizeY) sizeY = lsizeY;
+    if (lsizeZ > sizeZ) sizeZ = lsizeZ;
+    memoryUsage += otr.octree->memoryUsage();
+    num_nodes += otr.octree->size();
+    memorySingleNode = std::max(memorySingleNode, otr.octree->memoryUsageNode());
+
+    custom_widget.setSceneBoundingBox(qglviewer::Vec(minX, minY, minZ), qglviewer::Vec(maxX, maxY, maxZ));
+
+    QString size = QString("%L1 x %L2 x %L3 m^3; %L4 nodes").arg(sizeX).arg(sizeY).arg(sizeZ).arg(unsigned(num_nodes));
+    QString memory = QString("Single node: %L1 B; ").arg(memorySingleNode)
+                     + QString ("Octree: %L1 B (%L2 MB)").arg(memoryUsage).arg((double) memoryUsage/(1024.*1024.), 0, 'f', 3);
+    //m_mapMemoryStatus->setText(memory);
+    //m_mapSizeStatus->setText(size);
+    custom_widget.update();
+
+    // generate cubes -> display
+    // timeval start;
+    // timeval stop;
+    // gettimeofday(&start, NULL);  // start timer
+//    for (std::map<int, OcTreeRecord>::iterator it = m_octrees.begin(); it != m_octrees.end(); ++it) {
+//        it->second.octree_drawer->setMax_tree_depth(m_max_tree_depth);
+//        it->second.octree_drawer->setOcTree(*it->second.octree, it->second.origin, it->second.id);
+//    }
+
+    otr.octree_drawer->setOcTree(*otr.octree, otr.origin, otr.id);
+    //    gettimeofday(&stop, NULL);  // stop timer
+    //    double time_to_generate = (stop.tv_sec - start.tv_sec) + 1.0e-6 *(stop.tv_usec - start.tv_usec);
+    //    fprintf(stderr, "setOcTree took %f sec\n", time_to_generate);
+    custom_widget.update();
 }
 
 void SpecificWorker::initialize_octomap(bool read_from_file, const std::string file_name)
@@ -203,19 +274,31 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                 if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
                 laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
-                                 [this](const LaserData &in, std::vector<octomap::point3d> &out) {
+                                 [this](const LaserData &in, octomap::Pointcloud &out) {
                                      const auto &[angles, dists] = in;
+                                     Mat::Vector3d laser_world;
+                                     //octomap::Pointcloud *pointcloud = new octomap::Pointcloud;
+                                     octomap::Pointcloud pointcloud;
                                      for (const auto &[angle, dist] : iter::zip(angles, dists))
                                      {
                                          //convert laser polar coordinates to cartesian
-                                         float x = dist * sin(angle);
-                                         float y = dist * cos(angle);
-                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
-                                         out.emplace_back(laserWorld.x(), laserWorld.y(), 10);
+                                         float x = dist * sin(angle); float y = dist * cos(angle); float z = 10;
+                                         laser_world = inner_eigen->transform(world_name,Mat::Vector3d(x, y, z), laser_name).value();
+                                         pointcloud.push_back(octomap::point3d(laser_world.x()/1000., laser_world.y()/1000., laser_world.z()/1000.));
                                      }
+//                                     out.scan = std::move(pointcloud);
+//                                     out.id = 0;
+//                                     auto r = inner_eigen->transform_axis(world_name, robot_name).value();
+//                                     out.pose = octomap::pose6d(r.x(),r.y(),r.z(),r(3),r(4),r(5));
+                                     out = pointcloud;
                                  });
             }
         }
+    }
+    else if (type == omnirobot_type)    // Laser node updated
+    {
+        if(auto r = inner_eigen->transform(world_name, robot_name); r.has_value())
+            robot_pose_buffer.put(octomap::point3d(r.value().x(), r.value().y(), r.value().z()));
     }
 }
 
