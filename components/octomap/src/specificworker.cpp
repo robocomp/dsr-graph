@@ -25,6 +25,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -39,16 +40,7 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
+    conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
 
@@ -80,32 +72,38 @@ void SpecificWorker::initialize(int period)
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
-		{
 		    current_opts = current_opts | opts::tree;
-		}
 		if(graph_view)
-		{
+        {
 		    current_opts = current_opts | opts::graph;
 		    main = opts::graph;
 		}
 		if(qscene_2d_view)
-		{
-		    current_opts = current_opts | opts::scene;
-		}
+			    current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
-		{
 		    current_opts = current_opts | opts::osg;
-		}
+
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
+        // Ignore attributes from G
+        G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
+
+        //Custom widget
+        graph_viewer->add_custom_widget_to_dock("Octomap", &custom_widget);
+
         // Octomap
 		octo = std::make_unique<octomap::OcTree>(1);
-		// initializa from file or G
-		initialize_octomap();
+        auto octree_drawer = new octomap::OcTreeDrawer();
+		custom_widget.addSceneObject(octree_drawer);
+
+		// initialize from file or G
+		//initialize_octomap(false, "octomap.map");
 
 		this->Period = period;
 		timer.start(Period);
@@ -118,14 +116,75 @@ void SpecificWorker::compute()
     {
         for(const auto &point : laser_data.value())
             octo->updateNode(point, true);
-
+        std::cout << octo->size() << std::endl;
         // if changes, publish in G
     }
 }
 
-void SpecificWorker::initialize_octomap()
+void SpecificWorker::initialize_octomap(bool read_from_file, const std::string file_name)
 {
+    qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
+    Dimensions dim;
+    QRectF outerRegion;
+    auto world_node_o = G->get_node(world_name);
+    if(not world_node_o.has_value())
+        qFatal("Not World node found at initialize-octomap");
+    auto world_node = world_node_o.value();
+    auto l = G->get_attrib_by_name<OuterRegionLeft_att>(world_node);
+    auto r = G->get_attrib_by_name<OuterRegionRight_att>(world_node);
+    auto b = G->get_attrib_by_name<OuterRegionBottom_att>(world_node);
+    auto t = G->get_attrib_by_name<OuterRegionTop_att>(world_node);
+    if( not (l.has_value() and r.has_value() and b.has_value() and t.has_value()))
+        qFatal("In initialize_octomap, Outer region of the scene not found in G. Aborting");
+    outerRegion.setLeft(l.value());
+    outerRegion.setRight(r.value());
+    outerRegion.setBottom(b.value());
+    outerRegion.setTop(t.value());
 
+    // if read_from_file is true we should read the parameters from the file to guarantee consistency
+    dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
+    dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
+    dim.VMIN = std::min(outerRegion.top(), outerRegion.bottom());
+    dim.HEIGHT = std::max(outerRegion.top(), outerRegion.bottom()) - dim.VMIN;
+    // std::cout << __FUNCTION__ << "TileSize is " << conf_params->at("TileSize").value << std::endl;
+    //dim.TILE_SIZE = stoi(conf_params->at("TileSize").value);
+    dim.TILE_SIZE = 10;
+    dim.MAX_HEIGHT = 1600;
+
+    QStringList ls = QString::fromStdString(conf_params->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
+    std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
+    std::vector<std::string> excluded_objects;
+    foreach(const QString &s, ls)
+        excluded_objects.emplace_back(s.toStdString());
+
+    collisions =  std::make_shared<Collisions>();
+    collisions->initialize(G, excluded_objects);
+
+    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+
+    if(read_from_file and not file_name.empty())
+    {
+        //readFromFile(file_name);
+    }
+    else
+    {
+        std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
+        auto G_copy = G->G_copy();
+        for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
+        {
+            for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
+            {
+                for(int z = 0; z < dim.MAX_HEIGHT ; z += dim.TILE_SIZE)
+                {
+//                    bool occupied = collisions->checkOccupancyOfVoxel(G_copy, i, j, z, dim.TILE_SIZE);
+//                    occupied = true;
+                }
+            }
+            std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
+        }
+        //if(not file_name.empty())
+        //    saveToFile(file_name);
+    }
 }
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
