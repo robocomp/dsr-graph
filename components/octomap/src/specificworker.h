@@ -26,12 +26,17 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include "custom_widget.h"
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include "collisions.h"
+#include <octovis/OcTreeDrawer.h>
+#include <octovis/ViewerWidget.h>
+#include <QGLViewer/qglviewer.h>
 
 class SpecificWorker : public GenericWorker
 {
@@ -55,6 +60,7 @@ private:
 	//DSR params
 	std::string agent_name;
 	int agent_id;
+    std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
 	bool tree_view;
 	bool graph_view;
@@ -66,12 +72,26 @@ private:
 	QHBoxLayout mainLayout;
 	bool startup_check_flag;
 
+    //local widget
+    Custom_widget custom_widget;
+
+
     using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
     DoubleBuffer<LaserData, std::vector<octomap::point3d>> laser_buffer;
+    std::shared_ptr<Collisions> collisions;
 
 	// Octree
 	std::unique_ptr<octomap::OcTree> octo;
-	void initialize_octomap();
+	void initialize_octomap(bool read_from_file = false, const std::string file_name = std::string());
+	//octomap::OcTreeDrawer octo_drawer;
+	//octomap::ViewerWidget *octo_viewer;
+
+    struct Dimensions
+    {
+        int TILE_SIZE = 100;
+        float MAX_HEIGHT = 1600;
+        float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
+    };
 
 };
 

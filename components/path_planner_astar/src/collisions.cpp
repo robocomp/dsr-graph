@@ -32,8 +32,8 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     //    for(auto n : restNodes)
     //        std::cout << n << std::endl;
     // std::cout << __FUNCTION__ << "lists" ;
-    //std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
-    //std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
+    // std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
+    // std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
     qsrand( QTime::currentTime().msec() );
 }
 
