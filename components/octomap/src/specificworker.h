@@ -36,6 +36,7 @@
 #include "collisions.h"
 #include <octovis/OcTreeDrawer.h>
 #include <octovis/ViewerWidget.h>
+#include <octovis/OcTreeRecord.h>
 #include <QGLViewer/qglviewer.h>
 
 class SpecificWorker : public GenericWorker
@@ -77,14 +78,18 @@ private:
 
 
     using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
-    DoubleBuffer<LaserData, std::vector<octomap::point3d>> laser_buffer;
+    DoubleBuffer<LaserData, octomap::Pointcloud> laser_buffer;
+    DoubleBuffer<octomap::point3d, octomap::point3d> robot_pose_buffer;
     std::shared_ptr<Collisions> collisions;
 
 	// Octree
-	std::unique_ptr<octomap::OcTree> octo;
+	//octomap::point3d robot_pose{0,0,0};
+	octomap::OcTree *octo;
 	void initialize_octomap(bool read_from_file = false, const std::string file_name = std::string());
+    void show_OcTree();
 	//octomap::OcTreeDrawer octo_drawer;
 	//octomap::ViewerWidget *octo_viewer;
+    octomap::OcTreeRecord otr;
 
     struct Dimensions
     {

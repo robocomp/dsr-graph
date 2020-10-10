@@ -21,6 +21,8 @@ const std::string collision_box_name= "collision_box";
 const std::string path_to_target_type = "path_to_target";
 const std::string intention_type = "intention";
 const std::string laser_type = "laser";
+const std::string omnirobot_type = "omnirobot";
+
 
 // EDGES TYPES
 const std::string think_type = "thinks";
