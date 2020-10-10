@@ -92,7 +92,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
+        G->set_ignored_attributes<cam_rgb_att>();
 
         //Custom widget
         graph_viewer->add_custom_widget_to_dock("Octomap", &custom_widget);
@@ -121,10 +121,16 @@ void SpecificWorker::compute()
     if( const auto scan = laser_buffer.try_get(); scan.has_value())
     {
         octo->insertPointCloud(scan.value(), robot_pose, 10);
-        std::cout << octo->size() << std::endl;
     }
-    //octo->updateInnerOccupancy();
+    if( const auto cloud = pointcloud_buffer.try_get(); cloud.has_value())
+    {
+        //octo->insertPointCloud(cloud.value(), robot_pose, 10);
+    }
+    std::cout << octo->size() << std::endl;
     show_OcTree();
+
+    //std::ostringstream data;
+    //octo->writeBinary(data);
 }
 
 void SpecificWorker::show_OcTree()
@@ -300,6 +306,28 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
         if(auto r = inner_eigen->transform(world_name, robot_name); r.has_value())
             robot_pose_buffer.put(octomap::point3d(r.value().x(), r.value().y(), r.value().z()));
     }
+    if (type == rgbd_type)    // Laser node updated
+        if( auto node = G->get_node(id); node.has_value())
+        {
+            if( const auto depth_data_o = G->get_depth_image(node.value()); depth_data_o.has_value())
+            {
+                const auto depth_width = G->get_attrib_by_name<cam_depth_width_att>(node.value());
+                const auto depth_focal = G->get_attrib_by_name<cam_depth_focalx_att>(node.value());
+                pointcloud_buffer.put(depth_data_o.value());
+//                pointcloud_buffer.put(depth_data_o.value(),
+//                            [depth_width, depth_focal](const std::vector<float> depth_data, octomap::Pointcloud &pointcloud)
+//                            {
+//                                    float depth = 0.f, X, Y;
+//                                    for (std::size_t i = 0; i < depth_data.size(); i++)
+//                                    {
+//                                        X = (i % depth_width.value()) * depth_data.at(i) / depth_focal.value();
+//                                        Y = (i / depth_width.value()) * depth / depth_focal.value();
+//                                        pointcloud.push_back(X, Y, depth_data.at(i));
+//                                        //qInfo() << depth_data.at(i) << X << Y;
+//                                    }
+//                            });
+            }
+        }
 }
 
 ////////////////////////////////////////////////////////////////////////////////77

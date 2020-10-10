@@ -80,6 +80,9 @@ private:
     using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
     DoubleBuffer<LaserData, octomap::Pointcloud> laser_buffer;
     DoubleBuffer<octomap::point3d, octomap::point3d> robot_pose_buffer;
+    //DoubleBuffer<std::vector<float>, octomap::Pointcloud> pointcloud_buffer;
+    DoubleBuffer<std::vector<float>, std::vector<float>> pointcloud_buffer;
+
     std::shared_ptr<Collisions> collisions;
 
 	// Octree
@@ -90,6 +93,7 @@ private:
 	//octomap::OcTreeDrawer octo_drawer;
 	//octomap::ViewerWidget *octo_viewer;
     octomap::OcTreeRecord otr;
+
 
     struct Dimensions
     {
