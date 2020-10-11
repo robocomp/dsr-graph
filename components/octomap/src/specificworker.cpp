@@ -124,10 +124,10 @@ void SpecificWorker::compute()
     }
     if( const auto cloud = pointcloud_buffer.try_get(); cloud.has_value())
     {
-        //octo->insertPointCloud(cloud.value(), robot_pose, 10);
-        qInfo() << "size " << cloud.value().size();
+        octo->insertPointCloudRays(cloud.value(), robot_pose, 10);
     }
-    std::cout << octo->size() << std::endl;
+    std::cout << "Total in tree: " << octo->size() << std::endl;
+    //octo->updateInnerOccupancy();
     show_OcTree();
 
     //std::ostringstream data;
@@ -284,19 +284,15 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                                  [this](const LaserData &in, octomap::Pointcloud &out) {
                                      const auto &[angles, dists] = in;
                                      Mat::Vector3d laser_world;
-                                     //octomap::Pointcloud *pointcloud = new octomap::Pointcloud;
                                      octomap::Pointcloud pointcloud;
                                      for (const auto &[angle, dist] : iter::zip(angles, dists))
                                      {
                                          //convert laser polar coordinates to cartesian
                                          float x = dist * sin(angle); float y = dist * cos(angle); float z = 10;
                                          laser_world = inner_eigen->transform(world_name,Mat::Vector3d(x, y, z), laser_name).value();
-                                         pointcloud.push_back(octomap::point3d(laser_world.x()/1000., laser_world.y()/1000., laser_world.z()/1000.));
+                                         //qInfo() << laser_world.x() << laser_world.y() << laser_world.z();
+                                         pointcloud.push_back(laser_world.x()/1000., laser_world.y()/1000., laser_world.z()/1000.);
                                      }
-//                                     out.scan = std::move(pointcloud);
-//                                     out.id = 0;
-//                                     auto r = inner_eigen->transform_axis(world_name, robot_name).value();
-//                                     out.pose = octomap::pose6d(r.x(),r.y(),r.z(),r(3),r(4),r(5));
                                      out = pointcloud;
                                  });
             }
@@ -310,16 +306,15 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     if (type == rgbd_type)    // Laser node updated
         if( auto node = G->get_node(id); node.has_value())
         {
-            if( std::optional<std::vector<std::tuple<float,float,float>>> depth_data_o = G->get_pointcloud(node.value(), world_name, 50); depth_data_o.has_value())
+            if( std::optional<std::vector<std::tuple<float,float,float>>> depth_data_o = G->get_pointcloud(node.value(), world_name, 10); depth_data_o.has_value())
             {
                 pointcloud_buffer.put(depth_data_o.value(),
-                            [this](const std::vector<std::tuple<float,float,float>> depth_data, octomap::Pointcloud &pointcloud)
-                            {
-                                    for (const auto &[x,y,z] : depth_data)
-                                    {
-                                        //auto r = inner_eigen->transform(world_name, Mat::Vector3d(x,y,z), viriato_head_camera_name).value();
-                                        pointcloud.push_back(x,y,z);
-                                    }
+                            [this](const std::vector<std::tuple<float,float,float>> depth_data, octomap::Pointcloud &out) {
+                                octomap::Pointcloud pointcloud;
+                                std::size_t i = 0;
+                                for (const auto &[x, y, z] : depth_data)
+                                    pointcloud.push_back(x, y, z);
+                                out = pointcloud;
                             });
             }
         }

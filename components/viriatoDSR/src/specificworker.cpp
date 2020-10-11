@@ -102,7 +102,7 @@ void SpecificWorker::compute()
     update_pantilt_position();
     // change to slots
     check_new_dummy_values_for_coppelia();
-    check_new_nose_referece_for_pan_tilt();
+    //check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
 
 }
