@@ -274,17 +274,16 @@ void SpecificWorker::track_object_of_interest()
     if(object.has_value() and pan_tilt.has_value())
     {
         // get object pose in world coordinate frame
-        auto pose = innermodel->transform(world_node, object_of_interest);
+        auto pose = inner_eigen->transform(world_node, object_of_interest);
         if (pose.has_value())
         {
             // get pan_tilt current target pose
             if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); current_pose.has_value())
             {
-                std::vector<float> kaka = current_pose.value();
-                std::vector<double> kk(kaka.begin(), kaka.end());
-                QVec qcurrent_pose(kk);
+                auto c_pose = current_pose.value().get();
+                Mat::Vector3d vc_pose(c_pose[0], c_pose[1], c_pose[2]);
                 //if they are different modify G
-                if (not pose.value().equals(qcurrent_pose, 1.0))  // use an epsilon limited difference
+                if((pose.value()-vc_pose).isMuchSmallerThan(1))  // use an epsilon limited difference
                 {
                     G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
                     G->update_node(pan_tilt.value());
