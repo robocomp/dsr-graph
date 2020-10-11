@@ -125,6 +125,7 @@ void SpecificWorker::compute()
     if( const auto cloud = pointcloud_buffer.try_get(); cloud.has_value())
     {
         //octo->insertPointCloud(cloud.value(), robot_pose, 10);
+        qInfo() << "size " << cloud.value().size();
     }
     std::cout << octo->size() << std::endl;
     show_OcTree();
@@ -309,23 +310,17 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     if (type == rgbd_type)    // Laser node updated
         if( auto node = G->get_node(id); node.has_value())
         {
-            if( const auto depth_data_o = G->get_depth_image(node.value()); depth_data_o.has_value())
+            if( std::optional<std::vector<std::tuple<float,float,float>>> depth_data_o = G->get_pointcloud(node.value(), world_name, 50); depth_data_o.has_value())
             {
-                const auto depth_width = G->get_attrib_by_name<cam_depth_width_att>(node.value());
-                const auto depth_focal = G->get_attrib_by_name<cam_depth_focalx_att>(node.value());
-                pointcloud_buffer.put(depth_data_o.value());
-//                pointcloud_buffer.put(depth_data_o.value(),
-//                            [depth_width, depth_focal](const std::vector<float> depth_data, octomap::Pointcloud &pointcloud)
-//                            {
-//                                    float depth = 0.f, X, Y;
-//                                    for (std::size_t i = 0; i < depth_data.size(); i++)
-//                                    {
-//                                        X = (i % depth_width.value()) * depth_data.at(i) / depth_focal.value();
-//                                        Y = (i / depth_width.value()) * depth / depth_focal.value();
-//                                        pointcloud.push_back(X, Y, depth_data.at(i));
-//                                        //qInfo() << depth_data.at(i) << X << Y;
-//                                    }
-//                            });
+                pointcloud_buffer.put(depth_data_o.value(),
+                            [this](const std::vector<std::tuple<float,float,float>> depth_data, octomap::Pointcloud &pointcloud)
+                            {
+                                    for (const auto &[x,y,z] : depth_data)
+                                    {
+                                        //auto r = inner_eigen->transform(world_name, Mat::Vector3d(x,y,z), viriato_head_camera_name).value();
+                                        pointcloud.push_back(x,y,z);
+                                    }
+                            });
             }
         }
 }
