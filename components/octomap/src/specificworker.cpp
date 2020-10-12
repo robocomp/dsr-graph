@@ -90,7 +90,13 @@ void SpecificWorker::initialize(int period)
 
         //Apis
         inner_eigen = G->get_inner_eigen_api();
-        camera_api = G->get_camera_api();
+        if( const auto cam_node = G->get_node(viriato_head_camera_name); cam_node.has_value())
+            camera_api = G->get_camera_api(cam_node.value());
+        else
+        {
+            qWarning() << __FUNCTION__ << "Not camera " << QString::fromStdString(viriato_head_camera_name) << " found in G. Aborting";
+            std::terminate();
+        }
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att>();
@@ -100,7 +106,7 @@ void SpecificWorker::initialize(int period)
         custom_widget.show();
 
         // Octomap
-		octo = new octomap::OcTree(0.1);
+		octo = new octomap::OcTreeStamped(0.1);
 		//initialize_octomap(false, "octomap.map");
         otr.id = 0;
         otr.octree_drawer = new octomap::OcTreeDrawer();
@@ -109,8 +115,9 @@ void SpecificWorker::initialize(int period)
         otr.origin = octomap::pose6d();
         custom_widget.addSceneObject(otr.octree_drawer);
 
-        this->Period = period;
-		timer.start(Period);
+        initialize_octomap();
+
+		timer.start(200);
 	}
 }
 
@@ -120,27 +127,135 @@ void SpecificWorker::compute()
     if( const auto r_pose = robot_pose_buffer.try_get(); r_pose.has_value())
         robot_pose = r_pose.value();
     if( const auto scan = laser_buffer.try_get(); scan.has_value())
-    {
         octo->insertPointCloud(scan.value(), robot_pose, 10);
-    }
     if( const auto cloud = pointcloud_buffer.try_get(); cloud.has_value())
-    {
         octo->insertPointCloudRays(cloud.value(), robot_pose, 10);
-    }
+
     std::cout << "Total in tree: " << octo->size() << std::endl;
     //octo->updateInnerOccupancy();
     show_OcTree();
+    //forget_data(5);
+    octo->degradeOutdatedNodes(5);
+    project_map_on_floor();
 
     //std::ostringstream data;
     //octo->writeBinary(data);
 
-//    auto r = inner_eigen->transform_axis(world_name, viriato_head_camera_name);
-//    auto r2 = inner_eigen->transform_axis(world_name, viriato_head_camera_pan_tilt);
-//    std::cout << r.value() << r2.value() << std::endl;
-//    std::terminate();
-
 }
 
+void SpecificWorker::project_map_on_floor()
+{
+    for(octomap::OcTreeStamped::leaf_iterator it = octo->begin_leafs(), end = octo->end_leafs(); it!= end; ++it)
+    {
+        if(octo->isNodeOccupied(*it))
+        {
+            const auto coor = it.getCoordinate();
+            //qInfo() << coor.x()*1000 << coor.y()*1000;
+            grid.setOccupied(grid.pointToGrid(coor.x()*1000, coor.y()*1000));
+        }
+    }
+    qInfo() << "Grid size " << grid.size();
+}
+
+
+//std::list<QPointF> SpecificWorker::computePath(const QPointF &source_, const QPointF &target_)
+//{
+//    //Key source = pointToGrid(source_.x(), source_.y());
+//    //Key target = pointToGrid(target_.x(), target_.y());
+//    octomap::OcTreeKey source(source_.x(), source_.y(), 0.1);
+//    octomap::OcTreeKey target(target_.x(), target_.y(), 0.1);
+//
+//    // Admission rules
+//    if (!(target.x >= dim.HMIN and target.x < dim.HMIN + dim.WIDTH and target.z >= dim.VMIN and target.z < dim.VMIN + dim.HEIGHT))
+//    {
+//        qDebug() << __FUNCTION__ << "Target " << target_.x() << target_.y() << "out of limits " << dim.HMIN << dim.VMIN << dim.HMIN+dim.WIDTH << dim.VMIN+dim.HEIGHT
+//                 << "Returning empty path";
+//        return std::list<QPointF>();
+//    }
+//    if (!(source.x >= dim.HMIN and source.x < dim.HMIN + dim.WIDTH and source.z >= dim.VMIN and source.z < dim.VMIN + dim.HEIGHT))
+//    {
+//        qDebug() << __FUNCTION__ << "Robot out of limits. Returning empty path";
+//        return std::list<QPointF>();
+//    }
+//    if (source == target)
+//    {
+//        qDebug() << __FUNCTION__ << "Robot already at target. Returning empty path";
+//        return std::list<QPointF>();
+//    }
+//    // vector de distancias inicializado a DBL_MAX
+//    std::vector<double> min_distance(octo->getNumLeafNodes(), std::numeric_limits<double>::max());
+//
+//    // std::uint32_t id with source value
+//    //const auto &[success, val] = getCell(source);
+//    auto val =  octo->search(source);
+//    if(val == nullptr)
+//    {
+//        qWarning() << __FUNCTION__ << " Could not find source position in Grid";
+//        return {};
+//    }
+//    auto id = val->getValue();
+//    // initialize source position to 0
+//    min_distance[id] = 0;
+//    // vector de pares<std::uint32_t,Key> initialized to (-1, Key())
+//    std::vector<std::pair<std::uint32_t, Key>> previous(fmap.size(), std::make_pair(-1, Key()));
+//    // lambda to compare two vertices: a < b if a.id<b.id or
+//    auto comp = [this](std::pair<std::uint32_t, Key> x, std::pair<std::uint32_t, Key> y) {
+//        if (x.first <= y.first)
+//            return true;
+//            //else if(x.first == y.first)
+//            //	return std::get<T&>(getCell(x.second)).id <= std::get<T&>(getCell(y.second)).id;
+//        else
+//            return false;
+//    };
+//
+//    // OPEN List
+//    std::set<std::pair<std::uint32_t, Key>, decltype(comp)> active_vertices(comp);
+//    active_vertices.insert({0, source});
+//
+//    while (!active_vertices.empty())
+//    {
+//        Key where = active_vertices.begin()->second;
+//        if (where == target)
+//        {
+////				qDebug() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
+//            auto p = orderPath(previous, source, target);
+//            if (p.size() > 1)
+//                return p;
+//            else
+//                return std::list<QPointF>();
+//        }
+//        active_vertices.erase(active_vertices.begin());
+//        for (auto ed : neighboors_8(where))
+//        {
+////				qDebug() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
+//            if (min_distance[ed.second.id] > min_distance[fmap[where].id] + ed.second.cost)
+//            {
+//                active_vertices.erase({min_distance[ed.second.id], ed.first});
+//                min_distance[ed.second.id] = min_distance[fmap[where].id] + ed.second.cost;
+//                previous[ed.second.id] = std::make_pair(fmap[where].id, where);
+//                active_vertices.insert({min_distance[ed.second.id], ed.first}); // Djikstra
+//                // active_vertices.insert( { min_distance[ed.second.id] + heuristicL2(ed.first, target), ed.first } ); //A*
+//            }
+//        }
+//    }
+//    qDebug() << __FUNCTION__ << "Path from (" << source.x << "," << source.z << ") not  found. Returning empty path";
+//    return std::list<QPointF>();
+//};
+
+
+///////////////////
+void SpecificWorker::forget_data( unsigned int time_thres )
+{
+    unsigned int query_time = (unsigned int) time(NULL);
+    for(octomap::OcTreeStamped::leaf_iterator it = octo->begin_leafs(), end = octo->end_leafs(); it!= end; ++it)
+    {
+        if ( octo->isNodeOccupied(*it) and ((query_time - it->getTimestamp()) > time_thres) )
+        {
+            //octo->integrateMissNoTime(&*it);
+            octo->deleteNode(it.getKey());
+        }
+    }
+}
 void SpecificWorker::show_OcTree()
 {
     // update viewer stat
@@ -205,11 +320,9 @@ void SpecificWorker::show_OcTree()
     //    fprintf(stderr, "setOcTree took %f sec\n", time_to_generate);
     custom_widget.update();
 }
-
 void SpecificWorker::initialize_octomap(bool read_from_file, const std::string file_name)
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
-    Dimensions dim;
     QRectF outerRegion;
     auto world_node_o = G->get_node(world_name);
     if(not world_node_o.has_value())
@@ -226,6 +339,7 @@ void SpecificWorker::initialize_octomap(bool read_from_file, const std::string f
     outerRegion.setBottom(b.value());
     outerRegion.setTop(t.value());
 
+    Grid<>::Dimensions dim;
     // if read_from_file is true we should read the parameters from the file to guarantee consistency
     dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
     dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
@@ -233,43 +347,44 @@ void SpecificWorker::initialize_octomap(bool read_from_file, const std::string f
     dim.HEIGHT = std::max(outerRegion.top(), outerRegion.bottom()) - dim.VMIN;
     // std::cout << __FUNCTION__ << "TileSize is " << conf_params->at("TileSize").value << std::endl;
     //dim.TILE_SIZE = stoi(conf_params->at("TileSize").value);
-    dim.TILE_SIZE = 10;
-    dim.MAX_HEIGHT = 1600;
+    dim.TILE_SIZE = 100;
+    //dim.MAX_HEIGHT = 1600;
 
-    QStringList ls = QString::fromStdString(conf_params->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
-    std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
-    std::vector<std::string> excluded_objects;
-    foreach(const QString &s, ls)
-        excluded_objects.emplace_back(s.toStdString());
-
-    collisions =  std::make_shared<Collisions>();
-    collisions->initialize(G, excluded_objects);
-
-    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
-
-    if(read_from_file and not file_name.empty())
-    {
-        //readFromFile(file_name);
-    }
-    else
-    {
-        std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
-        auto G_copy = G->G_copy();
-        for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
-        {
-            for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
-            {
-                for(int z = 0; z < dim.MAX_HEIGHT ; z += dim.TILE_SIZE)
-                {
-//                    bool occupied = collisions->checkOccupancyOfVoxel(G_copy, i, j, z, dim.TILE_SIZE);
-//                    occupied = true;
-                }
-            }
-            std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
-        }
-        //if(not file_name.empty())
-        //    saveToFile(file_name);
-    }
+    grid.initialize(dim);
+//    QStringList ls = QString::fromStdString(conf_params->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
+//    std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
+//    std::vector<std::string> excluded_objects;
+//    foreach(const QString &s, ls)
+//        excluded_objects.emplace_back(s.toStdString());
+//
+//    collisions =  std::make_shared<Collisions>();
+//    collisions->initialize(G, excluded_objects);
+//
+//    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+//
+//    if(read_from_file and not file_name.empty())
+//    {
+//        //readFromFile(file_name);
+//    }
+//    else
+//    {
+//        std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
+//        auto G_copy = G->G_copy();
+//        for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
+//        {
+//            for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
+//            {
+//                for(int z = 0; z < dim.MAX_HEIGHT ; z += dim.TILE_SIZE)
+//                {
+////                    bool occupied = collisions->checkOccupancyOfVoxel(G_copy, i, j, z, dim.TILE_SIZE);
+////                    occupied = true;
+//                }
+//            }
+//            std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
+//        }
+//        //if(not file_name.empty())
+//        //    saveToFile(file_name);
+//    }
 }
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals

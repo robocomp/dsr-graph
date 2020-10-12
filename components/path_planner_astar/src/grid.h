@@ -91,7 +91,7 @@ class Grid
         using FMap = std::unordered_map<Key, T, KeyHasher>;
         Dimensions dim;
 
-    void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
+        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                         std::shared_ptr<Collisions> collisions_,
                         Dimensions dim_,
                         bool read_from_file = true,
