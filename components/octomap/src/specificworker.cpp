@@ -88,8 +88,9 @@ void SpecificWorker::initialize(int period)
 
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
-        //Inner Api
+        //Apis
         inner_eigen = G->get_inner_eigen_api();
+        camera_api = G->get_camera_api();
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att>();
