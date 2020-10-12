@@ -57,8 +57,9 @@ private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+    std::shared_ptr<DSR::CameraAPI> camera_api;
 
-	//DSR params
+    //DSR params
 	std::string agent_name;
 	int agent_id;
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;

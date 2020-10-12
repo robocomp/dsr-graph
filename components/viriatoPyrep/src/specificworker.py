@@ -97,7 +97,7 @@ class SpecificWorker(GenericWorker):
                                                                 "angle": np.radians(cam.get_perspective_angle()),
                                                                 "width": cam.get_resolution()[0],
                                                                 "height": cam.get_resolution()[1],
-                                                                "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())),
+                                                                "focal": cam.get_resolution()[0]/2 / np.tan(np.radians(cam.get_perspective_angle()/2)),
                                                                 "rgb": np.array(0),
                                                                 "depth": np.ndarray(0) }
 
@@ -165,7 +165,7 @@ class SpecificWorker(GenericWorker):
                                                          alivetime=time.time(), image=image.tobytes())
             cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"],
                                                            focalx=cam["focal"], focaly=cam["focal"],
-                                                           alivetime=time.time(), depth=depth.tobytes())
+                                                           alivetime=time.time(), depthFactor=0.1, depth=depth.tobytes())
 
             try:
                 self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
