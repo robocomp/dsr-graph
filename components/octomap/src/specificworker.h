@@ -31,6 +31,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
+#include <octomap/OcTreeStamped.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include "collisions.h"
@@ -38,6 +39,7 @@
 #include <octovis/ViewerWidget.h>
 #include <octovis/OcTreeRecord.h>
 #include <QGLViewer/qglviewer.h>
+#include "grid.cpp"
 
 class SpecificWorker : public GenericWorker
 {
@@ -88,20 +90,25 @@ private:
 
 	// Octree
 	//octomap::point3d robot_pose{0,0,0};
-	octomap::OcTree *octo;
+	octomap::OcTreeStamped *octo;
 	void initialize_octomap(bool read_from_file = false, const std::string file_name = std::string());
     void show_OcTree();
 	//octomap::OcTreeDrawer octo_drawer;
 	//octomap::ViewerWidget *octo_viewer;
     octomap::OcTreeRecord otr;
+    void forget_data(unsigned int time_thres);
+    //std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
+    void project_map_on_floor();
 
-
+    Grid<> grid;
     struct Dimensions
     {
         int TILE_SIZE = 100;
         float MAX_HEIGHT = 1600;
         float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
     };
+
+
 
 };
 
