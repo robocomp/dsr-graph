@@ -108,7 +108,7 @@ void SpecificWorker::initialize(int period)
         otr.origin = octomap::pose6d();
         custom_widget.addSceneObject(otr.octree_drawer);
 
-		this->Period = period;
+        this->Period = period;
 		timer.start(Period);
 	}
 }
@@ -132,6 +132,12 @@ void SpecificWorker::compute()
 
     //std::ostringstream data;
     //octo->writeBinary(data);
+
+//    auto r = inner_eigen->transform_axis(world_name, viriato_head_camera_name);
+//    auto r2 = inner_eigen->transform_axis(world_name, viriato_head_camera_pan_tilt);
+//    std::cout << r.value() << r2.value() << std::endl;
+//    std::terminate();
+
 }
 
 void SpecificWorker::show_OcTree()
