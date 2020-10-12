@@ -157,7 +157,7 @@ class SpecificWorker(GenericWorker):
         for name, cam in self.cameras.items():
             cam = self.cameras["viriato_head_camera_sensor"]
             image_float = cam["handle"].capture_rgb()
-            depth = cam["handle"].capture_depth()
+            depth = cam["handle"].capture_depth(True)
             image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                   dtype=cv2.CV_8U)
             cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"],

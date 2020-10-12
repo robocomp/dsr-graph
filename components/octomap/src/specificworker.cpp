@@ -308,12 +308,14 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
         {
             if( std::optional<std::vector<std::tuple<float,float,float>>> depth_data_o = G->get_pointcloud(node.value(), world_name, 10); depth_data_o.has_value())
             {
-                pointcloud_buffer.put(depth_data_o.value(),
-                            [this](const std::vector<std::tuple<float,float,float>> depth_data, octomap::Pointcloud &out) {
+                pointcloud_buffer.put(depth_data_o.value(), //lambda transforms from float tuple to octomap::pointcloud and changes to meters
+                            [this](const std::vector<std::tuple<float,float,float>> &depth_data, octomap::Pointcloud &out) {
                                 octomap::Pointcloud pointcloud;
-                                std::size_t i = 0;
                                 for (const auto &[x, y, z] : depth_data)
-                                    pointcloud.push_back(x, y, z);
+                                {
+                                    pointcloud.push_back(x / 1000, y / 1000,
+                                                         z / 1000);  //change to write on out directly after clearing it
+                                }
                                 out = pointcloud;
                             });
             }
