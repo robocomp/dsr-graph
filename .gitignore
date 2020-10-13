@@ -28,6 +28,8 @@ etc/insert_remove_*
 **/*.ice
 **/*.OLD
 **/*.txt
+!**/components/*/CMake*.txt
+!**/components/*/src/CMake*.txt
 etc/*
 test/__pycache__/
 components/crdt_rtps_dsr_tests/test_result.txt
