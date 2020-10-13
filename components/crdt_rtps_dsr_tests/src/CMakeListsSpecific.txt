@@ -11,6 +11,7 @@ SET ( SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
@@ -35,6 +36,8 @@ SET ( HEADERS
   specificmonitor.h
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
    $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.h
+
 )
 
 SET ( TEST_SOURCES
@@ -47,6 +50,7 @@ SET ( TEST_SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
   unittests/CRDT_G_api_test.cpp
   DSRGetID.cpp
@@ -69,6 +73,7 @@ SET ( BENCH_SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
   benchmark/bench.cpp
   DSRGetID.cpp
