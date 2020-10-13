@@ -34,6 +34,8 @@ SET ( HEADERS
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
    $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.h
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.h
+
   collisions.h
 )
 
