@@ -1,7 +1,7 @@
 # social_navigation
 Intro to component here
 
-# Installation notes
+## Installation notes
 
 -   Before compiling the agent, make sure to replace `TriangleFunctor` in `/usr/include/osg` to avoid conflicts between _FCL_ and _OSG_ :
     ```bash
