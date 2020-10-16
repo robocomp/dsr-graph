@@ -52,13 +52,14 @@ public slots:
     void del_mission_slot();
     void set_mission_slot();
     void update_mission_slot(const std::int32_t id, const std::string &type);
+    void set_predefined_mission();
     
 private:
     void initialize_object_list();
     std::optional<Node> get_intent_node(bool create = false);
     std::string generate_json_plan(QList<QJsonObject> actions);
     QJsonObject goto_action_to_json(std::string object_name, std::vector<float> location);
-
+    void set_mission(float x, float z, float alpha, std::string object_name);
     //local widget
     Custom_widget custom_widget;
     
