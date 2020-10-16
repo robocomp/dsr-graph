@@ -41,6 +41,8 @@
 #include <QGLViewer/qglviewer.h>
 #include "grid.cpp"
 
+#include <grid_map_core/GridMap.hpp>
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
