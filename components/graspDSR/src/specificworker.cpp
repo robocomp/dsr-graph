@@ -182,13 +182,13 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
         try
         {
             auto rgb_data = G->get_rgb_image(cam.value());
-            const auto width = G->get_attrib_by_name<rgb_width>(cam.value());
-            const auto height = G->get_attrib_by_name<rgb_height>(cam.value());
-            const auto depth = G->get_attrib_by_name<rgb_depth>(cam.value());
-            const auto cam_id = G->get_attrib_by_name<rgb_cameraID>(cam.value());
-            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
-            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
-            const auto alivetime = G->get_attrib_by_name<rgb_alivetime>(cam.value());
+            const auto width = G->get_attrib_by_name<cam_rgb_width_att>(cam.value());
+            const auto height = G->get_attrib_by_name<cam_rgb_height_att>(cam.value());
+            const auto depth = G->get_attrib_by_name<cam_rgb_depth_att>(cam.value());
+            const auto cam_id = G->get_attrib_by_name<cam_rgb_cameraID_att>(cam.value());
+            const auto focalx = G->get_attrib_by_name<cam_rgb_focalx_att>(cam.value());
+            const auto focaly = G->get_attrib_by_name<cam_rgb_focaly_att>(cam.value());
+            const auto alivetime = G->get_attrib_by_name<cam_rgb_alivetime_att>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TImage
             rgb.image = rgb_data.value().get();
@@ -224,14 +224,14 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
         RoboCompCameraRGBDSimple::TDepth depth;
         try
         {
-            auto depth_data = G->get_attrib_by_name<img_depth_att>(cam.value());
-            const auto width = G->get_attrib_by_name<depth_width>(cam.value());
-            const auto height = G->get_attrib_by_name<depth_height>(cam.value());
-            const auto cam_id = G->get_attrib_by_name<depth_cameraID>(cam.value());
-            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
-            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
-            const auto depth_factor = G->get_attrib_by_name<depthFactor>(cam.value());
-            const auto alivetime = G->get_attrib_by_name<rgb_alivetime>(cam.value());
+            auto depth_data = G->get_attrib_by_name<cam_depth_att>(cam.value());
+            const auto width = G->get_attrib_by_name<cam_depth_width_att>(cam.value());
+            const auto height = G->get_attrib_by_name<cam_depth_height_att>(cam.value());
+            const auto cam_id = G->get_attrib_by_name<cam_depth_cameraID_att>(cam.value());
+            const auto focalx = G->get_attrib_by_name<cam_depth_focalx_att>(cam.value());
+            const auto focaly = G->get_attrib_by_name<cam_depth_focaly_att>(cam.value());
+            const auto depth_factor = G->get_attrib_by_name<cam_depthFactor_att>(cam.value());
+            const auto alivetime = G->get_attrib_by_name<cam_depth_alivetime_att>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TDepth
             depth.depth = depth_data.value();
@@ -266,10 +266,10 @@ std::vector<std::vector<float>> SpecificWorker::get_camera_intrinsics()
         try
         {
             // read intrinsic parameters from G
-            const auto width = G->get_attrib_by_name<rgb_width>(cam.value());
-            const auto height = G->get_attrib_by_name<rgb_height>(cam.value());
-            const auto focalx = G->get_attrib_by_name<rgb_focalx>(cam.value());
-            const auto focaly = G->get_attrib_by_name<rgb_focaly>(cam.value());
+            const auto width = G->get_attrib_by_name<cam_rgb_width_att>(cam.value());
+            const auto height = G->get_attrib_by_name<cam_rgb_height_att>(cam.value());
+            const auto focalx = G->get_attrib_by_name<cam_rgb_focalx_att>(cam.value());
+            const auto focaly = G->get_attrib_by_name<cam_rgb_focaly_att>(cam.value());
             
             // define camera intrinsic matrix
             std::vector<std::vector<float>> intrinsic_mat;
