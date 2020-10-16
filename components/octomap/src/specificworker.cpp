@@ -136,26 +136,26 @@ void SpecificWorker::compute()
     show_OcTree();
     //forget_data(5);
     octo->degradeOutdatedNodes(5);
-    project_map_on_floor();
+    //project_map_on_floor();
 
     //std::ostringstream data;
     //octo->writeBinary(data);
 
 }
 
-void SpecificWorker::project_map_on_floor()
-{
-    for(octomap::OcTreeStamped::leaf_iterator it = octo->begin_leafs(), end = octo->end_leafs(); it!= end; ++it)
-    {
-        if(octo->isNodeOccupied(*it))
-        {
-            const auto coor = it.getCoordinate();
-            //qInfo() << coor.x()*1000 << coor.y()*1000;
-            grid.setOccupied(grid.pointToGrid(coor.x()*1000, coor.y()*1000));
-        }
-    }
-    qInfo() << "Grid size " << grid.size();
-}
+//void SpecificWorker::project_map_on_floor()
+//{
+//    for(octomap::OcTreeStamped::leaf_iterator it = octo->begin_leafs(), end = octo->end_leafs(); it!= end; ++it)
+//    {
+//        if(octo->isNodeOccupied(*it))
+//        {
+//            const auto coor = it.getCoordinate();
+//            //qInfo() << coor.x()*1000 << coor.y()*1000;
+//            grid.setOccupied(grid.pointToGrid(coor.x()*1000, coor.y()*1000));
+//        }
+//    }
+//    qInfo() << "Grid size " << grid.size();
+//}
 
 
 //std::list<QPointF> SpecificWorker::computePath(const QPointF &source_, const QPointF &target_)
@@ -339,7 +339,6 @@ void SpecificWorker::initialize_octomap(bool read_from_file, const std::string f
     outerRegion.setBottom(b.value());
     outerRegion.setTop(t.value());
 
-    Grid<>::Dimensions dim;
     // if read_from_file is true we should read the parameters from the file to guarantee consistency
     dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
     dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
@@ -350,7 +349,7 @@ void SpecificWorker::initialize_octomap(bool read_from_file, const std::string f
     dim.TILE_SIZE = 100;
     //dim.MAX_HEIGHT = 1600;
 
-    grid.initialize(dim);
+//    grid.initialize(dim);
 //    QStringList ls = QString::fromStdString(conf_params->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
 //    std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
 //    std::vector<std::string> excluded_objects;
