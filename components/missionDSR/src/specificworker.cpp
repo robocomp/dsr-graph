@@ -96,6 +96,10 @@ void SpecificWorker::initialize(int period)
         connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission_slot()));
         //connect(G.get(), SIGNAL(update_node_signal), this, SLOT(update_mission_slot));
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_mission_slot);
+        connect(custom_widget.mug_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
+        connect(custom_widget.floor_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
+        connect(custom_widget.none_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
+        
         
 		this->Period = period;
 		timer.start(Period);
@@ -150,22 +154,28 @@ void SpecificWorker::del_mission_slot()
 //add data from node intent
 void SpecificWorker::set_mission_slot()
 {
-    auto node = this->get_intent_node(true);
-    QList<QJsonObject> actions;
     if(custom_widget.mision_cb->currentText() == "Goto")
     {
         float x = custom_widget.x_pos_sb->value();
         float z = custom_widget.z_pos_sb->value();
         float alpha = custom_widget.alpha_pos_sb->value();
         std::string object_name = custom_widget.object_cb->currentText().toStdString();
-        QJsonObject action = this->goto_action_to_json(object_name, {x,z,alpha});
-        actions.push_back(action);
-        std::string plan = generate_json_plan(actions);
-        G->insert_or_assign_attrib<plan_att>(node.value(), plan);
+        set_mission(x, z, alpha, object_name);
     }
     else
         qWarning() << __FUNCTION__ << "Only goto mission is defined yet";
 }
+
+void SpecificWorker::set_mission(float x, float z, float alpha, std::string object_name)
+{
+    QJsonObject action = this->goto_action_to_json(object_name, {x,z,alpha});
+    QList<QJsonObject> actions;
+    actions.push_back(action);
+    std::string plan = generate_json_plan(actions);
+    auto node = this->get_intent_node(true);
+    G->insert_or_assign_attrib<plan_att>(node.value(), plan);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 /// get intent node from G
@@ -264,7 +274,24 @@ std::string SpecificWorker::generate_json_plan(QList<QJsonObject> actions)
     return strJson.toStdString();
 }
 
-////////////////////////////////////////////////////////////////////////77
+void SpecificWorker::set_predefined_mission()
+{
+    if(custom_widget.none_cb->isChecked())
+    {
+        this->del_mission_slot();
+    }
+    else if (custom_widget.floor_cb->isChecked())
+    {
+        set_mission(0.f, 0.f, 0.f, "floor");
+    }
+    else if (custom_widget.mug_cb->isChecked())
+    {
+        set_mission(0.f, 0.f, 0.f, "glass_1");
+    }
+    
+}
+
+////////////////////////////////////////////////////////////////////////
 
 int SpecificWorker::startup_check()
 {
