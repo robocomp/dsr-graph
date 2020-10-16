@@ -39,9 +39,7 @@
 #include <octovis/ViewerWidget.h>
 #include <octovis/OcTreeRecord.h>
 #include <QGLViewer/qglviewer.h>
-#include "grid.cpp"
 
-#include <grid_map_core/GridMap.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -102,13 +100,13 @@ private:
     //std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
     void project_map_on_floor();
 
-    Grid<> grid;
     struct Dimensions
     {
         int TILE_SIZE = 100;
         float MAX_HEIGHT = 1600;
         float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
     };
+    Dimensions dim;
 
 
 

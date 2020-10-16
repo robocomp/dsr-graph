@@ -1,13 +1,12 @@
 
 INCLUDE_DIRECTORIES(
-  ${QGLViewer_INCLUDE_DIR}
+  ${/usr/include/QGLViewer}
 )
 
 # Sources set
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  grid.cpp
   collisions.cpp
   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
@@ -42,7 +41,7 @@ SET ( HEADERS
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_definitions(-O3  -march=native -fmax-errors=1 -std=c++2a )
+add_definitions(-O3  -march=native -fmax-errors=1 -std=c++2a -I /usr/include/QGLViewer)
 SET (LIBS ${LIBS}   fastcdr fastrtps osgDB OpenThreads octovis octomath octomap fcl GL GLU QGLViewer-qt5)
 
 
