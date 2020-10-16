@@ -1,6 +1,29 @@
 # octomap
 Intro to component here
 
+## Installation
+
+-   Install `octomap` libraries from the original repo :
+    ```bash
+    git clone https://github.com/OctoMap/octomap.git
+    cd octomap
+    mkdir build
+    cd build
+    cmake ..
+    make
+    sudo make install
+    ```
+
+-   Copy `ViewerWidget.h` from `octomap/octovis/include/octovis` to `/usr/local/include/octovis/` :
+    ```bash
+    sudo cp ViewerWidget.h /usr/local/include/octovis/
+    ```
+
+-   Build and compile the component :
+    ```bash
+    cmake .
+    make
+    ```
 
 ## Configuration parameters
 As any other component, *octomap* needs a configuration file to start. In
