@@ -282,7 +282,7 @@ void SpecificWorker::set_predefined_mission()
     }
     else if (custom_widget.floor_cb->isChecked())
     {
-        set_mission(0.f, 0.f, 0.f, "floor");
+        set_mission(1900.f, 669.f, 94.f, "infiniteFloor");
     }
     else if (custom_widget.mug_cb->isChecked())
     {

@@ -155,6 +155,7 @@ void SpecificWorker::compute()
         std::cout << "\t Adv-> " << adv << std::endl;
         std::cout << "\t Side -> " << side << std::endl;
         std::cout << "\tRot -> " << rot << std::endl;
+        std::cout << "\tRobot_is_active -> " <<  std::boolalpha << robot_is_active << std::endl;
     }
 }
 
@@ -207,11 +208,13 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     };
 
     // Target achieved
-    if ( (path.size() < 3) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
+    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
     {
         advVel = 0;  sideVel= 0; rotVel = 0;
         active = false;
-        std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 3 " << (path.size() < 3)
+        robot_is_active = false;
+        custom_widget.startButton->setText("Start");
+        std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 2 " << (path.size() < 3)
         << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
         << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
         return std::make_tuple(0,0,0);  //adv, side, rot
@@ -224,7 +227,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
         rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
     else
         rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
-    if(euc_dist_to_target < 4*FINAL_DISTANCE_TO_TARGET)
+    if(euc_dist_to_target < 5*FINAL_DISTANCE_TO_TARGET)
         rotVel = 0.f;
 
     /// Compute advance speed
