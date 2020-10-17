@@ -43,6 +43,7 @@ public:
 	void LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData);
 	void OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state);
     void JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap);
+    void KinovaArmPub_newArmState(RoboCompKinovaArmPub::TArmState armstate);
 
 	// DSR
     std::shared_ptr<DSR::DSRGraph> getGDSR() const {return G;};
@@ -53,6 +54,7 @@ public:
     DoubleBuffer<RoboCompCameraRGBDSimple::TImage, RoboCompCameraRGBDSimple::TImage> rgb_buffer;
     DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
     DoubleBuffer<RoboCompJointMotor::MotorStateMap, RoboCompJointMotor::MotorStateMap> jointmotor_buffer;
+    DoubleBuffer<RoboCompKinovaArmPub::TArmState, RoboCompKinovaArmPub::TArmState> kinovaarm_buffer;
 
 
 public slots:
@@ -98,7 +100,7 @@ private:
     void check_new_dummy_values_for_coppelia();
     void check_new_nose_referece_for_pan_tilt();
     void update_pantilt_position();
-    void check_new_tip_reference_for_left_hand();
+    void update_arm_state();
 };
 
 #endif

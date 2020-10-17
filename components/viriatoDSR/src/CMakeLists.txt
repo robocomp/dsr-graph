@@ -26,6 +26,7 @@ SET ( SOURCES
   genericworker.cpp
   camerargbdsimplepubI.cpp
   jointmotorpubI.cpp
+  kinovaarmpubI.cpp
   laserpubI.cpp
   omnirobotpubI.cpp
 )
@@ -38,8 +39,8 @@ FIND_PACKAGE( Ice REQUIRED COMPONENTS Ice++11 IceStorm++11)
 
 #ROBOCOMP
 ROBOCOMP_INITIALIZE( $ENV{ROBOCOMP}/ )
-ROBOCOMP_IDSL_TO_ICE( CommonBehavior CameraRGBDSimple CameraRGBDSimplePub CoppeliaUtils DSRGetID GenericBase JointMotor JointMotorPub Laser LaserPub OmniRobot OmniRobotPub)
-ROBOCOMP_ICE_TO_SRC( CommonBehavior CameraRGBDSimple CameraRGBDSimplePub CoppeliaUtils DSRGetID GenericBase JointMotor JointMotorPub Laser LaserPub OmniRobot OmniRobotPub)
+ROBOCOMP_IDSL_TO_ICE( CommonBehavior CameraRGBDSimple CameraRGBDSimplePub CoppeliaUtils DSRGetID GenericBase JointMotor JointMotorPub KinovaArmPub Laser LaserPub OmniRobot OmniRobotPub)
+ROBOCOMP_ICE_TO_SRC( CommonBehavior CameraRGBDSimple CameraRGBDSimplePub CoppeliaUtils DSRGetID GenericBase JointMotor JointMotorPub KinovaArmPub Laser LaserPub OmniRobot OmniRobotPub)
 SET (EXECUTABLE_OUTPUT_PATH ${RC_COMPONENT_DEVEL_PATH}/bin)
 
 QT_WRAP_UI( UI_HEADERS mainUI.ui )

@@ -83,6 +83,7 @@
 
 #include <camerargbdsimplepubI.h>
 #include <jointmotorpubI.h>
+#include <kinovaarmpubI.h>
 #include <laserpubI.h>
 #include <omnirobotpubI.h>
 
@@ -337,6 +338,53 @@ int ::viriatoDSR::run(int argc, char* argv[])
 
 
 		// Server adapter creation and publication
+		std::shared_ptr<IceStorm::TopicPrx> kinovaarmpub_topic;
+		Ice::ObjectPrxPtr kinovaarmpub;
+		try
+		{
+			if (not GenericMonitor::configGetString(communicator(), prefix, "KinovaArmPubTopic.Endpoints", tmp, ""))
+			{
+				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy KinovaArmPubProxy";
+			}
+			Ice::ObjectAdapterPtr KinovaArmPub_adapter = communicator()->createObjectAdapterWithEndpoints("kinovaarmpub", tmp);
+			RoboCompKinovaArmPub::KinovaArmPubPtr kinovaarmpubI_ =  std::make_shared <KinovaArmPubI>(worker);
+			auto kinovaarmpub = KinovaArmPub_adapter->addWithUUID(kinovaarmpubI_)->ice_oneway();
+			if(!kinovaarmpub_topic)
+			{
+				try {
+					kinovaarmpub_topic = topicManager->create("KinovaArmPub");
+				}
+				catch (const IceStorm::TopicExists&) {
+					//Another client created the topic
+					try{
+						cout << "[" << PROGRAM_NAME << "]: Probably other client already opened the topic. Trying to connect.\n";
+						kinovaarmpub_topic = topicManager->retrieve("KinovaArmPub");
+					}
+					catch(const IceStorm::NoSuchTopic&)
+					{
+						cout << "[" << PROGRAM_NAME << "]: Topic doesn't exists and couldn't be created.\n";
+						//Error. Topic does not exist
+					}
+				}
+				catch(const IceUtil::NullHandleException&)
+				{
+					cout << "[" << PROGRAM_NAME << "]: ERROR TopicManager is Null. Check that your configuration file contains an entry like:\n"<<
+					"\t\tTopicManager.Proxy=IceStorm/TopicManager:default -p <port>\n";
+					return EXIT_FAILURE;
+				}
+				IceStorm::QoS qos;
+				kinovaarmpub_topic->subscribeAndGetPublisher(qos, kinovaarmpub);
+			}
+			KinovaArmPub_adapter->activate();
+		}
+		catch(const IceStorm::NoSuchTopic&)
+		{
+			cout << "[" << PROGRAM_NAME << "]: Error creating KinovaArmPub topic.\n";
+			//Error. Topic does not exist
+		}
+
+
+		// Server adapter creation and publication
 		std::shared_ptr<IceStorm::TopicPrx> laserpub_topic;
 		Ice::ObjectPrxPtr laserpub;
 		try
@@ -492,6 +540,10 @@ int main(int argc, char* argv[])
             if (arg.find(initIC.toStdString(), 0) == 0)
             {
                 configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+            else
+            {
+                configFile = QString::fromStdString(argv[1]);
             }
         }
 
