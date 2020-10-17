@@ -29,7 +29,7 @@
 #include <innermodel/innermodel.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
-#include "doublebuffer/DoubleBuffer.h"
+#include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
 
 class SpecificWorker : public GenericWorker
@@ -59,14 +59,16 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+    void update_node_slot(const std::int32_t id, const std::string &type);
 
 private:
     bool startup_check_flag;
 
     // ATTRIBUTE NAMES
     const std::string nose_target = "viriato_head_pan_tilt_nose_target";
+    const std::string arm_tip_target = "viriato_left_arm_target";
 
-	// DSR
+    // DSR
 	std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerAPI> innermodel;
 
@@ -96,6 +98,7 @@ private:
     void check_new_dummy_values_for_coppelia();
     void check_new_nose_referece_for_pan_tilt();
     void update_pantilt_position();
+    void check_new_tip_reference_for_left_hand();
 };
 
 #endif

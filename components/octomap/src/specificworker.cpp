@@ -131,7 +131,7 @@ void SpecificWorker::compute()
     if( const auto cloud = pointcloud_buffer.try_get(); cloud.has_value())
         octo->insertPointCloudRays(cloud.value(), robot_pose, 10);
 
-    std::cout << "Total in tree: " << octo->size() << std::endl;
+    std::cout << "Total in tree: " << octo->memoryUsage() << std::endl;
     //octo->updateInnerOccupancy();
     show_OcTree();
     //forget_data(5);

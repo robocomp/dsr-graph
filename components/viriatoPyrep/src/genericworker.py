@@ -54,6 +54,8 @@ Ice.loadSlice("-I ./src/ --all ./src/JointMotorPub.ice")
 import RoboCompJointMotorPub
 Ice.loadSlice("-I ./src/ --all ./src/JointMotor.ice")
 import RoboCompJointMotor
+Ice.loadSlice("-I ./src/ --all ./src/KinovaArmPub.ice")
+import RoboCompKinovaArmPub
 
 
 import camerargbdsimpleI 
@@ -74,3 +76,4 @@ class GenericWorker():
         self.omnirobotpub_proxy = mprx["OmniRobotPubPub"]
         self.humantodsrpub_proxy = mprx["HumanToDSRPubPub"]
         self.jointmotorpub_proxy = mprx["JointMotorPubPub"]
+        self.kinovaarmpub_proxy = mprx["KinovaArmPubPub"]

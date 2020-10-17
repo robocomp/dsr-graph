@@ -65,7 +65,6 @@ import signal
 
 from specificworker import *
 
-
 class CommonBehaviorI(RoboCompCommonBehavior.CommonBehavior):
     def __init__(self, _handler):
         self.handler = _handler
@@ -207,6 +206,24 @@ if __name__ == '__main__':
     pub = topic.getPublisher().ice_oneway()
     jointmotorpubTopic = RoboCompJointMotorPub.JointMotorPubPrx.uncheckedCast(pub)
     mprx["JointMotorPubPub"] = jointmotorpubTopic
+
+    # Create a proxy to publish a KinovaArmPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("KinovaArmPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("KinovaArmPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("KinovaArmPub")
+            except:
+                print('Another client created the JointMotorPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    kinovaarmpubTopic = RoboCompKinovaArmPub.KinovaArmPubPrx.uncheckedCast(pub)
+    mprx["KinovaArmPubPub"] = kinovaarmpubTopic
 
     if status == 0:
         worker = SpecificWorker(mprx)

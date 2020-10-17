@@ -16,6 +16,7 @@ const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
 const std::string laser_name = "laser";
 const std::string glass_1_name= "glass_1";
 const std::string collision_box_name= "collision_box";
+const std::string viriato_left_arm_tip_name = "viriato_left_arm_tip";
 
 //NODE TYPES
 const std::string path_to_target_type = "path_to_target";
@@ -23,7 +24,7 @@ const std::string intention_type = "intention";
 const std::string laser_type = "laser";
 const std::string omnirobot_type = "omnirobot";
 const std::string rgbd_type = "rgbd";
-
+const std::string left_hand_type = "left_hand";
 
 // EDGES TYPES
 const std::string think_type = "thinks";

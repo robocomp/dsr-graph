@@ -46,3 +46,42 @@ After editing the new config file we can run the component:
 ```
 bin/viriatoPyrep config
 ```
+
+## Adding new publish interfaces without "robocompdsl"
+
+- In main file "my_component.py" Add a block like this:
+
+```
+ # Create a proxy to publish a KinovaArmPub topic
+    topic = False
+    try:
+        topic = topicManager.retrieve("KinovaArmPub")
+    except:
+        pass
+    while not topic:
+        try:
+            topic = topicManager.retrieve("KinovaArmPub")
+        except IceStorm.NoSuchTopic:
+            try:
+                topic = topicManager.create("KinovaArmPub")
+            except:
+                print('Another client created the JointMotorPub topic? ...')
+    pub = topic.getPublisher().ice_oneway()
+    kinovaarmpubTopic = RoboCompKinovaArmPub.KinovaArmPubPrx.uncheckedCast(pub)
+    mprx["KinovaArmPubPub"] = kinovaarmpubTopic
+```
+
+- In genericworker.py add 
+
+```
+Ice.loadSlice("-I ./src/ --all ./src/KinovaArmPub.ice")
+import RoboCompKinovaArmPub
+```
+and in the constructor
+
+```
+  self.kinovaarmpub_proxy = mprx["KinovaArmPubPub"]
+```
+
+- Add to CMakeLists.txt the name of the interface
+- run cmake .
