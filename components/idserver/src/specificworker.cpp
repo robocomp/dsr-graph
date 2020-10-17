@@ -81,7 +81,8 @@ void SpecificWorker::initialize(int period)
 		}
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
-        this->Period = 200;
+
+		this->Period = 200;
 
         // Compute max Id in G
         get_max_id_from_G();

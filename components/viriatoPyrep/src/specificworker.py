@@ -49,8 +49,6 @@ class SpecificWorker(GenericWorker):
     def setParams(self, params):
         
         SCENE_FILE = '../../etc/autonomy_lab.ttt'
-        #SCENE_FILE = '../../etc/youbot.ttt'
-        #SCENE_FILE = '/home/pbustos/software/PyRep/examples/scene_youbot_navigation.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
@@ -59,6 +57,8 @@ class SpecificWorker(GenericWorker):
         #self.robot = Viriato()
         self.robot = YouBot()
         self.robot_object = Object("youBot")
+        self.robot_left_arm = Object("viriato_left_arm")
+        self.robot_left_arm_tip = Object("viriato_left_arm_tip")
 
         self.cameras = {}
         # cam = VisionSensor("camera_1_rgbd_sensor")
@@ -138,6 +138,7 @@ class SpecificWorker(GenericWorker):
             self.read_laser()
             self.read_joystick()
             self.read_robot_pose()
+            self.read_robot_arm_tip()
             self.move_robot()
             self.read_pan_tilt()
 
@@ -235,6 +236,24 @@ class SpecificWorker(GenericWorker):
                                                          rotV=ang_vel[2],
                                                          isMoving=isMoving)
             self.omnirobotpub_proxy.pushBaseState(self.bState)
+        except Ice.Exception as e:
+            print(e)
+
+    ###########################################
+    ### ROBOT POSE get and publish robot position
+    ###########################################
+    def read_robot_arm_tip(self):
+        trans = self.robot_left_arm_tip.get_position(self.robot)
+        rot = self.robot_left_arm_tip.get_orientation(self.robot)
+        qt = self.robot_left_arm_tip.get_quaternion(self.robot)
+        #linear_vel, ang_vel = self.robot_left_arm_tip.get_velocity()
+        #print(trans, rot, linear_vel)
+        try:
+            #isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
+            self.arm_state = RoboCompKinovaArmPub.TArmState(x=trans[0], y=trans[1], z=trans[2],
+                                                            rx=rot[0], ry=rot[1], rz=rot[2],
+                                                            qta=qt[0], qtb=qt[1], qtc=qt[2], qtd=qt[3])
+            self.kinovaarmpub_proxy.newArmState(self.arm_state)
         except Ice.Exception as e:
             print(e)
 
@@ -441,12 +460,9 @@ class SpecificWorker(GenericWorker):
         else:
             dummy = Dummy(name)
             parent_frame_object = None
-        #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-        #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
-            # change from RoboComp to Coppelia coordinate system
-            #print("Coppelia ", name, pose.z/1000, -pose.x/1000, pose.y/1000.)
-            #dummy.set_position([pose.z/1000., -pose.x/1000., pose.y/1000.])
-            #dummy.set_orientation([-pose.rz, pose.rx, -pose.ry])
+            #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+            #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
+            print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
             dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.])
             dummy.set_orientation([pose.rx, pose.ry, pose.rz])
 

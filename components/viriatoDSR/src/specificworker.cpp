@@ -90,6 +90,10 @@ void SpecificWorker::initialize(int period)
             main = opts::graph;
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
+
+		// Connect G SLOTS
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+
         timer.start(100);
     }
 }
@@ -104,7 +108,6 @@ void SpecificWorker::compute()
     check_new_dummy_values_for_coppelia();
     //check_new_nose_referece_for_pan_tilt();
     check_new_base_command(bState);
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,7 +189,6 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
                           std::vector<float>{last_state.x, last_state.z, last_state.alpha},
                           std::vector<float>{1, 1, 0.1}))
         {
-            qInfo() << "angle " << bState.alpha;
             auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
             G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
             G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
@@ -321,6 +323,36 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
     }
 }
 
+///////////////////////////////////////////////////////////////////
+/// Asynchronous changes on G nodes from G signals
+///////////////////////////////////////////////////////////////////
+void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+{
+    if (type == left_hand_type)
+    {
+        if( auto node = G->get_node(id); node.has_value() and node.value().name() == viriato_left_arm_tip_name)
+            if( auto target   = G->get_attrib_by_name<viriato_arm_tip_target_att>(node.value()); target.has_value())
+            {
+                auto &target_ = target.value().get();
+                if (target_.size() == 6)
+                {
+                    RoboCompCoppeliaUtils::PoseType dummy_pose{target_[0], target_[1], target_[2],
+                                                               target_[3], target_[4], target_[5]};
+                    qInfo() << __FUNCTION__ << "Dummy hand pose: " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
+                    try
+                    { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::Hand, arm_tip_target, dummy_pose);                   }
+                    catch (const Ice::Exception &e)
+                    { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+                }
+            }
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
 {
@@ -363,3 +395,5 @@ void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap
 {
     jointmotor_buffer.put(std::move(mstateMap));
 }
+
+

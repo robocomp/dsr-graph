@@ -24,7 +24,10 @@ using namespace DSR;
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx, startup_check) {
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx, startup_check)
+{
+    QLoggingCategory::setFilterRules("*.debug=false\n");
+
 }
 
 /**
