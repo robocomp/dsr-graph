@@ -38,6 +38,7 @@
 #include <GenericBase.h>
 #include <JointMotor.h>
 #include <JointMotorPub.h>
+#include <KinovaArmPub.h>
 #include <Laser.h>
 #include <LaserPub.h>
 #include <OmniRobot.h>
@@ -70,6 +71,7 @@ public:
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;
 	virtual void JointMotorPub_motorStates (RoboCompJointMotor::MotorStateMap mstateMap) = 0;
+	virtual void KinovaArmPub_newArmState (RoboCompKinovaArmPub::TArmState armstate) = 0;
 	virtual void LaserPub_pushLaserData (RoboCompLaser::TLaserData laserData) = 0;
 	virtual void OmniRobotPub_pushBaseState (RoboCompGenericBase::TBaseState state) = 0;
 

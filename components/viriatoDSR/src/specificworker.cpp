@@ -104,6 +104,8 @@ void SpecificWorker::compute()
     auto bState = update_omirobot();
     update_rgbd();
     update_pantilt_position();
+    update_arm_state();
+
     // change to slots
     check_new_dummy_values_for_coppelia();
     //check_new_nose_referece_for_pan_tilt();
@@ -230,6 +232,16 @@ void SpecificWorker::update_pantilt_position()
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
         }
     }
+}
+
+void SpecificWorker::update_arm_state()
+{
+    if (auto arm = kinovaarm_buffer.try_get(); arm.has_value())
+        if( auto robot = G->get_node(robot_name); robot.has_value())
+            if( auto left_hand_tip_node = G->get_node(viriato_left_arm_tip_name); left_hand_tip_node.has_value())
+                G->insert_or_assign_edge_RT(robot.value(), left_hand_tip_node->id(),
+                                            std::vector<float>{arm->x, arm->y, arm->z},
+                                            std::vector<float>{arm->rx, arm->ry, arm->rz});
 }
 
 //// CHANGE THESE ONES BY SIGNAL SLOTS
@@ -394,6 +406,13 @@ void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState 
 void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap)
 {
     jointmotor_buffer.put(std::move(mstateMap));
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// SUBSCRIPTION to newArmState method from KinovaArmPub interface
+void SpecificWorker::KinovaArmPub_newArmState(RoboCompKinovaArmPub::TArmState armstate)
+{
+    kinovaarm_buffer.put(std::move(armstate));
 }
 
 
