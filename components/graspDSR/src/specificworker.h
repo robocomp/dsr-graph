@@ -35,6 +35,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <Eigen/Dense>
+#include "../../../etc/viriato_graph_names.h"
 
 class SpecificWorker : public GenericWorker
 {
