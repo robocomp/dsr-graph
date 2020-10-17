@@ -134,8 +134,8 @@ void SpecificWorker::compute()
         this->inject_estimated_poses(poses);
 
         // get arm target and required object poses
-        auto world_node = G->get_node("world");
-        auto arm_id = G->get_id_from_name("viriato_arm_target");
+        auto world_node = G->get_node(world_name);
+        auto arm_id = G->get_id_from_name(viriato_left_arm_tip_name);
         auto object_id = G->get_id_from_name(grasp_object);
         
         auto world_arm_edge = G->get_edge_RT(world_node.value(), arm_id.value());
@@ -174,7 +174,7 @@ void SpecificWorker::compute()
 RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 {
     // get head camera node
-    auto cam = G->get_node("viriato_head_camera_sensor");
+    auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
         // read RGB data attributes from graph 
@@ -217,7 +217,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
 RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 {
     // get head camera node
-    auto cam = G->get_node("viriato_head_camera_sensor");
+    auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
         // read depth data attributes from graph
@@ -260,7 +260,7 @@ RoboCompCameraRGBDSimple::TDepth SpecificWorker::get_depth_from_G()
 std::vector<std::vector<float>> SpecificWorker::get_camera_intrinsics()
 {
     // get head camera node
-    auto cam = G->get_node("viriato_head_camera_sensor");
+    auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
         try
@@ -300,7 +300,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
     // get innermodel sub-API
     auto innermodel = G->get_inner_eigen_api();
     // get a copy of world node
-    auto world = G->get_node("world");
+    auto world = G->get_node(world_name);
     // loop over each estimated object pose
     for (auto pose : poses)
     {
@@ -313,7 +313,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // re-project estimated poses into world coordinates
             Eigen::Matrix<double, 6, 1> orig_point;
             orig_point << pose.x, pose.y, pose.z, angles.at(0), angles.at(1), angles.at(2);
-            auto final_pose = innermodel->transform_axis("world", orig_point, "camera_pose");
+            auto final_pose = innermodel->transform_axis(world_name, orig_point, viriato_head_camera_name);
 
             // get object node id (if exists)
             auto id = G->get_id_from_name(pose.objectname);
