@@ -542,7 +542,7 @@
                                 "value": [
                                     0,
                                     0,
-                                    95
+                                    0
                                 ]
                             }
                         },
@@ -1848,62 +1848,6 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -8.348506
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -377.669708
-                    }
-                },
-                "id": 220,
-                "links": [
-                    {
-                        "dst": 221,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 220
-                    }
-                ],
-                "name": "viriato_left_arm_shoulder",
-                "type": "right_shoulder"
-            },
-            "221": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "Orange"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "mass": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "parent": {
-                        "type": 6,
-                        "value": 220
-                    },
-                    "pos_x": {
-                        "type": 2,
                         "value": 85.580048
                     },
                     "pos_y": {
@@ -1922,7 +1866,7 @@
                         ]
                     }
                 },
-                "id": 221,
+                "id": 220,
                 "links": [
                 ],
                 "name": "viriato_left_arm_tip",

@@ -5,6 +5,7 @@ CameraRGBDSimplePubTopic.Endpoints=tcp -p 11111
 LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
 JointMotorPubTopic.Endpoints=tcp -p 11114
+KinovaArmPubTopic.Endpoints=tcp -p 11115
 
 #Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004

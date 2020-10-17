@@ -243,17 +243,18 @@ class SpecificWorker(GenericWorker):
     ### ROBOT POSE get and publish robot position
     ###########################################
     def read_robot_arm_tip(self):
-        trans = self.robot_left_arm_tip.get_position(self.robot)
-        rot = self.robot_left_arm_tip.get_orientation(self.robot)
-        qt = self.robot_left_arm_tip.get_quaternion(self.robot)
-        #linear_vel, ang_vel = self.robot_left_arm_tip.get_velocity()
+        trans = self.robot_left_arm_tip.get_position(self.robot_object)
+        rot = self.robot_left_arm_tip.get_orientation(self.robot_object)
+        qt = self.robot_left_arm_tip.get_quaternion(self.robot_object)
+        linear_vel, ang_vel = self.robot_left_arm_tip.get_velocity()
         #print(trans, rot, linear_vel)
         try:
-            #isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-            self.arm_state = RoboCompKinovaArmPub.TArmState(x=trans[0], y=trans[1], z=trans[2],
+            isMoving = np.sum(np.abs(linear_vel)) > 0.005 or np.sum(np.abs(ang_vel)) > 0.005
+            if isMoving:
+                self.arm_state = RoboCompKinovaArmPub.TArmState(x=trans[0]*1000, y=trans[1]*1000, z=trans[2]*1000,
                                                             rx=rot[0], ry=rot[1], rz=rot[2],
                                                             qta=qt[0], qtb=qt[1], qtc=qt[2], qtd=qt[3])
-            self.kinovaarmpub_proxy.newArmState(self.arm_state)
+                self.kinovaarmpub_proxy.newArmState(self.arm_state)
         except Ice.Exception as e:
             print(e)
 
