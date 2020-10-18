@@ -103,6 +103,9 @@ void SpecificWorker::compute()
     RoboCompCameraRGBDSimple::TImage rgb = get_rgb_from_G();
     RoboCompCameraRGBDSimple::TDepth depth = get_depth_from_G();
 
+    // get eigen innermodel sub-API
+    auto innermodel = G->get_inner_eigen_api();
+
     // cast RGB image to OpenCV Mat
     cv::Mat img = cv::Mat(rgb.height, rgb.width, CV_8UC3, &rgb.image[0]);
 
@@ -135,31 +138,29 @@ void SpecificWorker::compute()
 
         // get arm target and required object poses
         auto world_node = G->get_node(world_name);
-        auto arm_id = G->get_id_from_name(viriato_left_arm_tip_name);
-        auto object_id = G->get_id_from_name(grasp_object);
-        
-        auto world_arm_edge = G->get_edge_RT(world_node.value(), arm_id.value());
-        auto world_object_edge = G->get_edge_RT(world_node.value(), object_id.value());
-        
-        std::map<std::string, DSR::Attribute> arm_attribs = world_arm_edge.value().attrs();
-        vector<float> arm_trans = arm_attribs.at("translation").float_vec();
-        
-        std::map<std::string, DSR::Attribute> object_attribs = world_object_edge.value().attrs();
-        vector<float> object_trans = object_attribs.at("translation").float_vec();
+        auto tip_node = G->get_node(viriato_left_arm_tip_name);
+        auto object_node = G->get_node(grasp_object);
+
+        auto object_pose = innermodel->transform_axis(world_name, grasp_object);
+        auto tip_pose = innermodel->transform_axis(world_name, viriato_left_arm_tip_name);
 
         // get euclidean distance between arm and required object (ignoring distance along z-axis)
-        float arm_object_dist = sqrt(pow(object_trans.at(0)-arm_trans.at(0), 2.0) + pow(object_trans.at(1)-arm_trans.at(1), 2.0));
+        float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
 
         // check whether required object is within arm's reach
         if (arm_object_dist >= 0.5)
         {
             // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
-            vector<float> dummy_trans = this->interpolate_trans(arm_trans, object_trans, 0.2); // interpolate dummy target position
-            vector<float> dummy_rot = object_attribs.at("rotation_euler_xyz").float_vec(); // set dummy target rotation with object rotation
-            G->insert_or_assign_edge_RT(world_node.value(), arm_id.value(), dummy_trans, dummy_rot);
+            vector<float> tip_vec(tip_pose.value().data(), tip_pose.value().data() + tip_pose.value().rows() * tip_pose.value().cols());
+            vector<float> object_vec(object_pose.value().data(), object_pose.value().data() + object_pose.value().rows() * object_pose.value().cols());
+
+            vector<float> dummy_pose = this->interpolate_trans(tip_vec, object_vec, 0.2); // interpolate dummy target position
+            dummy_pose.insert(dummy_pose.end(), tip_vec.begin()+3, tip_vec.end()); // set dummy target rotation with object rotation
+
+            G->add_or_modify_attrib_local<viriato_arm_tip_target_att>(tip_node.value(), dummy_pose);
 
             // check whether the arm target reaches the object
-            if (dummy_trans == object_trans)
+            if (dummy_pose == object_vec)
             {
                 std::cout << "The arm has reached the target object" << std::endl;
             }
@@ -297,7 +298,7 @@ std::vector<std::vector<float>> SpecificWorker::get_camera_intrinsics()
 
 void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses)
 {
-    // get innermodel sub-API
+    // get eigen innermodel sub-API
     auto innermodel = G->get_inner_eigen_api();
     // get a copy of world node
     auto world = G->get_node(world_name);
