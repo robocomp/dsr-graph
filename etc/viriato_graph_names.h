@@ -25,6 +25,8 @@ const std::string laser_type = "laser";
 const std::string omnirobot_type = "omnirobot";
 const std::string rgbd_type = "rgbd";
 const std::string left_hand_type = "left_hand";
+const std::string pan_tilt_type = "pan_tilt";
+const std::string glass_type = "glass";
 
 // EDGES TYPES
 const std::string think_type = "thinks";

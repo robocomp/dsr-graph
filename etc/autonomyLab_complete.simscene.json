@@ -1249,8 +1249,8 @@
                                 "type": 3,
                                 "value": [
                                     0,
-                                    40,
-                                    1420
+                                    57,
+                                    1368
                                 ]
                             }
                         },
@@ -1625,7 +1625,7 @@
                     }
                 ],
                 "name": "viriato_head_camera_pan_tilt",
-                "type": "transform"
+                "type": "pan_tilt"
             },
             "207": {
                 "attribute": {

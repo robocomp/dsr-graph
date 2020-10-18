@@ -58,9 +58,8 @@ void SpecificWorker::initialize(int period)
     // create graph
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 
-     
     // Graph viewer
-//	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
+    //	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
 
     //initialize node combobox
     auto map = G->getCopy();
@@ -81,7 +80,6 @@ void SpecificWorker::initialize(int period)
             this->edge_cb->addItem(name, edge_data);
             edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
         }
-
     }
 
     node_attrib_tw->setColumnCount(2);

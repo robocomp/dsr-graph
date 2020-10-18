@@ -76,7 +76,14 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
 
         // innermodel
-        innermodel = G->get_inner_api();
+        if(auto cam_node = G->get_node(camera_name); cam_node.has_value())
+        {
+            cam_api = G->get_camera_api(cam_node.value());
+            //    const double fx=527; const double fy=527;
+            //cam_api->set_width(608); cam_api->set_height(608);
+        }
+        else
+            qFatal("YoloV4_tracker terminate: could not find a camera node");
         inner_eigen = G->get_inner_eigen_api();
 
         // Graph viewer
@@ -95,11 +102,27 @@ void SpecificWorker::initialize(int period)
 		if(osg_3d_view)
 		    current_opts = current_opts | opts::osg;
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+
 		// custom_widget
 		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+
 		// ignore attributes
         G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_depth_att>();
+
+        // Connect G SLOTS
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+
+        // Initialize combobox
+        auto glass_nodes = G->get_nodes_by_type(glass_type);
+        for(const auto &node : glass_nodes)
+        {
+            QVariant data;
+            data.setValue(node.name());
+            custom_widget.comboBox->addItem(QString::fromStdString(node.name()), data);
+        }
+        connect(custom_widget.startButton, SIGNAL(clicked(bool)), this, SLOT(start_button_slot(bool)));
+
         this->Period = period;
         timer.start(Period);
         READY_TO_GO = true;
@@ -108,56 +131,44 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // get camera node from G
-    if( auto rgb_camera = G->get_node(camera_name); rgb_camera.has_value())
+    if(const auto g_image = rgb_buffer.try_get(); g_image.has_value())
     {
-        // get and process RGB image
-        auto g_image = G->get_rgb_image(rgb_camera.value());
-        auto width = G->get_attrib_by_name<cam_rgb_width_att >(rgb_camera.value());
-        auto height = G->get_attrib_by_name<cam_rgb_height_att>(rgb_camera.value());
-        if (width.has_value() and height.has_value())
-        {
-            // create opencv image
-            auto g_img = g_image.value().get();
-            cv::Mat img = cv::Mat(height.value(), width.value(), CV_8UC3, &g_img[0]);
-            // process opencv image
-            //const int img_size = 416;
-            const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
-            cv::Mat imgyolo(img_size, img_size, CV_8UC3);
-            cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
+        // create opencv image
+//        auto imgyolo = g_image.value();
+        auto g_img = g_image.value();
+        const auto width = cam_api->get_width();
+        const auto height = cam_api->get_height();
+        cv::Mat img = cv::Mat(height, width, CV_8UC3, &g_img[0]);
+        // process opencv image
+        //const int img_size = 416;
+        const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
+        cv::Mat imgyolo(img_size, img_size, CV_8UC3);
+        cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
 
-            // get detections using YOLOv4 network
-            std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
-            // predict where OI will be in yolo space
-            std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest}, rgb_camera.value());
+        // get detections using YOLOv4 network
+        std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
+        // predict where OI will be in yolo space
+        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
 
-            // show detections on image
-//            qInfo() << real_objects.size() << synth_objects.size();
-//            for(auto s : synth_objects)
-//                qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
-            show_image(imgyolo, real_objects, synth_objects);
+        // show detections on image
+        //            qInfo() << real_objects.size() << synth_objects.size();
+        //            for(auto s : synth_objects)
+        //                qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+        show_image(imgyolo, real_objects, synth_objects);
 
-            // compute_prediction_error( real_objects, synth_objects);
-            // compute corrections and insert or assign to G
-            // assess current state of the plan and choose top-down or bottom-up
-            // if top-down choose OI
-            // if bottom-up choose another object
-            // option2: write in G the target object pose in t + delta (node head_camera) as "center_target_reference"
-            // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
+        // compute_prediction_error( real_objects, synth_objects);
+        // compute corrections and insert or assign to G
+        // assess current state of the plan and choose top-down or bottom-up
+        // if top-down choose OI
+        // if bottom-up choose another object
+        // option2: write in G the target object pose in t + delta (node head_camera) as "center_target_reference"
+        // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
-            // track object of interest
-            track_object_of_interest();
-
-        }
-        else
-        {
-            qWarning() << __FILE__ << __FUNCTION__ << "No attributes image, widht or height found in G";
-        }
     }
+    if(custom_widget.startButton->isChecked())   // track object of interest
+        track_object_of_interest();
     else
-    {
-        qWarning() << __FILE__ << __FUNCTION__ << "No node Viriato_head_camera_front_sensor found in G";
-    }
+        set_nose_target_to_default();
 }
 
 Detector* SpecificWorker::init_detector()
@@ -197,55 +208,38 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     return bboxes;
 }
 
-std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam)
+std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(const std::vector<std::string> &object_names)
 {
     std::vector<Box> synth_box;
-    //  get camera subAPI
-    static  std::unique_ptr<DSR::CameraAPI> camera_api = G->get_camera_api(rgb_cam);
-
     //320/np.tan(np.deg2rad(30))
-    const double fx=527; const double fy=527;
-    const int center_x=608/2; const int center_y=608/2;
-    auto project = [fx, fy, center_x, center_y](const QVec &p)
-            { return QVec::vec2(fx*p.y()/p.x() + center_x, fy*p.z()/p.x() + center_y);  };
+    //    const double fx=527; const double fy=527;
+    //    const int center_x=608/2; const int center_y=608/2;
 
+    auto c=608/2;
     for(auto &&object_name : object_names)
     {
         //get object from G
         if (auto object = G->get_node(object_name); object.has_value())
         {
-            // compute bounding box projected in the camera coordinate frame
-            std::vector<QVec> bb_in_camera;
+            // project corners of object's bounding box in the camera image plane
+            std::vector<Mat::Vector2d> bb_in_camera(8);
             const float h = 150;
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
+            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
+            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
+            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
+            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
+            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
+            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
+            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
 
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40,40,0), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,40,0), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40,-40,0), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,-40,0), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40, 40, h), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40,40, h), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(40, -40, h), object_name).value()));
-            bb_in_camera.emplace_back(project(innermodel->transform(camera_name, QVec::vec3(-40, -40,h), object_name).value()));
-
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,40,0), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value()));
-//            bb_in_camera.emplace_back(camera_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value()));
-//
-
-            // Compute a bounding box of pixel coordinates
-            // Sort the coordinates x
+            // Compute a 2D bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
-                                                 [](const QVec& lhs, const QVec& rhs) {
+                                                 [](const Mat::Vector2d & lhs, const Mat::Vector2d& rhs) {
                                                      return lhs.x() < rhs.x();
                                                  });
-            // Sort the coordinates y
             auto yExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
-                                                 [](const QVec& lhs, const QVec& rhs) {
+                                                 [](const Mat::Vector2d& lhs, const Mat::Vector2d& rhs) {
                                                      return lhs.y() < rhs.y();
                                                  });
             // Take the most separated ends to build the rectangle
@@ -256,12 +250,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             box.bot = yExtremes.second->y();
             box.prob = 100;
             box.name = object_name;
-            // store projection of bounding box
             synth_box.push_back(box);
-
-            //innermodel->transformS(camera_name, object_name).value().print("object");
-            //camera.print("camera");
-            //camera.project(innermodel->transformS(camera_name, object_name).value()).print("proj");
         }
     }
     return synth_box;
@@ -269,40 +258,25 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
 
 void SpecificWorker::track_object_of_interest()
 {
+    static Mat::Vector3d ant_pose;
     auto object = G->get_node(object_of_interest);
     auto pan_tilt = G->get_node(viriato_pan_tilt);
     if(object.has_value() and pan_tilt.has_value())
     {
         // get object pose in world coordinate frame
-        auto pose = inner_eigen->transform(world_node, object_of_interest);
-        if (pose.has_value())
+        auto po = inner_eigen->transform(world_name, object_of_interest);
+        auto pose = inner_eigen->transform(camera_name, object_of_interest);
+        if (po.has_value() and pose.has_value() and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10))
         {
-            // get pan_tilt current target pose
-            if(auto current_pose = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); current_pose.has_value())
-            {
-                auto c_pose = current_pose.value().get();
-                Mat::Vector3d vc_pose(c_pose[0], c_pose[1], c_pose[2]);
-                //if they are different modify G
-                if((pose.value()-vc_pose).isMuchSmallerThan(1))  // use an epsilon limited difference
-                {
-                    G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
-                    G->update_node(pan_tilt.value());
-                }
-            }
-            else
-            {
-                qWarning() << __FILE__ << __FUNCTION__ << "No attribute " << QString::fromStdString(nose_target) << " found in G for camera_head_pan_tilt node";
-            }
+               G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
+               G->update_node(pan_tilt.value());
+               qInfo() <<"NOW ...." << po.value().x() << po.value().y() << po.value().z() << " - " << (pose.value() - ant_pose).cwiseAbs2().sum() ;
+               qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z() << " - " << ant_pose.x() << ant_pose.y() << ant_pose.z();
         }
-        else
-        {
-            qWarning() << __FILE__ << __FUNCTION__ << "No attribute pose found in G for " << QString::fromStdString(object_of_interest);
-        }
+        ant_pose = pose.value();
     }
     else
-    {
         qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
-    }
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -386,33 +360,74 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     }
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
-//    cv::drawMarker(imgdst, cv::Point(imgdst.rows/2, imgdst.cols/2),  cv::Scalar(0, 0, 255), cv::MARKER_CROSS,0, 1);
-//    cv::imshow("", imgdst);
-//    cv::waitKey(1);
-}
-
-void SpecificWorker::show_rgb_image()
-{
-    //TODO: how to select which camera to display
-    std::optional<DSR::Node> camera_node = G->get_node("viriato_head_camera_sensor");
-    if (camera_node.has_value())
-    {
-        const auto rgb_data = G->get_rgb_image(camera_node.value());
-        const auto rgb_width = G->get_attrib_by_name<width_att>(camera_node.value());
-        const auto rgb_height = G->get_attrib_by_name<height_att>(camera_node.value());
-
-        if (rgb_data.has_value() and rgb_width.has_value() and rgb_height.has_value()) {
-            const std::vector<uint8_t> &img = rgb_data.value().get();
-            auto pix = QPixmap::fromImage(
-                    QImage(&img[0], rgb_width.value(), rgb_height.value(), QImage::Format_RGB888));
-            custom_widget.rgb_image->setPixmap(pix);
-        }
-    }
 }
 void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
 {
 
 }
+
+void SpecificWorker::set_nose_target_to_default()
+{
+    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+    {
+        if(auto nose = inner_eigen->transform(world_name, this->nose_default_pose, viriato_head_camera_pan_tilt); nose.has_value())
+        {
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)nose.value().x(), (float)nose.value().y(), (float)nose.value().z()});
+            G->update_node(pan_tilt.value());
+        }
+        this->already_in_default = true;
+    }
+}
+///////////////////////////////////////////////////////////////////
+/// Asynchronous changes on G nodes from G signals
+///////////////////////////////////////////////////////////////////
+void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+{
+    using namespace std::placeholders;
+    if (type == rgbd_type and (std::uint32_t)id == cam_api->get_id())
+    {
+        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value())
+//            rgb_buffer.put(std::move(g_image.value()), [this](const std::vector<std::uint8_t> &in, cv::Mat &out)
+//                    {
+//                        const auto width = cam_api->get_width();
+//                        const auto height = cam_api->get_height();
+//                        const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
+//                        void *in_ = (void *)in.data();
+//                        cv::Mat img(height, width, CV_8UC3, in_);
+//                        //const int img_size = 416;
+//                        //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
+//                        cv::resize(img, out, cv::Size(img_size, img_size), 0, 0);
+//                    });
+            rgb_buffer.put(g_image.value());
+    }
+    else if (type == intention_type)
+    {
+        auto node = G->get_node(id);
+        if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
+        {
+            std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
+            if (plan.has_value())
+                plan_buffer.put(std::move(plan.value()),[](const std::string& plan_text, Plan &plan){ plan.json_to_plan(plan_text);});
+        }
+    }
+}
+void SpecificWorker::start_button_slot(bool checked)
+{
+    if(checked)  //track
+    {
+        const auto index = custom_widget.comboBox->currentIndex();
+        object_of_interest = custom_widget.comboBox->itemData(index).value<std::string>();
+        custom_widget.startButton->setText("Stop");
+        this->already_in_default = false;
+    }
+    else //stop tracking
+    {
+        custom_widget.startButton->setText("Start");
+        object_of_interest = "no_object";
+    }
+}
+
+//////////////////////////////////////////////////////77777
 
 int SpecificWorker::startup_check()
 {

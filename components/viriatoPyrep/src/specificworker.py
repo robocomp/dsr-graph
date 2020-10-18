@@ -97,7 +97,7 @@ class SpecificWorker(GenericWorker):
                                                                 "angle": np.radians(cam.get_perspective_angle()),
                                                                 "width": cam.get_resolution()[0],
                                                                 "height": cam.get_resolution()[1],
-                                                                "focal": cam.get_resolution()[0]/2 / np.tan(np.radians(cam.get_perspective_angle()/2)),
+                                                                "focal": (cam.get_resolution()[0]/2) / np.tan(np.radians(cam.get_perspective_angle()/2)),
                                                                 "rgb": np.array(0),
                                                                 "depth": np.ndarray(0) }
 
@@ -330,10 +330,20 @@ class SpecificWorker(GenericWorker):
                 adv = x.value if np.abs(x.value) > 1 else 0
             if x.name == "rotate":
                 rot = x.value if np.abs(x.value) > 0.5 else 0
-            if x.name == "side":
-                side = x.value if np.abs(x.value) > 0.5 else 0
+#            if x.name == "side":
+#                side = x.value if np.abs(x.value) > 0.5 else 0
+            if x.name == "pan":
+                pan = x.value if np.abs(x.value) > 0.01 else 0
+            if x.name == "tilt":
+                tilt = x.value if np.abs(x.value) > 0.01 else 0
+
         #print("Joystick ", adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
+        #
+        dummy = Dummy("viriato_head_pan_tilt_nose_target")
+        pantilt = Object("viriato_head_camera_pan_tilt")
+        pose = dummy.get_position(pantilt)
+        dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
 
     ##################################################################################
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
@@ -463,7 +473,7 @@ class SpecificWorker(GenericWorker):
             parent_frame_object = None
             #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
             #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
-            print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
+            #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
             dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.])
             dummy.set_orientation([pose.rx, pose.ry, pose.rz])
 
