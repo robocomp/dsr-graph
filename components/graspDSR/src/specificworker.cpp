@@ -115,9 +115,11 @@ void SpecificWorker::compute()
     {
         QString button_text = sel_button->text();
         grasp_object = button_text.toStdString();
+        std::cout << "Object '" << grasp_object << "' is selected to be the target" << std::endl;
     }
 
     // call pose estimation on RGBD and receive estimated poses
+    std::cout << "Obtain DNN-estimated poses" << std::endl;
     RoboCompObjectPoseEstimationRGBD::PoseType poses;
     try
     {
@@ -134,13 +136,18 @@ void SpecificWorker::compute()
         show_image(img, poses);
 
         // inject estimated poses into graph
+        std::cout << "Inject DNN-estimated poses into G" << std::endl;
         this->inject_estimated_poses(poses);
 
-        // get arm target and required object poses
+        // plan dummy targets for the arm to follow
+        std::cout << "Plan arm's dummy targets" << std::endl;
+
+        // get world, grasp object and arm nodes
         auto world_node = G->get_node(world_name);
         auto tip_node = G->get_node(viriato_left_arm_tip_name);
         auto object_node = G->get_node(grasp_object);
 
+        // get required nodes poses
         auto object_pose = innermodel->transform_axis(world_name, grasp_object);
         auto tip_pose = innermodel->transform_axis(world_name, viriato_left_arm_tip_name);
 
@@ -307,6 +314,8 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
     {
         if (pose.objectname.compare(grasp_object) == 0)
         {
+            std::cout << "Target object '" << pose.objectname << "' detected" << std::endl;
+
             // convert quaternions into euler angles
             vector<float> quat{pose.qx, pose.qy, pose.qz, pose.qw};
             vector<float> angles = this->quat_to_euler(quat);
