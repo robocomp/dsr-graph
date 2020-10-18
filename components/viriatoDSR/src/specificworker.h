@@ -32,8 +32,12 @@
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
 
+
 class SpecificWorker : public GenericWorker
 {
+    using Clock = std::chrono::system_clock;
+    using MSec = std::chrono::duration<double, std::milli>;
+
 Q_OBJECT
 public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
@@ -95,12 +99,15 @@ private:
     void update_laser();
     RoboCompGenericBase::TBaseState update_omirobot();
 	void update_rgbd();
-	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
-    void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
-    void check_new_dummy_values_for_coppelia();
-    void check_new_nose_referece_for_pan_tilt();
     void update_pantilt_position();
     void update_arm_state();
+
+	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
+
+	//void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
+    //void check_new_dummy_values_for_coppelia();
+    void check_new_nose_referece_for_pan_tilt();
+
 };
 
 #endif

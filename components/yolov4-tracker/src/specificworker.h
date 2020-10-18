@@ -38,86 +38,100 @@
 #include <chrono>
 #include <yolo_v2_class.hpp>
 #include <fps/fps.h>
+#include <doublebuffer/DoubleBuffer.h>
+#include  "../../../etc/viriato_graph_names.h"
+#include "plan.h"
 
 class SpecificWorker : public GenericWorker
 {
-Q_OBJECT
-public:
-    SpecificWorker(TuplePrx tprx, bool startup_check);
-    ~SpecificWorker();
-    bool setParams(RoboCompCommonBehavior::ParameterList params);
-    void show_rgb_image();
-    
-public slots:
-    void compute();
-    int startup_check();
-    void initialize(int period);
+    Q_OBJECT
+    public:
+        SpecificWorker(TuplePrx tprx, bool startup_check);
+        ~SpecificWorker();
+        bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-private:
-    // NODE NAMES
-    const std::string object_of_interest = "glass_1";
-    const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
-    const std::string camera_name = "viriato_head_camera_sensor";
-    const std::string world_node = "world";
+    public slots:
+        void compute();
+        int startup_check();
+        void initialize(int period);
+        void update_node_slot(const std::int32_t id, const std::string &type);
+        void start_button_slot(bool);
 
-    // ATTRIBUTE NAMES
-    const std::string nose_target = "viriato_pan_tilt_nose_target";
+    private:
+        // NODE NAMES
+        std::string object_of_interest = "no_object";
+        const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
+        const std::string camera_name = "viriato_head_camera_sensor";
+        const std::string world_node = "world";
 
-    // DSR graph
-    std::shared_ptr<DSR::DSRGraph> G;
-    std::shared_ptr<DSR::InnerAPI> innermodel;
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+        // ATTRIBUTE NAMES
+        const std::string nose_target = "viriato_pan_tilt_nose_target";
+        const Mat::Vector3d nose_default_pose{0,300,0};
 
-    //DSR params
-    std::string agent_name;
-    std::string cfg_file;
-    std::string weights_file;
-    std::string names_file;
+        // DSR graph
+        std::shared_ptr<DSR::DSRGraph> G;
+        std::shared_ptr<DSR::CameraAPI> cam_api;
+        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
 
-    int agent_id;
+        //DSR params
+        std::string agent_name;
+        std::string cfg_file;
+        std::string weights_file;
+        std::string names_file;
 
-    bool tree_view;
-    bool graph_view;
-    bool qscene_2d_view;
-    bool osg_3d_view;
+        int agent_id;
+        bool tree_view;
+        bool graph_view;
+        bool qscene_2d_view;
+        bool osg_3d_view;
 
-    // DSR graph viewer
-    std::unique_ptr<DSR::DSRViewer> graph_viewer;
-    QHBoxLayout mainLayout;
-    QWidget window;
-    bool startup_check_flag;
-    
-    //local widget
-    Custom_widget custom_widget;
-    
-    // Bounding boxes struct
-    struct Box
-    {
-        std::string name;
-        int left;
-        int top;
-        int right;
-        int bot;
-        float prob;
-    };
+        // DSR graph viewer
+        std::unique_ptr<DSR::DSRViewer> graph_viewer;
+        QHBoxLayout mainLayout;
+        QWidget window;
+        bool startup_check_flag;
 
-    // YOLOv4 attributes
-    const std::size_t YOLO_INSTANCES = 1;
-    std::vector<Detector*> ynets;
-    std::vector<std::string> names;
-    bool SHOW_IMAGE = false;
-    bool READY_TO_GO = false;
-    FPSCounter fps;
+        //local widget
+        Custom_widget custom_widget;
 
-    // YOLOv4 methods
-    Detector* init_detector();
-    std::vector<Box> process_image_with_yolo(const cv::Mat& img);
-    image_t createImage(const cv::Mat &src);
-    image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
-    void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
-    std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names, const DSR::Node& rgb_cam);
-    void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
-    void track_object_of_interest();
+        // Double buffer
+        DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
+        //DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        DoubleBuffer<std::string, Plan> plan_buffer;
+
+        //Plan
+        Plan current_plan;
+
+       // Bounding boxes struct
+        struct Box
+        {
+            std::string name;
+            int left;
+            int top;
+            int right;
+            int bot;
+            float prob;
+        };
+
+        // YOLOv4 attributes
+        const std::size_t YOLO_INSTANCES = 1;
+        std::vector<Detector*> ynets;
+        std::vector<std::string> names;
+        bool SHOW_IMAGE = false;
+        bool READY_TO_GO = false;
+        FPSCounter fps;
+
+        // YOLOv4 methods
+        Detector* init_detector();
+        std::vector<Box> process_image_with_yolo(const cv::Mat& img);
+        image_t createImage(const cv::Mat &src);
+        image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
+        void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
+        std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
+        void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
+        void track_object_of_interest();
+        void set_nose_target_to_default();
+        bool already_in_default = false;
 };
 
 #endif
