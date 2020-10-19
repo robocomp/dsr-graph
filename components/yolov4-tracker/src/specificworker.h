@@ -95,8 +95,8 @@ class SpecificWorker : public GenericWorker
         Custom_widget custom_widget;
 
         // Double buffer
-        DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
-        //DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
+        DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
 
         //Plan
