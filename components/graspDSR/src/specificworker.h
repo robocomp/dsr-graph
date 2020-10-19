@@ -53,6 +53,7 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
 
 	// DSR params
 	std::string agent_name;
@@ -92,6 +93,7 @@ private:
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
+    void update_node_slot(const std::int32_t id, const std::string &type);
 
 	// IO utilities
     std::map<std::string,std::vector<std::vector<float>>> read_pcl_from_file();
