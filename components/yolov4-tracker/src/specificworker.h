@@ -56,6 +56,7 @@ class SpecificWorker : public GenericWorker
         void initialize(int period);
         void update_node_slot(const std::int32_t id, const std::string &type);
         void start_button_slot(bool);
+        void change_object_slot(int);
 
     private:
         // NODE NAMES
@@ -121,7 +122,7 @@ class SpecificWorker : public GenericWorker
         bool READY_TO_GO = false;
         FPSCounter fps;
         bool already_in_default = false;
-        const std::uint32_t yolo_img_size = 608;  //608  change in yolo.cgf file
+        const std::uint32_t yolo_img_size = 416;  //608  change in yolo.cgf file
 
         // YOLOv4 methods
         Detector* init_detector();
