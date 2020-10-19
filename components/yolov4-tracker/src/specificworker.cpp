@@ -134,13 +134,24 @@ void SpecificWorker::compute()
     if(const auto g_image = rgb_buffer.try_get(); g_image.has_value())
     {
         // create opencv image
+
         // auto imgyolo = g_image.value();
-        auto g_img = g_image.value();
-        const auto width = cam_api->get_width();
-        const auto height = cam_api->get_height();
-        cv::Mat img = cv::Mat(height, width, CV_8UC3, &g_img[0]);
-        cv::Mat imgyolo(this->yolo_img_size, this->yolo_img_size, CV_8UC3);
-        cv::resize(img, imgyolo, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
+//        auto g_img = g_image.value();
+//        const auto width = cam_api->get_width();
+//        const auto height = cam_api->get_height();
+//        cv::Mat img = cv::Mat(height, width, CV_8UC3, &g_img[0]);
+//        cv::Mat imgyolo(this->yolo_img_size, this->yolo_img_size, CV_8UC3);
+//        cv::resize(img, imgyolo, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
+//        auto imgyolo = g_image.value();
+        //auto g_img = g_image.value();
+        //const auto width = cam_api->get_width();
+        //const auto height = cam_api->get_height();
+        cv::Mat imgyolo = g_image.value();
+        // process opencv image
+        //const int img_size = 416;
+        //const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
+        //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
+        //cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
 
         // get detections using YOLOv4 network
         std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
@@ -375,19 +386,21 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     using namespace std::placeholders;
     if (type == rgbd_type and (std::uint32_t)id == cam_api->get_id())
     {
-        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value())
-//            rgb_buffer.put(std::move(g_image.value()), [this](const std::vector<std::uint8_t> &in, cv::Mat &out)
-//                    {
-//                        const auto width = cam_api->get_width();
-//                        const auto height = cam_api->get_height();
-//                        const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
-//                        void *in_ = (void *)in.data();
-//                        cv::Mat img(height, width, CV_8UC3, in_);
-//                        //const int img_size = 416;
-//                        //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
-//                        cv::resize(img, out, cv::Size(img_size, img_size), 0, 0);
-//                    });
-            rgb_buffer.put(g_image.value());
+        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value()) {
+
+            rgb_buffer.put(g_image.value().get(),
+                           [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
+                               const auto width = cam_api->get_width();
+                               const auto height = cam_api->get_height();
+                               const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
+                               //void *in_ = (void *)in.data();
+                               cv::Mat img(height, width, CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
+                               //const int img_size = 416;
+                               //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
+                               cv::resize(img, out, cv::Size(img_size, img_size), 0, 0);
+                           });
+            //rgb_buffer.put(g_image.value());
+        }
     }
     else if (type == intention_type)
     {
