@@ -31,16 +31,22 @@
 #include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+
 #include <QHBoxLayout>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <chrono>
+#include <algorithm>
+#include <iterator>
 #include <yolo_v2_class.hpp>
 #include <fps/fps.h>
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
+
+#define YOLO_IMG_SIZE 416  // 608, 512 change also in yolo.cgf file
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -59,6 +65,17 @@ class SpecificWorker : public GenericWorker
         void change_object_slot(int);
 
     private:
+        // Bounding boxes struct
+        struct Box
+        {
+            std::string name;
+            int left;
+            int top;
+            int right;
+            int bot;
+            float prob;
+        };
+
         // NODE NAMES
         std::string object_of_interest = "no_object";
         const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
@@ -103,17 +120,6 @@ class SpecificWorker : public GenericWorker
         //Plan
         Plan current_plan;
 
-       // Bounding boxes struct
-        struct Box
-        {
-            std::string name;
-            int left;
-            int top;
-            int right;
-            int bot;
-            float prob;
-        };
-
         // YOLOv4 attributes
         const std::size_t YOLO_INSTANCES = 1;
         std::vector<Detector*> ynets;
@@ -122,7 +128,6 @@ class SpecificWorker : public GenericWorker
         bool READY_TO_GO = false;
         FPSCounter fps;
         bool already_in_default = false;
-        const std::uint32_t yolo_img_size = 416;  //608  change in yolo.cgf file
 
         // YOLOv4 methods
         Detector* init_detector();

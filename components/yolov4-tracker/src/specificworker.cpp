@@ -139,13 +139,12 @@ void SpecificWorker::compute()
         // predict where OI will be in yolo space
         std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
 
-        // show detections on image
-        //        qInfo() << real_objects.size() << synth_objects.size();
-        //        for(auto s : synth_objects)
-        //            qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+//        qInfo() << real_objects.size() << synth_objects.size();
+//        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+//        for(auto s : real_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
 
         show_image(imgyolo, real_objects, synth_objects);
-
+        compute_prediction_error(real_objects, synth_objects);
     }
     if(custom_widget.startButton->isChecked())   // track object of interest
         track_object_of_interest();
@@ -197,7 +196,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     //    const double fx=527; const double fy=527;
     //    const int center_x=608/2; const int center_y=608/2;
 
-    auto c = this->yolo_img_size/2;
+    auto c = YOLO_IMG_SIZE/2;
     for(auto &&object_name : object_names)
     {
         //get object from G
@@ -260,6 +259,24 @@ void SpecificWorker::track_object_of_interest()
     else
         qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
 }
+
+void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
+{
+    auto are_close = [](const Box &b1, const Box &b2) { return true; };
+
+    if( auto s_res = std::find_if(synth_boxes.begin(), synth_boxes.end(), [this](auto &a)
+                { return (a.name == object_of_interest);}); s_res != synth_boxes.end())
+        if(auto r_res = std::find_if(real_boxes.begin(), real_boxes.end(), [this](auto &a)
+                { return (a.name == "cup");}); r_res != real_boxes.end())
+            if( are_close(*s_res, *r_res) )
+                if(auto object = G->get_node(object_of_interest); object.has_value())
+                {
+                    DSR::Edge edge(object.value().id(), cam_api->get_id(), "looking-at", agent_id );
+                    if (not G->insert_or_assign_edge(edge))
+                        std::cout << __FUNCTION__ << "WARNING: Error inserting new edge: " << cam_api->get_id() << "->" << object.value().id() << " type: has" << std::endl;
+                }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 image_t SpecificWorker::createImage(const cv::Mat &src)
@@ -302,7 +319,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
             auto pt = cv::Point(box.left + offset, box.top + offset);
             cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
             auto font = cv::FONT_HERSHEY_SIMPLEX;
-            cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(0, 255, 255), 2);
+            cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 255), 2);
         }
     }
     for(const auto &box : synth_boxes)
@@ -313,13 +330,11 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
         auto pt = cv::Point(box.left + offset, box.top + offset);
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
-        cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 1, cv::Scalar(0, 255, 255), 2);
+        cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
     }
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
 }
-void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
-{}
 
 void SpecificWorker::set_nose_target_to_default()
 {
@@ -346,7 +361,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
             rgb_buffer.put(g_image.value().get(),
                            [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
                                cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
-                               cv::resize(img, out, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
+                               cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
                            });
         }
     }
