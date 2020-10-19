@@ -473,7 +473,7 @@ class SpecificWorker(GenericWorker):
             parent_frame_object = None
             #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
             #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
-            #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
+            print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
             dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.])
             dummy.set_orientation([pose.rx, pose.ry, pose.rz])
 

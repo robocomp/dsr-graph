@@ -134,35 +134,24 @@ void SpecificWorker::compute()
     if(const auto g_image = rgb_buffer.try_get(); g_image.has_value())
     {
         // create opencv image
-//        auto imgyolo = g_image.value();
+        // auto imgyolo = g_image.value();
         auto g_img = g_image.value();
         const auto width = cam_api->get_width();
         const auto height = cam_api->get_height();
         cv::Mat img = cv::Mat(height, width, CV_8UC3, &g_img[0]);
-        // process opencv image
-        //const int img_size = 416;
-        const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
-        cv::Mat imgyolo(img_size, img_size, CV_8UC3);
-        cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
+        cv::Mat imgyolo(this->yolo_img_size, this->yolo_img_size, CV_8UC3);
+        cv::resize(img, imgyolo, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
 
         // get detections using YOLOv4 network
         std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
         // predict where OI will be in yolo space
-        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
+        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({"glass_1"});
 
         // show detections on image
-        //            qInfo() << real_objects.size() << synth_objects.size();
-        //            for(auto s : synth_objects)
-        //                qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+        qInfo() << real_objects.size() << synth_objects.size();
+        for(auto s : synth_objects)
+            qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
         show_image(imgyolo, real_objects, synth_objects);
-
-        // compute_prediction_error( real_objects, synth_objects);
-        // compute corrections and insert or assign to G
-        // assess current state of the plan and choose top-down or bottom-up
-        // if top-down choose OI
-        // if bottom-up choose another object
-        // option2: write in G the target object pose in t + delta (node head_camera) as "center_target_reference"
-        // so ViriatoDSR can send the dummy command. ViriatoPyrep, on receiving it must stretch the camera "nose" to the target pose.
 
     }
     if(custom_widget.startButton->isChecked())   // track object of interest
@@ -215,7 +204,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     //    const double fx=527; const double fy=527;
     //    const int center_x=608/2; const int center_y=608/2;
 
-    auto c=608/2;
+    auto c = this->yolo_img_size/2;
     for(auto &&object_name : object_names)
     {
         //get object from G
@@ -423,7 +412,7 @@ void SpecificWorker::start_button_slot(bool checked)
     else //stop tracking
     {
         custom_widget.startButton->setText("Start");
-        object_of_interest = "no_object";
+        //object_of_interest = "no_object";
     }
 }
 

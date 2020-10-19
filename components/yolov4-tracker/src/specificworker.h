@@ -120,6 +120,8 @@ class SpecificWorker : public GenericWorker
         bool SHOW_IMAGE = false;
         bool READY_TO_GO = false;
         FPSCounter fps;
+        bool already_in_default = false;
+        const std::uint32_t yolo_img_size = 608;  //608  change in yolo.cgf file
 
         // YOLOv4 methods
         Detector* init_detector();
@@ -131,7 +133,7 @@ class SpecificWorker : public GenericWorker
         void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
         void track_object_of_interest();
         void set_nose_target_to_default();
-        bool already_in_default = false;
+
 };
 
 #endif
