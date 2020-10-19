@@ -64,13 +64,12 @@ void SpecificWorker::initialize(int period)
         std::cout<< __FUNCTION__ << " - Graph loaded" << std::endl;
 
         //Inner Api
-        innermodel = G->get_inner_api();
+        innermodel = G->get_inner_eigen_api();
 
         //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            const auto nose = innermodel->transform(world_name, QVec::vec3(0,1000,0),viriato_head_camera_pan_tilt).value();
-            std::cout << __FUNCTION__ << " Nose target set to:"; nose.print("node");
+            const auto nose = innermodel->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
@@ -94,7 +93,6 @@ void SpecificWorker::initialize(int period)
 		// Connect G SLOTS
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
-
         timer.start(100);
     }
 }
@@ -102,7 +100,7 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     update_laser();
-    auto bState = update_omirobot();
+    update_omirobot();
     update_rgbd();
     update_pantilt_position();
     update_arm_state();
@@ -170,7 +168,7 @@ void SpecificWorker::update_laser()
     //else std::this_thread::yield();
 }
 
-RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
+void SpecificWorker::update_omirobot()
 {
     static RoboCompGenericBase::TBaseState last_state;
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
@@ -178,16 +176,10 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
         const auto bState = bState_o.value();
         auto robot = G->get_node(robot_name);
         if (not robot.has_value())
-        {
             qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
-            return last_state;
-        }
         auto parent = G->get_parent_node(robot.value());
         if (not parent.has_value())
-        {
             qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
-            return last_state;
-        }
         if( are_different(std::vector<float>{bState.x, bState.z, bState.alpha},
                           std::vector<float>{last_state.x, last_state.z, last_state.alpha},
                           std::vector<float>{1, 1, 0.1}))
@@ -199,12 +191,8 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
             G->modify_attrib_local<robot_current_angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
             G->insert_or_assign_edge(edge);
             last_state = bState;
-            return bState;
         }
     }
-    //else
-    //    std::this_thread::yield();
-    return last_state;
 }
 
 void SpecificWorker::update_pantilt_position()
@@ -216,8 +204,9 @@ void SpecificWorker::update_pantilt_position()
     {
         const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint).pos;
         const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint).pos;
+        const std::vector<float> current_state{pan, tilt};
         //qInfo() << pan << tilt;
-        if( are_different(std::vector<float>{pan, tilt}, last_state, epsilon))
+        if( are_different(current_state, last_state, epsilon))
         {
             auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt);
             auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint);
@@ -232,6 +221,7 @@ void SpecificWorker::update_pantilt_position()
             else
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
         }
+        last_state = current_state;
     }
 }
 
@@ -316,7 +306,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
             if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
-           //     qInfo() << __FUNCTION__ << "NOW " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
+                qInfo() << __FUNCTION__ << "NOW " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
                 try
                 { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
                 catch (const Ice::Exception &e)
@@ -330,7 +320,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
 {
     for(auto &&[aa, bb, e] : iter::zip(a, b, epsilon))
-        if(fabs(aa-bb) > e)
+        if (fabs(aa - bb) > e)
             return true;
     return false;
 };

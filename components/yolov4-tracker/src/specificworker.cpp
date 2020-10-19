@@ -121,6 +121,7 @@ void SpecificWorker::initialize(int period)
             custom_widget.comboBox->addItem(QString::fromStdString(node.name()), data);
         }
         connect(custom_widget.startButton, SIGNAL(clicked(bool)), this, SLOT(start_button_slot(bool)));
+        connect(custom_widget.comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(change_object_slot(int)));
 
         this->Period = period;
         timer.start(Period);
@@ -136,7 +137,7 @@ void SpecificWorker::compute()
         // get detections using YOLOv4 network
         std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
         // predict where OI will be in yolo space
-        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({"glass_1"});
+        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
 
         // show detections on image
         //        qInfo() << real_objects.size() << synth_objects.size();
@@ -204,15 +205,15 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
         {
             // project corners of object's bounding box in the camera image plane
             std::vector<Mat::Vector2d> bb_in_camera(8);
-            const float h = 170;
-            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,-h/2), object_name).value(),c,c);
-            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,-h/2), object_name).value(),c,c);
-            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,-h/2), object_name).value(),c,c);
-            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,-h/2), object_name).value(),c,c);
-            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h/2), object_name).value(),c,c);
-            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h/2), object_name).value(),c,c);
-            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h/2), object_name).value(),c,c);
-            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h/2), object_name).value(),c,c);
+            const float h = 150;
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
+            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
+            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
+            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
+            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
+            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
+            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
+            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
 
             // Compute a 2D bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -251,8 +252,8 @@ void SpecificWorker::track_object_of_interest()
         {
                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
                G->update_node(pan_tilt.value());
-               qInfo() <<"NOW ...." << po.value().x() << po.value().y() << po.value().z() << " - " << (pose.value() - ant_pose).cwiseAbs2().sum() ;
-               qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z() << " - " << ant_pose.x() << ant_pose.y() << ant_pose.z();
+               //qInfo() <<"NOW ...." << po.value().x() << po.value().y() << po.value().z() << " - " << (pose.value() - ant_pose).cwiseAbs2().sum() ;
+               //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z() << " - " << ant_pose.x() << ant_pose.y() << ant_pose.z();
         }
         ant_pose = pose.value();
     }
@@ -318,9 +319,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     custom_widget.rgb_image->setPixmap(pix);
 }
 void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes)
-{
-
-}
+{}
 
 void SpecificWorker::set_nose_target_to_default()
 {
@@ -342,8 +341,8 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     using namespace std::placeholders;
     if (type == rgbd_type and (std::uint32_t)id == cam_api->get_id())
     {
-        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value()) {
-
+        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value())
+        {
             rgb_buffer.put(g_image.value().get(),
                            [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
                                cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
@@ -378,6 +377,11 @@ void SpecificWorker::start_button_slot(bool checked)
     }
 }
 
+void SpecificWorker::change_object_slot(int index)
+{
+    qInfo() << "HERE";
+    object_of_interest = custom_widget.comboBox->itemData(index).value<std::string>();
+}
 //////////////////////////////////////////////////////77777
 
 int SpecificWorker::startup_check()

@@ -76,9 +76,9 @@ private:
 
     // DSR
 	std::shared_ptr<DSR::DSRGraph> G;
-    std::shared_ptr<DSR::InnerAPI> innermodel;
+    std::shared_ptr<DSR::InnerEigenAPI> innermodel;
 
-	//params
+    //params
 	std::string agent_name;
 	int agent_id;
 	bool read_dsr;
@@ -89,23 +89,20 @@ private:
 	int qscene_2d_view;
 	int osg_3d_view;
 
-	// Graph Biewer
+	// Graph Viewer
 	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
     std::unordered_map<int, int> G_person_id;
 
-
     void update_laser();
-    RoboCompGenericBase::TBaseState update_omirobot();
+    void update_omirobot();
 	void update_rgbd();
     void update_pantilt_position();
     void update_arm_state();
 
 	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
 
-	//void check_new_base_command(const RoboCompGenericBase::TBaseState& bState);
-    //void check_new_dummy_values_for_coppelia();
     void check_new_nose_referece_for_pan_tilt();
 
 };
