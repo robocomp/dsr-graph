@@ -127,7 +127,7 @@ class SpecificWorker : public GenericWorker
         Detector* init_detector();
         std::vector<Box> process_image_with_yolo(const cv::Mat& img);
         image_t createImage(const cv::Mat &src);
-        image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
+        //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
         void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);

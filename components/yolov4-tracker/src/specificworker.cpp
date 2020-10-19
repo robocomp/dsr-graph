@@ -75,12 +75,11 @@ void SpecificWorker::initialize(int period)
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
 		std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
 
-        // innermodel
+        // get camera_api
         if(auto cam_node = G->get_node(camera_name); cam_node.has_value())
         {
             cam_api = G->get_camera_api(cam_node.value());
             //    const double fx=527; const double fy=527;
-            //cam_api->set_width(608); cam_api->set_height(608);
         }
         else
             qFatal("YoloV4_tracker terminate: could not find a camera node");
@@ -133,35 +132,17 @@ void SpecificWorker::compute()
 {
     if(const auto g_image = rgb_buffer.try_get(); g_image.has_value())
     {
-        // create opencv image
-
-        // auto imgyolo = g_image.value();
-//        auto g_img = g_image.value();
-//        const auto width = cam_api->get_width();
-//        const auto height = cam_api->get_height();
-//        cv::Mat img = cv::Mat(height, width, CV_8UC3, &g_img[0]);
-//        cv::Mat imgyolo(this->yolo_img_size, this->yolo_img_size, CV_8UC3);
-//        cv::resize(img, imgyolo, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
-//        auto imgyolo = g_image.value();
-        //auto g_img = g_image.value();
-        //const auto width = cam_api->get_width();
-        //const auto height = cam_api->get_height();
         cv::Mat imgyolo = g_image.value();
-        // process opencv image
-        //const int img_size = 416;
-        //const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
-        //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
-        //cv::resize(img, imgyolo, cv::Size(img_size, img_size), 0, 0);
-
         // get detections using YOLOv4 network
         std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
         // predict where OI will be in yolo space
         std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({"glass_1"});
 
         // show detections on image
-        qInfo() << real_objects.size() << synth_objects.size();
-        for(auto s : synth_objects)
-            qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+        //        qInfo() << real_objects.size() << synth_objects.size();
+        //        for(auto s : synth_objects)
+        //            qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+
         show_image(imgyolo, real_objects, synth_objects);
 
     }
@@ -223,15 +204,15 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
         {
             // project corners of object's bounding box in the camera image plane
             std::vector<Mat::Vector2d> bb_in_camera(8);
-            const float h = 150;
-            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
-            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
-            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
-            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
-            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
-            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
-            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
-            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
+            const float h = 170;
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,-h/2), object_name).value(),c,c);
+            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,-h/2), object_name).value(),c,c);
+            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,-h/2), object_name).value(),c,c);
+            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,-h/2), object_name).value(),c,c);
+            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h/2), object_name).value(),c,c);
+            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h/2), object_name).value(),c,c);
+            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h/2), object_name).value(),c,c);
+            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h/2), object_name).value(),c,c);
 
             // Compute a 2D bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -307,31 +288,6 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
     return out;
 }
 
-image_t SpecificWorker::createImage(const std::vector<uint8_t> &src, int width, int height, int depth)
-{
-    // create YOLOv4 image from array of bytes
-    const int &h = height;
-    const int &w = width;
-    const int &c = depth;
-    int step = w*c;
-
-    int i, j, k;
-    image_t out;
-    out.h = h;
-    out.w = w;
-    out.c = c;
-    out.data = (float *)calloc(h*w*c, sizeof(float));
-
-    for(i = 0; i < h; ++i){
-        for(k= 0; k < c; ++k){
-            for(j = 0; j < w; ++j){
-                out.data[k*w*h + i*w + j] = src[i*step + j*c + k]/255.;
-            }
-        }
-    }
-    return out;
-}
-
 void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes)
 {
     // display RGB image with detections
@@ -390,16 +346,9 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
 
             rgb_buffer.put(g_image.value().get(),
                            [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
-                               const auto width = cam_api->get_width();
-                               const auto height = cam_api->get_height();
-                               const int img_size = 608;   // for faster performance and lower memory usage, set to 416 (check in yolov4.cfg)
-                               //void *in_ = (void *)in.data();
-                               cv::Mat img(height, width, CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
-                               //const int img_size = 416;
-                               //cv::Mat imgyolo(img_size, img_size, CV_8UC3);
-                               cv::resize(img, out, cv::Size(img_size, img_size), 0, 0);
+                               cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
+                               cv::resize(img, out, cv::Size(this->yolo_img_size, this->yolo_img_size), 0, 0);
                            });
-            //rgb_buffer.put(g_image.value());
         }
     }
     else if (type == intention_type)
