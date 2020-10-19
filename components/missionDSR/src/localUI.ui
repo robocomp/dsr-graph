@@ -195,32 +195,23 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
-         <widget class="QCheckBox" name="none_cb">
-          <property name="text">
-           <string>None</string>
-          </property>
-          <property name="autoExclusive">
-           <bool>true</bool>
-          </property>
+         <widget class="QComboBox" name="predef_cb">
+          <item>
+           <property name="text">
+            <string>Goto Mug</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Goto Floor</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QCheckBox" name="mug_cb">
+         <widget class="QPushButton" name="predef_set_pb">
           <property name="text">
-           <string>Goto Mug</string>
-          </property>
-          <property name="autoExclusive">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QCheckBox" name="floor_cb">
-          <property name="text">
-           <string>Goto Floor</string>
-          </property>
-          <property name="autoExclusive">
-           <bool>true</bool>
+           <string>Set</string>
           </property>
          </widget>
         </item>
