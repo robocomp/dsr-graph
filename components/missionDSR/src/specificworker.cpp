@@ -96,10 +96,7 @@ void SpecificWorker::initialize(int period)
         connect(custom_widget.delete_pb,SIGNAL(clicked()),this, SLOT(del_mission_slot()));
         //connect(G.get(), SIGNAL(update_node_signal), this, SLOT(update_mission_slot));
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_mission_slot);
-        connect(custom_widget.mug_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
-        connect(custom_widget.floor_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
-        connect(custom_widget.none_cb, SIGNAL(stateChanged(int)), this, SLOT(set_predefined_mission()));
-        
+        connect(custom_widget.predef_set_pb, SIGNAL(clicked()), this, SLOT(set_predefined_mission()));
         
 		this->Period = period;
 		timer.start(Period);
@@ -276,15 +273,11 @@ std::string SpecificWorker::generate_json_plan(QList<QJsonObject> actions)
 
 void SpecificWorker::set_predefined_mission()
 {
-    if(custom_widget.none_cb->isChecked())
-    {
-        this->del_mission_slot();
-    }
-    else if (custom_widget.floor_cb->isChecked())
+    if(custom_widget.predef_cb->currentText() == "Goto Floor")
     {
         set_mission(1900.f, 669.f, 94.f, "infiniteFloor");
     }
-    else if (custom_widget.mug_cb->isChecked())
+    else if (custom_widget.predef_cb->currentText() == "Goto Mug")
     {
         set_mission(0.f, 0.f, 0.f, "glass_1");
     }
