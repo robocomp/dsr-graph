@@ -210,7 +210,7 @@ RoboCompGenericBase::TBaseState SpecificWorker::update_omirobot()
 void SpecificWorker::update_pantilt_position()
 {
     static std::vector<float> last_state{0.0, 0.0};
-    static std::vector<float> epsilon{0.05, 0.05};
+    static std::vector<float> epsilon{0.01, 0.01};
 
     if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
     {
@@ -225,9 +225,9 @@ void SpecificWorker::update_pantilt_position()
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
                 G->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{0.0, 0.0, pan});
+                                            std::vector<float>{0.0, 0.0, -pan});
                 G->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
-                                            std::vector<float>{0.0, tilt, 0.0});
+                                            std::vector<float>{tilt, 0.0, 0.0});
             }
             else
                 qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
@@ -246,75 +246,6 @@ void SpecificWorker::update_arm_state()
 }
 
 //// CHANGE THESE ONES BY SIGNAL SLOTS
-
-// Check if rotation_speed or advance_speed have changed and move the robot consequently
-//void SpecificWorker::check_new_base_command(const RoboCompGenericBase::TBaseState& bState)
-//{
-//    auto robot = G->get_node(robot_name);
-//    if (not robot.has_value())
-//    {
-//        qWarning() << __FUNCTION__ << " No node " <<  QString::fromStdString(robot_name);
-//        return;
-//    }
-//    auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
-//    auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-//    auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
-//    if(not ref_adv_speed.has_value() or not ref_rot_speed.has_value() or not ref_side_speed.has_value())
-//    {
-//        qWarning() << __FUNCTION__ << " No valid attributes for robot speed";
-//        return;
-//    }
-//    // Check de values are within robot's accepted range. Read them from config
-//    //if(fabs(ref_adv_speed.value())>0 or fabs(ref_rot_speed.value())>0 or fabs(ref_side_speed.value())>0)
-//    //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
-//    //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-//    //std::clamp(ref_side_speed.value(), lowerS, upperS);
-//    //std::clamp(ref_rot_speed.value(), lowerR, upperR);
-//
-//    if( are_different(std::vector<float>{bState.advVz, bState.rotV, bState.advVx},
-//                      std::vector<float>{ref_adv_speed.value(), ref_rot_speed.value(), ref_side_speed.value() },
-//                      std::vector<float>{1, 0.1, 1}));
-//    {
-//        qDebug() << __FUNCTION__ << "Diff detected" << ref_adv_speed.value() << bState.advVz << ref_rot_speed.value() << bState.rotV << ref_side_speed.value() << bState.advVx;
-//        try
-//        {
-//                omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value());
-//
-//                //                std::cout << __FUNCTION__ << "Adv: " << ref_adv_speed.value() << " Side: " << ref_side_speed.value()
-//                //                          << " Rot: " << ref_rot_speed.value()
-//                //                          << " " << bState.advVz << " " << bState.advVx << " " << bState.rotV
-//                //                          << " " << (ref_adv_speed.value() - bState.advVz) << " "
-//                //                          << (ref_side_speed.value() - bState.advVx) << " " << (ref_rot_speed.value() - bState.rotV)
-//                //                          << std::endl;
-//        }
-//        catch(const RoboCompGenericBase::HardwareFailedException &re)
-//        { std::cout << re << '\n';}
-//        catch(const Ice::Exception &e)
-//        { std::cout << e.what() << '\n';}
-//    }
-//}
-
-//void SpecificWorker::check_new_dummy_values_for_coppelia()
-//{
-//    static float current_base_target_x = 0;
-//    static float current_base_target_y = 0;
-//    if( auto robot = G->get_node(robot_name); robot.has_value())
-//    {
-//        auto x = G->get_attrib_by_name<base_target_x_att>(robot.value());
-//        auto y = G->get_attrib_by_name<base_target_y_att>(robot.value());
-//        if( x.has_value() and y.has_value())
-//            if(x.value() != current_base_target_x or y.value() != current_base_target_y)
-//            {
-//                RoboCompCoppeliaUtils::PoseType dummy_pose{x.value(), y.value(), 100, 0.0, 0.0, 0.0};
-//                try
-//                { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::Info, "base_dummy", dummy_pose); }
-//                catch (const Ice::Exception &e)
-//                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
-//                current_base_target_x = x.value();
-//                current_base_target_y = y.value();
-//            }
-//    }
-//}
 
 void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
