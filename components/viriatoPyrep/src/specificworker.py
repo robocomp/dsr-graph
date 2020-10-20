@@ -91,16 +91,8 @@ class SpecificWorker(GenericWorker):
         #                                             "depth": np.ndarray(0) }
         #
         # robot head camera
-        cam = VisionSensor("viriato_head_camera_sensor")
-        self.cameras["viriato_head_camera_sensor"] = {    "handle": cam,
-                                                                "id": 0,
-                                                                "angle": np.radians(cam.get_perspective_angle()),
-                                                                "width": cam.get_resolution()[0],
-                                                                "height": cam.get_resolution()[1],
-                                                                "focal": (cam.get_resolution()[0]/2) / np.tan(np.radians(cam.get_perspective_angle()/2)),
-                                                                "rgb": np.array(0),
-                                                                "depth": np.ndarray(0) }
-
+        self.initialize_cameras()
+        
         # camera tilt motor
         self.viriato_head_camera_pan_joint_name = "viriato_head_camera_pan_joint"
         self.viriato_head_camera_tilt_joint_name = "viriato_head_camera_tilt_joint"
@@ -126,6 +118,19 @@ class SpecificWorker(GenericWorker):
         self.speed_robot = []
         self.speed_robot_ant = []
         self.last_received_data_time = 0
+
+    def initialize_cameras(self):
+        print("Initialize camera")
+        self.cameras.clear()
+        cam = VisionSensor("viriato_head_camera_sensor")
+        self.cameras["viriato_head_camera_sensor"] = {    "handle": cam,
+                                                                "id": 0,
+                                                                "angle": np.radians(cam.get_perspective_angle()),
+                                                                "width": cam.get_resolution()[0],
+                                                                "height": cam.get_resolution()[1],
+                                                                "focal": (cam.get_resolution()[0]/2) / np.tan(np.radians(cam.get_perspective_angle()/2)),
+                                                                "rgb": np.array(0),
+                                                                "depth": np.ndarray(0) }
 
     #@QtCore.Slot()
     def compute(self):
@@ -157,14 +162,22 @@ class SpecificWorker(GenericWorker):
     def read_cameras(self):
         for name, cam in self.cameras.items():
             cam = self.cameras["viriato_head_camera_sensor"]
+            # check resolution change
+            if cam["width"] != cam["handle"].get_resolution()[0] or cam["height"] != cam["handle"].get_resolution()[1]:
+                print("Resolution changed")
+                self.initialize_cameras()
+                break
+                
+            
             image_float = cam["handle"].capture_rgb()
+#            print("len", len(image_float))
             depth = cam["handle"].capture_depth(True)
             image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                   dtype=cv2.CV_8U)
             cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"],
                                                          depth=3, focalx=cam["focal"], focaly=cam["focal"],
                                                          alivetime=time.time(), image=image.tobytes())
-            cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["width"], height=cam["height"],
+            cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["handle"].get_resolution()[0], height=cam["handle"].get_resolution()[1],
                                                            focalx=cam["focal"], focaly=cam["focal"],
                                                            alivetime=time.time(), depthFactor=0.1, depth=depth.tobytes())
 
