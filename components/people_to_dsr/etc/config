@@ -14,7 +14,7 @@ agent_name = people_to_dsr
 tree_view = false
 graph_view = true
 2d_view = true
-3d_view = true
+3d_view = false
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0

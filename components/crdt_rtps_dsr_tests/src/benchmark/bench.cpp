@@ -33,7 +33,7 @@ BENCHMARK(get_node);
 ////////////////////////////////////
 //////// Create node
 ///////////////////////////////////
-
+/*
 static void insert_node(benchmark::State& state) {
     auto G = Graph::get().get_G();
 
@@ -43,7 +43,7 @@ static void insert_node(benchmark::State& state) {
         benchmark::DoNotOptimize(id_n);
     }
 }
-
+*/
 //BENCHMARK(insert_node);
 
 
