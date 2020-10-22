@@ -23,12 +23,12 @@ CATCH_CONFIG_MAIN
 
 using namespace std::literals;
 
-REGISTER_TYPE(att, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(att, std::reference_wrapper<const std::string>, false)
 REGISTER_TYPE(int_, int32_t, false)
 REGISTER_TYPE(float_, float, false)
 REGISTER_TYPE(bool_, bool, false)
 REGISTER_TYPE(uint_, uint32_t, false)
-REGISTER_TYPE(string_, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(string_, std::reference_wrapper<const std::string>, false)
 REGISTER_TYPE(vec_byte, std::reference_wrapper<const std::vector<uint8_t>>, false)
 REGISTER_TYPE(vec_float, std::reference_wrapper<const std::vector<float>>, false)
 
@@ -46,7 +46,7 @@ class Graph {
         Graph(Graph const&)           = delete;
         void operator=(Graph const&)  = delete;
 
-        shared_ptr<DSR::DSRGraph> get_G() { return G;}
+    std::shared_ptr<DSR::DSRGraph> get_G() { return G;}
 
     private:
         Graph () {
@@ -55,11 +55,11 @@ class Graph {
                 //while (true) {this_thread::yield();};
             }).detach();
 
-            this_thread::sleep_for(300ms);
+            std::this_thread::sleep_for(300ms);
             auto c = Ice::initialize();
             auto pr = c->stringToProxy("dsrgetid:tcp -h localhost -p 11000");
             dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( pr );
-            G = make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
+            G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
             std::atexit([](){
                [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
             });
@@ -395,20 +395,20 @@ TEST_CASE("Maps operations", "[UTILS]") {
         auto r = G->insert_node(n);
         REQUIRE(r.has_value());
 
-        vector<Node> ve = G->get_nodes_by_type("t");
+        std::vector<Node> ve = G->get_nodes_by_type("t");
         REQUIRE(ve.size() == 2);
         ve = G->get_nodes_by_type("no");
         REQUIRE(ve.empty());
 
     }
     SECTION("Get edges by type") {
-        vector<Edge> ve = G->get_edges_by_type("RT");
+        std::vector<Edge> ve = G->get_edges_by_type("RT");
         REQUIRE(ve.size() == 74);
         ve = G->get_edges_by_type("no");
         REQUIRE(ve.empty());
     }
     SECTION("Get edges to a node (id)") {
-        vector<Edge> ve = G->get_edges_to_id(100);
+        std::vector<Edge> ve = G->get_edges_to_id(100);
         REQUIRE(ve.empty());
         ve = G->get_edges_to_id(13);
         REQUIRE(ve.size() == 1);
@@ -468,7 +468,7 @@ TEST_CASE("Attributes operations (Compile time type-check)", "[ATTRIBUTES]") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->update_attrib_by_name<int__att>(n.value(), 125);
-        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 125);
+        REQUIRE(std::get<std::int32_t>(n->attrs()["int_"].value()) == 125);
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -554,7 +554,7 @@ TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIB
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         G->runtime_checked_add_or_modify_attrib_local(n.value(), "int_", 133);
-        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 133);
+        REQUIRE(std::get<std::int32_t>(n->attrs()["int_"].value()) == 133);
         bool r = G->update_node(n.value());
         REQUIRE(r);
         REQUIRE_THROWS(G->runtime_checked_add_or_modify_attrib_local(n.value(), "int_", 133.0f));
@@ -564,7 +564,7 @@ TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIB
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         REQUIRE(G->runtime_checked_modify_attrib_local(n.value(), "int_", 111));
-        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 111);
+        REQUIRE(std::get<std::int32_t>(n->attrs()["int_"].value()) == 111);
         bool r = G->update_node(n.value());
         REQUIRE(r);
     }
@@ -573,8 +573,8 @@ TEST_CASE("Attributes operations II (Runtime time type-check)", "[RUNTIME ATTRIB
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         REQUIRE(G->runtime_checked_update_attrib_by_name(n.value(), "int_", 177));
-        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == 177);
-        REQUIRE(get<std::int32_t>(n->attrs()["int_"].value()) == G->get_attrib_by_name<int__att>(n.value()));
+        REQUIRE(std::get<std::int32_t>(n->attrs()["int_"].value()) == 177);
+        REQUIRE(std::get<std::int32_t>(n->attrs()["int_"].value()) == G->get_attrib_by_name<int__att>(n.value()));
     }
 
     SECTION("Remove an attribute by name") {
@@ -652,7 +652,7 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Insert a float_vector attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        G->insert_attrib_by_name<vec_float_att>(n.value(), vector<float>{11.0, 167.23, 55.66});
+        G->insert_attrib_by_name<vec_float_att>(n.value(), std::vector<float>{11.0, 167.23, 55.66});
         REQUIRE(n->attrs().find("vec_float") != n->attrs().end());
         std::optional<Node> n2 = G->get_node(1);
         REQUIRE(n2.has_value());
@@ -661,7 +661,7 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
     SECTION("Get a float_vector attribute") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
-        std::optional<vector<float>> st = G->get_attrib_by_name<vec_float_att>(n.value());
+        std::optional<std::vector<float>> st = G->get_attrib_by_name<vec_float_att>(n.value());
         REQUIRE(st.has_value());
     }
     SECTION("Insert a bool attribute") {

@@ -9,9 +9,9 @@
 #include <fstream>
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
-void CRDT_insert_remove_edge::create_or_remove_edges(int i, const shared_ptr<DSR::DSRGraph>& G)
+void CRDT_insert_remove_edge::create_or_remove_edges(int i, const std::shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)

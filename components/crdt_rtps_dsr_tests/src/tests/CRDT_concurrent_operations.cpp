@@ -10,9 +10,9 @@
 
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
-void CRDT_concurrent_operations::concurrent_ops(int i, int no , const shared_ptr<DSR::DSRGraph>& G)
+void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::shared_ptr<DSR::DSRGraph>& G)
 {
     int it=0;
     qDebug() << __FUNCTION__ << "Enter thread" << i;
@@ -147,7 +147,7 @@ void CRDT_concurrent_operations::run_test()
     try {
         threads.resize(num_threads);
 
-        for (int i = 0; thread &t: threads) {
+        for (int i = 0; std::thread &t: threads) {
             t = std::thread(&CRDT_concurrent_operations::concurrent_ops,this, i++, num_ops, G);
         }
         //create_or_remove_nodes(0, G);

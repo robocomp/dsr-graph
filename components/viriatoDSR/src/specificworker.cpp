@@ -62,6 +62,7 @@ void SpecificWorker::initialize(int period)
 	{
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout<< __FUNCTION__ << " - Graph loaded" << std::endl;
+        rt = G->get_rt_api();
 
         //Inner Api
         innermodel = G->get_inner_eigen_api();
@@ -184,7 +185,7 @@ void SpecificWorker::update_omirobot()
                           std::vector<float>{last_state.x, last_state.z, last_state.alpha},
                           std::vector<float>{1, 1, 0.1}))
         {
-            auto edge = G->get_edge_RT(parent.value(), robot->id()).value();
+            auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
             G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
             G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
             G->modify_attrib_local<robot_current_linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
@@ -213,9 +214,9 @@ void SpecificWorker::update_pantilt_position()
             auto pan_joint = G->get_node(viriato_head_camera_pan_joint);
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
-                G->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+                rt->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
                                             std::vector<float>{0.0, 0.0, -pan});
-                G->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+                rt->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
                                             std::vector<float>{tilt, 0.0, 0.0});
             }
             else
@@ -230,7 +231,7 @@ void SpecificWorker::update_arm_state()
     if (auto arm = kinovaarm_buffer.try_get(); arm.has_value())
         if( auto robot = G->get_node(robot_name); robot.has_value())
             if( auto left_hand_tip_node = G->get_node(viriato_left_arm_tip_name); left_hand_tip_node.has_value())
-                G->insert_or_assign_edge_RT(robot.value(), left_hand_tip_node->id(),
+                rt->insert_or_assign_edge_RT(robot.value(), left_hand_tip_node->id(),
                                             std::vector<float>{arm->x, arm->y, arm->z},
                                             std::vector<float>{arm->rx, arm->ry, arm->rz});
 }

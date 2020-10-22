@@ -96,6 +96,9 @@ void SpecificWorker::initialize(int period)
         // get inner eigen model sub_API
         inner_eigen = G->get_inner_eigen_api();
 
+        // get rt sub_API
+        rt = G->get_rt_api();
+
         // set callback function upon left_hand_type node update signal
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
@@ -155,11 +158,14 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
     auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
+        if (cam_api == nullptr) {
+            cam_api = G->get_camera_api(cam.value());
+        }
         // read RGB data attributes from graph 
         RoboCompCameraRGBDSimple::TImage rgb;
         try
         {
-            auto rgb_data = G->get_rgb_image(cam.value());
+            auto rgb_data = cam_api->get_rgb_image();
             const auto width = G->get_attrib_by_name<cam_rgb_width_att>(cam.value());
             const auto height = G->get_attrib_by_name<cam_rgb_height_att>(cam.value());
             const auto depth = G->get_attrib_by_name<cam_rgb_depth_att>(cam.value());
@@ -323,7 +329,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // inject estimated object pose into graph
             vector<float> trans{static_cast<float>(final_pose.value()(0,0)), static_cast<float>(final_pose.value()(1,0)), static_cast<float>(final_pose.value()(2,0))};
             vector<float> rot{static_cast<float>(final_pose.value()(3,0)), static_cast<float>(final_pose.value()(4,0)), static_cast<float>(final_pose.value()(5,0))};
-            G->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+            rt->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
 
             // ignore rest of objects
             break;

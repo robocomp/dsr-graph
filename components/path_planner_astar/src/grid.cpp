@@ -96,7 +96,7 @@ void Grid<T>::readFromFile(const std::string &fich)
     while ( std::getline (myfile, line) )
     {
         //std::cout << line << std::endl;
-        stringstream ss(line);
+        std::stringstream ss(line);
         int x, z;
         bool free, visited;
         std::string node_name;

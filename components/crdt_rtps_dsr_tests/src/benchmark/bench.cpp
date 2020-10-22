@@ -10,7 +10,7 @@ REGISTER_TYPE(int_, int32_t, false)
 REGISTER_TYPE(float_, float, false)
 REGISTER_TYPE(bool_, bool, false)
 REGISTER_TYPE(uint_, uint32_t, false)
-REGISTER_TYPE(string_, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(string_, std::reference_wrapper<const std::string>, false)
 REGISTER_TYPE(vec_byte, std::reference_wrapper<const std::vector<uint8_t>>, false)
 REGISTER_TYPE(vec_float, std::reference_wrapper<const std::vector<float>>, false)
 

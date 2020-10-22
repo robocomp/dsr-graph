@@ -54,7 +54,8 @@ private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-
+    std::unique_ptr<DSR::RT_API> rt;
+    std::unique_ptr<DSR::CameraAPI> cam_api;
 	// DSR params
 	std::string agent_name;
 	

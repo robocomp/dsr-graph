@@ -60,6 +60,7 @@ void SpecificWorker::initialize(int period)
         // create graph
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
+        rt = G->get_rt_api();
         G->set_ignored_attributes<cam_rgb_att, laser_dists_att, laser_angles_att, cam_depth_att>();
 
         // Graph viewer
@@ -78,7 +79,7 @@ void SpecificWorker::initialize(int period)
         setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
         //Inner Api
-        innermodel = G->get_inner_api();
+        innermodel = G->get_inner_eigen_api();
         std::cout << "Initialize worker" << std::endl;
 
         this->Period = 100;
@@ -123,7 +124,7 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
             qInfo() << __FUNCTION__ << " update person:" << person_n->id();
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
-            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
+            rt->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);
             std::cout << __FUNCTION__  << " Update RT "<<world_n->id()<<" ("<<trans[0]<<","<<trans[1]<<","<<trans[2]<<")("<<rot[0]<<","<<rot[1]<<","<<rot[2]<<std::endl;
 /*            for(const auto &[name, key] : person.joints) //update joints edge values
             {
@@ -161,8 +162,8 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
             std::optional<Node> person_n_mesh = create_node_mesh(person_name, person1_path, person_n.value().id());
             if (not person_n_mesh.has_value()) 
                 std::terminate();
-            G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
-            G->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{1.5796,0.0, 0.0});
+            rt->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
+            rt->insert_or_assign_edge_RT(person_n.value(), person_n_mesh->id(), std::vector<float>{0.0, 0.0, 0.0}, std::vector<float>{1.5796,0.0, 0.0});
             
             //create joints nodes
 /*            for(std::string name : COCO_IDS)

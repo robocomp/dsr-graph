@@ -11,7 +11,7 @@
 class CRDT_insert_remove_edge : DSR_test {
 public:
     CRDT_insert_remove_edge () {};
-    CRDT_insert_remove_edge(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_)
+    CRDT_insert_remove_edge(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx, std::shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_ , int num_ops_)
         : DSR_test(id_prx, G_, output_,output_result_), num_ops(num_ops_) {times.resize(num_ops);};
 
     CRDT_insert_remove_edge& operator=(CRDT_insert_remove_edge&& t) {
@@ -35,7 +35,7 @@ private:
     int num_ops;
 
 
-    void create_or_remove_edges(int i, const shared_ptr<DSR::DSRGraph>& G);
+    void create_or_remove_edges(int i, const std::shared_ptr<DSR::DSRGraph>& G);
 
     int delay = 5; //ms
 
