@@ -90,6 +90,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::CameraAPI> cam_api;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+        std::shared_ptr<DSR::RT_API> rt_api;
 
         //DSR params
         std::string agent_name;
@@ -115,6 +116,7 @@ class SpecificWorker : public GenericWorker
         // Double buffer
         //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
         DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
 
         //Plan

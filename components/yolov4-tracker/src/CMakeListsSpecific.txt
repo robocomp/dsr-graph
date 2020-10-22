@@ -46,5 +46,5 @@ INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
 set(CMAKE_CXX_STANDARD 17)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
-add_definitions(-O3  -fmax-errors=1 -std=c++2a -I/home/robocomp/software/darknet/include/ -I/home/robocomp/software/darknet/src/ )
+add_definitions(-O3 -fmax-errors=1 -std=c++2a -I/home/robocomp/software/darknet/include/ -I/home/robocomp/software/darknet/src/ )
 SET (LIBS ${LIBS}   fastcdr fastrtps osgDB fcl OpenThreads -L/home/robocomp/software/darknet -ldarknet )

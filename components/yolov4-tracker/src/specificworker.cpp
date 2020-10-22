@@ -84,6 +84,7 @@ void SpecificWorker::initialize(int period)
         else
             qFatal("YoloV4_tracker terminate: could not find a camera node");
         inner_eigen = G->get_inner_eigen_api();
+        rt_api = G->get_rt_api();
 
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -131,26 +132,36 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    if(const auto g_image = rgb_buffer.try_get(); g_image.has_value())
+    // select object of interest
+
+    const auto g_image = rgb_buffer.try_get();
+    const auto g_depth = depth_buffer.try_get();
+    if(g_image.has_value() /*and g_depth.has_value()*/)
     {
         cv::Mat imgyolo = g_image.value();
         // get detections using YOLOv4 network
         std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
-        // predict where OI will be in yolo space
+        // predict where OIs will be in yolo space
         std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
+        // compute the 3 lists of matched, new, unseen
+        compute_prediction_error(real_objects, synth_objects);
+        // process matched
+        // process new
+        // process unseen
+        // redistribute prediction errors
+        show_image(imgyolo, real_objects, synth_objects);
+    }
+
+    if(custom_widget.startButton->isChecked())   // track object of interest
+        track_object_of_interest();
+        // robot base should be following head direction and/or object_of_interest target pose
+    else
+        set_nose_target_to_default();
+}
 
 //        qInfo() << real_objects.size() << synth_objects.size();
 //        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
 //        for(auto s : real_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
-
-        show_image(imgyolo, real_objects, synth_objects);
-        compute_prediction_error(real_objects, synth_objects);
-    }
-    if(custom_widget.startButton->isChecked())   // track object of interest
-        track_object_of_interest();
-    else
-        set_nose_target_to_default();
-}
 
 Detector* SpecificWorker::init_detector()
 {
@@ -193,9 +204,6 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
 {
     std::vector<Box> synth_box;
     //320/np.tan(np.deg2rad(30))
-    //    const double fx=527; const double fy=527;
-    //    const int center_x=608/2; const int center_y=608/2;
-
     auto c = YOLO_IMG_SIZE/2;
     for(auto &&object_name : object_names)
     {
@@ -271,9 +279,17 @@ void SpecificWorker::compute_prediction_error(const vector<Box> &real_boxes, con
             if( are_close(*s_res, *r_res) )
                 if(auto object = G->get_node(object_of_interest); object.has_value())
                 {
+                    const auto &b = *s_res;
                     DSR::Edge edge(object.value().id(), cam_api->get_id(), "looking-at", agent_id );
+                    auto tp = cam_api->get_existing_roi_depth(Eigen::AlignedBox<float, 2>(Eigen::Vector2f(b.left,b.bot), Eigen::Vector2f(b.right, b.top)));
+                    if(tp.has_value())
+                    {
+                        auto &[x,y,z] = tp.value();
+                        G->add_attrib_local<looking_at_translation_att>(edge, std::vector<float>{x, y, z});
+                        G->add_attrib_local<looking_at_rotation_euler_xyz_att>(edge, std::vector<float>{0.f, 0.f, 0.f});
+                    }
                     if (not G->insert_or_assign_edge(edge))
-                        std::cout << __FUNCTION__ << "WARNING: Error inserting new edge: " << cam_api->get_id() << "->" << object.value().id() << " type: has" << std::endl;
+                            std::cout << __FUNCTION__ << "WARNING: Error inserting new edge: " << cam_api->get_id() << "->" << object.value().id() << " type: has" << std::endl;
                 }
 }
 
@@ -356,13 +372,24 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     using namespace std::placeholders;
     if (type == rgbd_type and (std::uint32_t)id == cam_api->get_id())
     {
-        if(const auto g_image = cam_api->get_rgb_image(); g_image.has_value())
+        if(auto cam_node = G->get_node(id); cam_node.has_value())
         {
-            rgb_buffer.put(g_image.value().get(),
-                           [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
-                               cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
-                               cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
-                           });
+            cam_api->bind_node(std::move(cam_node.value()));
+            if (const auto g_image = cam_api->get_existing_rgb_image(); g_image.has_value())
+            {
+                rgb_buffer.put(g_image.value().get(),
+                               [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
+                                   cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
+                                               const_cast<std::vector<uint8_t> &>(in).data());
+                                   cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
+                               });
+            }
+            if (const auto g_depth = cam_api->get_existing_depth_image(); g_depth.has_value())
+                depth_buffer.put(std::move(g_depth.value()));
+        }
+        else
+        {
+            qWarning() << __FUNCTION__ << "No camera_node found in G";
         }
     }
     else if (type == intention_type)

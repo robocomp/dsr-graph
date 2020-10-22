@@ -148,8 +148,8 @@ class SpecificWorker(GenericWorker):
             self.read_pan_tilt()
 
             elapsed = time.time()-start
-            if elapsed < 0.07:
-                time.sleep(0.07-elapsed)
+            if elapsed < 0.05:
+                time.sleep(0.05-elapsed)
             cont += 1
             if elapsed > 1:
                 print("Freq -> ", cont)
