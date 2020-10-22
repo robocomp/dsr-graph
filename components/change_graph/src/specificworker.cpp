@@ -57,7 +57,7 @@ void SpecificWorker::initialize(int period)
 
     // create graph
     G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
-
+    rt = G->get_rt_api();
     // Graph viewer
     //	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
 
@@ -389,7 +389,7 @@ void SpecificWorker::new_edge_slot() {
             try {
                 std::vector<float> trans{0.f, 0.f, 0.f};
                 std::vector<float> rot{0, 0.f, 0};
-                G->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
+                rt->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
             }
             catch (const std::exception &e) {
                 std::cout << __FUNCTION__ << e.what() << std::endl;

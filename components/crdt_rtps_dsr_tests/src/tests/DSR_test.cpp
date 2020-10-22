@@ -8,7 +8,7 @@
 // pick a random id from the list of new ones
 int DSR_test::removeID()
 {
-    unique_lock<std::shared_mutex>  lock(mut);
+    std::unique_lock<std::shared_mutex>  lock(mut);
     if(created_nodes.size() == 0)
         return -1;
     auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodes.size() - 1);
@@ -21,7 +21,7 @@ int DSR_test::removeID()
 // pick a random id from the list of new ones without removing
 int DSR_test::getID()
 {
-    unique_lock<std::shared_mutex>  lock(mut);
+    std::unique_lock<std::shared_mutex>  lock(mut);
     if(created_nodes.size() == 0)
         return -1;
     auto node_randomizer = std::uniform_int_distribution(0, (int)created_nodes.size() - 1);
@@ -31,7 +31,7 @@ int DSR_test::getID()
 }
 
 std::pair<int, int> DSR_test::removeEdgeIDs(){
-    unique_lock<std::shared_mutex>  lock(mut);
+    std::unique_lock<std::shared_mutex>  lock(mut);
     if(created_edges.size()==0)
         return { -1, -1 };
     auto edge_randomizer = std::uniform_int_distribution(0, (int)created_edges.size()-1);
@@ -43,7 +43,7 @@ std::pair<int, int> DSR_test::removeEdgeIDs(){
 
 
 std::pair<int, int> DSR_test::getEdgeIDs(){
-    unique_lock<std::shared_mutex>  lock(mut);
+    std::unique_lock<std::shared_mutex>  lock(mut);
     if(created_edges.size()==0)
         return { -1, -1 };
     auto edge_randomizer = std::uniform_int_distribution(0, (int)created_edges.size()-1);
@@ -54,6 +54,6 @@ std::pair<int, int> DSR_test::getEdgeIDs(){
 
 
 void DSR_test::addEdgeIDs(int from, int to){
-    unique_lock<std::shared_mutex>  lock(mut);
+    std::unique_lock<std::shared_mutex>  lock(mut);
     created_edges.emplace_back(std::make_pair(from, to));
 }

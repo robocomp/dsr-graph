@@ -11,9 +11,10 @@ SET ( SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/types/crdt_types.cpp
    $ENV{ROBOCOMP}/classes/dsr/core/types/user_types.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_camera_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp

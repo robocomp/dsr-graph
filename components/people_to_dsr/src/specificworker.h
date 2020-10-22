@@ -57,8 +57,9 @@ public slots:
 
 private:
     //DSR params
-    std::unique_ptr<DSR::InnerAPI> innermodel;
+    std::unique_ptr<DSR::InnerEigenAPI> innermodel;
     std::shared_ptr<DSR::DSRGraph> G;
+    std::unique_ptr<DSR::RT_API> rt;
     std::string agent_name;
     int agent_id;
     bool read_dsr;

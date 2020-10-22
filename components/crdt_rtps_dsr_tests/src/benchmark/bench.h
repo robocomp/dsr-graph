@@ -22,7 +22,7 @@ public:
     Graph(Graph const&)           = delete;
     void operator=(Graph const&)  = delete;
 
-    shared_ptr<DSR::DSRGraph> get_G() { return G;}
+    std::shared_ptr<DSR::DSRGraph> get_G() { return G;}
 
 private:
     Graph () {
@@ -31,11 +31,11 @@ private:
             [[maybe_unused]] auto _ = std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/benchmark/config_idserver");
         }).detach();
 
-        this_thread::sleep_for(300ms);
+        std::this_thread::sleep_for(300ms);
         auto c = Ice::initialize();
         auto pr = c->stringToProxy("dsrgetid:tcp -h localhost -p 11000");
         dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( pr );
-        G = make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
+        G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
         std::atexit([](){
             [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
         });
@@ -50,8 +50,8 @@ private:
 template<int len>
 std::string random_string()
 {
-    string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*?!{}&";
-    string str;
+    std::string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*?!{}&";
+    std::string str;
     int pos;
     while(str.size() != len) {
         pos = (rand() % chars.size());

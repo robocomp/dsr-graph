@@ -77,7 +77,7 @@ private:
     // DSR
 	std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerEigenAPI> innermodel;
-
+    std::unique_ptr<DSR::RT_API> rt;
     //params
 	std::string agent_name;
 	int agent_id;

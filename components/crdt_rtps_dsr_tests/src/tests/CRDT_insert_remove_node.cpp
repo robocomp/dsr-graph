@@ -8,7 +8,7 @@
 #include <thread>
 #include <fstream>
 
-void CRDT_insert_remove_node::create_or_remove_nodes(int i, const shared_ptr<DSR::DSRGraph>& G)
+void CRDT_insert_remove_node::create_or_remove_nodes(int i, const std::shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)

@@ -43,6 +43,7 @@ Q_OBJECT
 
 	public:
 		std::shared_ptr<DSR::DSRGraph> G;
+        std::unique_ptr<DSR::RT_API> rt;
 		std::string agent_name;
 
 	private:

@@ -10,8 +10,9 @@ SET ( SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_camera_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
    $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
@@ -34,10 +35,8 @@ SET ( SOURCES
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
-   $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
-  $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.h
-
+  $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
+  $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
 )
 
 SET ( TEST_SOURCES
@@ -49,8 +48,8 @@ SET ( TEST_SOURCES
    $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
+   $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
   unittests/CRDT_G_api_test.cpp
   DSRGetID.cpp
@@ -64,19 +63,19 @@ SET ( TEST_HEADERS
 )
 
 SET ( BENCH_SOURCES
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/types/crdt_types.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/types/user_types.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
-   $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
-  benchmark/bench.cpp
-  DSRGetID.cpp
+    $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/types/crdt_types.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/types/user_types.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
+    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
+    $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
+    $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
+    $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
+    $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
+    benchmark/bench.cpp
+    DSRGetID.cpp
 )
 
 # Headers set

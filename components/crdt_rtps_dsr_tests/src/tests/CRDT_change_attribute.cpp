@@ -10,9 +10,9 @@
 #include <fstream>
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const string>, false)
+REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
-void CRDT_change_attribute::insert_or_assign_attributes(int i, const shared_ptr<DSR::DSRGraph>& G)
+void CRDT_change_attribute::insert_or_assign_attributes(int i, const std::shared_ptr<DSR::DSRGraph>& G)
 {
     std::string result;
     static int it = 0;
