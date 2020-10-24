@@ -53,14 +53,13 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-    std::unique_ptr<DSR::RT_API> rt;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen_api;
+    std::unique_ptr<DSR::RT_API> rt_api;
     std::unique_ptr<DSR::CameraAPI> cam_api;
+
 	// DSR params
 	std::string agent_name;
-	
 	int agent_id;
-
 	bool tree_view;
 	bool graph_view;
 	bool qscene_2d_view;
