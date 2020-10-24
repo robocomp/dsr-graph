@@ -93,11 +93,22 @@ void SpecificWorker::initialize(int period)
         // read objects point cloud for poses visualization
         objects_pcl = this->read_pcl_from_file();
 
-        // get inner eigen model sub_API
-        inner_eigen = G->get_inner_eigen_api();
+        // get inner eigen model sub-API
+        inner_eigen_api = G->get_inner_eigen_api();
 
-        // get rt sub_API
-        rt = G->get_rt_api();
+        // get RT sub-API
+        rt_api = G->get_rt_api();
+
+        // get camera sub-API
+        auto cam = G->get_node(viriato_head_camera_name);
+        if (cam.has_value())
+        {
+            cam_api = G->get_camera_api(cam.value());
+        }
+        else
+        {
+            qFatal("Terminate in Initialize. No node rgbd found");
+        }
 
         // set callback function upon left_hand_type node update signal
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
@@ -158,9 +169,6 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
     auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
-        if (cam_api == nullptr) {
-            cam_api = G->get_camera_api(cam.value());
-        }
         // read RGB data attributes from graph 
         RoboCompCameraRGBDSimple::TImage rgb;
         try
@@ -175,7 +183,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto alivetime = G->get_attrib_by_name<cam_rgb_alivetime_att>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TImage
-            rgb.image = rgb_data.value().get();
+            rgb.image = rgb_data.value();
             rgb.width = width.value();
             rgb.height = height.value();
             rgb.depth = depth.value();
@@ -297,7 +305,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // re-project estimated poses into world coordinates
             Eigen::Matrix<double, 6, 1> orig_point;
             orig_point << pose.x, pose.y, pose.z, angles.at(0), angles.at(1), angles.at(2);
-            auto final_pose = inner_eigen->transform_axis(world_name, orig_point, viriato_head_camera_name);
+            auto final_pose = inner_eigen_api->transform_axis(world_name, orig_point, viriato_head_camera_name);
 
             // get object node id (if exists)
             auto id = G->get_id_from_name(pose.objectname);
@@ -329,7 +337,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // inject estimated object pose into graph
             vector<float> trans{static_cast<float>(final_pose.value()(0,0)), static_cast<float>(final_pose.value()(1,0)), static_cast<float>(final_pose.value()(2,0))};
             vector<float> rot{static_cast<float>(final_pose.value()(3,0)), static_cast<float>(final_pose.value()(4,0)), static_cast<float>(final_pose.value()(5,0))};
-            rt->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+            rt_api->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
 
             // ignore rest of objects
             break;
@@ -352,8 +360,8 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
             std::cout << "Plan arm's dummy targets" << std::endl;
 
             // get required nodes poses
-            auto object_pose = inner_eigen->transform_axis(world_name, grasp_object);
-            auto tip_pose = inner_eigen->transform_axis(world_name, viriato_left_arm_tip_name);
+            auto object_pose = inner_eigen_api->transform_axis(world_name, grasp_object);
+            auto tip_pose = inner_eigen_api->transform_axis(world_name, viriato_left_arm_tip_name);
 
             // get euclidean distance between arm and required object (ignoring distance along z-axis)
             float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
