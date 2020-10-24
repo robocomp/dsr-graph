@@ -560,9 +560,6 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             this->draw_vertices(img, proj_vertices);
         }
     }
-    // show final RGB image
-    cv::imshow("DNN-Estimated Poses", img);
-    cv::waitKey(1);
     // create QImage and display it on the widget
     auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
