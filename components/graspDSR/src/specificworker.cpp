@@ -113,6 +113,9 @@ void SpecificWorker::initialize(int period)
         // set callback function upon left_hand_type node update signal
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
+        // set callback function upon selected object change signal from GUI
+        connect(custom_widget.object_sel_group, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(update_object_slot(QAbstractButton*)));
+
         this->Period = period;
         timer.start(Period);
     }
@@ -126,15 +129,6 @@ void SpecificWorker::compute()
 
     // cast RGB image to OpenCV Mat
     cv::Mat img = cv::Mat(rgb.height, rgb.width, CV_8UC3, &rgb.image[0]);
-
-    // get grasp object from QT widget
-    QAbstractButton* sel_button = custom_widget.object_sel_group->checkedButton();
-    if (sel_button)
-    {
-        QString button_text = sel_button->text();
-        grasp_object = button_text.toStdString();
-        std::cout << "Object '" << grasp_object << "' is selected to be the target" << std::endl;
-    }
 
     // call pose estimation on RGBD and receive estimated poses
     std::cout << "Obtain DNN-estimated poses" << std::endl;
@@ -345,50 +339,6 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
     }
 }
 
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
-{
-    // plan dummy targets for the arm to follow
-    if (type == left_hand_type)
-    {
-        // get world, grasp object and arm nodes
-        auto world_node = G->get_node(world_name);
-        auto tip_node = G->get_node(viriato_left_arm_tip_name);
-        auto object_node = G->get_node(grasp_object);
-
-        if (world_node.has_value() && tip_node.has_value() && object_node.has_value())
-        {
-            std::cout << "Plan arm's dummy targets" << std::endl;
-
-            // get required nodes poses
-            auto object_pose = inner_eigen_api->transform_axis(world_name, grasp_object);
-            auto tip_pose = inner_eigen_api->transform_axis(world_name, viriato_left_arm_tip_name);
-
-            // get euclidean distance between arm and required object (ignoring distance along z-axis)
-            float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
-
-            // check whether required object is within arm's reach
-            if (arm_object_dist >= 0.5)
-            {
-                // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
-                vector<float> tip_vec(tip_pose.value().data(), tip_pose.value().data() + tip_pose.value().rows() * tip_pose.value().cols());
-                vector<float> object_vec(object_pose.value().data(), object_pose.value().data() + object_pose.value().rows() * object_pose.value().cols());
-
-                vector<float> dummy_pose = this->interpolate_trans(tip_vec, object_vec, 0.2); // interpolate dummy target position
-                dummy_pose.insert(dummy_pose.end(), tip_vec.begin()+3, tip_vec.end()); // set dummy target rotation with object rotation
-
-                // update arm tip pose attribute with the next desired pose (based on actual current pose)
-                G->add_or_modify_attrib_local<viriato_arm_tip_target_att>(tip_node.value(), dummy_pose);
-
-                // check whether the arm target reaches the object
-                if (dummy_pose == object_vec)
-                {
-                    std::cout << "The arm has reached the target object" << std::endl;
-                }
-            }
-        }
-    }
-}
-
 /////////////////////////////////////////////////////////////////
 //                     Geometry utilities
 /////////////////////////////////////////////////////////////////
@@ -574,6 +524,61 @@ void SpecificWorker::draw_vertices(cv::Mat &img, std::vector<std::vector<float>>
         int y = std::max(0, std::min(img.rows, static_cast<int>(vertex.at(1))));
         cv::circle(img, cv::Point(x,y), 1, cv::Scalar(255,0,0), cv::FILLED);
     }
+}
+
+/////////////////////////////////////////////////////////////////
+//                     Callbacks
+/////////////////////////////////////////////////////////////////
+
+void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+{
+    // plan dummy targets for the arm to follow
+    if (type == left_hand_type)
+    {
+        // get world, grasp object and arm nodes
+        auto world_node = G->get_node(world_name);
+        auto tip_node = G->get_node(viriato_left_arm_tip_name);
+        auto object_node = G->get_node(grasp_object);
+
+        if (world_node.has_value() && tip_node.has_value() && object_node.has_value())
+        {
+            std::cout << "Plan arm's dummy targets" << std::endl;
+
+            // get required nodes poses
+            auto object_pose = inner_eigen_api->transform_axis(world_name, grasp_object);
+            auto tip_pose = inner_eigen_api->transform_axis(world_name, viriato_left_arm_tip_name);
+
+            // get euclidean distance between arm and required object (ignoring distance along z-axis)
+            float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
+
+            // check whether required object is within arm's reach
+            if (arm_object_dist >= 0.5)
+            {
+                // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
+                vector<float> tip_vec(tip_pose.value().data(), tip_pose.value().data() + tip_pose.value().rows() * tip_pose.value().cols());
+                vector<float> object_vec(object_pose.value().data(), object_pose.value().data() + object_pose.value().rows() * object_pose.value().cols());
+
+                vector<float> dummy_pose = this->interpolate_trans(tip_vec, object_vec, 0.2); // interpolate dummy target position
+                dummy_pose.insert(dummy_pose.end(), tip_vec.begin()+3, tip_vec.end()); // set dummy target rotation with object rotation
+
+                // update arm tip pose attribute with the next desired pose (based on actual current pose)
+                G->add_or_modify_attrib_local<viriato_arm_tip_target_att>(tip_node.value(), dummy_pose);
+
+                // check whether the arm target reaches the object
+                if (dummy_pose == object_vec)
+                {
+                    std::cout << "The arm has reached the target object" << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void SpecificWorker::update_object_slot(QAbstractButton* object_button)
+{
+    // change the target grasping object based on selected button
+    grasp_object = object_button->text().toStdString();
+    std::cout << "Object '" << grasp_object << "' is selected to be the target" << std::endl;
 }
 
 int SpecificWorker::startup_check()
