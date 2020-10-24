@@ -179,7 +179,7 @@ class SpecificWorker(GenericWorker):
                                                          alivetime=time.time(), image=image.tobytes())
             cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["handle"].get_resolution()[0], height=cam["handle"].get_resolution()[1],
                                                            focalx=cam["focal"], focaly=cam["focal"],
-                                                           alivetime=time.time(), depthFactor=0.1, depth=depth.tobytes())
+                                                           alivetime=time.time(), depthFactor=1.0, depth=depth.tobytes())
 
             try:
                 self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
