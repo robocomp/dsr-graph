@@ -49,18 +49,20 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+	// callbacks
+	void update_node_slot(const std::int32_t id, const std::string &type);
+	void update_object_slot(QAbstractButton* object_button);
 
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-    std::unique_ptr<DSR::RT_API> rt;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen_api;
+    std::unique_ptr<DSR::RT_API> rt_api;
     std::unique_ptr<DSR::CameraAPI> cam_api;
+
 	// DSR params
 	std::string agent_name;
-	
 	int agent_id;
-
 	bool tree_view;
 	bool graph_view;
 	bool qscene_2d_view;
@@ -78,7 +80,7 @@ private:
 	// Pose Estimation & Grasping
 
 	// Grasp attributes
-    std::string grasp_object;
+	std::string grasp_object = "can_1";
     std::map<std::string,std::vector<std::vector<float>>> objects_pcl;
 
 	// Geometry utilities
@@ -94,7 +96,6 @@ private:
 
 	// G injection utilities
 	void inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::PoseType poses);
-    void update_node_slot(const std::int32_t id, const std::string &type);
 
 	// IO utilities
     std::map<std::string,std::vector<std::vector<float>>> read_pcl_from_file();

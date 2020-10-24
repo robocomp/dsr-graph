@@ -93,14 +93,28 @@ void SpecificWorker::initialize(int period)
         // read objects point cloud for poses visualization
         objects_pcl = this->read_pcl_from_file();
 
-        // get inner eigen model sub_API
-        inner_eigen = G->get_inner_eigen_api();
+        // get inner eigen model sub-API
+        inner_eigen_api = G->get_inner_eigen_api();
 
-        // get rt sub_API
-        rt = G->get_rt_api();
+        // get RT sub-API
+        rt_api = G->get_rt_api();
+
+        // get camera sub-API
+        auto cam = G->get_node(viriato_head_camera_name);
+        if (cam.has_value())
+        {
+            cam_api = G->get_camera_api(cam.value());
+        }
+        else
+        {
+            qFatal("Terminate in Initialize. No node rgbd found");
+        }
 
         // set callback function upon left_hand_type node update signal
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+
+        // set callback function upon selected object change signal from GUI
+        connect(custom_widget.object_sel_group, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(update_object_slot(QAbstractButton*)));
 
         this->Period = period;
         timer.start(Period);
@@ -115,15 +129,6 @@ void SpecificWorker::compute()
 
     // cast RGB image to OpenCV Mat
     cv::Mat img = cv::Mat(rgb.height, rgb.width, CV_8UC3, &rgb.image[0]);
-
-    // get grasp object from QT widget
-    QAbstractButton* sel_button = custom_widget.object_sel_group->checkedButton();
-    if (sel_button)
-    {
-        QString button_text = sel_button->text();
-        grasp_object = button_text.toStdString();
-        std::cout << "Object '" << grasp_object << "' is selected to be the target" << std::endl;
-    }
 
     // call pose estimation on RGBD and receive estimated poses
     std::cout << "Obtain DNN-estimated poses" << std::endl;
@@ -158,9 +163,6 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
     auto cam = G->get_node(viriato_head_camera_name);
     if (cam.has_value())
     {
-        if (cam_api == nullptr) {
-            cam_api = G->get_camera_api(cam.value());
-        }
         // read RGB data attributes from graph 
         RoboCompCameraRGBDSimple::TImage rgb;
         try
@@ -175,7 +177,7 @@ RoboCompCameraRGBDSimple::TImage SpecificWorker::get_rgb_from_G()
             const auto alivetime = G->get_attrib_by_name<cam_rgb_alivetime_att>(cam.value());
 
             // assign attributes to RoboCompCameraRGBDSimple::TImage
-            rgb.image = rgb_data.value().get();
+            rgb.image = rgb_data.value();
             rgb.width = width.value();
             rgb.height = height.value();
             rgb.depth = depth.value();
@@ -297,7 +299,7 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // re-project estimated poses into world coordinates
             Eigen::Matrix<double, 6, 1> orig_point;
             orig_point << pose.x, pose.y, pose.z, angles.at(0), angles.at(1), angles.at(2);
-            auto final_pose = inner_eigen->transform_axis(world_name, orig_point, viriato_head_camera_name);
+            auto final_pose = inner_eigen_api->transform_axis(world_name, orig_point, viriato_head_camera_name);
 
             // get object node id (if exists)
             auto id = G->get_id_from_name(pose.objectname);
@@ -329,54 +331,10 @@ void SpecificWorker::inject_estimated_poses(RoboCompObjectPoseEstimationRGBD::Po
             // inject estimated object pose into graph
             vector<float> trans{static_cast<float>(final_pose.value()(0,0)), static_cast<float>(final_pose.value()(1,0)), static_cast<float>(final_pose.value()(2,0))};
             vector<float> rot{static_cast<float>(final_pose.value()(3,0)), static_cast<float>(final_pose.value()(4,0)), static_cast<float>(final_pose.value()(5,0))};
-            rt->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
+            rt_api->insert_or_assign_edge_RT(world.value(), id.value(), trans, rot);
 
             // ignore rest of objects
             break;
-        }
-    }
-}
-
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
-{
-    // plan dummy targets for the arm to follow
-    if (type == left_hand_type)
-    {
-        // get world, grasp object and arm nodes
-        auto world_node = G->get_node(world_name);
-        auto tip_node = G->get_node(viriato_left_arm_tip_name);
-        auto object_node = G->get_node(grasp_object);
-
-        if (world_node.has_value() && tip_node.has_value() && object_node.has_value())
-        {
-            std::cout << "Plan arm's dummy targets" << std::endl;
-
-            // get required nodes poses
-            auto object_pose = inner_eigen->transform_axis(world_name, grasp_object);
-            auto tip_pose = inner_eigen->transform_axis(world_name, viriato_left_arm_tip_name);
-
-            // get euclidean distance between arm and required object (ignoring distance along z-axis)
-            float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
-
-            // check whether required object is within arm's reach
-            if (arm_object_dist >= 0.5)
-            {
-                // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
-                vector<float> tip_vec(tip_pose.value().data(), tip_pose.value().data() + tip_pose.value().rows() * tip_pose.value().cols());
-                vector<float> object_vec(object_pose.value().data(), object_pose.value().data() + object_pose.value().rows() * object_pose.value().cols());
-
-                vector<float> dummy_pose = this->interpolate_trans(tip_vec, object_vec, 0.2); // interpolate dummy target position
-                dummy_pose.insert(dummy_pose.end(), tip_vec.begin()+3, tip_vec.end()); // set dummy target rotation with object rotation
-
-                // update arm tip pose attribute with the next desired pose (based on actual current pose)
-                G->add_or_modify_attrib_local<viriato_arm_tip_target_att>(tip_node.value(), dummy_pose);
-
-                // check whether the arm target reaches the object
-                if (dummy_pose == object_vec)
-                {
-                    std::cout << "The arm has reached the target object" << std::endl;
-                }
-            }
         }
     }
 }
@@ -552,9 +510,6 @@ void SpecificWorker::show_image(cv::Mat &img, RoboCompObjectPoseEstimationRGBD::
             this->draw_vertices(img, proj_vertices);
         }
     }
-    // show final RGB image
-    cv::imshow("DNN-Estimated Poses", img);
-    cv::waitKey(1);
     // create QImage and display it on the widget
     auto pix = QPixmap::fromImage(QImage(img.data, img.cols, img.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
@@ -569,6 +524,61 @@ void SpecificWorker::draw_vertices(cv::Mat &img, std::vector<std::vector<float>>
         int y = std::max(0, std::min(img.rows, static_cast<int>(vertex.at(1))));
         cv::circle(img, cv::Point(x,y), 1, cv::Scalar(255,0,0), cv::FILLED);
     }
+}
+
+/////////////////////////////////////////////////////////////////
+//                     Callbacks
+/////////////////////////////////////////////////////////////////
+
+void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+{
+    // plan dummy targets for the arm to follow
+    if (type == left_hand_type)
+    {
+        // get world, grasp object and arm nodes
+        auto world_node = G->get_node(world_name);
+        auto tip_node = G->get_node(viriato_left_arm_tip_name);
+        auto object_node = G->get_node(grasp_object);
+
+        if (world_node.has_value() && tip_node.has_value() && object_node.has_value())
+        {
+            std::cout << "Plan arm's dummy targets" << std::endl;
+
+            // get required nodes poses
+            auto object_pose = inner_eigen_api->transform_axis(world_name, grasp_object);
+            auto tip_pose = inner_eigen_api->transform_axis(world_name, viriato_left_arm_tip_name);
+
+            // get euclidean distance between arm and required object (ignoring distance along z-axis)
+            float arm_object_dist = sqrt(pow(object_pose.value()(0)-tip_pose.value()(0), 2.0) + pow(object_pose.value()(1)-tip_pose.value()(1), 2.0));
+
+            // check whether required object is within arm's reach
+            if (arm_object_dist >= 0.5)
+            {
+                // plan a dummy target closer to the object (planning is done on multiple stages | factor = 0.2)
+                vector<float> tip_vec(tip_pose.value().data(), tip_pose.value().data() + tip_pose.value().rows() * tip_pose.value().cols());
+                vector<float> object_vec(object_pose.value().data(), object_pose.value().data() + object_pose.value().rows() * object_pose.value().cols());
+
+                vector<float> dummy_pose = this->interpolate_trans(tip_vec, object_vec, 0.2); // interpolate dummy target position
+                dummy_pose.insert(dummy_pose.end(), tip_vec.begin()+3, tip_vec.end()); // set dummy target rotation with object rotation
+
+                // update arm tip pose attribute with the next desired pose (based on actual current pose)
+                G->add_or_modify_attrib_local<viriato_arm_tip_target_att>(tip_node.value(), dummy_pose);
+
+                // check whether the arm target reaches the object
+                if (dummy_pose == object_vec)
+                {
+                    std::cout << "The arm has reached the target object" << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void SpecificWorker::update_object_slot(QAbstractButton* object_button)
+{
+    // change the target grasping object based on selected button
+    grasp_object = object_button->text().toStdString();
+    std::cout << "Object '" << grasp_object << "' is selected to be the target" << std::endl;
 }
 
 int SpecificWorker::startup_check()
