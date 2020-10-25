@@ -65,7 +65,7 @@ class SpecificWorker : public GenericWorker
         void change_object_slot(int);
 
     private:
-        // Bounding boxes struct
+        // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
         struct Box
         {
             std::string name;
@@ -74,6 +74,11 @@ class SpecificWorker : public GenericWorker
             int right;
             int bot;
             float prob;
+            float depth;
+            int width() const { return right-left;};
+            int height() const { return bot-top;};
+            int cx() const { return left + width()/2;};
+            int cy() const { return top + height()/2;};
         };
 
         // NODE NAMES
@@ -118,6 +123,7 @@ class SpecificWorker : public GenericWorker
         DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
+        std::vector<float> depth_array;
 
         //Plan
         Plan current_plan;
@@ -138,9 +144,18 @@ class SpecificWorker : public GenericWorker
         //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
-        void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
+        //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
+        void compute_prediction_error(Box &real_box, const Box &synth_box);
         void track_object_of_interest();
         void set_nose_target_to_default();
+        void change_to_new_target();
+        void add_edge(const std::tuple<float,float,float> &tp);
+        void remove_edge();
+        std::optional<std::tuple<float,float,float>> get_existing_roi_depth(const Eigen::AlignedBox<float, 2> &roi);
+
+        // Tracker
+        enum class TState {IDLE, TRACKING, CHANGING };
+        TState tracking_state = TState::IDLE;
 
 };
 
