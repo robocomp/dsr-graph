@@ -120,6 +120,20 @@ Note: To be able to build social_navigation component you need to install
   make
   sudo make install
   ```
+  
+  Note: In Ubuntu 20.04 you need to replace the file in 
+   ```sh
+  sudo cp TriangleFunctor /usr/include/osg
+  ```
+  
+  Note: To compile some agents you need g++-10.2 and change the directive
+    set(CMAKE_CXX_STANDARD 17) to set(CMAKE_CXX_STANDARD 20)
+  but then you'll get a compilation error in one of ZeroC's Ice include files. Please, replace it with:
+  ```sh
+  sudo cp Connection.h /usr/include/Ice/Connection.h
+  ```
+
+
 
 ## Basic use case
 
