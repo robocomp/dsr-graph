@@ -1,3 +1,4 @@
+# Table of contents
 - [Description](#description)
 - [Definitions](#definitions)
 - [Installation](#installation)
