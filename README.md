@@ -1,4 +1,4 @@
-# Table of contents
+# DSR Components
 - [Description](#description)
 - [Definitions](#definitions)
 - [Installation](#installation)
