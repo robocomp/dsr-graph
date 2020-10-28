@@ -112,17 +112,20 @@ void SpecificWorker::check_rt_tree(const DSR::Node &node)
     if (edges_map.has_value()) {
         for (const auto[pair, edge] : edges_map.value())
         {
-            std::optional<DSR::Node> child = G->get_node(edge.to());
-            assertm(child.has_value() == true, "Edge without child node");
-            std::optional<std::uint32_t> parent_id = G->get_parent_id(child.value());
-            assertm(parent_id.has_value() == true, "Edge without parent node");
-            assertm(node.id() == parent_id.value(), "Inconsistency between edge and node parent");
-            std::optional<std::uint32_t> child_level = G->get_node_level(child.value());
-            assertm(child_level.has_value() == true, "Child without level attribute");
-            std::optional<std::uint32_t> node_level = G->get_node_level(node);
-            assertm(node_level.has_value() == true, "Parent without level attribute");
-            assertm(child_level.value() == (node_level.value()+1), "Inconsistency between parent and child levels");
-            check_rt_tree(child.value());
+            if(edge.type() == "RT") {
+                std::optional<DSR::Node> child = G->get_node(edge.to());
+                assertm(child.has_value() == true, "Edge without child node");
+                std::optional<std::uint32_t> parent_id = G->get_parent_id(child.value());
+                assertm(parent_id.has_value() == true, "Edge without parent node");
+                assertm(node.id() == parent_id.value(), "Inconsistency between edge and node parent");
+                std::optional<std::uint32_t> child_level = G->get_node_level(child.value());
+                assertm(child_level.has_value() == true, "Child without level attribute");
+                std::optional<std::uint32_t> node_level = G->get_node_level(node);
+                assertm(node_level.has_value() == true, "Parent without level attribute");
+                assertm(child_level.value() == (node_level.value() + 1),
+                        "Inconsistency between parent and child levels");
+                check_rt_tree(child.value());
+            }
         }
     }
 }
