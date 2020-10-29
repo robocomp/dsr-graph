@@ -2,6 +2,7 @@ cmake_minimum_required( VERSION 3.0 )
 PROJECT( components )
 
 
+include_directories(/usr/include/eigen3)
 add_subdirectory( idserver )
 #add_subdirectory( idserver_nogui )
 add_subdirectory( viriatoDSR )
