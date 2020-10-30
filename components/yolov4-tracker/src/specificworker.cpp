@@ -17,6 +17,8 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <ranges>
+#include <algorithm>
 
 /**
 * \brief Default constructor
@@ -138,12 +140,26 @@ void SpecificWorker::compute()
     const auto g_depth = depth_buffer.try_get();
     if (g_image.has_value() and g_depth.has_value())
     {
+        // if finished with current object, pick a new object from G -> update
+        // yolo
+        // synth
+        // show
+        // if tracking
+            // if close to object and prediction_error is low
+                // object finished
+            // track: set base_dummy to object_of_interest
+            // if detected compatible
+                // compute_prediction_error
+            // else
+                // set_nose_target_to_default
+            // update_base_slider
+
         this->depth_array = g_depth.value();
         cv::Mat imgyolo = g_image.value();
         // get detections using YOLOv4 network
-        std::vector<SpecificWorker::Box> real_objects = process_image_with_yolo(imgyolo);
+        std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
         // predict where OIs will be in yolo space
-        std::vector<SpecificWorker::Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
+        std::vector<Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
         show_image(imgyolo, real_objects, synth_objects);
         switch (tracking_state)
         {
@@ -151,15 +167,15 @@ void SpecificWorker::compute()
                 set_nose_target_to_default();
                 break;
             case TState::TRACKING:
-                if(auto res = std::find_if(real_objects.begin(), real_objects.end(), [this](auto &a)
-                        { return (a.name == "cup");}); res != real_objects.end())
-                    compute_prediction_error(*res, synth_objects.front());
                 track_object_of_interest();
+                if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
+                    compute_prediction_error(*res, synth_objects.front());
                 break;
             case TState::CHANGING:
                 change_to_new_target();
                 break;
         };
+        update_base_slider();
 
 //        qInfo() << real_objects.size() << synth_objects.size();
 //        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
@@ -296,7 +312,7 @@ void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_bo
                      };
 
     const auto &r = real_box;
-    auto tp = get_existing_roi_depth(Eigen::AlignedBox<float, 2>(Eigen::Vector2f(r.left, r.bot), Eigen::Vector2f(r.right, r.top)));
+    auto tp = cam_api->get_roi_depth(this->depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(r.left, r.bot), Eigen::Vector2f(r.right, r.top)));
     if (tp.has_value())
     {
         auto [x,y,z] = tp.value();
@@ -339,34 +355,39 @@ void SpecificWorker::change_to_new_target()
     qInfo() << __FUNCTION__ << "Changed object of interest to " << QString::fromStdString(object_of_interest);
     this->tracking_state = TState::TRACKING;
 }
-std::optional<std::tuple<float,float,float>> SpecificWorker::get_existing_roi_depth(const Eigen::AlignedBox<float, 2> &roi)
+void SpecificWorker::set_nose_target_to_default()
 {
-
-    auto left = (int)roi.min().x(); auto bot = (int)roi.min().y();
-    auto right = (int)roi.max().x(); auto top = (int)roi.max().y();  // botom has higher numeric value. rows start in 0 up
-    if(left<right and bot>top)
+    //if(this->already_in_default == true) return;
+    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
-        auto size = (right - left) * (bot - top);
-        std::vector<float> values(size);
-        std::size_t k = 0;
-        const auto &width = cam_api->get_width();
-        for (int i = left; i < right; i++)
-            for (int j = top; j < bot; j++)
-                values[k++] = this->depth_array[i * width + j];
-
-        auto mv = std::min(values.begin(), values.end());
-        auto Y = *mv * 1000;
-        auto X = (right - left) / 2 * Y / cam_api->get_focal_x();
-        auto Z = (bot - top) / 2 * Y / cam_api->get_focal_y();
-        qInfo() << size << X << Y << Z;
-        return std::make_tuple(X, Y, Z);
-    }
-    else
-    {
-        qWarning() << __FUNCTION__ << "Incorrect ROI dimensions l r t b: " << left << right << top << bot << ". Returning empty";
-        return {};
+        if(auto nose = inner_eigen->transform(world_name, this->nose_default_pose, viriato_head_camera_pan_tilt); nose.has_value())
+        {
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)nose.value().x(), (float)nose.value().y(), (float)nose.value().z()});
+            G->update_node(pan_tilt.value());
+        }
+        this->already_in_default = true;
     }
 }
+void SpecificWorker::update_base_slider()
+{
+    if(auto r = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint); r.has_value())
+    {
+        float current_angle = r.value()[5];
+        custom_widget.horizontalSlider->setValue(current_angle*100);   // scale to -100, 100
+        custom_widget.pan->display(current_angle);
+        if(auto robot_node = G->get_node(robot_name); robot_node.has_value())
+        {
+            if(auto robot_pose = inner_eigen->transform_axis(world_name, robot_name); robot_pose.has_value() )
+            {
+                G->add_or_modify_attrib_local<robot_target_x_att>(robot_node.value(), (float)robot_pose.value().x());
+                G->add_or_modify_attrib_local<robot_target_y_att>(robot_node.value(), (float)robot_pose.value().y());
+                G->add_or_modify_attrib_local<robot_target_angle_att>(robot_node.value(), (float)(robot_pose.value()[5] + current_angle));
+                G->update_node(robot_node.value());
+            }
+        }
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 image_t SpecificWorker::createImage(const cv::Mat &src)
 {
@@ -423,19 +444,6 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
 }
-void SpecificWorker::set_nose_target_to_default()
-{
-    //if(this->already_in_default == true) return;
-    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
-    {
-        if(auto nose = inner_eigen->transform(world_name, this->nose_default_pose, viriato_head_camera_pan_tilt); nose.has_value())
-        {
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)nose.value().x(), (float)nose.value().y(), (float)nose.value().z()});
-            G->update_node(pan_tilt.value());
-        }
-        this->already_in_default = true;
-    }
-}
 
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
@@ -454,6 +462,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                                [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
                                    cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
                                                const_cast<std::vector<uint8_t> &>(in).data());
+                                   //if(cam_api->get_width() == YOLO_IMG_SIZE and cam_api->get_height == YOLO_IMG_SIZE)
                                    cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
                                });
             }

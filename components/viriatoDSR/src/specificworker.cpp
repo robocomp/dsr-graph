@@ -38,7 +38,6 @@ SpecificWorker::~SpecificWorker()
 	G->write_to_json_file("./"+agent_name+".json");
     G.reset();
 }
-
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	agent_name = params["agent_name"].value;
@@ -51,7 +50,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
 	return true;
 }
-
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
@@ -65,12 +63,12 @@ void SpecificWorker::initialize(int period)
         rt = G->get_rt_api();
 
         //Inner Api
-        innermodel = G->get_inner_eigen_api();
+        inner_eigen = G->get_inner_eigen_api();
 
         //    // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            const auto nose = innermodel->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
+            const auto nose = inner_eigen->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
@@ -97,7 +95,6 @@ void SpecificWorker::initialize(int period)
         timer.start(100);
     }
 }
-
 void SpecificWorker::compute()
 {
     update_laser();
@@ -109,6 +106,7 @@ void SpecificWorker::compute()
     // change to slots
     //check_new_dummy_values_for_coppelia();
     check_new_nose_referece_for_pan_tilt();
+    check_base_dummy();
     //check_new_base_command(bState);
 }
 
@@ -145,7 +143,6 @@ void SpecificWorker::update_rgbd()
         }
     } //else std::this_thread::yield();
 }
-
 void SpecificWorker::update_laser()
 {
     if (auto ldata = laser_buffer.try_get(); ldata.has_value())
@@ -168,7 +165,6 @@ void SpecificWorker::update_laser()
     }
     //else std::this_thread::yield();
 }
-
 void SpecificWorker::update_omirobot()
 {
     static RoboCompGenericBase::TBaseState last_state;
@@ -195,7 +191,6 @@ void SpecificWorker::update_omirobot()
         }
     }
 }
-
 void SpecificWorker::update_pantilt_position()
 {
     static std::vector<float> last_state{0.0, 0.0};
@@ -225,7 +220,6 @@ void SpecificWorker::update_pantilt_position()
         last_state = current_state;
     }
 }
-
 void SpecificWorker::update_arm_state()
 {
     if (auto arm = kinovaarm_buffer.try_get(); arm.has_value())
@@ -235,9 +229,27 @@ void SpecificWorker::update_arm_state()
                                             std::vector<float>{arm->x, arm->y, arm->z},
                                             std::vector<float>{arm->rx, arm->ry, arm->rz});
 }
+void SpecificWorker::check_base_dummy()
+{
+    static std::tuple<float,float,float> target{0.f,0.f,0.f};
+    if (auto t = base_target_buffer.try_get(); t.has_value())
+    {
+        const auto [tx, ty, ta] = t.value();
+        const auto r_pose = inner_eigen->transform_axis(world_name, robot_name).value();
+        const float ra = r_pose[5];
+        float diff = ta - ra;
+        if( fabs(ta - ra) > 0.05)
+        {
+            diff = std::clamp(diff, -1.f, 1.f);
+            try
+            { omnirobot_proxy->setSpeedBase(0, 0, -diff*20); }
+            catch (const Ice::Exception &e)
+            { std::cout << e.what() << std::endl; }
+        }
+    }
+}
 
 //// CHANGE THESE ONES BY SIGNAL SLOTS
-
 void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
@@ -285,6 +297,12 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
             auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
             auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
             auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
+
+            auto target_x = G->get_attrib_by_name<robot_target_x_att>(robot.value());
+            auto target_y = G->get_attrib_by_name<robot_target_y_att>(robot.value());
+            auto target_angle = G->get_attrib_by_name<robot_target_angle_att>(robot.value());
+            base_target_buffer.put(std::make_tuple(target_x.value(), target_y.value(), target_angle.value()));
+
             if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
             {
                 // Check de values are within robot's accepted range. Read them from config
@@ -317,7 +335,7 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
 {
     for(auto &&[aa, bb, e] : iter::zip(a, b, epsilon))
@@ -325,7 +343,7 @@ bool SpecificWorker::are_different(const std::vector<float> &a, const std::vecto
             return true;
     return false;
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;

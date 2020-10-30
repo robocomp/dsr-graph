@@ -59,7 +59,7 @@ public:
     DoubleBuffer<RoboCompCameraRGBDSimple::TDepth, RoboCompCameraRGBDSimple::TDepth> depth_buffer;
     DoubleBuffer<RoboCompJointMotor::MotorStateMap, RoboCompJointMotor::MotorStateMap> jointmotor_buffer;
     DoubleBuffer<RoboCompKinovaArmPub::TArmState, RoboCompKinovaArmPub::TArmState> kinovaarm_buffer;
-
+    DoubleBuffer<std::tuple<float, float, float>, std::tuple<float, float, float>> base_target_buffer;
 
 public slots:
 	void compute();
@@ -76,8 +76,9 @@ private:
 
     // DSR
 	std::shared_ptr<DSR::DSRGraph> G;
-    std::shared_ptr<DSR::InnerEigenAPI> innermodel;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
     std::unique_ptr<DSR::RT_API> rt;
+
     //params
 	std::string agent_name;
 	int agent_id;
@@ -100,6 +101,7 @@ private:
 	void update_rgbd();
     void update_pantilt_position();
     void update_arm_state();
+    void check_base_dummy();
 
 	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
 

@@ -45,8 +45,7 @@
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
 
-#define YOLO_IMG_SIZE 416  // 608, 512 change also in yolo.cgf file
-
+#define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
 class SpecificWorker : public GenericWorker
 {
@@ -151,7 +150,7 @@ class SpecificWorker : public GenericWorker
         void change_to_new_target();
         void add_edge(const std::tuple<float,float,float> &tp);
         void remove_edge();
-        std::optional<std::tuple<float,float,float>> get_existing_roi_depth(const Eigen::AlignedBox<float, 2> &roi);
+        void update_base_slider();
 
         // Tracker
         enum class TState {IDLE, TRACKING, CHANGING };

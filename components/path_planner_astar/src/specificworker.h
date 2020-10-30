@@ -57,6 +57,7 @@ class Plan
                 std::cout << "\t par1: " << k << " : " << std::to_string(v) << std::endl;
             std::cout << "------ End Plan ----------" << std::endl;
         };
+
     private:
         std::map<Actions, std::string> action_strings{{Actions::GOTO, "GOTO"}};
 };
@@ -64,7 +65,6 @@ class Plan
 class SpecificWorker : public GenericWorker
 {
     Q_OBJECT
-
     public:
         SpecificWorker(TuplePrx tprx, bool startup_check);
         ~SpecificWorker();
@@ -120,7 +120,6 @@ class SpecificWorker : public GenericWorker
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         Grid<>::Dimensions dim;
         void draw_path( std::list<QPointF> &path, QGraphicsScene *viewer_2d);
-
 };
 
 #endif

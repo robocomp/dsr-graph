@@ -572,6 +572,52 @@
                         "src": 1
                     },
                     {
+                        "dst": 302,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    1050,
+                                    1804,
+                                    962
+                                ]
+                            }
+                        },
+                        "src": 1
+                    },
+                    {
+                        "dst": 304,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    -1700,
+                                    1979,
+                                    786
+                                ]
+                            }
+                        },
+                        "src": 1
+                    },
+                    {
                         "dst": 310,
                         "label": "RT",
                         "linkAttribute": {
@@ -982,11 +1028,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -148.831436
+                        "value": -171.456177
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 139.441177
+                        "value": 133.270798
                     },
                     "texture": {
                         "type": 0,
@@ -1860,9 +1906,9 @@
                             -237,
                             312,
                             516,
-                            2.80,
+                            2.799999952316284,
                             0,
-                            1.682
+                            1.6820000410079956
                         ]
                     }
                 },
@@ -2529,11 +2575,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -167.907059
+                        "value": -186.418213
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 208.035492
+                        "value": 220.376266
                     }
                 },
                 "id": 300,
@@ -2601,11 +2647,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -253.888687
+                        "value": -290.91098
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 255.475952
+                        "value": 263.703125
                     },
                     "scalex": {
                         "type": 1,
@@ -2628,6 +2674,256 @@
                 "links": [
                 ],
                 "name": "glass_1_mesh",
+                "type": "mesh"
+            },
+            "302": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "DarkRed"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -98.543983
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 263.001007
+                    }
+                },
+                "id": 302,
+                "links": [
+                    {
+                        "dst": 303,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 302
+                    }
+                ],
+                "name": "glass_2",
+                "type": "glass"
+            },
+            "303": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 302
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/alab/objects/mug.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -159.84407
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 369.520569
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 100
+                    }
+                },
+                "id": 303,
+                "links": [
+                ],
+                "name": "glass_2_mesh",
+                "type": "mesh"
+            },
+            "304": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "DarkRed"
+                    },
+                    "engine": {
+                        "type": 0,
+                        "value": "static"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -157.339111
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 272.717041
+                    }
+                },
+                "id": 304,
+                "links": [
+                    {
+                        "dst": 305,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 304
+                    }
+                ],
+                "name": "glass_3",
+                "type": "glass"
+            },
+            "305": {
+                "attribute": {
+                    "collidable": {
+                        "type": 4,
+                        "value": true
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 6,
+                        "value": 304
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/components/dsr-graph/etc/alab/objects/mug.ive"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -236.229462
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 328.952606
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 100
+                    }
+                },
+                "id": 305,
+                "links": [
+                ],
+                "name": "glass_3_mesh",
                 "type": "mesh"
             },
             "31": {
@@ -2699,11 +2995,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -116.859177
+                        "value": -44.871361
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 246.321396
+                        "value": 271.00293
                     }
                 },
                 "id": 310,
@@ -2771,11 +3067,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -170.935883
+                        "value": -72.209732
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 298.015869
+                        "value": 388.514832
                     },
                     "scalex": {
                         "type": 1,
