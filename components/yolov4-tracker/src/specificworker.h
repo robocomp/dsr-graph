@@ -42,10 +42,14 @@
 #include <yolo_v2_class.hpp>
 #include <fps/fps.h>
 #include <doublebuffer/DoubleBuffer.h>
+#include <random/random_selector.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
 
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
+
+using myclock = std::chrono::system_clock;
+using msec = std::chrono::duration<float , std::milli>;
 
 class SpecificWorker : public GenericWorker
 {
@@ -88,7 +92,7 @@ class SpecificWorker : public GenericWorker
 
         // ATTRIBUTE NAMES
         const std::string nose_target = "viriato_pan_tilt_nose_target";
-        const Mat::Vector3d nose_default_pose{0,300,0};
+        const std::vector<float> nose_default_pose{0,500,0};
 
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
@@ -145,17 +149,23 @@ class SpecificWorker : public GenericWorker
         std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
         //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
         void compute_prediction_error(Box &real_box, const Box &synth_box);
-        void track_object_of_interest();
+        void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
         void change_to_new_target();
         void add_edge(const std::tuple<float,float,float> &tp);
         void remove_edge();
         void update_base_slider();
+        void move_base(DSR::Node &robot);
+        void stop_robot();
 
         // Tracker
         enum class TState {IDLE, TRACKING, CHANGING };
         TState tracking_state = TState::IDLE;
 
+        // objects
+        bool time_to_change = true;
+        bool tracking = false;
+        RandomSelector<> random_selector{};
 };
 
 #endif

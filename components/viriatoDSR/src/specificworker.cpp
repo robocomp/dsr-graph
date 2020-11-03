@@ -65,14 +65,16 @@ void SpecificWorker::initialize(int period)
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
-        //    // Remove existing pan-tilt target
+        // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
-            const auto nose = inner_eigen->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
+            // camera coordinate system
+            //const auto nose = inner_eigen->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
+            Eigen::Vector3f nose(0,1000,0);
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()), static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
         }
-         //Set base speed reference to 0
+        //Set base speed reference to 0
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
             G->insert_or_assign_attrib<robot_ref_adv_speed_att>(robot.value(), (float)0);
@@ -105,8 +107,8 @@ void SpecificWorker::compute()
 
     // change to slots
     //check_new_dummy_values_for_coppelia();
-    check_new_nose_referece_for_pan_tilt();
-    check_base_dummy();
+    //check_new_nose_referece_for_pan_tilt();
+    //check_base_dummy();
     //check_new_base_command(bState);
 }
 
@@ -231,18 +233,18 @@ void SpecificWorker::update_arm_state()
 }
 void SpecificWorker::check_base_dummy()
 {
-    static std::tuple<float,float,float> target{0.f,0.f,0.f};
     if (auto t = base_target_buffer.try_get(); t.has_value())
     {
         const auto [tx, ty, ta] = t.value();
         const auto r_pose = inner_eigen->transform_axis(world_name, robot_name).value();
         const float ra = r_pose[5];
         float diff = ta - ra;
-        if( fabs(ta - ra) > 0.05)
+        if( fabs(ta - ra) > 0.02)
         {
             diff = std::clamp(diff, -1.f, 1.f);
+            //float adv = MAX_ADV_ROBOT_SPEED * f(diff) * g(dist);
             try
-            { omnirobot_proxy->setSpeedBase(0, 0, -diff*20); }
+            { omnirobot_proxy->setSpeedBase(0, 0, -diff*30); }
             catch (const Ice::Exception &e)
             { std::cout << e.what() << std::endl; }
         }
@@ -290,24 +292,27 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
                     { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
                 }
             }
-    } else if (type == omnirobot_type)
+    }
+    else if (type == omnirobot_type)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
+            // speed
             auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
             auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
             auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
-
-            auto target_x = G->get_attrib_by_name<robot_target_x_att>(robot.value());
-            auto target_y = G->get_attrib_by_name<robot_target_y_att>(robot.value());
-            auto target_angle = G->get_attrib_by_name<robot_target_angle_att>(robot.value());
-            base_target_buffer.put(std::make_tuple(target_x.value(), target_y.value(), target_angle.value()));
+            // target
+//            auto target_x = G->get_attrib_by_name<robot_target_x_att>(robot.value());
+//            auto target_y = G->get_attrib_by_name<robot_target_y_att>(robot.value());
+//            auto target_angle = G->get_attrib_by_name<robot_target_angle_att>(robot.value());
+//            base_target_buffer.put(std::make_tuple(target_x.value(), target_y.value(), target_angle.value()));
 
             if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
             {
                 // Check de values are within robot's accepted range. Read them from config
                 //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
                 //std::clamp(ref_adv_speed.value(), lowerA, upperA);
+                std::cout << __FUNCTION__ << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
                 try
                 { omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value()); }
                 catch (const RoboCompGenericBase::HardwareFailedException &re)
@@ -319,13 +324,12 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
     }
     else if(type == pan_tilt_type)
     {
-        qInfo() << __FUNCTION__ << "NOW ";
         if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {
             if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
-                qInfo() << __FUNCTION__ << "NOW " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
+                //qInfo() << __FUNCTION__ << "PAN_TILT " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
                 try
                 { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
                 catch (const Ice::Exception &e)

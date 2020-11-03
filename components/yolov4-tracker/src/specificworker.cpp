@@ -126,7 +126,7 @@ void SpecificWorker::initialize(int period)
         connect(custom_widget.startButton, SIGNAL(clicked(bool)), this, SLOT(start_button_slot(bool)));
         connect(custom_widget.comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(change_object_slot(int)));
 
-        this->Period = period;
+        this->Period = 100;
         timer.start(Period);
         READY_TO_GO = true;
 	}
@@ -134,48 +134,60 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // select object of interest
-
+    static auto before = myclock::now();
+    static bool first_time = true;
     const auto g_image = rgb_buffer.try_get();
     const auto g_depth = depth_buffer.try_get();
-    if (g_image.has_value() and g_depth.has_value())
+    auto robot = G->get_node(robot_name);
+    if (robot.has_value() and g_image.has_value() and g_depth.has_value())
     {
-        // if finished with current object, pick a new object from G -> update
-        // yolo
-        // synth
-        // show
-        // if tracking
-            // if close to object and prediction_error is low
-                // object finished
-            // track: set base_dummy to object_of_interest
-            // if detected compatible
-                // compute_prediction_error
-            // else
-                // set_nose_target_to_default
-            // update_base_slider
-
+        if( time_to_change )       // if finished with current object, pick a new object from G -> update
+        {
+            auto glass_nodes = G->get_nodes_by_type(glass_type);
+            remove_edge();
+            object_of_interest = random_selector(glass_nodes).name();
+            auto index = custom_widget.comboBox->findText(QString::fromStdString(object_of_interest));
+            custom_widget.comboBox->setCurrentIndex(index);
+            time_to_change = false;
+            std::cout << __FUNCTION__ << " " << object_of_interest << std::endl;
+        }
         this->depth_array = g_depth.value();
         cv::Mat imgyolo = g_image.value();
-        // get detections using YOLOv4 network
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
-        // predict where OIs will be in yolo space
         std::vector<Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
         show_image(imgyolo, real_objects, synth_objects);
-        switch (tracking_state)
+        if( tracking )
         {
-            case TState::IDLE:
-                set_nose_target_to_default();
-                break;
-            case TState::TRACKING:
-                track_object_of_interest();
-                if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
-                    compute_prediction_error(*res, synth_objects.front());
-                break;
-            case TState::CHANGING:
-                change_to_new_target();
-                break;
-        };
-        update_base_slider();
+            track_object_of_interest(robot.value());
+            if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
+                compute_prediction_error(*res, synth_objects.front());
+
+            // check end of object cycle
+            const auto link = G->get_edge(camera_name, object_of_interest, "looking-at");
+            const auto r_angle = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint).value();
+            const auto dist = inner_eigen->transform_axis(camera_name, object_of_interest).value().norm();
+
+            //std::cout << __FUNCTION__ << " Tracking: " << link.has_value() << " " << fabs(r_angle[5]) << " " << elapsed.count() << std::endl;
+            if( link.has_value() and fabs(r_angle[5])<0.04 or dist < 1300)
+            {
+                stop_robot();
+                if( first_time )
+                {
+                    before = myclock::now();
+                    first_time = false;
+                }
+                msec duration = myclock::now() - before;
+                if(duration.count() > 2000)
+                {
+                    time_to_change = true;
+                    std::cout << __FUNCTION__ << " object completed" << std::endl;
+                }
+                else std::cout << __FUNCTION__ << " Watching" << std::endl;
+            }
+            else first_time = true;
+        }
+        else
+            set_nose_target_to_default();
 
 //        qInfo() << real_objects.size() << synth_objects.size();
 //        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
@@ -264,28 +276,6 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     }
     return synth_box;
 }
-void SpecificWorker::track_object_of_interest()
-{
-    static Mat::Vector3d ant_pose;
-    auto object = G->get_node(object_of_interest);
-    auto pan_tilt = G->get_node(viriato_pan_tilt);
-    if(object.has_value() and pan_tilt.has_value())
-    {
-        // get object pose in world coordinate frame
-        auto po = inner_eigen->transform(world_name, object_of_interest);
-        auto pose = inner_eigen->transform(camera_name, object_of_interest);
-        if (po.has_value() and pose.has_value() and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10))
-        {
-               G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
-               G->update_node(pan_tilt.value());
-               //qInfo() <<"NOW ...." << po.value().x() << po.value().y() << po.value().z() << " - " << (pose.value() - ant_pose).cwiseAbs2().sum() ;
-               //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z() << " - " << ant_pose.x() << ant_pose.y() << ant_pose.z();
-        }
-        ant_pose = pose.value();
-    }
-    else
-        qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
-}
 void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
 {
     auto are_close = [](const Box &b1, const Box &b2)
@@ -304,7 +294,7 @@ void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_bo
                         // If the error is less than twice the width of the synthetic rectangle
                         if(area > 0 or error.manhattanLength() < rs.width()*3) //ADD DEPTH CHECK
                         {
-                            qInfo() << __FUNCTION__ << r << rs << area << error.manhattanLength() << rs.width()*3;
+                            //qInfo() << __FUNCTION__ << r << rs << area << error.manhattanLength() << rs.width()*3;
                             return true;
                         }
                         else
@@ -317,7 +307,6 @@ void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_bo
     {
         auto [x,y,z] = tp.value();
         real_box.depth = sqrt(x*x+y*y+z*z);
-        qInfo() << "depth " << real_box.depth;
         if (are_close(real_box, synth_box))
                 add_edge(tp.value());
     }
@@ -332,9 +321,9 @@ void SpecificWorker::add_edge(const std::tuple<float,float,float> &tp)
         G->add_attrib_local<looking_at_rotation_euler_xyz_att>(edge, std::vector<float>{0.f, 0.f, 0.f});
         if (G->insert_or_assign_edge(edge))
         {
-            if (const auto loop = inner_eigen->transform(viriato_head_camera_name, object_of_interest); loop.has_value())
-                std::cout << __FUNCTION__ << " [" << x << " " << y << " " << z << "] - Loop [" << loop.value().x()
-                          << " " << loop.value().y() << " " << loop.value().z() << "]" << std::endl;
+//            if (const auto loop = inner_eigen->transform(viriato_head_camera_name, object_of_interest); loop.has_value())
+//                std::cout << __FUNCTION__ << " [" << x << " " << y << " " << z << "] - Loop [" << loop.value().x()
+//                          << " " << loop.value().y() << " " << loop.value().z() << "]" << std::endl;
         }
         else
             std::cout << __FUNCTION__ << "WARNING: Error inserting new edge: " << cam_api->get_id() << "->"
@@ -360,12 +349,75 @@ void SpecificWorker::set_nose_target_to_default()
     //if(this->already_in_default == true) return;
     if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
     {
-        if(auto nose = inner_eigen->transform(world_name, this->nose_default_pose, viriato_head_camera_pan_tilt); nose.has_value())
-        {
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)nose.value().x(), (float)nose.value().y(), (float)nose.value().z()});
-            G->update_node(pan_tilt.value());
-        }
+        G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), nose_default_pose);
+        G->update_node(pan_tilt.value());
         this->already_in_default = true;
+    }
+}
+void SpecificWorker::track_object_of_interest(DSR::Node &robot)
+{
+    static Eigen::Vector3d ant_pose;
+    auto object = G->get_node(object_of_interest);
+    auto pan_tilt = G->get_node(viriato_pan_tilt);
+    if(object.has_value() and pan_tilt.has_value())
+    {
+        // get object pose in world coordinate frame
+        auto po = inner_eigen->transform(world_name, object_of_interest);
+        auto pose = inner_eigen->transform(viriato_head_camera_pan_tilt, object_of_interest);
+        // pan-tilt center
+        if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
+        {
+//            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+            G->update_node(pan_tilt.value());
+            //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+        }
+        ant_pose = pose.value();
+        move_base(robot);
+    }
+    else
+        qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
+}
+void SpecificWorker::move_base(DSR::Node &robot)
+{
+    if(auto pantilt = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint); pantilt.has_value())
+    {
+        float current_pan_angle = pantilt.value()[5];
+        if(auto robot_pose = inner_eigen->transform_axis(world_name, robot_name); robot_pose.has_value() )
+        {
+            if(const auto dist_o = inner_eigen->transform(camera_name, object_of_interest); dist_o.has_value())
+            {
+                float dist = dist_o.value().norm();
+                float rx = robot_pose.value()[0];
+                float ry = robot_pose.value()[1];
+                float r_angle = robot_pose.value()[5];
+                // select place to send the robot
+                // move towards a safe spot close to the object but look for a good approaching direction
+                const float landa = -1.f / log(0.1);
+                float adv_speed =
+                        1000 * exp(-(current_pan_angle * current_pan_angle) / landa) * std::min(dist / 3000.f, 1.f);
+                // store target base dummy
+                //            G->add_or_modify_attrib_local<robot_target_x_att>(robot, rx);
+                //            G->add_or_modify_attrib_local<robot_target_y_att>(robot, ry);
+                //            G->add_or_modify_attrib_local<robot_target_angle_att>(robot, r_angle + current_pan_angle);
+                G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot, adv_speed/60.f);
+                G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot, 0.f);
+                G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot, -current_pan_angle * 10.f);
+                std::cout << "dist " << dist << " rot:" << -current_pan_angle * 10 << " adv: " << adv_speed/40 << std::endl;
+                G->update_node(robot);
+                update_base_slider();
+            }
+        }
+    }
+}
+void SpecificWorker::stop_robot()
+{
+    if(auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.f);
+        G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.f);
+        G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), 0.f);
+        G->update_node(robot.value());
     }
 }
 void SpecificWorker::update_base_slider()
@@ -375,16 +427,6 @@ void SpecificWorker::update_base_slider()
         float current_angle = r.value()[5];
         custom_widget.horizontalSlider->setValue(current_angle*100);   // scale to -100, 100
         custom_widget.pan->display(current_angle);
-        if(auto robot_node = G->get_node(robot_name); robot_node.has_value())
-        {
-            if(auto robot_pose = inner_eigen->transform_axis(world_name, robot_name); robot_pose.has_value() )
-            {
-                G->add_or_modify_attrib_local<robot_target_x_att>(robot_node.value(), (float)robot_pose.value().x());
-                G->add_or_modify_attrib_local<robot_target_y_att>(robot_node.value(), (float)robot_pose.value().y());
-                G->add_or_modify_attrib_local<robot_target_angle_att>(robot_node.value(), (float)(robot_pose.value()[5] + current_angle));
-                G->update_node(robot_node.value());
-            }
-        }
     }
 }
 
@@ -493,17 +535,16 @@ void SpecificWorker::start_button_slot(bool checked)
 {
     if(checked)  //track
     {
-        const auto index = custom_widget.comboBox->currentIndex();
-        object_of_interest = custom_widget.comboBox->itemData(index).value<std::string>();
         custom_widget.startButton->setText("Stop");
         this->already_in_default = false;
-        this->tracking_state = TState::TRACKING;
+        this->tracking = true;
+        this->time_to_change = true;
     }
     else //stop tracking
     {
         custom_widget.startButton->setText("Start");
-        //object_of_interest = "no_object";
-        this->tracking_state = TState::IDLE;
+        this->tracking = false;
+        // stop_robot();
     }
 }
 void SpecificWorker::change_object_slot(int index)

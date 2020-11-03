@@ -484,11 +484,11 @@ class SpecificWorker(GenericWorker):
         else:
             dummy = Dummy(name)
             parent_frame_object = None
-            #if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-            #        parent_frame_object = self.cameras["viriato_head_camera_sensor"]["handle"]
+            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")
             #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
-            dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.])
-            dummy.set_orientation([pose.rx, pose.ry, pose.rz])
+            dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.], parent_frame_object)
+            dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
 
     ######################################################################
    #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)
