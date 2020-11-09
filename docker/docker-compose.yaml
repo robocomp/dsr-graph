@@ -1,0 +1,49 @@
+version: '3'
+services:
+  idserver:
+    hostname: ${HOSTNAME}
+    image: robocomp/robocomp:focal_dsr
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      -  $HOME:${HOME}
+      -  /tmp/.X11-unix/:/tmp/.X11-unix
+      - $HOME/.Xauthority:/home/robolab/.Xauthority
+    working_dir: /home/robolab/robocomp/components/dsr-graph/components/idserver/  
+    command: ./bin/idserver
+    networks:
+        robolab:
+          ipv4_address: 172.16.238.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+  change_graph:
+    hostname: ${HOSTNAME}
+    image: robocomp/robocomp:focal_dsr
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      -  $HOME:${HOME}
+      -  /tmp/.X11-unix/:/tmp/.X11-unix
+      - $HOME/.Xauthority:/home/robolab/.Xauthority
+    working_dir: /home/robolab/robocomp/components/dsr-graph/components/change_graph 
+    command: ./bin/change_graph
+    #command: sleep infinity
+    #command: cat etc/config
+    networks:
+        robolab:
+          ipv4_address: 172.16.238.3
+    depends_on:
+      - idserver
+      
+networks:
+    robolab:
+        # use the bridge driver, but enable IPv6
+        driver: bridge
+        driver_opts:
+            com.docker.network.enable_ipv6: "true"
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.16.238.0/24
+                  gateway: 172.16.238.1
