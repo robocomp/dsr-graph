@@ -56,9 +56,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << __FUNCTION__ << std::endl;
 	this->Period = period;
 	if(this->startup_check_flag)
-	{
 		this->startup_check();
-	}
 	else
 	{
 		// create graph
@@ -305,6 +303,13 @@ void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_fr
     robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
     robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
 }
+
+//
+// Search
+// sample radially from target floor projection and create path to all acceptable places
+// merge paths into a tree and wait to see if the decision can be visually solved at the knot
+// if not select one. One option is to analyze the local orientation of the barrier
+//
 
 std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot)
 {
