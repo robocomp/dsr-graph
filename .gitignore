@@ -27,7 +27,6 @@ etc/insert_remove_*
 **/profile/
 **/*.ice
 **/*.OLD
-**/*.txt
 !**/components/*/CMake*.txt
 !**/components/*/src/CMake*.txt
 etc/*
@@ -36,5 +35,4 @@ components/crdt_rtps_dsr_tests/test_result.txt
 components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_empty_file.json
 components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_initial_dsr2.json
 **/perf.data
-**/config
 **/__pycache__/

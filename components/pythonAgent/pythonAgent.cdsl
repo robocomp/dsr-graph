@@ -1,0 +1,12 @@
+import "/robocomp/interfaces/IDSLs/DSRGetID.idsl";
+
+Component pythonAgent
+{
+    Communications
+    {
+        requires DSRGetID;
+    };
+    language python;
+};
+
+
