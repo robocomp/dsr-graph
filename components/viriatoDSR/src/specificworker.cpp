@@ -18,12 +18,13 @@
  */
 #include "specificworker.h"
 #include <algorithm>
+#include <utility>
 #include <cppitertools/zip.hpp>
 
 /**
 * \brief Default constructor
 */
-SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
+SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(std::move(tprx))
 {
 	this->startup_check_flag = startup_check;
     QLoggingCategory::setFilterRules("*.debug=false\n");
@@ -120,7 +121,7 @@ void SpecificWorker::update_rgbd()
     const  auto depth_o = depth_buffer.try_get();
     if (rgb_o.has_value() and depth_o.has_value())
     {
-        const auto rgb = rgb_o.value(); const auto depth = depth_o.value();
+        const auto& rgb = rgb_o.value(); const auto& depth = depth_o.value();
         auto node = G->get_node(viriato_head_camera_name);
         if (node.has_value())
         {
@@ -374,7 +375,7 @@ void SpecificWorker::LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData)
 //SUBSCRIPTION to pushBaseState method from OmniRobotPub interface
 void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state)
 {
-	omnirobot_buffer.put(std::move(state));
+	omnirobot_buffer.put(state);
 }
 
 void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap)
@@ -386,7 +387,7 @@ void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap
 /// SUBSCRIPTION to newArmState method from KinovaArmPub interface
 void SpecificWorker::KinovaArmPub_newArmState(RoboCompKinovaArmPub::TArmState armstate)
 {
-    kinovaarm_buffer.put(std::move(armstate));
+    kinovaarm_buffer.put(armstate);
 }
 
 
