@@ -37,7 +37,7 @@ cd dsr-graph/components/
 
 Note: To be able to build social_navigation component you need to install
   ```sh
-  sudo apt install libfclib-dev
+  sudo apt install libfcl-dev
   ```
   And rebuild robocomp core with fcl support:
   ```sh
