@@ -46,7 +46,7 @@ def main(input_file, output_file):
         if len(elem.findall('common/localFrame/position')) and len(elem.findall('primitive/type')):
             name = elem.findall('common/name')[0].text
             pos = [float(value)*1000 for value in elem.findall('common/localFrame/position')[0].text.split(' ')]
-            pos = convert_vrep_axis_to_robocomp(pos)
+          #  pos = convert_vrep_axis_to_robocomp(pos)
             rot = [float(value)*3.14159/180 for value in elem.findall('common/localFrame/euler')[0].text.split(' ')]
 
             type = convert_vreptype_to_jsontype(name)
@@ -57,10 +57,10 @@ def main(input_file, output_file):
             print(name, type, pos, rot[2], size, color)
 
             if type == "wall":
-                new_wall = [0.0, 0.0] + [size[1]] + [size[0]] + [pos[0]] + [pos[2]] + [rot[2]]
+                new_wall = [0.0, 0.0] + [size[0]] + [size[1]] + [pos[0]] + [pos[1]] + [rot[2]]
                 new_json["walls"][name] = new_wall
             elif type == "boxes":
-                new_box = [0.0, 0.0] + [size[1]] + [size[0]] + [pos[0]] + [pos[2]] + [rot[2]]
+                new_box = [0.0, 0.0] + [size[0]] + [size[1]] + [pos[0]] + [pos[1]] + [rot[2]]
                 new_json["boxes"][name] = new_box
             elif type == "floor":
                 new_json["dimensions"]["LEFT"] = -size[0]/2
