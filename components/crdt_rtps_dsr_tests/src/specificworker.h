@@ -55,10 +55,6 @@ public:
 		int startup_check();
 		void initialize(int period);
 
-	signals:
-		void addNodeSIGNAL(std::int32_t id, const std::string &name, const std::string &type, float posx, float posy, const std::string &color);
-		void addEdgeSIGNAL(std::int32_t from, std::int32_t to, const std::string &ege_tag);
-
 	private:
 		InnerModel *innerModel;
 		bool startup_check_flag;
@@ -70,10 +66,6 @@ public:
         std::shared_ptr<DSR::DSRGraph> G;
         QHBoxLayout mainLayout;
         QWidget window;
-
-		// Tests
-		//void tester();
-		//void test_nodes_mov();
 
 
 		//void write_test_output(std::string result);
@@ -97,19 +89,10 @@ public:
 		std::vector<int> created_nodos;
         std::vector<std::pair<int, int>> created_edges;
 
-        pair<int, int> removeEdge();
-
-        int newID();
-		int removeID();
-        int getID();
 		std::mutex mut;
 		QTimer autokill_timer;
 
 
-		//std::shared_ptr<Test_utils> test;
-		//CRDT_G_api_test G_api_test;
-		//CRDT_insert_remove_node concurrent_test;
-        //DSR_test dst_test;
 
 };
 

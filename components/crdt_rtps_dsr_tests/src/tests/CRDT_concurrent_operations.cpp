@@ -37,7 +37,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
                 G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
                 G->add_attrib_local<pos_x_att>(node,  rnd_float());
                 G->add_attrib_local<pos_y_att>(node,  rnd_float());
-                G->add_attrib_local<parent_att>(node,  100u);
+                G->add_attrib_local<parent_att>(node,  static_cast<uint64_t>(100));
 
                 auto res = G->insert_node(node);
                 if (res.has_value()) {

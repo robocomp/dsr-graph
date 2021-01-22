@@ -71,7 +71,7 @@ void SpecificWorker::initialize(int period) {
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
     //G->print();
 
     // Graph viewer
@@ -100,7 +100,7 @@ void SpecificWorker::compute()
     switch(std::distance(tests.begin(), iter)){
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
-            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node( G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -108,7 +108,7 @@ void SpecificWorker::compute()
         }
         case 1: {
             qDebug() << "INSERT AND REMOVE EDGES TEST:";
-            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(dsrgetid_proxy, G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(G, dsr_output_file, test_output_file, 2500);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -116,7 +116,7 @@ void SpecificWorker::compute()
         }
         case 2: {
             qDebug() << "CHANGE ATTRIBUTES TEST:";
-            CRDT_change_attribute concurrent_test = CRDT_change_attribute(dsrgetid_proxy, G, dsr_output_file,  test_output_file,5000, agent_id);
+            CRDT_change_attribute concurrent_test = CRDT_change_attribute( G, dsr_output_file,  test_output_file,5000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -124,7 +124,7 @@ void SpecificWorker::compute()
         }
         case 3: {
             qDebug() << "CONFLICT RESOLUTION TEST:";
-            CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(dsrgetid_proxy, G, dsr_output_file, test_output_file, 10000, agent_id);
+            CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(G, dsr_output_file, test_output_file, 10000, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -132,7 +132,7 @@ void SpecificWorker::compute()
         }
         case 4: {
             qDebug() << "CONCURRENT OPERATIONS TEST:";
-            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(dsrgetid_proxy, G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
+            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -140,7 +140,7 @@ void SpecificWorker::compute()
         }
         case 5: {
             qDebug() << "DELAYED START TEST:";
-            CRDT_delayed_start concurrent_test = CRDT_delayed_start(dsrgetid_proxy, G, dsr_output_file,  test_output_file,1200, agent_id);
+            CRDT_delayed_start concurrent_test = CRDT_delayed_start(G, dsr_output_file,  test_output_file,1200, agent_id);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (20));
             concurrent_test.save_json_result();
@@ -167,25 +167,5 @@ void SpecificWorker::autokill()
 {
 //    G->write_to_json_file(dsr_output_file);
     exit(0);
-}
-
-// This has to be a RPC call to the idserver component
-// create and insert a new id in the list
-int SpecificWorker::newID()
-{
-    /*static int node_counter = 5000;
-    std::lock_guard<std::mutex>  lock(mut);
-    created_nodos.push_back(++node_counter);
-    */
-    int node_id;
-    try{
-        node_id = dsrgetid_proxy->getID();
-        created_nodos.push_back(node_id);
-        qDebug()<<"New nodeID: "<<node_id;
-    }catch(...)
-    {
-        qDebug()<<"Error getting new nodeID from idserver, check connection";
-    }
-    return node_id;
 }
 

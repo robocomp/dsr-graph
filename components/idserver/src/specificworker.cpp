@@ -108,7 +108,7 @@ void SpecificWorker::get_max_id_from_G()
 //Check RT tree is well built
 void SpecificWorker::check_rt_tree(const DSR::Node &node)
 {
-    std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> edges_map = G->get_edges(node.id());
+    std::optional<std::map<std::pair<uint64_t , std::string>, DSR::Edge>> edges_map = G->get_edges(node.id());
     if (edges_map.has_value()) {
         for (const auto[pair, edge] : edges_map.value())
         {

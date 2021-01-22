@@ -9,8 +9,6 @@
 #include <iostream>
 #include <string>
 
-// ICE include
-#include <Ice/Ice.h>
 
 class Graph {
 public:
@@ -26,21 +24,11 @@ public:
 
 private:
     Graph () {
-        std::thread([](){
 
-            [[maybe_unused]] auto _ = std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/benchmark/config_idserver");
-        }).detach();
 
-        std::this_thread::sleep_for(300ms);
-        auto c = Ice::initialize();
-        auto pr = c->stringToProxy("dsrgetid:tcp -h localhost -p 11000");
-        dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( pr );
-        G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
-        std::atexit([](){
-            [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
-        });
+        G = std::make_shared<DSR::DSRGraph>(0, "test", 1551);
+
     }
-    RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
     std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::DSRGraph> G_2;
 

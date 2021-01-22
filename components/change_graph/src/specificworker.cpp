@@ -56,7 +56,7 @@ void SpecificWorker::initialize(int period)
     std::cout << "Initialize worker" << std::endl;
 
     // create graph
-    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, ""); // Init nodes
     rt = G->get_rt_api();
     // Graph viewer
     //	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
