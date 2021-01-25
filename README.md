@@ -25,7 +25,7 @@ A CORTEX instance is a set of software components, called _agents_, that share a
 
 
 # Installation
-Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infraestructure. 
+Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
 
 To install these components in this repositor it's assumed that you have already installed ![robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
 You must clone this (dsr-graph) repository in ~/robocomp/components/
