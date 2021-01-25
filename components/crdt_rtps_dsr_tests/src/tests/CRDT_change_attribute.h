@@ -10,12 +10,11 @@
 
 class CRDT_change_attribute : DSR_test {
 public:
-    CRDT_change_attribute () {};
-    CRDT_change_attribute(RoboCompDSRGetID::DSRGetIDPrxPtr id_prx,  std::shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_, int num_ops_, int agent_id_)
-        : DSR_test(id_prx, G_, output_, output_result_), num_ops(num_ops_), agent_id(agent_id_) { times.resize(num_ops);};
+    CRDT_change_attribute () = default;
+    CRDT_change_attribute(  std::shared_ptr<DSR::DSRGraph> G_, const std::string& output_, const std::string& output_result_, int num_ops_, int agent_id_)
+        : DSR_test(std::move(G_), output_, output_result_), num_ops(num_ops_), agent_id(agent_id_) { times.resize(num_ops);};
 
     CRDT_change_attribute& operator=(CRDT_change_attribute&& t) {
-        dsrgetid_proxy = std::move(t.dsrgetid_proxy);
         output_result = std::move(t.output_result);
         G = t.G;
         output = std::move(t.output);
@@ -24,21 +23,21 @@ public:
         return *this;
     }
 
-    ~CRDT_change_attribute () {};
+    ~CRDT_change_attribute () = default;
 
-    void save_json_result();
-    void run_test();
+    void save_json_result() override;
+    void run_test() override;
 
 private:
 
-    int num_ops;
+    int num_ops{0};
 
     void insert_or_assign_attributes(int i, const std::shared_ptr<DSR::DSRGraph>& G);
 
     int delay = 5; //ms
-    int agent_id;
+    int agent_id{0};
 
-    double mean, ops_second;
+    double mean{0.0}, ops_second{0.0};
     std::string result;
 };
 

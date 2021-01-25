@@ -10,16 +10,9 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 #include "dsr/api/dsr_api.h"
-#include <iostream>
 #include <string>
 
 CATCH_CONFIG_MAIN
-
-
-// ICE includes
-#include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
-#include <Ice/Application.h>
 
 using namespace std::literals;
 
@@ -28,6 +21,7 @@ REGISTER_TYPE(int_, int32_t, false)
 REGISTER_TYPE(float_, float, false)
 REGISTER_TYPE(bool_, bool, false)
 REGISTER_TYPE(uint_, uint32_t, false)
+REGISTER_TYPE(uint64_, uint64_t , false)
 REGISTER_TYPE(string_, std::reference_wrapper<const std::string>, false)
 REGISTER_TYPE(vec_byte, std::reference_wrapper<const std::vector<uint8_t>>, false)
 REGISTER_TYPE(vec_float, std::reference_wrapper<const std::vector<float>>, false)
@@ -50,21 +44,8 @@ class Graph {
 
     private:
         Graph () {
-            std::thread([](){
-                [[maybe_unused]] auto _ = std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/config_idserver");
-                //while (true) {this_thread::yield();};
-            }).detach();
-
-            std::this_thread::sleep_for(300ms);
-            auto c = Ice::initialize();
-            auto pr = c->stringToProxy("dsrgetid:tcp -h localhost -p 11000");
-            dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( pr );
-            G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "", dsrgetid_proxy);
-            std::atexit([](){
-               [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
-            });
+            G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "");
         }
-        RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
         std::shared_ptr<DSR::DSRGraph> G;
 };
 
@@ -416,7 +397,7 @@ TEST_CASE("Maps operations", "[UTILS]") {
 
 
     SECTION("Get edges from a node") {
-        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge>> ve = G->get_edges(1);
+        std::optional<std::map<std::pair<uint64_t , std::string>, DSR::Edge>> ve = G->get_edges(1);
         REQUIRE(ve.has_value() == true);
         REQUIRE(ve->size() == 2);
         std::optional<Node> n = G->get_node(1);
@@ -425,12 +406,12 @@ TEST_CASE("Maps operations", "[UTILS]") {
     }
 
     SECTION("Get edges from a node that does not exist") {
-        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> ve = G->get_edges(45550);
+        std::optional<std::map<std::pair<uint64_t, std::string>, DSR::Edge>> ve = G->get_edges(45550);
         REQUIRE(!ve.has_value());
     }
 
     SECTION("Get edges from a node that has no edges") {
-        std::optional<std::map<std::pair<uint32_t, std::string>, DSR::Edge/*, pair_hash*/>> ve = G->get_edges(13);
+        std::optional<std::map<std::pair<uint64_t, std::string>, DSR::Edge>> ve = G->get_edges(13);
         REQUIRE(ve.has_value());
         REQUIRE(ve->empty());
     }
@@ -516,13 +497,10 @@ TEST_CASE("Convenience methods", "[CONVENIENCE METHODS]") {
     SECTION("Get parent id") {
         std::optional<Node> n = G->get_node(2);
         REQUIRE(n.has_value());
-        std::optional<uint32_t> id = G->get_parent_id(n.value());
+        std::optional<uint64_t> id = G->get_parent_id(n.value());
         REQUIRE(id.has_value());
         REQUIRE(id.value() == 1);
 
-        //std::optional<Node> parent =  G->get_node(1);
-        //std::optional<uint32_t> id_empty = G->get_parent_id(parent.value());
-        //REQUIRE_FALSE(id_empty.has_value());
     }
 
     SECTION("Get parent node") {
@@ -629,6 +607,38 @@ TEST_CASE("Native types in attributes", "[ATTRIBUTES]") {
         std::optional<Node> n = G->get_node(1);
         REQUIRE(n.has_value());
         std::optional<int> st = G->get_attrib_by_name<int__att>(n.value());
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Insert an uint attribute") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        G->insert_attrib_by_name<uint__att>(n.value(),  11u);
+        REQUIRE(n->attrs().find("uint_") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(1);
+        REQUIRE(n2.has_value());
+        REQUIRE(G->get_attrib_by_name<uint__att>( n.value()) == G->get_attrib_by_name<uint__att>( n2.value()));
+    }
+    SECTION("Get an uint attribute") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        std::optional<uint32_t> st = G->get_attrib_by_name<uint__att>(n.value());
+        REQUIRE(st.has_value());
+    }
+
+    SECTION("Insert an uint64 attribute") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        G->insert_attrib_by_name<uint64__att>(n.value(),  static_cast<uint64_t>(1));
+        REQUIRE(n->attrs().find("uint64_") != n->attrs().end());
+        std::optional<Node> n2 = G->get_node(1);
+        REQUIRE(n2.has_value());
+        REQUIRE(G->get_attrib_by_name<uint64__att>( n.value()) == G->get_attrib_by_name<uint64__att>( n2.value()));
+    }
+    SECTION("Get an uint64 attribute") {
+        std::optional<Node> n = G->get_node(1);
+        REQUIRE(n.has_value());
+        std::optional<uint64_t> st = G->get_attrib_by_name<uint64__att>(n.value());
         REQUIRE(st.has_value());
     }
 
@@ -775,15 +785,4 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
     }
 }
 
-/*
-TEST_CASE("Join operations", "[JOIN]") {
 
-    std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
-
-    SECTION("Join full graph") {}
-    SECTION("Join empty full graph") {}
-    SECTION("Join delta add") {}
-    SECTION("Join delta remove") {}
-    SECTION("Join delta update") {}
-}
-*/

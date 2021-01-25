@@ -32,7 +32,7 @@ void CRDT_delayed_start::create_or_remove_nodes(int i, const std::shared_ptr<DSR
             G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
             G->add_attrib_local<pos_x_att>(node,  rnd_float());
             G->add_attrib_local<pos_y_att>(node,  rnd_float());
-            G->add_attrib_local<parent_att>(node,  100u);
+            G->add_attrib_local<parent_att>(node,  static_cast<uint64_t>(100));
 
             //node.attrs(attrs);
 

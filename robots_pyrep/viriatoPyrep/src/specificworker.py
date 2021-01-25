@@ -56,9 +56,9 @@ class SpecificWorker(GenericWorker):
         
         #self.robot = Viriato()
         self.robot = YouBot()
-        self.robot_object = Object("youBot")
-        self.robot_left_arm = Object("viriato_left_arm")
-        self.robot_left_arm_tip = Object("viriato_left_arm_tip")
+        self.robot_object = Shape("youBot")
+        self.robot_left_arm = Shape("viriato_left_arm")
+        self.robot_left_arm_tip = Dummy("viriato_left_arm_tip")
 
         self.cameras = {}
         # cam = VisionSensor("camera_1_rgbd_sensor")

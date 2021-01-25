@@ -50,6 +50,8 @@ def update_edge_att(fr: int, to: int, attribute_names : [str]):
 def delete_edge(fr: int, to: int, type : str):
     print("DELETE EDGE: ", fr," ", to," ", type)
 
+
+
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map, startup_check=False):
         super(SpecificWorker, self).__init__(proxy_map)
@@ -79,6 +81,7 @@ class SpecificWorker(GenericWorker):
 
     def __del__(self):
         print('SpecificWorker destructor')
+        #self.g.__exit__()
 
     def setParams(self, params):
         #try:
@@ -93,10 +96,10 @@ class SpecificWorker(GenericWorker):
     def compute(self):
         print('SpecificWorker.compute...')
 
-        #a = Node(123, "laser", self.dsrgetid_proxy, "laserprueba")
+        #a = Node(123, "laser", "laserprueba")
         node = self.g.get_node("world")
 
-        print(node)
+        #print(node)
 
         return True
 
