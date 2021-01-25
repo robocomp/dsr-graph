@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 add_definitions(-g -march=native  -fmax-errors=1 -std=c++2a )
-SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads)
+SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)
 
 
 
