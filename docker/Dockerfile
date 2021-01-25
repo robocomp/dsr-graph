@@ -19,7 +19,7 @@ RUN git clone https://github.com/ryanhaining/cppitertools /usr/local/include/cpp
 #ÇCompilation of DSR libs
 USER robolab
 # RUN sed -i.bak -e '48d' ~/robocomp/classes/dsr/core/rtps/dsrparticipant.cpp
-RUN cd ~/robocomp/classes/dsr && mkdir build && cd build && cmake .. && make
+RUN cd ~/robocomp/classes/dsr && mkdir build && cd build && cmake .. && make -j$(nproc)
 USER root
 ENV PATH=$PATH
 RUN cd /home/robolab/robocomp/classes/dsr/build && make install
@@ -30,9 +30,9 @@ USER robolab
 WORKDIR /home/robolab/robocomp/components/
 RUN git clone --progress https://github.com/robocomp/dsr-graph.git 
 WORKDIR /home/robolab/robocomp/components/dsr-graph/components/
-RUN mkdir build && cd build && cmake .. && make -j4
+RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 WORKDIR /home/robolab/robocomp/components/dsr-graph/
-RUN cd components/viriatoPyrep && cmake . && make && cp etc/config . && sed -i 's/-p/-h 172.16.238.4 -p/g' config
+RUN cd components/viriatoPyrep && cmake . && make -j$(nproc) && cp etc/config . && sed -i 's/-p/-h 172.16.238.4 -p/g' config
 RUN mkdir extras && cd extras && wget -c https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz -O - | sudo tar -xv -J
 ENV COPPELIASIM_ROOT=/home/robolab/robocomp/components/dsr-graph/extras/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04
 ENV LD_LIBRARY_PATH=$COPPELIASIM_ROOT
