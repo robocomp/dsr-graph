@@ -73,8 +73,8 @@ class SpecificWorker : public GenericWorker
         int startup_check();
         void initialize(int period);
         void new_target_from_mouse(int pos_x, int pos_y, int id);
-        void update_node_slot(const std::int32_t id, const std::string &type);
-        void update_attrs_slot(const std::int32_t id, const std::map<string, DSR::Attribute> &attribs);
+        void update_node_slot(const std::uint64_t id, const std::string &type);
+        void update_attrs_slot(const std::uint64_t id, const std::map<string, DSR::Attribute> &attribs);
 
     private:
         // DSR graph

@@ -250,7 +250,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
     using namespace std::placeholders;

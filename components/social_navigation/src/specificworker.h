@@ -81,7 +81,7 @@ class SpecificWorker : public GenericWorker
         void sendRobotTo();
         void forcesSliderChanged(int value = 0);
         void new_target_from_mouse(int pos_x, int pos_y, int id);
-        void update_node_slot(const std::int32_t id, const std::string &type);
+        void update_node_slot(const std::uint64_t id, const std::string &type);
 
     private:
         // DSR graph

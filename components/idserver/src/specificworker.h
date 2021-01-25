@@ -62,7 +62,7 @@ private:
     std::unique_ptr<DSR::DSRViewer> dsr_viewer;
 	QHBoxLayout mainLayout;
 	QWidget window;
-    uint32_t node_id = 0;
+    uint64_t node_id = 0;
 
 	//params
 	int agent_id;

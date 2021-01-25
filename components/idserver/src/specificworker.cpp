@@ -108,14 +108,14 @@ void SpecificWorker::get_max_id_from_G()
 //Check RT tree is well built
 void SpecificWorker::check_rt_tree(const DSR::Node &node)
 {
-    std::optional<std::map<std::pair<uint64_t , std::string>, DSR::Edge>> edges_map = G->get_edges(node.id());
+    std::optional<std::map<std::pair<uint64_t, std::string>, DSR::Edge>> edges_map = G->get_edges(node.id());
     if (edges_map.has_value()) {
-        for (const auto[pair, edge] : edges_map.value())
+        for (const auto&[pair, edge] : edges_map.value())
         {
             if(edge.type() == "RT") {
                 std::optional<DSR::Node> child = G->get_node(edge.to());
                 assertm(child.has_value() == true, "Edge without child node");
-                std::optional<std::uint32_t> parent_id = G->get_parent_id(child.value());
+                std::optional<std::uint64_t> parent_id = G->get_parent_id(child.value());
                 assertm(parent_id.has_value() == true, "Edge without parent node");
                 assertm(node.id() == parent_id.value(), "Inconsistency between edge and node parent");
                 std::optional<std::uint32_t> child_level = G->get_node_level(child.value());

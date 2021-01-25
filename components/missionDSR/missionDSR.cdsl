@@ -1,10 +1,8 @@
-import "DSRGetID.idsl";
 
 Component missionDSR
 {
     Communications
     {
-        requires DSRGetID;
     };
     language Cpp11;
     gui Qt(QMainWindow);

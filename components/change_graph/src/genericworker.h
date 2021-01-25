@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -45,7 +45,7 @@ class GenericWorker : public QMainWindow, public Ui_guiDlg
 {
 Q_OBJECT
 public:
-	GenericWorker(TuplePrx tprx, bool startup_check);
+	GenericWorker(TuplePrx tprx);
 	virtual ~GenericWorker();
 	virtual void killYourSelf();
 	virtual void setPeriod(int p);

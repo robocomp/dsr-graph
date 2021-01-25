@@ -26,7 +26,8 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 	this->startup_check_flag = startup_check;
 	QLoggingCategory::setFilterRules("*.debug=false\n");
 	qRegisterMetaType<std::int32_t>("std::int32_t");
-	qRegisterMetaType<std::string>("std::string");
+    qRegisterMetaType<std::uint64_t>("std::uint64_t");
+    qRegisterMetaType<std::string>("std::string");
 }
 
 /**
@@ -148,7 +149,7 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
-void SpecificWorker::add_or_assign_node_SLOT(const std::int32_t id, const std::string &type)
+void SpecificWorker::add_or_assign_node_SLOT(const std::uint64_t id, const std::string &type)
 {
 	auto node = G->get_node(id);
 	if(node)
@@ -163,7 +164,7 @@ void SpecificWorker::add_or_assign_node_SLOT(const std::int32_t id, const std::s
 		}
 	}
 }
-void SpecificWorker::add_or_assign_edge_SLOT(const std::int32_t from, const std::int32_t to, const std::string& type)
+void SpecificWorker::add_or_assign_edge_SLOT(const std::uint64_t from, const std::uint64_t to, const std::string& type)
 {
 	auto edge = G->get_edge(from, to, type);
 	if(edge)
@@ -174,7 +175,7 @@ void SpecificWorker::add_or_assign_edge_SLOT(const std::int32_t from, const std:
 			updates_json_object[timestamp_string] = json_edge;
 	}
 }
-void SpecificWorker::del_edge_SLOT(const std::int32_t from, const std::int32_t to,  const std::string &edge_tag)
+void SpecificWorker::del_edge_SLOT(const std::uint64_t from, const std::uint64_t to,  const std::string &edge_tag)
 {
 	cout<<__FUNCTION__<<endl;
 }

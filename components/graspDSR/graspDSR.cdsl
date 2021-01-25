@@ -1,11 +1,10 @@
 import "ObjectPoseEstimationRGBD.idsl";
-import "DSRGetID.idsl";
 
 Component graspDSR
 {
     Communications
     {
-        requires ObjectPoseEstimationRGBD, DSRGetID;
+        requires ObjectPoseEstimationRGBD;
     };
     language Cpp11;
     gui Qt(QMainWindow);

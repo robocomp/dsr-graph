@@ -41,7 +41,7 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
 {
     //First we move the robot in G_copy to the target coordinates
     std::optional<Node> world = G_copy.get_node(world_name);
-    std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
+    std::optional<uint64_t> robot_id = G_copy.get_id_from_name(robot_name);
     G_copy.insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy.get_inner_eigen_api();
 

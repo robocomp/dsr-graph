@@ -1,10 +1,7 @@
-import "DSRGetID.idsl";
-
 Component change_graph
 {
     Communications
     {
-        requires DSRGetID;
     };
     language Cpp11;
     gui Qt(QMainWindow);

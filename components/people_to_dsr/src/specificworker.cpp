@@ -113,7 +113,7 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
     
     for(const RoboCompHumanToDSRPub::Person &person: people.peoplelist)
     {
-        int G_id = -1;
+        uint64_t G_id = -1;
         //We have to keep an equivalence between detector and graph ids.
         if (G_person_id.find(person.id) != G_person_id.end()) 
             G_id = G_person_id[person.id];
@@ -195,7 +195,7 @@ std::cout<<"Update RT "<<name<<" "<<parent_name<<std::endl;
 void SpecificWorker::check_unseen_people()
 {
     auto now = std::chrono::system_clock::now();
-	for (std::map<int,std::chrono::system_clock::time_point>::iterator it = people_last_seen.begin(); it != people_last_seen.end();)
+	for (std::map<uint64_t ,std::chrono::system_clock::time_point>::iterator it = people_last_seen.begin(); it != people_last_seen.end();)
 	{
 		auto last_view = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second).count();
 		if(last_view > MAXTIME)
@@ -203,9 +203,9 @@ void SpecificWorker::check_unseen_people()
 			qDebug()<<"REMOVE PERSON"<<it->first;
 			G->delete_node(it->first);
             // remove from equivalence map
-            int node_person_id = it->first;
-            std::unordered_map<int,int>::iterator it2 = std::find_if(G_person_id.begin(), G_person_id.end(),
-						[&node_person_id](const std::pair<int, int> &p) {
+            uint64_t node_person_id = it->first;
+            std::unordered_map<uint64_t ,uint64_t>::iterator it2 = std::find_if(G_person_id.begin(), G_person_id.end(),
+						[&node_person_id](const std::pair<uint64_t , uint64_t> &p) {
 							return p.second == node_person_id;
 						});
             if(it2 != G_person_id.end())
@@ -222,7 +222,7 @@ void SpecificWorker::check_unseen_people()
 	}
 }
 
-std::optional<Node> SpecificWorker::create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_id)
+std::optional<Node> SpecificWorker::create_node(const std::string &type, const std::string &name, uint64_t person_id,  uint64_t parent_id)
 {
     Node node;
     node.type(type);
@@ -237,7 +237,7 @@ std::optional<Node> SpecificWorker::create_node(const std::string &type, const s
     //G->insert_or_assign_edge_RT(world_n.value(), person_n->id(), std::vector<float>{person.x, person.y, person.z}, std::vector<float>{0.0, 0.0, 0.0});
     try
     {
-        std::optional<int> new_id = G->insert_node(node);
+        std::optional<uint64_t> new_id = G->insert_node(node);
         if(new_id.has_value()) 
         {
             qDebug() << __FUNCTION__ << "Create node: ID " << new_id.value();
@@ -258,7 +258,7 @@ std::optional<Node> SpecificWorker::create_node(const std::string &type, const s
     }
 }
 
-std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id)
+std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, const std::string &path, uint64_t parent_id)
 {
     Node node;
     node.type("mesh");
@@ -275,7 +275,7 @@ std::optional<Node> SpecificWorker::create_node_mesh(const std::string &name, co
     G->add_or_modify_attrib_local<level_att>(node, G->get_node_level( G->get_node(parent_id).value()).value() + 1);
     try
     {     
-        std::optional<int> new_id = G->insert_node(node);
+        std::optional<uint64_t> new_id = G->insert_node(node);
         if(new_id.has_value())
             return node;
         else 

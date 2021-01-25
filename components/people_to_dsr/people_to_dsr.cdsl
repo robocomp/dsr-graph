@@ -1,12 +1,10 @@
 import "HumanToDSRPub.idsl";
-import "DSRGetID.idsl";
 
 Component people_to_dsr
 {
     Communications
     {
         subscribesTo HumanToDSRPub;
-        requires DSRGetID;
     };
     language Cpp11;
     gui Qt(QMainWindow);

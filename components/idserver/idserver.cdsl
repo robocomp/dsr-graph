@@ -1,11 +1,8 @@
 
-import "DSRGetID.idsl";
-
 Component idserver
 {
     Communications
     {
-        implements DSRGetID;
     };
     language Cpp11;
     gui Qt(QMainWindow);

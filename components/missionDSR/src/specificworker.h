@@ -51,7 +51,7 @@ public slots:
     //custom_widget
     void del_mission_slot();
     void set_mission_slot();
-    void update_mission_slot(const std::int32_t id, const std::string &type);
+    void update_mission_slot(const std::uint64_t id, const std::string &type);
     void set_predefined_mission();
     
 private:

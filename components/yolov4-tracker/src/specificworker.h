@@ -63,7 +63,7 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void update_node_slot(const std::int32_t id, const std::string &type);
+        void update_node_slot(const std::uint64_t id, const std::string &type);
         void start_button_slot(bool);
         void change_object_slot(int);
 

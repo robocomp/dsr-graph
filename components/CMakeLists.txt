@@ -13,6 +13,7 @@ add_subdirectory( change_graph )
 #add_subdirectory( elastic_band )
 #add_subdirectory( path_follower )
 #add_subdirectory( path_planner_astar )
+#add_subdirectory( graspDSR )
 
-#add_subdirectory( crdt_rtps_dsr_tests )
+add_subdirectory( dsr_tests )
 

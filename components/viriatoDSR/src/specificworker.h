@@ -65,7 +65,7 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
-    void update_node_slot(const std::int32_t id, const std::string &type);
+    void update_node_slot(const std::uint64_t id, const std::string &type);
 
 private:
     bool startup_check_flag;

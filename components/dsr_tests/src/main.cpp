@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -82,26 +82,7 @@
 #include "commonbehaviorI.h"
 
 
-class MyApplication :  public QApplication {
 
-public:
-
-
-    MyApplication(int& argc, char** argv)  : QApplication(argc, argv) {};
-    bool notify(QObject* receiver, QEvent* event) {
-        bool done = true;
-        try {
-            done = QApplication::notify(receiver, event);
-        }   catch (const std::exception& ex) {
-            qDebug() << ex.what()  << " \nEVENT: " << event<< " \nRECEIVER: " << receiver ;
-            throw;
-        } catch (...) {
-            std::cout << "EXCEPCION" << std::endl;
-            throw;
-        }
-        return done;
-    };
-};
 
 
 class crdt_rtps_dsr_tests : public RoboComp::Application
@@ -112,7 +93,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag  = false;
+	bool startup_check_flag = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -128,7 +109,7 @@ void ::crdt_rtps_dsr_tests::initialize()
 int ::crdt_rtps_dsr_tests::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
-	MyApplication a(argc, argv);  // GUI application
+	QApplication a(argc, argv);  // GUI application
 #else
 	QCoreApplication a(argc, argv);  // NON-GUI application
 #endif
@@ -260,6 +241,10 @@ int main(int argc, char* argv[])
             if (arg.find(initIC.toStdString(), 0) == 0)
             {
                 configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+            else
+            {
+                configFile = QString::fromStdString(argv[1]);
             }
         }
 

@@ -64,7 +64,7 @@ void SpecificWorker::initialize(int period)
 	{
 		timer.start(Period);
 		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
 
 		// Graph viewer
@@ -144,7 +144,7 @@ int SpecificWorker::startup_check()
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
 
@@ -182,6 +182,4 @@ void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &
 
 
 /**************************************/
-// From the RoboCompDSRGetID you can call this methods:
-// this->dsrgetid_proxy->getID(...)
 

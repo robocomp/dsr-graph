@@ -490,9 +490,9 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
 {
-    if (type == rgbd_type and (std::uint32_t)id == cam_api->get_id())
+    if (type == rgbd_type and id == cam_api->get_id())
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
         {

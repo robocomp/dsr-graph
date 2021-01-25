@@ -4,26 +4,6 @@ SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
   plan.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/types/crdt_types.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/types/user_types.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrpublisher.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrsubscriber.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/rtps/dsrparticipant.cpp
-   $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraphPubSubTypes.cxx
-   $ENV{ROBOCOMP}/classes/dsr/core/topics/IDLGraph.cxx
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_camera_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_inner_eigen_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_rt_api.cpp
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_utils.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/osg_3d_viewer/osg_3d_viewer.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_viewer.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_node.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/graph_viewer/graph_edge.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/tree_viewer/tree_viewer.cpp
-   $ENV{ROBOCOMP}/classes/dsr/gui/viewers/_abstract_graphic_view.cpp
    custom_widget.h
 )
 
@@ -32,13 +12,6 @@ SET ( SOURCES
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
-   $ENV{ROBOCOMP}/classes/dsr/api/dsr_api.h
-   $ENV{ROBOCOMP}/classes/dsr/gui/dsr_gui.h
-   $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT.h
-   $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphviewer.h
-   $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graph.h
-   $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphnode.h
-   $ENV{ROBOCOMP}/classes/graph-related-classes/CRDT_graphedge.h
 )
 
 INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
@@ -47,4 +20,4 @@ set(CMAKE_CXX_STANDARD 20)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 add_definitions(-O3 -fmax-errors=1 -std=c++20 -std=c++2a -I/home/robocomp/software/darknet/include/ -I/home/robocomp/software/darknet/src/ )
-SET (LIBS ${LIBS}   fastcdr fastrtps osgDB fcl OpenThreads -L/home/robocomp/software/darknet -ldarknet )
+SET (LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB fcl OpenThreads -L/home/robocomp/software/darknet -ldarknet )

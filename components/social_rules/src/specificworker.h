@@ -52,7 +52,7 @@ public slots:
     void drawPersonalSpace();
 
     //graph signals
-    void update_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type);
+    void update_edge_slot(const std::uint64_t from, const std::uint64_t to, const std::string &type);
 
 private:
     void updatePeopleInModel();
@@ -87,12 +87,12 @@ private:
     Custom_widget custom_widget;
 
 
-    std::map<int32_t, RoboCompSocialNavigationGaussian::SNGPerson> map_people;
+    std::map<uint64_t , RoboCompSocialNavigationGaussian::SNGPerson> map_people;
     //groups
-    std::map<int32_t, int32_t> person_to_group;
+    std::map<uint64_t, int32_t> person_to_group;
     struct group_space
     {
-        std::vector<int32_t> people_ids;
+        std::vector<uint64_t> people_ids;
         RoboCompSocialNavigationGaussian::SNGPersonSeq people_seq;
         RoboCompSocialNavigationGaussian::SNGPolylineSeq intimatePolylines;
         RoboCompSocialNavigationGaussian::SNGPolylineSeq personalPolylines;

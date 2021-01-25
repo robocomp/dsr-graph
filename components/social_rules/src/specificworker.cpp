@@ -136,7 +136,7 @@ void SpecificWorker::initialize(int period)
 
 
 
-void SpecificWorker::update_edge_slot(const std::int32_t from, const std::int32_t to, const std::string &type)
+void SpecificWorker::update_edge_slot(const std::uint64_t from, const std::uint64_t to, const std::string &type)
 {
     if (type == "RT")
     {
@@ -300,7 +300,7 @@ void SpecificWorker::updatePersonalSpacesInGraph() {
     for(const auto &group: people_groups)
     {
         size_t cont = 0;
-        for(const int &person_id: group.second.people_ids)
+        for(const uint64_t &person_id: group.second.people_ids)
         {
             person_node = G->get_node(person_id);
             if(not person_node.has_value())

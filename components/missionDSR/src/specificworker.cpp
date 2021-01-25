@@ -60,7 +60,7 @@ void SpecificWorker::initialize(int period)
 	{
 		timer.start(Period);
 		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
         // Ignore attributes from G
@@ -121,7 +121,7 @@ void SpecificWorker::compute()
 ////////////////////////////////////////
 // UI slots
 ////////////////////////////////////////
-void SpecificWorker::update_mission_slot(const std::int32_t id, const std::string &type)
+void SpecificWorker::update_mission_slot(const std::uint64_t id, const std::string &type)
 {
     if (type == "intention")
     {
@@ -202,7 +202,7 @@ std::optional<Node> SpecificWorker::get_intent_node(bool create)
             G->add_or_modify_attrib_local<pos_y_att>(node, (float)-354);
             try
             {     
-                std::optional<int> new_id = G->insert_node(node);
+                std::optional<uint64_t> new_id = G->insert_node(node);
                 if(new_id.has_value())
                 {
                     Edge edge;

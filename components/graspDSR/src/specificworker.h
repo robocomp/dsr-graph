@@ -50,7 +50,7 @@ public slots:
 	int startup_check();
 	void initialize(int period);
 	// callbacks
-	void update_node_slot(const std::int32_t id, const std::string &type);
+	void update_node_slot(const std::uint64_t id, const std::string &type);
 	void update_object_slot(QAbstractButton* object_button);
 
 private:

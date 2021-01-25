@@ -48,7 +48,7 @@ public:
     bool setParams(RoboCompCommonBehavior::ParameterList params);
     void HumanToDSRPub_newPeopleData(RoboCompHumanToDSRPub::PeopleData people);
 
-    std::map<int, std::chrono::system_clock::time_point> people_last_seen;
+    std::map<uint64_t , std::chrono::system_clock::time_point> people_last_seen;
 
 public slots:
     void compute();
@@ -108,9 +108,9 @@ private:
     };
 
     DoubleBuffer<RoboCompHumanToDSRPub::PeopleData, RoboCompHumanToDSRPub::PeopleData> people_data_buffer;
-    std::unordered_map<int, int> G_person_id;
-    std::optional<Node> create_node(const std::string &type, const std::string &name, int person_id,  uint32_t parent_idz);
-    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint32_t parent_id);
+    std::unordered_map<uint64_t , uint64_t> G_person_id;
+    std::optional<Node> create_node(const std::string &type, const std::string &name, uint64_t person_id,  uint64_t parent_idz);
+    std::optional<Node> create_node_mesh(const std::string &name, const std::string &path, uint64_t parent_id);
     void process_people_data(RoboCompHumanToDSRPub::PeopleData people);
     void check_unseen_people();
 

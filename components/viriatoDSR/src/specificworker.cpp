@@ -271,7 +271,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::int32_t id, const std::string &type)
+void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
 {
     if (type == left_hand_type)
     {
