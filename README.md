@@ -25,7 +25,7 @@ A CORTEX instance is a set of software components, called _agents_, that share a
 
 
 # Installation
-Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infraestructure. 
+Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
 
 To install these components in this repositor it's assumed that you have already installed ![robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
 You must clone this (dsr-graph) repository in ~/robocomp/components/
@@ -61,21 +61,7 @@ Note: To be able to build social_navigation component you need to install
 
 # Basic use case
 
-We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
-
-  
-  ## Running
-  To start the basic configuration for this use case:
-  
-  0. Execute rcnode in a free terminal to initiate ZeroC Ice pub/sub broker.
-  1. Execute ViriatoPyrep (Python3) You should have installed first CoppeliaRobotics simulator. Then follow the instructions in ViriatoPyrep's README.md
-  2. Compile and run idserver
-  3. Compile and run viriatoDSR
-  
-  If you have a JoyStick, you can use the robocomp-robolab under ~/robocomp/components and go to components/hardware/external_control/joystickPub. Compile the component and run it. You'll see the robot moving in the simulator. You can change the name and ranges of axes in the configuration file.
-
-## Create a new agent to interact with the running CORTEX instance.
-TODO
+Goto to this [tutorial](https://github.com/robocomp/robocomp/blob/development/doc/DSR-start.md) where you can follow several use cases of increasing complexity.
 
 # Related papers
 P. Bustos García, L. Manso Argüelles, A. J. Bandera, J. P. Bandera, I. García-Varea, and J. Martínez-Gómez, «The CORTEX cognitive robotics architecture: Use cases,» Cognitive Systems Research, vol. 55, pp. 107-123, 2019. 
