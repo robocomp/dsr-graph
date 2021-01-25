@@ -61,6 +61,7 @@ Note: To be able to build social_navigation component you need to install
 
 # Basic use case
 
+Goto the this (tutorial)[https://github.com/robocomp/robocomp/blob/development/doc/DSR-start.md ]
 We are working on an initial use-case that involves RoboLab's adapted aparment ALab, the mobile manipulator Viriato and a few agents and components.
 
   
