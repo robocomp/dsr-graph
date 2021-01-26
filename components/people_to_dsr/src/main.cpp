@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -94,7 +94,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag  = false;
+	bool startup_check_flag = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -130,26 +130,9 @@ int ::people_to_dsr::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 	string proxy, tmp;
 	initialize();
-
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
-		}
-		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DSRGetIDProxy initialized Ok!");
-
 
 	IceStorm::TopicManagerPrxPtr topicManager;
 	try
@@ -162,7 +145,7 @@ int ::people_to_dsr::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(dsrgetid_proxy);
+	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -310,6 +293,10 @@ int main(int argc, char* argv[])
             if (arg.find(initIC.toStdString(), 0) == 0)
             {
                 configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+            else
+            {
+                configFile = QString::fromStdString(argv[1]);
             }
         }
 

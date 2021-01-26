@@ -18,7 +18,7 @@
 DOXYFILE_ENCODING      = UTF-8
 
 # ROBOCOMP
-PROJECT_NAME           = octomap_grid
+PROJECT_NAME           = octomap
 PROJECT_NUMBER         =
 
 

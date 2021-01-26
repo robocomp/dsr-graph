@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "octomap_grid"
-#define SERVER_FULL_NAME   "RoboComp octomap_grid:: octomap_grid"
+#define PROGRAM_NAME    "octomap"
+#define SERVER_FULL_NAME   "RoboComp octomap:: octomap"
 
 #endif

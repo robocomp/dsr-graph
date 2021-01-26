@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -34,7 +34,6 @@
 #include <CameraRGBDSimple.h>
 #include <CameraRGBDSimplePub.h>
 #include <CoppeliaUtils.h>
-#include <DSRGetID.h>
 #include <GenericBase.h>
 #include <JointMotor.h>
 #include <JointMotorPub.h>
@@ -49,7 +48,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompDSRGetID::DSRGetIDPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
+using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -66,7 +65,6 @@ public:
 
 
 	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;

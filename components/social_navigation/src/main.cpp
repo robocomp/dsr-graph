@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -67,17 +67,22 @@
 
 // ICE includes
 #include <Ice/Ice.h>
+#include <IceStorm/IceStorm.h>
 #include <Ice/Application.h>
 
 #include <rapplication/rapplication.h>
 #include <sigwatch/sigwatch.h>
 #include <qlog/qlog.h>
+
 #include "config.h"
 #include "genericmonitor.h"
 #include "genericworker.h"
 #include "specificworker.h"
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
+
+
+
 
 
 class social_navigation : public RoboComp::Application
@@ -88,7 +93,7 @@ private:
 	void initialize();
 	std::string prefix;
 	TuplePrx tprx;
-	bool startup_check_flag  = false;
+	bool startup_check_flag = false;
 
 public:
 	virtual int run(int, char*[]);
@@ -124,28 +129,11 @@ int ::social_navigation::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 	string proxy, tmp;
 	initialize();
 
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
-		}
-		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DSRGetIDProxy initialized Ok!");
-
-
-	tprx = std::make_tuple(dsrgetid_proxy);
+	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -176,9 +164,13 @@ int ::social_navigation::run(int argc, char* argv[])
 		catch(const Ice::Exception& ex)
 		{
 			status = EXIT_FAILURE;
+
 			cout << "[" << PROGRAM_NAME << "]: Exception raised while creating CommonBehavior adapter: " << endl;
 			cout << ex;
+
 		}
+
+
 
 		// Server adapter creation and publication
 		cout << SERVER_FULL_NAME " started" << endl;
@@ -191,6 +183,8 @@ int ::social_navigation::run(int argc, char* argv[])
 		#endif
 		// Run QT Application Event Loop
 		a.exec();
+
+
 		status = EXIT_SUCCESS;
 	}
 	catch(const Ice::Exception& ex)
@@ -230,6 +224,10 @@ int main(int argc, char* argv[])
             if (arg.find(initIC.toStdString(), 0) == 0)
             {
                 configFile = QString::fromStdString(arg).remove(0, initIC.size());
+            }
+            else
+            {
+                configFile = QString::fromStdString(argv[1]);
             }
         }
 

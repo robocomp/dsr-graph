@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -81,7 +81,6 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
-#include <dsrgetidI.h>
 
 
 
@@ -171,24 +170,6 @@ int ::idserver::run(int argc, char* argv[])
 
 		}
 
-
-
-		try
-		{
-			// Server adapter creation and publication
-			if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetID.Endpoints", tmp, ""))
-			{
-				cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetID";
-			}
-			Ice::ObjectAdapterPtr adapterDSRGetID = communicator()->createObjectAdapterWithEndpoints("DSRGetID", tmp);
-			auto dsrgetid = std::make_shared<DSRGetIDI>(worker);
-			adapterDSRGetID->add(dsrgetid, Ice::stringToIdentity("dsrgetid"));
-			adapterDSRGetID->activate();
-			cout << "[" << PROGRAM_NAME << "]: DSRGetID adapter created in port " << tmp << endl;
-		}
-		catch (const IceStorm::TopicExists&){
-			cout << "[" << PROGRAM_NAME << "]: ERROR creating or activating adapter for DSRGetID\n";
-		}
 
 
 		// Server adapter creation and publication

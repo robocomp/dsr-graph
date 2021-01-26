@@ -211,7 +211,7 @@ bool GenericMonitor::configGetString(Ice::CommunicatorPtr communicator, const st
 		{
 		}
 	}
-	qDebug() << QString::fromStdString(compound) << " " << QString::fromStdString(value);
+	std::cout << compound << " " << value << std::endl;
 	return true;
 }
 

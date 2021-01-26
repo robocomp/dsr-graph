@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -139,7 +139,6 @@ int ::viriatoDSR::run(int argc, char* argv[])
 	int status=EXIT_SUCCESS;
 
 	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
@@ -159,22 +158,6 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	rInfo("CoppeliaUtilsProxy initialized Ok!");
-
-
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
-		}
-		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DSRGetIDProxy initialized Ok!");
 
 
 	try
@@ -204,7 +187,7 @@ int ::viriatoDSR::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(coppeliautils_proxy,dsrgetid_proxy,omnirobot_proxy);
+	tprx = std::make_tuple(coppeliautils_proxy,omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

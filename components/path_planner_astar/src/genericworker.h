@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -30,17 +30,17 @@
 #endif
 #include <ui_mainUI.h>
 #include <CommonBehavior.h>
-#include <DSRGetID.h>
+
 
 
 #define CHECK_PERIOD 5000
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompDSRGetID::DSRGetIDPrxPtr>;
+using TuplePrx = std::tuple<>;
 
 
-class GenericWorker : public QMainWindow, public Ui_guiDlg
+class GenericWorker : public QWidget, public Ui_guiDlg
 {
 Q_OBJECT
 public:
@@ -53,7 +53,6 @@ public:
 	QMutex *mutex;
 
 
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 
 protected:

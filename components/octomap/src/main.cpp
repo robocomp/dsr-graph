@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::octomap_grid
+/** \mainpage RoboComp::octomap
  *
  * \section intro_sec Introduction
  *
- * The octomap_grid component...
+ * The octomap component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd octomap_grid
+ * cd octomap
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/octomap_grid --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/octomap --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -85,10 +85,10 @@
 
 
 
-class octomap_grid : public RoboComp::Application
+class octomap : public RoboComp::Application
 {
 public:
-	octomap_grid (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
+	octomap (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
@@ -99,14 +99,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::octomap_grid::initialize()
+void ::octomap::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::octomap_grid::run(int argc, char* argv[])
+int ::octomap::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -129,28 +129,11 @@ int ::octomap_grid::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	RoboCompDSRGetID::DSRGetIDPrxPtr dsrgetid_proxy;
 
 	string proxy, tmp;
 	initialize();
 
-	try
-	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DSRGetIDProxy", proxy, ""))
-		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DSRGetIDProxy\n";
-		}
-		dsrgetid_proxy = Ice::uncheckedCast<RoboCompDSRGetID::DSRGetIDPrx>( communicator()->stringToProxy( proxy ) );
-	}
-	catch(const Ice::Exception& ex)
-	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DSRGetID: " << ex;
-		return EXIT_FAILURE;
-	}
-	rInfo("DSRGetIDProxy initialized Ok!");
-
-
-	tprx = std::make_tuple(dsrgetid_proxy);
+	tprx = std::tuple<>();
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -275,7 +258,7 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	::octomap_grid app(prefix, startup_check_flag);
+	::octomap app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }

@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -24,8 +24,7 @@ GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
 	coppeliautils_proxy = std::get<0>(tprx);
-	dsrgetid_proxy = std::get<1>(tprx);
-	omnirobot_proxy = std::get<2>(tprx);
+	omnirobot_proxy = std::get<1>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 
