@@ -14,6 +14,10 @@
 
 CATCH_CONFIG_MAIN
 
+REGISTER_EDGE_TYPE(testtype_e);
+REGISTER_NODE_TYPE(testtype_n);
+
+
 using namespace std::literals;
 
 REGISTER_TYPE(att, std::reference_wrapper<const std::string>, false)
@@ -65,30 +69,24 @@ TEST_CASE("Node operations", "[NODE]") {
         REQUIRE_FALSE(n_name.has_value());
     }
 
-    SECTION("Insert a new node") {
-        Node n (1550, "testtype");
-        std::optional<int> r  = G->insert_node(n);
+    SECTION("Insert a new node and get it by id and name") {
+        //Node n (1550, "testtype");
+        auto n = Node::create<testtype_n_node_type>(1550, {}, {}, "nodename");
+        std::optional<uint64_t> r  = G->insert_node(n);
         REQUIRE(r.has_value());
-        REQUIRE(r.value() == static_cast<int>(G->size()));
+        std::optional<Node> n_id = G->get_node(r.value());
+        REQUIRE(n_id.has_value());
+        std::optional<Node> n_name = G->get_node("nodename");
+        REQUIRE(n_name.has_value());
     }
 
     SECTION("Create a node with an invalid type") {
         REQUIRE_THROWS(Node (1550, "aaaaa"));
     }
 
-    SECTION("Get an existing node by id") {
-        std::optional<Node> n_id = G->get_node("testtype_"+ std::to_string(G->size()));
-        REQUIRE(n_id.has_value());
-    }
-
-    SECTION("Get an existing node by name") {
-        std::optional<Node> n_name = G->get_node("testtype_"+ std::to_string(G->size()));
-        REQUIRE(n_name.has_value());
-    }
-
     SECTION("Update existing node") {
 
-        std::optional<Node> n_id = G->get_node("testtype_"+ std::to_string(G->size()));
+        std::optional<Node> n_id = G->get_node("nodename");
         REQUIRE(n_id.has_value());
 
         G->add_attrib_local<level_att>(n_id.value(), 1);
@@ -101,7 +99,7 @@ TEST_CASE("Node operations", "[NODE]") {
 
     SECTION("Remove an attribute") {
 
-        std::optional<Node> n_id = G->get_node("testtype_"+ std::to_string(G->size()));
+        std::optional<Node> n_id = G->get_node("nodename");
         REQUIRE(n_id.has_value());
         G->remove_attrib_by_name(n_id.value(), "level");
         REQUIRE(n_id->attrs().find("level") == n_id->attrs().end());
@@ -110,7 +108,7 @@ TEST_CASE("Node operations", "[NODE]") {
 
     SECTION("Update an existent node with different name") {
 
-        std::optional<Node> n_ = G->get_node("testtype_"+ std::to_string(G->size()));
+        std::optional<Node> n_ = G->get_node("nodename");
         REQUIRE(n_.has_value());
         n_->name("test2");
         REQUIRE_THROWS(G->update_node(n_.value()));
@@ -119,15 +117,15 @@ TEST_CASE("Node operations", "[NODE]") {
     SECTION("Update an existent node with different id") {
 
         Node n;
-        n.name("testtype_"+ std::to_string(G->size()));
+        n.name("nodename");
         n.id(7500166);
-        n.type("testtype");
+        n.type("testtype_n");
         REQUIRE_THROWS(G->update_node(n));
     }
 
     SECTION("Delete existing node by id") {
 
-        std::optional<Node> n_ = G->get_node("testtype_"+ std::to_string(G->size()));
+        std::optional<Node> n_ = G->get_node("nodename");
         REQUIRE(n_.has_value());
         bool r = G->delete_node(n_->id());
         REQUIRE(r);
@@ -139,10 +137,11 @@ TEST_CASE("Node operations", "[NODE]") {
     SECTION("Delete existing node by name") {
 
         Node n;
-        n.type("testtype");
+        n.type("testtype_n");
+        n.name("nodenewname");
         auto r  = G->insert_node(n);
         REQUIRE(r.has_value());
-        bool r2 = G->delete_node("testtype_"+ std::to_string(G->size()+1));
+        bool r2 = G->delete_node("nodenewname");
         REQUIRE(r2);
         REQUIRE(G->get_node(r.value()) == std::nullopt);
 
@@ -156,9 +155,8 @@ TEST_CASE("Node operations", "[NODE]") {
     SECTION("Create a node with an user defined name") {
         Node n (1550, "testtype");
         n.name("NODE_NAME");
-        std::optional<int> r  = G->insert_node(n);
+        std::optional<uint64_t> r  = G->insert_node(n);
         REQUIRE(r.has_value());
-        REQUIRE(r.value() == 3);
         REQUIRE(G->get_node("NODE_NAME").has_value());
 
     }
