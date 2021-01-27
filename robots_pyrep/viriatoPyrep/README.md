@@ -3,13 +3,15 @@
 This is a pseudo-component, a Python adapter, that used the PyRep module to start CoppeliaSim and access the simulated scene. This method is much faster that the remote communcation through middlewares.
 The main limitation is that it cannot be regenerated using RoboComp's code generator, because it is Qt-free. The reason is the incompatibility between the CoppeliaSim own version of Qt and the version usually installed in the machine.
 
+### Attention: it is crucial that you uninstall with pip3 the package _python3-opencv_ and install the _python3-opencv-headless_ version
+
 Please follow these steps:
 
 - Install https://github.com/stepjam/PyRep
 - You need to copy the viriato.py file in this directory to:
 
-   /home/xxxyour-userxxx/.local/lib/python3.6/site-packages/pyrep/robots/mobiles/viriato.py
-   (for a local install of Pyrep in python3.6)
+   /home/xxxyour-userxxx/.local/lib/python3.X/site-packages/pyrep/robots/mobiles/viriato.py
+   (for a local install of Pyrep in python3.X)
 
 - To start the component copy the config file form etc to . and use the script run.sh. 
 
