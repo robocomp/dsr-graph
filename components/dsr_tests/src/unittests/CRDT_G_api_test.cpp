@@ -48,7 +48,15 @@ class Graph {
 
     private:
         Graph () {
-            G = std::make_shared<DSR::DSRGraph>(0, "test", 1551, "");
+            std::thread([](){
+                [[maybe_unused]] auto _ = std::system("/home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver --Ice.Config=/home/robocomp/robocomp/components/dsr-graph/components/dsr_tests/src/unittests/testfiles/config_idserver");
+            }).detach();
+
+            std::this_thread::sleep_for(300ms);
+                    G = std::make_shared<DSR::DSRGraph>(0, "test", 1551);
+            std::atexit([](){
+               [[maybe_unused]] auto _ = std::system("kill -9 $(ps -xa  | grep /home/robocomp/robocomp/components/dsr-graph/components/idserver/bin/idserver | awk 'NR==2{print $1}')");
+            });
         }
         std::shared_ptr<DSR::DSRGraph> G;
 };
@@ -71,7 +79,7 @@ TEST_CASE("Node operations", "[NODE]") {
 
     SECTION("Insert a new node and get it by id and name") {
         //Node n (1550, "testtype");
-        auto n = Node::create<testtype_n_node_type>(1550, {}, {}, "nodename");
+        auto n = Node::create<testtype_n_node_type>("nodename");
         std::optional<uint64_t> r  = G->insert_node(n);
         REQUIRE(r.has_value());
         std::optional<Node> n_id = G->get_node(r.value());
@@ -178,91 +186,75 @@ TEST_CASE("Edge operations", "[EDGE]") {
         std::optional<Edge> e_name = G->get_edge("no existe", "otro no existe", "K");
         REQUIRE_FALSE(e_name.has_value());
     }
-    SECTION("Insert a new edge") {
+    SECTION("Insert a new edge and get it by name and id") {
 
 
-        Node n;
-        n.type("testtype");
+
+        auto n = Node::create<testtype_n_node_type>("nodeedge1");
         auto id1 = G->insert_node(n);
         REQUIRE(id1.has_value());
 
 
-        n = Node();
-        n.type("testtype");
-        auto id2 = G->insert_node(n);
+        auto n2 = Node::create<testtype_n_node_type>("nodeedge2");
+        auto id2 = G->insert_node(n2);
         REQUIRE(id2.has_value());
 
-        Edge e;
-        e.type("testtype");
-        e.to(id2.value());
-        e.from(id1.value());
-
+        auto e = Edge::create<testtype_e_edge_type>(id1.value(), id2.value());
         bool r  = G->insert_or_assign_edge(e);
         REQUIRE(r);
 
-    }
 
-    SECTION("Get an existing edge by id") {
+        std::optional<Edge> e_id = G->get_edge(id1.value(), id2.value(), "testtype_e");
+        REQUIRE(e_id.has_value());
 
-        std::optional<Edge> e = G->get_edge(4, 5, "testtype");
-        REQUIRE(e.has_value());
-
-    }
-
-    SECTION("Get an existing edge by name") {
-
-        std::optional<Edge> e_name = G->get_edge("testtype_4", "testtype_5", "testtype");
+        std::optional<Edge> e_name = G->get_edge("nodeedge1", "nodeedge2", "testtype_e");
         REQUIRE(e_name.has_value());
 
+
     }
 
+
     SECTION("Update existing edge") {
-        std::optional<Edge> e = G->get_edge(4, 5, "testtype");
-        REQUIRE(e.has_value());
-        G->add_attrib_local<att_att>(e.value(),  std::string("a"));
-        bool r = G->insert_or_assign_edge(e.value());
+        std::vector<Edge> edges = G->get_edges_by_type("testtype_e");
+        REQUIRE(edges.size() == 1);
+        Edge e = edges.at(0);
+
+        G->add_attrib_local<att_att>(e,  std::string("a"));
+        bool r = G->insert_or_assign_edge(e);
         REQUIRE(r);
+
 
     }
     SECTION("Delete existing edge by id") {
 
-        bool r = G->delete_edge(4, 5, "testtype");
+        std::vector<Edge> edges = G->get_edges_by_type("testtype_e");
+        REQUIRE(edges.size() == 1);
+        Edge e = edges.at(0);
+        bool r = G->delete_edge(e.from(), e.to(), "testtype_e");
         REQUIRE(r);
-        REQUIRE(G->get_edge(4, 5, "testtype") == std::nullopt);
+        REQUIRE(G->get_edge(e.from(), e.to(), "testtype_e") == std::nullopt);
 
+        //Reinsert for later.
+        bool r2  = G->insert_or_assign_edge(e);
+        REQUIRE(r2);
     }
 
     SECTION("Delete existing edge by name") {
-        Edge e;
-        e.type("testtype");
-        e.to(4);
-        e.from(5);
+        std::vector<Edge> edges = G->get_edges_by_type("testtype_e");
+        REQUIRE(edges.size() == 1);
+        Edge e = edges.at(0);
 
-        bool r  = G->insert_or_assign_edge(e);
+        bool r = G->delete_edge("nodeedge1", "nodeedge2", "testtype_e");
         REQUIRE(r);
-        r = G->delete_edge("testtype_5", "testtype_4", "testtype");
-        REQUIRE(r);
-        REQUIRE(G->get_edge("testtype_5", "testtype_4", "testtype") == std::nullopt);
+        REQUIRE(G->get_edge("nodeedge1", "nodeedge2", "testtype_e") == std::nullopt);
 
     }
 
     SECTION("Delete an edge that does not exists") {
-        bool r = G->delete_edge(4, 5, "testtype");
+        bool r = G->delete_edge(4, 5, "testtype_e");
         REQUIRE_FALSE(r);
     }
-    /*
-    SECTION("Get RTMat from edge") {
-        //TOOD: implement
-    }
 
-    SECTION("Get edge RT") {
-        //TOOD: implement
-    }
-
-    SECTION("Insert or assign edge RT") {
-        //TOOD: implement
-    }
-    */
 }
 
 TEST_CASE("File operations (Utilities sub-api)", "[FILE]") {
@@ -270,11 +262,11 @@ TEST_CASE("File operations (Utilities sub-api)", "[FILE]") {
     std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
     //DSR::Utilities u (G.get());
 
-    const std::string empty_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/empty_file.json";
-    const std::string wempty_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_empty_file.json";
+    const std::string empty_file = "/home/robocomp/robocomp/components/dsr-graph/components/dsr_tests/src/unittests/testfiles/empty_file.json";
+    const std::string wempty_file = "/home/robocomp/robocomp/components/dsr-graph/components/dsr_tests/src/unittests/testfiles/write_empty_file.json";
 
-    const std::string test_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/initial_dsr2.json";
-    const std::string wtest_file = "/home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_initial_dsr2.json";
+    const std::string test_file = "/home/robocomp/robocomp/components/dsr-graph/components/dsr_tests/src/unittests/testfiles/initial_dsr2.json";
+    const std::string wtest_file = "/home/robocomp/robocomp/components/dsr-graph/components/dsr_tests/src/unittests/testfiles/write_initial_dsr2.json";
 
 
 
@@ -334,34 +326,26 @@ TEST_CASE("File operations (Utilities sub-api)", "[FILE]") {
 TEST_CASE("Maps operations", "[UTILS]") {
     std::shared_ptr<DSR::DSRGraph> G = Graph::get().get_G();
 
-    SECTION("Get id from a name") {
-        Node n;
-        n.type("t");
-        std::optional<int> r = G->insert_node(n);
+    SECTION("Get id from a name and a name from an id") {
+        auto n = Node::create<testtype_n_node_type>("nameformaptestnode");
+        std::optional<uint64_t> r = G->insert_node(n);
         REQUIRE(r.has_value());
 
-        std::optional<int> id = G->get_id_from_name("t_" + std::to_string(r.value()));
+        std::optional<uint64_t> id = G->get_id_from_name("nameformaptestnode");
         REQUIRE(id.has_value());
-        REQUIRE(id.value() == 6);
+        REQUIRE(id.value() == r.value());
 
+        std::optional<std::string> name = G->get_name_from_id(r.value());
+        REQUIRE(name.has_value());
+        REQUIRE(name.value() == "nameformaptestnode");
     }
 
 
     SECTION("Get id from a name that does not exist") {
-        std::optional<int> id = G->get_id_from_name("t_55");
+        std::optional<uint64_t> id = G->get_id_from_name("t_55");
         REQUIRE(!id.has_value());
     }
 
-    SECTION("Get name from an id") {
-        auto n = G->get_node("t_6");
-        REQUIRE(n.has_value());
-        bool r = G->update_node(n.value());
-        REQUIRE(r);
-
-        std::optional<std::string> name = G->get_name_from_id(6);
-        REQUIRE(name.has_value());
-        REQUIRE(name.value() == "t_6");
-    }
 
     SECTION("Get name from an id that does not exist") {
         std::optional<std::string> name = G->get_name_from_id(788987);
@@ -369,13 +353,12 @@ TEST_CASE("Maps operations", "[UTILS]") {
     }
 
     SECTION("Get nodes by type") {
-        Node n;
-        n.type("t");
-        auto r = G->insert_node(n);
+        auto n = Node::create<testtype_n_node_type>("nameformaptestnode2");
+        std::optional<uint64_t> r = G->insert_node(n);
         REQUIRE(r.has_value());
 
-        std::vector<Node> ve = G->get_nodes_by_type("t");
-        REQUIRE(ve.size() == 2);
+        std::vector<Node> ve = G->get_nodes_by_type("testtype_n");
+        REQUIRE(!ve.empty());
         ve = G->get_nodes_by_type("no");
         REQUIRE(ve.empty());
 
@@ -474,8 +457,7 @@ TEST_CASE("Convenience methods", "[CONVENIENCE METHODS]") {
         REQUIRE(level.value() == 1);
 
 
-        Node in;
-        in.type("test");
+        auto in = Node::create<testtype_n_node_type>();
         auto id = G->insert_node(in);
         REQUIRE(id.has_value());
         n = G->get_node(id.value());
@@ -754,31 +736,22 @@ SCENARIO( "Node insertions, updates and removals", "[NODE]" ) {
 
         AND_WHEN("The node is deleted")
         {
-            size_t size = G->size();
+            auto node = G->get_node("robot_8");
             G->delete_node("robot_8");
-            THEN("The graph size is smaller")
+            THEN("You can't get or update the node")
             {
-                REQUIRE(size > G->size());
-            }
-            AND_THEN("You can't get the node")
-            {
-                std::optional<Node> node = G->get_node(8);
-                REQUIRE(!node.has_value());
+                REQUIRE_THROWS(G->update_node(node.value()));
+                std::optional<Node> node2 = G->get_node("robot_8");
+                REQUIRE(!node2.has_value());
             }
         }
     }
     GIVEN("A deleted node")
     {
-        std::optional<Node> node = G->get_node(9);
+        std::optional<Node> node = G->get_node("robot_8");
         THEN("Optional value is empty")
         {
             REQUIRE_FALSE(node.has_value());
-        }
-        AND_THEN("You can't update the node again")
-        {
-            Node n;
-            n.id(9);
-            REQUIRE_THROWS(G->update_node(n));
         }
     }
 }

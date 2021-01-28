@@ -6,10 +6,10 @@ DSRGetID.Endpoints=tcp -p 11000
 
 agent_id = 8
 agent_name = idserver
-dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/components/crdt_rtps_dsr_tests/src/unittests/testfiles/empty_file.json
+dsr_input_file = ../../../etc/autonomyLab_complete.simscene.json
 tree_view = false
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 
 dsr_output_path = ../../etc/
