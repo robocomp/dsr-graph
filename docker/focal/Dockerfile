@@ -5,21 +5,31 @@ LABEL maintainer="emartinena@unex.es"
 LABEL version="0.1"
 LABEL description="This is custom Docker Image for Robocomp with DSR support in Ubuntu Focal"
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN  echo "robolab:robolab" | chpasswd && adduser robolab sudo
 ENV ROBOCOMP /home/robolab/robocomp/
 
-# DSR Dependencies
+### DSR package Dependencies
 RUN apt update
-RUN apt install -y curl libasio-dev libtinyxml2-dev  libopencv-dev libqglviewer-dev-qt5 libeigen3-dev net-tools vim x11-utils iputils-ping netcat wget python3-dev python3-pybind11
+RUN apt install -y curl libasio-dev libtinyxml2-dev  libopencv-dev libqglviewer-dev-qt5 libeigen3-dev net-tools vim x11-utils iputils-ping netcat wget python3-dev python3-pybind11 gnupg2
 RUN python3 -m pip install pyrep
+### Third party dependencies
 RUN curl -S https://raw.githubusercontent.com/robocomp/robocomp/development/classes/dsr/dependencies.sh | bash -x
 RUN git clone https://github.com/ryanhaining/cppitertools /usr/local/include/cppitertools
+
+# ICE fix
 COPY Connection.h /usr/include/Ice/Connection.h
 
-#ÇCompilation of DSR libs
+# Last version of g++ gcc and cmaake
+RUN apt install -y cmake gcc-10 g++-10
+# RUN update-alternatives --auto gcc 
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1
+
+#Compilation of DSR libs in Robocomp
 USER robolab
-# RUN sed -i.bak -e '48d' ~/robocomp/classes/dsr/core/rtps/dsrparticipant.cpp
-RUN cd ~/robocomp/classes/dsr && mkdir build && cd build && cmake .. && make -j$(nproc)
+RUN cd ~/robocomp/classes/dsr && git pull && mkdir build && cd build && cmake .. && make -j$(nproc)
 USER root
 ENV PATH=$PATH
 RUN cd /home/robolab/robocomp/classes/dsr/build && make install
@@ -32,7 +42,8 @@ RUN git clone --progress https://github.com/robocomp/dsr-graph.git
 WORKDIR /home/robolab/robocomp/components/dsr-graph/components/
 RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 WORKDIR /home/robolab/robocomp/components/dsr-graph/
-# RUN cd components/viriatoPyrep && cmake . && make -j$(nproc) && cp etc/config . && sed -i 's/-p/-h 172.16.238.4 -p/g' config
+
+# Installation of Coppelia Sim
 RUN sudo apt install xz-utils
 RUN mkdir extras && cd extras && wget -c https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz -O - | sudo tar -xv -J
 ENV COPPELIASIM_ROOT=/home/robolab/robocomp/components/dsr-graph/extras/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04
