@@ -37,7 +37,7 @@ import numpy as np
 import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
-import queue
+
 
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map):
@@ -337,26 +337,32 @@ class SpecificWorker(GenericWorker):
         adv = 0.0
         rot = 0.0
         side = 0.0
+        pan = 0.0
+        tilt = 0.0
+        head_moves = False
 
         for x in datos.axes:
             if x.name == "advance":
                 adv = x.value if np.abs(x.value) > 1 else 0
             if x.name == "rotate":
                 rot = x.value if np.abs(x.value) > 0.5 else 0
-#            if x.name == "side":
-#                side = x.value if np.abs(x.value) > 0.5 else 0
+            if x.name == "side":
+                side = x.value if np.abs(x.value) > 0.5 else 0
             if x.name == "pan":
                 pan = x.value if np.abs(x.value) > 0.01 else 0
+                head_moves = True
             if x.name == "tilt":
                 tilt = x.value if np.abs(x.value) > 0.01 else 0
+                head_moves = True
 
         #print("Joystick ", adv, rot, side)
         self.robot.set_base_angular_velocites([adv, side, rot])
         #
-        dummy = Dummy("viriato_head_pan_tilt_nose_target")
-        pantilt = Object("viriato_head_camera_pan_tilt")
-        pose = dummy.get_position(pantilt)
-        dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
+        if(head_moves):
+            dummy = Dummy("viriato_head_pan_tilt_nose_target")
+            pantilt = Object("viriato_head_camera_pan_tilt")
+            pose = dummy.get_position(pantilt)
+            dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
 
     ##################################################################################
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
