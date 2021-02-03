@@ -67,7 +67,7 @@ private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 
-    std::shared_ptr<DSR::InnerAPI> inner_api;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_api;
 
 	//DSR params
 	std::string agent_name;

@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
         //Inner Api
-        inner_api = G->get_inner_api();
+        inner_api = G->get_inner_eigen_api();
 
 		// Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -189,12 +189,12 @@ void SpecificWorker::updatePeopleInModel(){
     for (auto p: vectorPersons) {
         RoboCompSocialNavigationGaussian::SNGPerson person;
 
-        std::optional<QVec> pose = inner_api->transformS6D("world", p.name());
+        std::optional<Mat::Vector6d> pose = inner_api->transform_axis("world", p.name());
         if(pose.has_value()) {
             person.id = p.id();
             person.x = pose.value().x();
             person.z = pose.value().z();
-            person.angle = pose.value().ry();
+            person.angle = pose.value()(5); //.ry()
             cout << "[FOUND] Person " << person.id << " x = " << person.x << " z = " << person.z << " rot "
                  << person.angle << endl;
 
@@ -214,7 +214,7 @@ void SpecificWorker::checkInteractions(){
 
     std::vector<std::vector<int32_t>> interactingId;
     for (const auto &[id, sng] : map_people){
-        std::vector<int32_t> people_to_include={id};
+        std::vector<uint64_t> people_to_include={id};
         Node p1 = G->get_node(id).value();
         std::vector<Edge> edges = G->get_node_edges_by_type(p1, "interacting");
         if(edges.size() > 0){
@@ -231,7 +231,7 @@ void SpecificWorker::checkInteractions(){
         //If there is not any of them already included, new slot is created
         bool found = false;
         for(const int32_t &new_id: people_to_include){
-            std::map<int32_t, int32_t>::iterator  it = person_to_group.find(new_id);
+            std::map<uint64_t , int32_t>::iterator  it = person_to_group.find(new_id);
             if( it != person_to_group.end() ){
                 found = true;
                 //include new people ids

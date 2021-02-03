@@ -157,7 +157,7 @@ void SpecificWorker::add_or_assign_node_SLOT(const std::uint64_t id, const std::
 		// TODO: Look for a better way to filter nodes
 		if(node->type()!="rgbd" and node->type()!="laser")
 		{
-			QJsonObject json_node = DSR::Utilities::Node_to_QObject(node.value());
+			QJsonObject json_node = DSR::Utilities::Node_to_QObject(node.value(), true);
 			QString timestamp_string =  QDateTime::currentDateTime().toString("yyyyMMdd@HHmmss.zzz");
 			cout<<"Adding update: "<<timestamp_string.toStdString()<<endl;
 			updates_json_object[timestamp_string] = json_node;
@@ -179,7 +179,7 @@ void SpecificWorker::del_edge_SLOT(const std::uint64_t from, const std::uint64_t
 {
 	cout<<__FUNCTION__<<endl;
 }
-void SpecificWorker::del_node_SLOT(int id)
+void SpecificWorker::del_node_SLOT(uint64_t id)
 {
 	cout<<__FUNCTION__<<endl;
 }

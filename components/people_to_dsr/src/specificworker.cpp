@@ -58,7 +58,7 @@ void SpecificWorker::initialize(int period)
     else
     {
         // create graph
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, "", dsrgetid_proxy); // Init nodes
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
         rt = G->get_rt_api();
         G->set_ignored_attributes<cam_rgb_att, laser_dists_att, laser_angles_att, cam_depth_att>();
