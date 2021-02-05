@@ -43,19 +43,6 @@ WORKDIR /home/robolab/robocomp/components/dsr-graph/components/
 RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 WORKDIR /home/robolab/robocomp/components/dsr-graph/
 
-# Installation of Coppelia Sim
-RUN sudo apt install xz-utils
-RUN mkdir extras && cd extras && wget -c https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz -O - | sudo tar -xv -J
-ENV COPPELIASIM_ROOT=/home/robolab/robocomp/components/dsr-graph/extras/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04
-ENV LD_LIBRARY_PATH=$COPPELIASIM_ROOT
-ENV QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
-RUN sudo ldconfig
-RUN sudo apt-get -y install python3-dev python3-opencv libgl1-mesa-dev
-RUN sudo python3 -mpip install cffi numpy numpy_indexed
-RUN cd extras && git clone --progress https://github.com/stepjam/PyRep.git && cd PyRep && sudo COPPELIASIM_ROOT=/home/robolab/robocomp/components/dsr-graph/extras/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04 python3 -m pip install .
-# RUN sudo sed -i 's/-p/-h 172.16.238.5 -p/g' /opt/robocomp/etc/rcnode.conf
-# RUN sudo sed -i 's/-p/-h 172.16.238.5 -p/g' /home/robolab/robocomp/components/dsr-graph/components/viriatoPyrep/config
-
 
 
 
