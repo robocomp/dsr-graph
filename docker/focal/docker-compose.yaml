@@ -1,14 +1,36 @@
 version: '2'
 services:
-  example1:
-    network_mode: host
-    image: robocomp/robocomp:focal_dsr
-    entrypoint: sh -c "(rcnode &) ; ls; cd components/idserver && cmake . && make -j4&& (./bin/idserver &) ; ls ; cd ../viriatoDSR/ && cmake . && make -j4 && (./bin/viriatoDSR)"
-    environment: 
-        - DISPLAY=$DISPLAY
-    volumes:
-        - /tmp/.X11-unix:/tmp/.X11-unix
-    user: robolab
-    ports:
-        - 9999:9999
-        - 9998:9998
+    idserver:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr
+        entrypoint: sh -c "cd components/idserver && cmake . && make -j4&& (./bin/idserver /dsr_etc/idserver_config)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - ./etc:/dsr_etc/
+        user: robolab
+        depends_on:
+            - rcnode
+
+    viriatoDSR:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr
+        entrypoint: sh -c "cd components/viriatoDSR/ && cmake . && make -j4 && (./bin/viriatoDSR /dsr_etc/viriato_dsr_config)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - ./etc:/dsr_etc/
+        user: robolab
+        depends_on:
+            - rcnode
+
+    rcnode:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr
+        entrypoint: sh -c "rcnode"
+        ports:
+            - 9999:9999
+            - 9998:9998
+            

@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 if [ -z "$COPPELIASIM_ROOT" ]; then
     echo "You need to export \$COPPELIASIM_ROOT to the path where you have installed Coppelia SIM"
@@ -6,4 +7,6 @@ fi
 xhost +"local:docker@"
 docker-compose up &
 source /etc/profile.d/robocomp.sh
-rccd viriatoPyrep && sh run.sh
+old_dir=$(pwd)
+(rccd viriatoPyrep && sh run.sh) &
+cd old_dir
