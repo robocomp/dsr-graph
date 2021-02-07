@@ -115,7 +115,6 @@ private:
         float KE = 40;
         float KI = 300;
         std::uint64_t last_path_id;  // ID of last path node that came through the slot
-
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
         void elastic_band_initialize( );
         float robotXWidth, robotZLong; //robot dimensions read from config
@@ -124,7 +123,6 @@ private:
         QPolygonF get_robot_polygon();
         bool is_visible(QPointF p, const QPolygonF &laser_poly);
         bool is_point_visitable(QPointF point);
-
         void compute_forces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart,
                             const QPolygonF &laser_poly,   const QPolygonF &current_robot_polygon,
                             const QPointF &current_robot_nose);

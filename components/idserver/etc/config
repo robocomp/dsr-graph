@@ -4,12 +4,13 @@ CommonBehavior.Endpoints=tcp -p 10008
 # Proxies for required interfaces
 DSRGetID.Endpoints=tcp -p 11000
 
-agent_id = 8
+agent_id = 1
 agent_name = idserver
-#dsr_input_file = ../../etc/simplesimpleworld.json
+#dsr_input_file = ../../etc/omnirobot_simscene.json
 #dsr_input_file = ../../etc/simplesimpleworld-ramon.json
 #dsr_input_file = ../../etc/autonomyLab_width_integer.json
 dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
+
 tree_view = false
 graph_view = true
 2d_view = false

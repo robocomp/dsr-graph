@@ -59,6 +59,11 @@ class SpecificWorker(GenericWorker):
         self.robot_object = Shape("youBot")
         self.robot_left_arm = Shape("viriato_left_arm")
         self.robot_left_arm_tip = Dummy("viriato_left_arm_tip")
+        # self.ViriatoBase_WheelRadius = 76.2  #mm real robot
+        self.ViriatoBase_WheelRadius = 44  # mm coppelia
+        self.ViriatoBase_DistAxes = 380.
+        self.ViriatoBase_AxesLength = 422.
+        self.ViriatoBase_Rotation_Factor = 8.1  # it should be (DistAxes + AxesLength) / 2
 
         self.cameras = {}
         # cam = VisionSensor("camera_1_rgbd_sensor")
@@ -343,11 +348,11 @@ class SpecificWorker(GenericWorker):
 
         for x in datos.axes:
             if x.name == "advance":
-                adv = x.value if np.abs(x.value) > 1 else 0
+                adv = x.value if np.abs(x.value) > 1 else 0 #mm/sg
             if x.name == "rotate":
-                rot = x.value if np.abs(x.value) > 0.5 else 0
+                rot = x.value if np.abs(x.value) > 0.01 else 0 #rads/sg
             if x.name == "side":
-                side = x.value if np.abs(x.value) > 0.5 else 0
+                side = x.value if np.abs(x.value) > 1 else 0
             if x.name == "pan":
                 pan = x.value if np.abs(x.value) > 0.01 else 0
                 head_moves = True
@@ -356,13 +361,20 @@ class SpecificWorker(GenericWorker):
                 head_moves = True
 
         #print("Joystick ", adv, rot, side)
-        self.robot.set_base_angular_velocites([adv, side, rot])
+        converted = self.convert_base_speed_to_radians(adv, side, rot)
+        #self.robot.set_base_angular_velocites([adv, side, rot])
+        self.robot.set_base_angular_velocites(converted)
         #
         if(head_moves):
             dummy = Dummy("viriato_head_pan_tilt_nose_target")
             pantilt = Object("viriato_head_camera_pan_tilt")
             pose = dummy.get_position(pantilt)
             dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
+
+
+    def convert_base_speed_to_radians(self, adv, side, rot):
+        # rot has to be neg so neg rot speeds go clock wise. It is probably a sign in Pyrep forward kinematics
+        return [adv / self.ViriatoBase_WheelRadius, side / self.ViriatoBase_WheelRadius, rot * self.ViriatoBase_Rotation_Factor]
 
     ##################################################################################
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
