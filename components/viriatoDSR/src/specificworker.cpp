@@ -106,11 +106,6 @@ void SpecificWorker::compute()
     update_pantilt_position();
     update_arm_state();
 
-    // change to slots
-    //check_new_dummy_values_for_coppelia();
-    //check_new_nose_referece_for_pan_tilt();
-    //check_base_dummy();
-    //check_new_base_command(bState);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,12 +297,6 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
             auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
             auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
             auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
-            // target
-//            auto target_x = G->get_attrib_by_name<robot_target_x_att>(robot.value());
-//            auto target_y = G->get_attrib_by_name<robot_target_y_att>(robot.value());
-//            auto target_angle = G->get_attrib_by_name<robot_target_angle_att>(robot.value());
-//            base_target_buffer.put(std::make_tuple(target_x.value(), target_y.value(), target_angle.value()));
-
             if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
             {
                 // Check de values are within robot's accepted range. Read them from config
