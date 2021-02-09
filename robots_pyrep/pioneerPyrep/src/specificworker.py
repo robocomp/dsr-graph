@@ -131,8 +131,8 @@ class SpecificWorker(GenericWorker):
         #  isolating Wl,Wr
         #  Wl = ( adv - c*rot ) / r
         #  Wr = ( adv + c*rot ) / r
-        left_vel = (adv - self.semi_width * rot) / self.radius
-        right_vel = (adv + self.semi_width * rot) / self.radius
+        left_vel = (adv + self.semi_width * rot) / self.radius
+        right_vel = (adv - self.semi_width * rot) / self.radius
         self.back_left_wheel.set_joint_target_velocity(left_vel)
         self.back_right_wheel.set_joint_target_velocity(right_vel)
         self.front_left_wheel.set_joint_target_velocity(left_vel)
