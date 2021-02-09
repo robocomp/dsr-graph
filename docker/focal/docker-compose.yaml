@@ -3,7 +3,7 @@ services:
     idserver:
         network_mode: host
         image: robocomp/robocomp:focal_dsr
-        entrypoint: sh -c "cd components/idserver && cmake . && make -j4&& (./bin/idserver /dsr_etc/idserver_config)"
+        entrypoint: sh -c "cd components/idserver && (./bin/idserver /dsr_etc/idserver_config)"
         environment: 
             - DISPLAY=$DISPLAY
         volumes:
@@ -16,7 +16,7 @@ services:
     viriatoDSR:
         network_mode: host
         image: robocomp/robocomp:focal_dsr
-        entrypoint: sh -c "cd components/viriatoDSR/ && cmake . && make -j4 && (./bin/viriatoDSR /dsr_etc/viriato_dsr_config)"
+        entrypoint: sh -c "cd components/viriatoDSR/ && (./bin/viriatoDSR /dsr_etc/viriato_dsr_config)"
         environment: 
             - DISPLAY=$DISPLAY
         volumes:
