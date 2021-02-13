@@ -30,7 +30,7 @@ from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
-from pyrep.objects.shape import Object
+#from pyrep.objects.shape import Object
 from pyrep.objects.joint import Joint
 
 import numpy as np
@@ -367,7 +367,7 @@ class SpecificWorker(GenericWorker):
         #
         if(head_moves):
             dummy = Dummy("viriato_head_pan_tilt_nose_target")
-            pantilt = Object("viriato_head_camera_pan_tilt")
+            pantilt = Dummy("viriato_head_camera_pan_tilt")
             pose = dummy.get_position(pantilt)
             dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
 
