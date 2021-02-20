@@ -1,5 +1,5 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 
-python3 src/pioneerPyrep.py config
+python3 src/pioneerPyrep.py etc/config
 

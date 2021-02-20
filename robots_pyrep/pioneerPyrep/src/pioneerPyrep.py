@@ -153,25 +153,6 @@ if __name__ == '__main__':
     laserpubTopic = RoboCompLaserPub.LaserPubPrx.uncheckedCast(pub)
     mprx["LaserPubPub"] = laserpubTopic
 
-    # Create a proxy to publish a OmniRobotPub topic
-    topic = False
-    try:
-        topic = topicManager.retrieve("OmniRobotPub")
-    except:
-        pass
-    while not topic:
-        try:
-            topic = topicManager.retrieve("OmniRobotPub")
-        except IceStorm.NoSuchTopic:
-            try:
-                topic = topicManager.create("OmniRobotPub")
-            except:
-                print('Another client created the OmniRobotPub topic? ...')
-    pub = topic.getPublisher().ice_oneway()
-    omnirobotpubTopic = RoboCompOmniRobotPub.OmniRobotPubPrx.uncheckedCast(pub)
-    mprx["OmniRobotPubPub"] = omnirobotpubTopic
-
-
 
     if status == 0:
         worker = SpecificWorker(mprx)
@@ -188,8 +169,8 @@ if __name__ == '__main__':
     adapter.add(laserI.LaserI(worker), ic.stringToIdentity('laser'))
     adapter.activate()
 
-    adapter = ic.createObjectAdapter('OmniRobot')
-    adapter.add(omnirobotI.OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
+    adapter = ic.createObjectAdapter('DifferentialRobot')
+    adapter.add(differentialrobotI.DifferentialRobotI(worker), ic.stringToIdentity('differentialrobot'))
     adapter.activate()
 
     adapter = ic.createObjectAdapter('CoppeliaUtils')

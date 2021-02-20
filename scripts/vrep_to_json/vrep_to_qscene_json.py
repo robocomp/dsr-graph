@@ -6,15 +6,13 @@ import random
 import os
 
 
-def convert_vreptype_to_jsontype(name):
-    if "wall" in name.lower():
-        return 'wall'
-    elif "floor" in name.lower():
-        return "floor"
-    elif "cubo" in name.lower() or "obstacle" in name.lower():
-        return "boxes"
-    return ""
+key_words = ["wall", "floor", "cubo"]
 
+def convert_vreptype_to_jsontype(name):
+    for w in key_words:
+        if w in name.lower():
+            return w
+    return ""
 
 def convert_vrep_axis_to_robocomp(pos):
     new_pos = [0]*3

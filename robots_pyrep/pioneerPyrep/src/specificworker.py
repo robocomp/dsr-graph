@@ -154,7 +154,7 @@ class SpecificWorker(GenericWorker):
                     rot = x.value if np.abs(x.value) > 0.01 else 0
 
             converted = self.convert_base_speed_to_motors_speed(adv, rot)
-            print("Joystick ", [adv, rot], converted)
+            #print("Joystick ", [adv, rot], converted)
             self.joystick_newdata = None
             self.last_received_data_time = time.time()
         else:
@@ -174,29 +174,25 @@ class SpecificWorker(GenericWorker):
         self.back_right_wheel.set_joint_target_velocity(right_vel)
         self.front_left_wheel.set_joint_target_velocity(left_vel)
         self.front_right_wheel.set_joint_target_velocity(right_vel)
+
     ###########################################
     ### ROBOT POSE get and publish robot position
     ###########################################
     def read_robot_pose(self):
-        #pose = self.robot.get_2d_pose()
-        pose = self.robot_object.get_pose()
+        position = self.robot_object.get_position()[:2]
+        orientation = self.robot_object.get_orientation()[-1:]
         linear_vel, ang_vel = self.robot_object.get_velocity()
-        # print("Veld:", linear_vel, ang_vel)
-        try:
-            isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-            self.bState = RoboCompGenericBase.TBaseState(x=pose[0] * 1000,
-                                                         z=pose[1] * 1000,
-                                                         alpha=pose[2],
-                                                         advVx=linear_vel[0] * 1000,
-                                                         advVz=linear_vel[1] * 1000,
-                                                         rotV=ang_vel[2],
-                                                         isMoving=isMoving)
-            self.omnirobotpub_proxy.pushBaseState(self.bState)
-        except Ice.Exception as e:
-            print(e)
-
+        isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
+        self.bState = RoboCompGenericBase.TBaseState(x=position[0] * 1000,
+                                                     z=position[1] * 1000,
+                                                     alpha=orientation[0],
+                                                     advVx=linear_vel[0] * 1000,
+                                                     advVz=linear_vel[1] * 1000,
+                                                     rotV=ang_vel[2],
+                                                     isMoving=isMoving)
+   
     ###########################################
-    ### MOVE ROBOT from Omnirobot interface
+    ### MOVE ROBOT from Differentialrobot interface
     ###########################################
     def move_robot(self):
 
@@ -237,19 +233,19 @@ class SpecificWorker(GenericWorker):
             return self.cameras[camera]["rgb"]
 
     ##############################################
-    ## Omnibase
+    ## Differentialbase
     #############################################
 
     #
     # correctOdometer
     #
-    def OmniRobot_correctOdometer(self, x, z, alpha):
+    def DifferentialRobot_correctOdometer(self, x, z, alpha):
         pass
 
     #
     # getBasePose
     #
-    def OmniRobot_getBasePose(self):
+    def DifferentialRobot_getBasePose(self):
         #
         # implementCODE
         #
@@ -261,37 +257,36 @@ class SpecificWorker(GenericWorker):
     #
     # getBaseState
     #
-    def OmniRobot_getBaseState(self):
+    def DifferentialRobot_getBaseState(self):
         return self.bState
-
     #
     # resetOdometer
     #
-    def OmniRobot_resetOdometer(self):
+    def DifferentialRobot_resetOdometer(self):
         pass
 
     #
     # setOdometer
     #
-    def OmniRobot_setOdometer(self, state):
+    def DifferentialRobot_setOdometer(self, state):
         pass
 
     #
     # setOdometerPose
     #
-    def OmniRobot_setOdometerPose(self, x, z, alpha):
+    def DifferentialRobot_setOdometerPose(self, x, z, alpha):
         pass
 
     #
     # setSpeedBase
     #
-    def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        self.speed_robot = self.convert_base_speed_to_radians(advz, advx, rot)
+    def DifferentialRobot_setSpeedBase(self, advz, rot):
+        self.speed_robot = self.convert_base_speed_to_radians(advz, rot)
 
     #
     # stopBase
     #
-    def OmniRobot_stopBase(self):
+    def DifferentialRobot_stopBase(self):
         pass
 
     # ===================================================================
