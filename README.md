@@ -10,7 +10,7 @@
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 
-Note: This documentation is related to the DSR/CORTEX **components**. You can find the DSR/CORTEX related **library** in robocomp repository (![classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr)) with some developer documentation to use the APIs and UIs.
+Note: This documentation is related to the DSR/CORTEX **components**. You can find the DSR/CORTEX related **library** in robocomp repository ([classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr)) with some developer documentation to use the APIs and UIs.
 
 # Description
 CORTEX is a long term effort to build a series of architectural designs around the simple idea 
@@ -27,7 +27,7 @@ A CORTEX instance is a set of software components, called _agents_, that share a
 # Installation
 Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
 
-To install these components in this repositor it's assumed that you have already installed ![robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
+To install these components in this repositor it's assumed that you have already installed [robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
 You must clone this (dsr-graph) repository in ~/robocomp/components/
 ```sh
 cd ~/robocomp/components/
@@ -65,19 +65,20 @@ Goto to this [tutorial](https://github.com/robocomp/robocomp/blob/development/do
 
 # Related papers
 P. Bustos García, L. Manso Argüelles, A. J. Bandera, J. P. Bandera, I. García-Varea, and J. Martínez-Gómez, «The CORTEX cognitive robotics architecture: Use cases,» Cognitive Systems Research, vol. 55, pp. 107-123, 2019. 
-https://robolab.unex.es/wp-content/plugins/papercite/pdf/luis-pablo-cortex.pdf
+https://robolab.unex.es/wp-content/papercite-data/pdf/luis-pablo-cortex.pdf
 
 P. Núñez Trujillo, L. J. Manso Argüelles, P. Bustos García, P. Drews-Jr, and D. G. Macharet, «A Proposal for the Design of a Semantic Social Path Planner using CORTEX ˜,» in Workshop of Physical Agents 2016, Málaga, Spain, 2016. 
-https://robolab.unex.es/wp-content/plugins/papercite/pdf/proposal-design-semantic.pdf
+https://robolab.unex.es/wp-content/papercite-data/pdf/proposal-design-semantic.pdf
 
 L. V. Calderita Estévez and P. Bustos García, «Deep State Representation: an Unified Internal Representation for the Robotics Cognitive Architecture CORTEX,» PhD Thesis, ., 2015. 
-https://robolab.unex.es/wp-content/plugins/papercite/pdf/deep-state-representation.pdf
+https://robolab.unex.es/wp-content/papercite-data/pdf/deep-state-representation.pdf
 
 P. Bustos García, L. Manso Argüelles, A. J. Bandera, J. P. Bandera, I. García-Varea, and J. Martínez-Gómez, «The CORTEX cognitive robotics architecture: Use cases,» Cognitive Systems Research, vol. 55, pp. 107-123, 2019. 
-https://robolab.unex.es/wp-content/plugins/papercite/pdf/luis-pablo-cortex.pdf
+https://robolab.unex.es/wp-content/papercite-data/pdf/luis-pablo-cortex.pdf
 
 P. Bustos García, L. J. Manso Argüelles, A. Bandera, J. P. Bandera, I. García-Varea, and J. Martínez-Gómez, «CORTEX: a new Cognitive Architecture for Social Robots,» in EUCognition Meeting – Cognitive Robot Architectures, Viena, 2016. 
-https://robolab.unex.es/wp-content/plugins/papercite/pdf/cortex-new-cognitive-architecture.pdf
+https://robolab.unex.es/wp-content/papercite-data/pdf/cortex-new-cognitive-architecture.pdf
 
 Paulo Sérgio Almeida, Ali Shoker, Carlos Baquero, «Delta State Replicated Data Types» Journal of Parallel and Distributed Computing, Volume 111, January 2018, Pages 162-173 
 https://arxiv.org/abs/1603.01529
+
