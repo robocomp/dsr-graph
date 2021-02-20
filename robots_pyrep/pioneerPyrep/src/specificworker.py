@@ -63,8 +63,8 @@ class SpecificWorker(GenericWorker):
         self.semi_width = 140 # mm
 
         # Each laser is composed of two cameras. They are converted into a 360 virtual laser
-        self.hokuyo_base_front_right = VisionSensor("SICK_TiM310_sensor1")
-        self.hokuyo_base_front_left = VisionSensor("SICK_TiM310_sensor2")
+        #self.hokuyo_base_front_right = VisionSensor("SICK_TiM310_sensor1")
+        #self.hokuyo_base_front_left = VisionSensor("SICK_TiM310_sensor2")
 
         self.ldata = []
         self.joystick_newdata = []
@@ -77,7 +77,7 @@ class SpecificWorker(GenericWorker):
         start = time.time()
         while True:
             self.pr.step()
-            self.read_laser()
+            #self.read_laser()
             self.read_joystick()
             self.read_robot_pose()
             self.move_robot()
