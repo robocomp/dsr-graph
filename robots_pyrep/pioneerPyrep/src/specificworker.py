@@ -39,6 +39,26 @@ from itertools import zip_longest
 import cv2
 import queue
 
+
+class TimeControl:
+    def __init__(self, period_):
+        self.counter = 0
+        self.start = time.time()  # it doesn't exist yet, so initialize it
+        self.start_print = time.time()  # it doesn't exist yet, so initialize it
+        self.period = period_
+
+    def wait(self):
+        elapsed = time.time() - self.start
+        if elapsed < self.period:
+            time.sleep(self.period - elapsed)
+        self.start = time.time()
+        self.counter += 1
+        if time.time() - self.start_print > 1:
+            print("Freq -> ", self.counter, " Hz")
+            self.counter = 0
+            self.start_print = time.time()
+
+
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map):
         super(SpecificWorker, self).__init__(proxy_map)
@@ -62,9 +82,19 @@ class SpecificWorker(GenericWorker):
         self.radius = 110 # mm
         self.semi_width = 140 # mm
 
-        # Each laser is composed of two cameras. They are converted into a 360 virtual laser
-        #self.hokuyo_base_front_right = VisionSensor("SICK_TiM310_sensor1")
-        #self.hokuyo_base_front_left = VisionSensor("SICK_TiM310_sensor2")
+        # front pan-tilt camera
+        self.cameras = {}
+        self.cameras.clear()
+        self.front_camera_name = "pioneer_head_camera_sensor"
+        cam = VisionSensor(self.front_camera_name)
+        self.cameras[self.front_camera_name] = {"handle": cam,
+                                                "id": 0,
+                                                "angle": np.radians(cam.get_perspective_angle()),
+                                                "width": cam.get_resolution()[0],
+                                                "height": cam.get_resolution()[1],
+                                                "focal": (cam.get_resolution()[0] / 2) / np.tan(np.radians(cam.get_perspective_angle() / 2)),
+                                                "rgb": np.array(0),
+                                                "depth": np.ndarray(0)}
 
         self.ldata = []
         self.joystick_newdata = []
@@ -73,34 +103,41 @@ class SpecificWorker(GenericWorker):
         self.last_received_data_time = 0
 
     def compute(self):
-        cont = 0
-        start = time.time()
+        tc = TimeControl(0.05)
         while True:
             self.pr.step()
-            #self.read_laser()
+            self.read_camera(self.front_camera_name)
             self.read_joystick()
             self.read_robot_pose()
             self.move_robot()
 
-            elapsed = time.time()-start
-            if elapsed < 0.05:
-                time.sleep(0.05-elapsed)
-            cont += 1
-            if time.time()-start > 1:
-                print("Freq -> ", cont)
-                cont = 0
-                start = time.time()
+            tc.wait()
+
 
     ###########################################
-    ### LASER get and publish laser data
+    ### CAMERAS get and publish cameras data
     ###########################################
-    def read_laser(self):
-        self.ldata = self.compute_omni_laser([self.hokuyo_base_front_right,
-                                              self.hokuyo_base_front_left], self.robot_object)
-        try:
-            self.laserpub_proxy.pushLaserData(self.ldata)
-        except Ice.Exception as e:
-            print(e)
+    def read_camera(self, cam_name):
+        cam = self.cameras[cam_name]
+        image_float = cam["handle"].capture_rgb()
+        #            print("len", len(image_float))
+        depth = cam["handle"].capture_depth(True)
+        image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
+                              dtype=cv2.CV_8U)
+        cam["rgb"] = RoboCompCameraRGBDSimple.TImage(cameraID=cam["id"], width=cam["width"], height=cam["height"],
+                                                     depth=3, focalx=cam["focal"], focaly=cam["focal"],
+                                                     alivetime=time.time(), image=image.tobytes())
+        cam["depth"] = RoboCompCameraRGBDSimple.TDepth(cameraID=cam["id"], width=cam["handle"].get_resolution()[0],
+                                                       height=cam["handle"].get_resolution()[1],
+                                                       focalx=cam["focal"], focaly=cam["focal"],
+                                                       alivetime=time.time(), depthFactor=1.0,
+                                                       depth=depth.tobytes())
+
+        #try:
+        #    self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
+        #except Ice.Exception as e:
+        #    print(e)
+
 
     ###########################################
     ### JOYSITCK read and move the robot
@@ -112,7 +149,7 @@ class SpecificWorker(GenericWorker):
             rot = 0.0
             for x in datos.axes:
                 if x.name == "advance":
-                    adv = x.value if np.abs(x.value) > 1 else 0
+                    adv = x.value if np.abs(x.value) > 10 else 0
                 if x.name == "rotate":
                     rot = x.value if np.abs(x.value) > 0.01 else 0
 
@@ -168,46 +205,6 @@ class SpecificWorker(GenericWorker):
         #print("Velocities sent to robot:", self.speed_robot)
             self.speed_robot_ant = self.speed_robot
 
-    ########################################
-    ## General laser computation
-    ########################################
-    def compute_omni_laser(self, lasers, robot):
-        c_data = []
-        coor = []
-        for laser in lasers:
-            semiwidth = laser.get_resolution()[0]/2
-            semiangle = np.radians(laser.get_perspective_angle()/2)
-            focal = semiwidth/np.tan(semiangle)
-            data = laser.capture_depth(in_meters=True)
-            m = laser.get_matrix(robot)     # these data should be read first
-            imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
-
-            for i,d in enumerate(data.T):
-                z = d[0]        # min if more than one row in depth image
-                vec = np.array([-(i-semiwidth)*z/focal, 0, z, 1])
-                res = imat.dot(vec)[:3]       # translate to robot's origin, homogeneous
-                c_data.append([np.arctan2(res[0], res[1]), np.linalg.norm(res)])  # add to list in polar coordinates
-                #print(np.arctan2(res[0], res[1]))
-
-        # create N degrees polar rep
-        N = 360
-        min_rad = -np.pi
-        max_rad = np.pi
-        c_data_np = np.asarray(c_data)
-        angles = np.linspace(min_rad, max_rad, N)                         # create regular angular values
-        positions = np.searchsorted(angles, c_data_np[:, 0])               # list of closest position for each laser meas
-        ldata = [RoboCompLaser.TData(a, 0) for a in angles]               # create empty 360 angle array
-        pos, medians = npi.group_by(positions).median(c_data_np[:, 1])   # group by repeated positions
-        for p, m in zip_longest(pos, medians):                            # fill the angles with measures
-            ldata[p].dist = int(m*1000)   # to millimeters
-        if ldata[0] == 0:
-            ldata[0] = self.semi_width       #half robot width
-        for i in range(0, len(ldata)):
-            if ldata[i].dist == 0:
-                ldata[i].dist = ldata[i-1].dist
-        #ldata[0].dist = ldata[len(data)-1].dist
-
-        return ldata
 
     ##################################################################################
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
@@ -223,42 +220,21 @@ class SpecificWorker(GenericWorker):
     # getAll
     #
     def CameraRGBDSimple_getAll(self, camera):
-        return RoboCompCameraRGBDSimple.TRGBD(self.cameras[camera]["rgb"], self.cameras[camera]["depth"])
+        if self.cameras.has_key(camera):
+            return RoboCompCameraRGBDSimple.TRGBD(self.cameras[camera]["rgb"], self.cameras[camera]["depth"])
 
     #
     # getDepth
     #
     def CameraRGBDSimple_getDepth(self, camera):
-        return self.cameras[camera]["depth"]
+        if self.cameras.has_key(camera):
+            return self.cameras[camera]["depth"]
     #
     # getImage
     #
     def CameraRGBDSimple_getImage(self, camera):
-        return self.cameras[camera]["rgb"]
-
-    #######################################################
-    #### Laser
-    #######################################################
-
-    #
-    # getLaserAndBStateData
-    #
-    def Laser_getLaserAndBStateData(self):
-        bState = RoboCompGenericBase.TBaseState()
-        return self.ldata, bState
-
-    #
-    # getLaserConfData
-    #
-    def Laser_getLaserConfData(self):
-        ret = RoboCompLaser.LaserConfData()
-        return ret
-
-    #
-    # getLaserData
-    #
-    def Laser_getLaserData(self):
-        return self.ldata
+        if self.cameras.has_key(camera):
+            return self.cameras[camera]["rgb"]
 
     ##############################################
     ## Omnibase

@@ -38,6 +38,23 @@ import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
 
+class TimeControl:
+    def __init__(self, period_):
+        self.counter = 0
+        self.start = time.time()  # it doesn't exist yet, so initialize it
+        self.start_print = time.time()  # it doesn't exist yet, so initialize it
+        self.period = period_
+
+    def wait(self):
+        elapsed = time.time() - self.start
+        if elapsed < self.period:
+            time.sleep(self.period - elapsed)
+        self.start = time.time()
+        self.counter += 1
+        if time.time() - self.start_print > 1:
+            print("Freq -> ", self.counter)
+            self.counter = 0
+            self.start_print = time.time()
 
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map):
@@ -139,8 +156,7 @@ class SpecificWorker(GenericWorker):
 
     #@QtCore.Slot()
     def compute(self):
-        cont = 0
-        start = time.time()
+        tc = TimeControl(0.05)
         while True:
             self.pr.step()
             self.read_cameras()
@@ -152,14 +168,7 @@ class SpecificWorker(GenericWorker):
             self.move_robot()
             self.read_pan_tilt()
 
-            elapsed = time.time()-start
-            if elapsed < 0.05:
-                time.sleep(0.05-elapsed)
-            cont += 1
-            if elapsed > 1:
-                print("Freq -> ", cont)
-                cont = 0
-                start = time.time()
+            tc.wait()
 
     ###########################################
     ### CAMERAS get and publish cameras data
