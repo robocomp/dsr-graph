@@ -230,8 +230,8 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     if(euc_dist_to_target < 5*FINAL_DISTANCE_TO_TARGET)
         rotVel = 0.f;
 
-    /// Compute advance speed
-    std::min(advVel = MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
+    /// Compute advance speed  //////////  OJO MAL
+    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};

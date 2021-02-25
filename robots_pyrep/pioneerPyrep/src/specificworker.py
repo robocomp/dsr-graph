@@ -68,12 +68,13 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '../../etc/pioneer.ttt'
+        SCENE_FILE = '../../etc/informatica.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
 
+        # ROBOT
         self.robot_object = Shape("Pioneer")
         self.back_left_wheel = Joint("p3at_back_left_wheel_joint")
         self.back_right_wheel = Joint("p3at_back_right_wheel_joint")
@@ -81,6 +82,8 @@ class SpecificWorker(GenericWorker):
         self.front_right_wheel = Joint("p3at_front_right_wheel_joint")
         self.radius = 110 # mm
         self.semi_width = 140 # mm
+        self.MAX_ADV_SPEED = 1000 # mm/s
+        self.MAX_ROT_SPEED = 1 # rads/s
 
         # front pan-tilt camera
         self.cameras = {}
@@ -120,7 +123,6 @@ class SpecificWorker(GenericWorker):
     def read_camera(self, cam_name):
         cam = self.cameras[cam_name]
         image_float = cam["handle"].capture_rgb()
-        #            print("len", len(image_float))
         depth = cam["handle"].capture_depth(True)
         image = cv2.normalize(src=image_float, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                               dtype=cv2.CV_8U)
@@ -170,6 +172,7 @@ class SpecificWorker(GenericWorker):
         #  Wr = ( adv + c*rot ) / r
         left_vel = (adv + self.semi_width * rot) / self.radius
         right_vel = (adv - self.semi_width * rot) / self.radius
+        print("Vels", left_vel, right_vel)
         self.back_left_wheel.set_joint_target_velocity(left_vel)
         self.back_right_wheel.set_joint_target_velocity(right_vel)
         self.front_left_wheel.set_joint_target_velocity(left_vel)
@@ -181,11 +184,14 @@ class SpecificWorker(GenericWorker):
     def read_robot_pose(self):
         position = self.robot_object.get_position()[:2]
         orientation = self.robot_object.get_orientation()[-1:]
+        # correction due to Robot initially aligned with X axis
+        orientation -= np.pi/2.
+        ######################################################
         linear_vel, ang_vel = self.robot_object.get_velocity()
         isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-        self.bState = RoboCompGenericBase.TBaseState(x=position[0] * 1000,
+        self.bState = RoboCompGenericBase.TBaseState(x=position[0] * 1000,  # mm
                                                      z=position[1] * 1000,
-                                                     alpha=orientation[0],
+                                                     alpha=orientation[0],  # rads
                                                      advVx=linear_vel[0] * 1000,
                                                      advVz=linear_vel[1] * 1000,
                                                      rotV=ang_vel[2],
@@ -197,8 +203,8 @@ class SpecificWorker(GenericWorker):
     def move_robot(self):
 
         if self.speed_robot != self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
-            self.convert_base_speed_to_motors_speed(self.speed_robot)
-        #print("Velocities sent to robot:", self.speed_robot)
+            self.convert_base_speed_to_motors_speed(self.speed_robot[0], self.speed_robot[1])
+             #print("Velocities sent to robot:", self.speed_robot)
             self.speed_robot_ant = self.speed_robot
 
 
@@ -216,20 +222,20 @@ class SpecificWorker(GenericWorker):
     # getAll
     #
     def CameraRGBDSimple_getAll(self, camera):
-        if self.cameras.has_key(camera):
+        if camera in self.cameras:
             return RoboCompCameraRGBDSimple.TRGBD(self.cameras[camera]["rgb"], self.cameras[camera]["depth"])
 
     #
     # getDepth
     #
     def CameraRGBDSimple_getDepth(self, camera):
-        if self.cameras.has_key(camera):
+        if camera in self.cameras:
             return self.cameras[camera]["depth"]
     #
     # getImage
     #
     def CameraRGBDSimple_getImage(self, camera):
-        if self.cameras.has_key(camera):
+        if camera in self.cameras:
             return self.cameras[camera]["rgb"]
 
     ##############################################
@@ -281,7 +287,11 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def DifferentialRobot_setSpeedBase(self, advz, rot):
-        self.speed_robot = self.convert_base_speed_to_radians(advz, rot)
+        if advz > -self.MAX_ADV_SPEED and advz < self.MAX_ADV_SPEED and rot < self.MAX_ROT_SPEED and rot > -self.MAX_ROT_SPEED:
+            self.speed_robot = [advz, rot]
+        else:
+            print("SetSpeedBase WARNING: commanded speeds out of range ", advz, rot)
+            raise RoboCompGenericBase.HardwareFailedException
 
     #
     # stopBase

@@ -6,7 +6,7 @@ import random
 import os
 
 
-key_words = ["wall", "floor", "cubo"]
+key_words = ["wall", "floor_plane", "cubo"]
 
 def convert_vreptype_to_jsontype(name):
     for w in key_words:
@@ -39,7 +39,7 @@ def main(input_file, output_file):
     tree = ET.parse(input_file)
     root = tree.getroot()
 
-    for elem in root.findall('shape'):
+    for elem in (root.findall('shape') or root.findall('dummy/shape')):
         # check required tags
         if len(elem.findall('common/localFrame/position')) and len(elem.findall('primitive/type')):
             name = elem.findall('common/name')[0].text
@@ -60,7 +60,7 @@ def main(input_file, output_file):
             elif type == "boxes":
                 new_box = [0.0, 0.0] + [size[0]] + [size[1]] + [pos[0]] + [pos[1]] + [rot[2]]
                 new_json["boxes"][name] = new_box
-            elif type == "floor":
+            elif type == "floor_plane":
                 new_json["dimensions"]["LEFT"] = -size[0]/2
                 new_json["dimensions"]["BOTTOM"] = -size[1]/2
                 new_json["dimensions"]["WIDTH"] = size[0]
