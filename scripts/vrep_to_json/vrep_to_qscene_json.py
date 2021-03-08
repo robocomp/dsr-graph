@@ -38,6 +38,17 @@ def main(input_file, output_file):
 
     tree = ET.parse(input_file)
     root = tree.getroot()
+    
+    dummies = root.findall('dummy/common')
+    for d in dummies:
+        if d.findall('name')[0].text == 'paredes':
+            pareds_center = [float(value)*1000 for value in d.findall('localFrame/position')[0].text.split(' ')]
+            print("Paredes center", pareds_center)
+
+    for d in dummies:
+        if 'paredes' in d.text:
+            pos = [float(value)*1000 for value in d.findall('dummy/common/localFrame/position')[0].text.split(' ')]
+            print(pos)
 
     for elem in (root.findall('shape') or root.findall('dummy/shape')):
         # check required tags
@@ -55,19 +66,24 @@ def main(input_file, output_file):
             print(name, type, pos, rot[2], size, color)
 
             if type == "wall":
+                pos[0] += pareds_center[0]
+                pos[1] += pareds_center[1]
                 new_wall = [0.0, 0.0] + [size[0]] + [size[1]] + [pos[0]] + [pos[1]] + [rot[2]]
                 new_json["walls"][name] = new_wall
             elif type == "boxes":
                 new_box = [0.0, 0.0] + [size[0]] + [size[1]] + [pos[0]] + [pos[1]] + [rot[2]]
                 new_json["boxes"][name] = new_box
             elif type == "floor_plane":
+                #h1 = size[0]/2 + pos[0]
+                #h2 = size[0] - h1
+                #w1 = size[1]/2 - pos[1]
+                #w2 = size[1]  - w1
                 new_json["dimensions"]["LEFT"] = -size[0]/2
                 new_json["dimensions"]["BOTTOM"] = -size[1]/2
                 new_json["dimensions"]["WIDTH"] = size[0]
                 new_json["dimensions"]["HEIGHT"] = size[1]
                 new_json["dimensions"]["TILESIZE"] = 50
-
-
+                
 
     # write to file
     with open(output_file, 'w') as outfile:
