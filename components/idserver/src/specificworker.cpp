@@ -25,7 +25,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
     this->startup_check_flag = startup_check;
-	QLoggingCategory::setFilterRules("*.debug=false\n");
+	//QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -69,7 +69,14 @@ void SpecificWorker::initialize(int period)
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
         std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
         //check RT tree
-        check_rt_tree(G->get_node_root().value());
+        G->print();
+        if (auto g = G->get_node_root(); g.has_value())
+            check_rt_tree(G->get_node_root().value());
+        else
+        {
+            std::cout << "G nor created. Aborting" << std::endl;
+            std::terminate();
+        }
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
