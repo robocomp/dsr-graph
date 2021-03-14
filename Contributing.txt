@@ -1,0 +1,30 @@
+# Contributing to robocomp/dsr graph
+
+Whether you are a novice or experienced software developer, all contributions and suggestions are welcome!
+
+## Getting Started
+
+If you are looking to contribute to the *robocomp* codebase, the best place to start is the [GitHub "issues" tab](https://github.com/robocomp/dsr-graph/issues). This is also a great place for filing bug reports and making suggestions for ways in which we can improve the code and documentation.
+
+If you have additional questions, feel free to ask them in comments section.
+
+## Filing Issues
+
+If you notice a bug in the code or documentation, or have suggestions for how we can improve either, feel free to create an issue on the [GitHub "issues" tab](https://github.com/robocomp/dsr-graph/issues) using [GitHub's "issue" tab](https://github.com/robocomp/dsr-graph/issues/new).
+
+## Contributing to the Codebase
+
+Follow the below steps -
+# First fork the repository
+# To clone the code in your local system use git command
+`git clone [code link]`
+# To create a new branch use
+`git checkout -b [branch name]`
+# To stage file use
+`git add .`
+# To commit changes use
+`git commit -m "Commit message"`
+# To push commit use
+`git push [remote branch name] [working branch name]` 
+
+## HAPPY CONTRIBUTING!!!!!!!!!!!!!!!!!!!!!!!
