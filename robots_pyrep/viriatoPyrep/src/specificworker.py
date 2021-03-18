@@ -32,11 +32,14 @@ from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 #from pyrep.objects.shape import Object
 from pyrep.objects.joint import Joint
-
+from pytransform3d.transform_manager import TransformManager
+import pytransform3d.transformations as pytr
+import pytransform3d.rotations as pyrot
 import numpy as np
 import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
+from threading import Lock
 
 class TimeControl:
     def __init__(self, period_):
@@ -141,6 +144,16 @@ class SpecificWorker(GenericWorker):
         self.speed_robot_ant = []
         self.last_received_data_time = 0
 
+        # PoseEstimation
+        self.tm = TransformManager()
+        self.tm.add_transform("origin", "world",
+                              pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz([0.0, 0.0, 0.0]),
+                                                  [0.0, 0.0, 0.0])
+                              )
+        self.robot_full_pose_write = RoboCompFullPoseEstimation.FullPoseEuler()
+        self.robot_full_pose_read = RoboCompFullPoseEstimation.FullPoseEuler()
+        self.mutex_pose = Lock()
+
     def initialize_cameras(self):
         print("Initialize camera")
         self.cameras.clear()
@@ -156,17 +169,17 @@ class SpecificWorker(GenericWorker):
 
     #@QtCore.Slot()
     def compute(self):
-        tc = TimeControl(0.05)
+        tc = TimeControl(0.05)  # 50 millis -> 20Hz
         while True:
             self.pr.step()
-            self.read_cameras()
-            self.read_people()
+            #self.read_cameras()
+            #self.read_people()
             self.read_laser()
             self.read_joystick()
             self.read_robot_pose()
-            self.read_robot_arm_tip()
+            #self.read_robot_arm_tip()
             self.move_robot()
-            self.read_pan_tilt()
+            #self.read_pan_tilt()
 
             tc.wait()
 
@@ -253,18 +266,46 @@ class SpecificWorker(GenericWorker):
         pose = self.robot.get_2d_pose()
         linear_vel, ang_vel = self.robot_object.get_velocity()
         # print("Veld:", linear_vel, ang_vel)
+
+        isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
+        self.bState = RoboCompGenericBase.TBaseState(x=pose[0] * 1000,
+                                                     z=pose[1] * 1000,
+                                                     alpha=pose[2],
+                                                     advVx=linear_vel[0] * 1000,
+                                                     advVz=linear_vel[1] * 1000,
+                                                     rotV=ang_vel[2],
+                                                     isMoving=isMoving)
+
         try:
-            isMoving = np.abs(linear_vel[0]) > 0.01 or np.abs(linear_vel[1]) > 0.01 or np.abs(ang_vel[2]) > 0.01
-            self.bState = RoboCompGenericBase.TBaseState(x=pose[0] * 1000,
-                                                         z=pose[1] * 1000,
-                                                         alpha=pose[2],
-                                                         advVx=linear_vel[0] * 1000,
-                                                         advVz=linear_vel[1] * 1000,
-                                                         rotV=ang_vel[2],
-                                                         isMoving=isMoving)
             self.omnirobotpub_proxy.pushBaseState(self.bState)
         except Ice.Exception as e:
             print(e)
+
+        self.tm.add_transform("world", "robot", pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz
+                                                                    ([0.0, 0.0, pose[2] - np.pi]),
+                                                                    [pose[0] * 1000.0, pose[1] * 1000.0, 0.0]
+                                                                    ))
+
+        t = self.tm.get_transform("origin", "robot")
+        angles = pyrot.extrinsic_euler_xyz_from_active_matrix(t[0:3, 0:3])
+
+        self.robot_full_pose_write.x = t[0][3]
+        self.robot_full_pose_write.y = t[1][3]
+        self.robot_full_pose_write.z = t[2][3]
+        self.robot_full_pose_write.rx = angles[0]
+        self.robot_full_pose_write.ry = angles[1]
+        self.robot_full_pose_write.rz = angles[2]
+        self.robot_full_pose_write.vx = linear_vel[0] * 1000.0
+        self.robot_full_pose_write.vy = linear_vel[1] * 1000.0
+        self.robot_full_pose_write.vz = linear_vel[2] * 1000.0
+        self.robot_full_pose_write.vrx = ang_vel[0]
+        self.robot_full_pose_write.vry = ang_vel[1]
+        self.robot_full_pose_write.vrz = ang_vel[2]
+
+        # swap
+        self.mutex_pose.acquire()
+        self.robot_full_pose_write, self.robot_full_pose_read = self.robot_full_pose_read, self.robot_full_pose_write
+        self.mutex_pose.release()
 
     ###########################################
     ### ROBOT POSE get and publish robot position
@@ -516,6 +557,45 @@ class SpecificWorker(GenericWorker):
             #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
             dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.], parent_frame_object)
             dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
+
+        #
+        # IMPLEMENTATION of getFullPoseEuler method from FullPoseEstimation interface
+        #
+
+    def FullPoseEstimation_getFullPoseEuler(self):
+        self.mutex_pose.acquire()
+        try:
+            return self.robot_full_pose_read
+        finally:
+            self.mutex_pose.release()
+
+
+    def FullPoseEstimation_getFullPoseMatrix(self):
+        t = self.tm.get_transform("origin", "robot")
+        m = RoboCompFullPoseEstimation.FullPoseMatrix()
+        m.m00 = t[0][0]
+        m.m01 = t[0][1]
+        m.m02 = t[0][2]
+        m.m03 = t[0][3]
+        m.m10 = t[1][0]
+        m.m11 = t[1][1]
+        m.m12 = t[1][2]
+        m.m13 = t[1][3]
+        m.m20 = t[2][0]
+        m.m21 = t[2][1]
+        m.m22 = t[2][2]
+        m.m23 = t[2][3]
+        m.m30 = t[3][0]
+        m.m31 = t[3][1]
+        m.m32 = t[3][2]
+        m.m33 = t[3][3]
+        return m
+
+    def FullPoseEstimation_setInitialPose(self, x, y, z, rx, ry, rz):
+        # should move robot in Coppelia to designated pose
+        self.tm.add_transform("origin", "world",
+                              pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz([rx, ry, rz]), [x, y, z])
+                              )
 
     ######################################################################
    #self.hokuyo_base_front_left_semiangle = np.radians(self.hokuyo_base_front_left.get_perspective_angle()/2)

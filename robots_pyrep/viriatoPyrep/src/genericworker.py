@@ -44,6 +44,8 @@ Ice.loadSlice("-I ./src/ --all ./src/LaserPub.ice")
 import RoboCompLaserPub 
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobot.ice")
 import RoboCompOmniRobot
+Ice.loadSlice("-I ./src/ --all ./src/FullPoseEstimation.ice")
+import RoboCompFullPoseEstimation
 Ice.loadSlice("-I ./src/ --all ./src/OmniRobotPub.ice")
 import RoboCompOmniRobotPub
 Ice.loadSlice("-I ./src/ --all ./src/CoppeliaUtils.ice")
@@ -63,6 +65,7 @@ import laserI
 import omnirobotI 
 import joystickadapterI
 import coppeliautilsI
+import fullposeestimationI
 
 class GenericWorker():
 
