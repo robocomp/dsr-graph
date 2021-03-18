@@ -6,12 +6,12 @@ LaserPubTopic.Endpoints=tcp -p 11112
 OmniRobotPubTopic.Endpoints=tcp -p 11113
 JointMotorPubTopic.Endpoints=tcp -p 11114
 KinovaArmPubTopic.Endpoints=tcp -p 11115
+FullPoseEstimation.Endpoints=tcp -p 10016
 
 #Proxies
 OmniRobotProxy = omnirobot:tcp -p 10004
 CoppeliaUtilsProxy = coppeliautils:tcp -p 10666
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
-
 
 agent_id = 10
 agent_name = viriatoDSR
