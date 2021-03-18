@@ -3,7 +3,7 @@ CameraRGBDSimple.Endpoints=tcp -p 10096
 Laser.Endpoints=tcp -p 10003
 OmniRobot.Endpoints=tcp -p 10004
 CoppeliaUtils.Endpoints = tcp -p 10666
-
+FullPoseEstimation.Endpoints=tcp -p 10016
 
 # Endpoints for subscriptions interfaces
 JoystickAdapterTopic.Endpoints=tcp -p 13100
