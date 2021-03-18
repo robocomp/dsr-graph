@@ -172,14 +172,14 @@ class SpecificWorker(GenericWorker):
         tc = TimeControl(0.05)  # 50 millis -> 20Hz
         while True:
             self.pr.step()
-            #self.read_cameras()
+            self.read_cameras()
             #self.read_people()
             self.read_laser()
             self.read_joystick()
             self.read_robot_pose()
             #self.read_robot_arm_tip()
             self.move_robot()
-            #self.read_pan_tilt()
+            self.read_pan_tilt()
 
             tc.wait()
 

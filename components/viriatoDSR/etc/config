@@ -18,7 +18,7 @@ agent_name = viriatoDSR
 #dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
 tree_view = false
 graph_view = true
-2d_view = false
+2d_view = true
 3d_view = false
 
 # This property is used by the clients to connect to IceStorm.
