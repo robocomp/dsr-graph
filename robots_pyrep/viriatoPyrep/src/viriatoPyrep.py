@@ -244,6 +244,10 @@ if __name__ == '__main__':
     adapter.add(omnirobotI.OmniRobotI(worker), ic.stringToIdentity('omnirobot'))
     adapter.activate()
 
+    adapter = ic.createObjectAdapter('FullPoseEstimation')
+    adapter.add(fullposeestimationI.FullPoseEstimationI(worker), ic.stringToIdentity('fullposeestimation'))
+    adapter.activate()
+
     adapter = ic.createObjectAdapter('CoppeliaUtils')
     adapter.add(coppeliautilsI.CoppeliaUtilsI(worker), ic.stringToIdentity('coppeliautils'))
     adapter.activate()
