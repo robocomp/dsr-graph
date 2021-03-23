@@ -119,22 +119,26 @@ void SpecificWorker::compute()
     auto min_dist = std::min(dists.begin() + left_limit, dists.begin() + right_limit);
     float adv = 0; float rot = 0; float side= 0;
 
-    qInfo() << *min_dist;
+    if (min_dist != dists.end()) {
 
-    if(*min_dist < MIN_DIST)
-    {
-        adv = 0; side = 0; rot = MAX_ROT;
-    }
-    else
-    {
-        adv = MAX_ADV; side = 0; rot = 0;
-    }
+        qInfo() << *min_dist;
 
-    auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(), adv);
-    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), rot);
-    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(), side);
-    G->update_node(robot_node.value());
+        if (*min_dist < MIN_DIST) {
+            adv = 0;
+            side = 0;
+            rot = MAX_ROT;
+        } else {
+            adv = MAX_ADV;
+            side = 0;
+            rot = 0;
+        }
+
+        auto robot_node = G->get_node(robot_name);
+        G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(), adv);
+        G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), rot);
+        G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(), side);
+        G->update_node(robot_node.value());
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
