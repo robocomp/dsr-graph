@@ -17,7 +17,7 @@ CORTEX is a long term effort to build a series of architectural designs around t
 of a group of agents that share a distributed, dynamic representation acting as a working memory.
 This data structure is called **Deep State Representation (DSR)** due to the hybrid nature 
 of the managed elements, geometric and symbolic, and concrete (laser data) and abstract (logical predicates).
-A CORTEX instance is a set of software components, called _agents_, that share a distributed data structured called (_G_)raph playing the role of a working memory. Agents are C++ programs that can be generated using RoboComp's code generator, _robocompdsl_. 
+A CORTEX instance is a set of software components, called _agents_, that share a distributed data structure called (_G_)raph playing the role of a working memory. Agents are C++ programs that can be generated using RoboComp's code generator, _robocompdsl_. 
 
 <img src="https://user-images.githubusercontent.com/5784096/90373871-e3257d80-e072-11ea-9933-0392ea9ae7f1.png" width="800">
 
