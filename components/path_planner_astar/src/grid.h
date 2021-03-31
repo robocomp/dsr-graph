@@ -26,7 +26,7 @@
 #include <limits>
 #include <collisions.h>
 #include <QGraphicsScene>
-
+#include <chrono>
 
 struct TCellDefault
 {
@@ -45,7 +45,11 @@ struct TCellDefault
 template <typename T = TCellDefault>
 class Grid
 {
-    public:
+    using Myclock = std::chrono::system_clock;
+    using Msec = std::chrono::duration<double, std::milli>;
+    using Seconds = std::chrono::seconds;
+
+public:
         struct Dimensions
         {
             int TILE_SIZE = 100;

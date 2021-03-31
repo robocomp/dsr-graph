@@ -164,6 +164,9 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 
 	configGetString( "NavigationAgent","MinimumSafetyDistance", aux.value,"100");
 	params["MinimumSafetyDistance"] = aux;
+
+    configGetString( "NavigationAgent","grid_file_name", aux.value,"");
+    params["grid_file_name"] = aux;
 }
 
 //Check parameters and transform them to worker structure

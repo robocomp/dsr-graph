@@ -42,6 +42,7 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
     //First we move the robot in G_copy to the target coordinates
     std::optional<Node> world = G_copy.get_node(world_name);
     std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
+    if(not robot_id.has_value()) { qInfo() << __FUNCTION__ << " No robot with name " << QString::fromStdString(robot_name); std::terminate();}
     std::unique_ptr<RT_API> rt = G_copy.get_rt_api();
     rt->insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy.get_inner_eigen_api();

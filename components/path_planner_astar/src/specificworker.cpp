@@ -20,6 +20,7 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <algorithm>
+#include <ranges>
 
 /**
 * \brief Default constructor
@@ -48,6 +49,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
+	grid_file_name = params["grid_file_name"].value;
 	return true;
 }
 
@@ -61,7 +63,7 @@ void SpecificWorker::initialize(int period)
 	{
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+        std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
 
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -91,7 +93,8 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
 
 		// path planner
-		path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
+		//path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
+        path_planner_initialize(&widget_2d->scene, false, grid_file_name);
 
         widget_2d->set_draw_laser(true);
 		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
@@ -287,7 +290,7 @@ void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_fr
     dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
     dim.VMIN = std::min(outerRegion.top(), outerRegion.bottom());
     dim.HEIGHT = std::max(outerRegion.top(), outerRegion.bottom()) - dim.VMIN;
-    std::cout << __FUNCTION__ << "TileSize is " << conf_params->at("TileSize").value << std::endl;
+    std::cout << __FUNCTION__ << " - TileSize is " << conf_params->at("TileSize").value << std::endl;
     dim.TILE_SIZE = stoi(conf_params->at("TileSize").value);
 
     collisions =  std::make_shared<Collisions>();

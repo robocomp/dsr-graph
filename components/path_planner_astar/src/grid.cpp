@@ -1,7 +1,9 @@
 #include "grid.h"
 #include <QVector2D>
 #include <QGraphicsRectItem>
-
+#include <execution>
+#include <algorithm>
+# include <cppitertools/slice.hpp>
 template <typename T>
 void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
                          std::shared_ptr<Collisions> collisions_,
@@ -11,9 +13,9 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
     G = graph_;
-    uint count = 0;
+    uint32_t count = 0;
     dim = dim_;
-    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT;
+    qInfo() << __FUNCTION__ << dim.HMIN << dim.WIDTH << dim.VMIN << dim.HEIGHT << dim.TILE_SIZE;
     fmap.clear();
     fmap_aux.clear();
 
@@ -24,21 +26,56 @@ void Grid<T>::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
     }
     else
     {
-        std::cout << __FUNCTION__ << "Collisions - checkRobotValidStateAtTargetFast" << std::endl;
-        auto G_copy = G->G_copy();
+//        auto G_copy = G->G_copy();
+//        for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
+//        {
+//            for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
+//            {
+//                auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy,
+//                                                                                      std::vector<float>{(float) i,
+//                                                                                                         (float) j, 10},
+//                                                                                      std::vector<float>{0.0, 0.0,
+//                                                                                                         0.0});
+//                fmap.emplace(Key(i, j), T{count++, free, true, 1.f, node_name});
+//            }
+//            std::cout << __FILE__ << __FUNCTION__ << " Progress: " << (dim.HMIN+dim.WIDTH)*(dim.VMIN+dim.HEIGHT) - count << std::endl;
+//        }
+        //////////////////
+        size_t num_threads = 10;
+        std::thread threads[num_threads];
+        std::vector<std::vector<float>> coordinates;
         for (int i = dim.HMIN; i < dim.HMIN + dim.WIDTH; i += dim.TILE_SIZE)
-        {
             for (int j = dim.VMIN; j < dim.VMIN + dim.HEIGHT; j += dim.TILE_SIZE)
-            {
-                auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy,
-                                                                                      std::vector<float>{(float) i,
-                                                                                                         (float) j, 10},
-                                                                                      std::vector<float>{0.0, 0.0,
-                                                                                                         0.0});
-                fmap.emplace(Key(i, j), T{count++, free, true, 1.f, node_name});
-            }
-            std::cout << __FUNCTION__ << " Progress: " << i*100/(dim.HMIN+dim.WIDTH) << std::endl;
+                coordinates.emplace_back(std::vector<float>{(float)i,(float)j,10.f});
+        std::cout << __FUNCTION__ << " Creating occupation grid with " << num_threads << " threads for "  << coordinates.size() << " positions" << std::endl;
+        std::cout << __FUNCTION__ << " Estimated time: " << coordinates.size()*20/1000/60 << " minutes"  << std::endl;
+        auto start_time = Myclock::now();
+        std::vector<std::vector<std::pair<Key,T>>> value_vector(num_threads);
+        for(int &&k : iter::range(num_threads))
+        {
+            auto &v = value_vector[k];
+            std::vector<std::vector<float>> my_coordinates(coordinates.begin()+k*coordinates.size()/num_threads, coordinates.begin()+(k+1)*coordinates.size()/num_threads-1);
+            threads[k] = std::thread([this, collisions_, count,  my_coordinates, v]() mutable {
+                auto G_copy = G->G_copy();
+                std::transform(my_coordinates.begin(), my_coordinates.end(), std::back_inserter(v),
+                               [collisions_, count = 0, &G_copy](auto &pos) mutable {
+                                   auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy, pos, std::vector<float>{0.0, 0.0, 0.0});
+                                   return std::make_pair(Key(pos[0], pos[1]), T{(std::uint32_t)count++, free, true, 1.f, node_name});
+                               });
+            });
         }
+        for(auto &&k : iter::range(num_threads))
+            threads[k].join();
+
+        // add to grid results from threads
+        for(const auto &res : value_vector)
+            for(const auto &[key, val] : res)
+                fmap.emplace(key, val);
+
+        auto duration = Myclock::now() - start_time;
+        std::cout << __FUNCTION__ << " It took " << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "ms" << std::endl;
+
+        ////////////////
         fmap_aux = fmap;
         if(not file_name.empty())
             saveToFile(file_name);

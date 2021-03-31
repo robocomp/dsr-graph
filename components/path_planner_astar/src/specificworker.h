@@ -35,7 +35,10 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
+
+//#include  "../../../etc/viriato_graph_names.h"
+#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+
 
 class Plan
 {
@@ -64,6 +67,9 @@ class Plan
 
 class SpecificWorker : public GenericWorker
 {
+    using Myclock = std::chrono::system_clock;
+    using Msec = std::chrono::duration<double, std::milli>;
+
     Q_OBJECT
     public:
         SpecificWorker(TuplePrx tprx, bool startup_check);
@@ -91,6 +97,7 @@ class SpecificWorker : public GenericWorker
         bool graph_view;
         bool qscene_2d_view;
         bool osg_3d_view;
+        std::string grid_file_name;
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
         // DSR graph viewer
