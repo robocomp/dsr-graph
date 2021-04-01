@@ -50,15 +50,6 @@ class Grid
 public:
         using Dimensions = QRectF;
         float TILE_SIZE;
-//        struct Dimensions
-//        {
-//            int TILE_SIZE = 100;
-//            float HMIN = -2500, VMIN = -2500, HMAX = 2500, VMAX = 2500;
-//            float WIDTH = fabs(HMAX-HMIN);
-//            float HEIGHT= fabs(VMAX-VMIN);
-//            void set_QRect(QPointF top_left, QPointF bottom_right) { };
-//            QRectF as_QRect() const { return QRect(HMIN, VMIN, WIDTH, HEIGHT);};
-//        };
         struct Key
         {
             long int x;
@@ -114,8 +105,6 @@ public:
         typename FMap::const_iterator begin() const         { return fmap.begin(); };
         typename FMap::const_iterator end() const           { return fmap.begin(); };
         size_t size() const                                 { return fmap.size(); };
-        FMap getMap()                                       { return fmap_aux; }
-        void resetGrid()                                    { fmap = fmap_aux; }
         template <typename Q>
         void insert(const Key &key, const Q &value)
         {
@@ -140,7 +129,7 @@ public:
         void draw(QGraphicsScene* scene);
 
     private:
-        FMap fmap, fmap_aux;
+        FMap fmap;
         std::shared_ptr<DSR::DSRGraph> G;
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);

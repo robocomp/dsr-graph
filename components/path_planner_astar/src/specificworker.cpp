@@ -90,7 +90,12 @@ void SpecificWorker::initialize(int period)
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
+        // Custom widget
+        //dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
+        widget_2d = qobject_cast<DSR::QScene2dViewer *>(dsr_viewer->get_widget(opts::scene));
+
         // path planner
+        //path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
         path_planner_initialize(&widget_2d->scene, read_from_file, grid_file_name);
 
         widget_2d->set_draw_laser(false);

@@ -13,9 +13,8 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
 {
     qDebug() << __FUNCTION__ << "FileName:" << QString::fromStdString(file_name);
     G = graph_;
-    qInfo() << __FUNCTION__ << dim << TILE_SIZE;
+    qInfo() << __FUNCTION__ <<  "World dimension: " << dim << TILE_SIZE;
     fmap.clear();
-    fmap_aux.clear();
     // check that robot exists
     std::optional<int> robot_id = G->get_id_from_name(robot_name);
     if(not robot_id.has_value())
@@ -25,10 +24,8 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
     }
 
     if(read_from_file and not file_name.empty())
-    {
         readFromFile(file_name);
-        fmap_aux = fmap;
-    }
+
     else  // compute occupancy
     {
         std::thread threads[num_threads];
@@ -69,7 +66,6 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
         std::cout << __FUNCTION__ << " " << count << " elements inserted.  It took " << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "secs" << std::endl;
 
         ////////////////
-        fmap_aux = fmap;
         if(not file_name.empty())
             saveToFile(file_name);
     }
@@ -445,7 +441,7 @@ void Grid<T>::draw(QGraphicsScene* scene)
             color = "#B40404";
 
         QColor my_color = QColor(QString::fromStdString(color));
-        my_color.setAlpha(70);
+        my_color.setAlpha(40);
         QGraphicsRectItem* aux = scene->addRect(-TILE_SIZE, -TILE_SIZE, TILE_SIZE, TILE_SIZE, QPen(my_color), QBrush(my_color));
         aux->setZValue(1);
         aux->setPos(key.x, key.z);
