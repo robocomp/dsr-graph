@@ -13,7 +13,7 @@ dsr_input_file = /home/robocomp/robocomp/components/Robotica-avanzada/etc/inform
 
 tree_view = false
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 
 dsr_output_path = ../../etc/

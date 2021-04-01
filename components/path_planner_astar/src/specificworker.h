@@ -80,7 +80,7 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void new_target_from_mouse(int pos_x, int pos_y, int id);
+        void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
         void update_node_slot(const std::uint64_t id, const std::string &type);
 
     private:
@@ -98,6 +98,8 @@ class SpecificWorker : public GenericWorker
         bool qscene_2d_view;
         bool osg_3d_view;
         std::string grid_file_name;
+        bool read_from_file;
+        std::uint16_t num_threads_for_grid_occupancy;
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
         // DSR graph viewer
@@ -125,7 +127,7 @@ class SpecificWorker : public GenericWorker
         Grid<> grid;
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
-        Grid<>::Dimensions dim;
+        //Grid<>::Dimensions dim;
         void draw_path( std::list<QPointF> &path, QGraphicsScene *viewer_2d);
 };
 

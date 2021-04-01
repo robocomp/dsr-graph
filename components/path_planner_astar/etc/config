@@ -13,8 +13,10 @@ graph_view = true
 2d_view = true
 3d_view = false
 
-NavigationAgent.TileSize = 200
-NavigationAgent.grid_file_name = " pioneer-200-vrep.simscene"
+NavigationAgent.TileSize = 300
+NavigationAgent.grid_file_name=pioneer-300-vrep.simscene.grid
+NavigationAgent.num_threads_for_grid_occupancy = 15
+NavigationAgent.read_from_file = true
 
 NavigationAgent.MaxZSpeed = 650
 NavigationAgent.MaxXSpeed = 450
@@ -33,7 +35,7 @@ NavigationAgent.PlannerGraphMaxDistanceToSearch = 2500 #mm
 NavigationAgent.MinimunDetectableRotation = 0.03			# to accept a new target
 NavigationAgent.MinimunDetectableTranslation = 7 			# to accept a new target
 
-NavigationAgent.ExcludedObjectsInCollisionCheck = infiniteFloor
+NavigationAgent.ExcludedObjectsInCollisionCheck = floor
 
 Ice.Warn.Connections=0
 Ice.Trace.Network=0

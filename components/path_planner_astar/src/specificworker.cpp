@@ -50,136 +50,61 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
 	grid_file_name = params["grid_file_name"].value;
+	read_from_file = params["read_from_file"].value == "true";
+	num_threads_for_grid_occupancy = stoi(params["num_threads_for_grid_occupancy"].value);
 	return true;
 }
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << __FUNCTION__ << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-		this->startup_check();
-	else
-	{
-		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-        std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    this->Period = period;
+    if (this->startup_check_flag)
+        this->startup_check();
+    else
+    {
+        // create graph
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
 
         // Graph viewer
-		using opts = DSR::DSRViewer::view;
-		int current_opts = 0;
-		//opts main = opts::none;
-		if(tree_view)
-			current_opts = current_opts | opts::tree;
-		if(graph_view)
-			current_opts = current_opts | opts::graph;
-		if(qscene_2d_view)
-			current_opts = current_opts | opts::scene;
-		if(osg_3d_view)
-			current_opts = current_opts | opts::osg;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+        using opts = DSR::DSRViewer::view;
+        int current_opts = 0;
+        //opts main = opts::none;
+        if (tree_view)
+            current_opts = current_opts | opts::tree;
+        if (graph_view)
+            current_opts = current_opts | opts::graph;
+        if (qscene_2d_view)
+            current_opts = current_opts | opts::scene;
+        if (osg_3d_view)
+            current_opts = current_opts | opts::osg;
+        dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
-		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
-        
-		//Inner Api
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+
+        //Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
-        // Custom widget
-        dsr_viewer->add_custom_widget_to_dock("Path Planner A-Star", &custom_widget);
-		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
+        // path planner
+        path_planner_initialize(&widget_2d->scene, read_from_file, grid_file_name);
 
-		// path planner
-		//path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
-        path_planner_initialize(&widget_2d->scene, false, grid_file_name);
+        widget_2d->set_draw_laser(false);
+        connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
-        widget_2d->set_draw_laser(true);
-		connect(widget_2d, SIGNAL(mouse_right_click(int, int, int)), this, SLOT(new_target_from_mouse(int,int,int)));
-
-		// check for existing intention node
-		if(auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
+        // check for existing intention node
+        if (auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
             this->update_node_slot(intentions.front().id(), "intention");
 
-		this->Period = 100;
-		timer.start(Period);
-	}
+        this->Period = 100;
+        std::cout << __FUNCTION__ << " Initialization complete. Starting 'compute' at " << 1/(this->Period/1000.f) << " Hz"<< std::endl;
+        timer.start(Period);
+    }
 }
-//Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
-
-//void SpecificWorker::compute()
-//{
-//    //const auto &[search_state, candidate] = search_a_feasible_target(target, current_plan.params, robot);
-//    std::list<QPointF> path;
-//    QPointF currentRobotNose;
-//    Mat::Vector3d nose_3d;
-//    switch (search_state)
-//    {
-//        case SearchState::NEW_TARGET:
-//            break;
-//        case SearchState::NEW_FLOOR_TARGET:
-//            std::cout << __FUNCTION__ << " Candidate found on floor: " << std::endl;
-//            nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
-//            currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
-//            path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
-//            qInfo() << __FUNCTION__ << " Path size: " << path.size();
-//            for (auto &&p: path)
-//                qInfo() << p;
-//            if (not path.empty())
-//            {
-//                std::vector<float> x_values;
-//                x_values.reserve(path.size());
-//                std::transform(path.cbegin(), path.cend(), std::back_inserter(x_values),
-//                               [](const auto &value) { return value.x(); });
-//                std::vector<float> y_values;
-//                y_values.reserve(path.size());
-//                std::transform(path.cbegin(), path.cend(), std::back_inserter(y_values),
-//                               [](const auto &value) { return value.y(); });
-//                if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
-//                {
-//                    auto path_to_target_node = node_paths.front();
-//                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-//                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-//                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node,
-//                                                                     (float) candidate.x());
-//                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node,
-//                                                                     (float) candidate.y());
-//                    G->update_node(path_to_target_node);
-//                } else // create path_to_target_node with the solution path
-//                {
-//                    auto path_to_target_node = Node(agent_id, path_to_target_type);
-//                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-//                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-//                    G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -150);
-//                    G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) -400);
-//                    G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention_node.id());
-//                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
-//                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
-//                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node,
-//                                                                     (float) candidate.x());
-//                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node,
-//                                                                     (float) candidate.y());
-//
-//                    auto id = G->insert_node(path_to_target_node);
-//                    auto edge_to_intention = Edge(id.value(), intention_node.id(), think_type,
-//                                                  agent_id);
-//                    G->insert_or_assign_edge(edge_to_intention);
-//                }
-//                draw_path(path, &widget_2d->scene);
-//            }
-//            break;
-//        case SearchState::AT_TARGET:
-//            std::cout << __FUNCTION__ << " At target " << std::endl;
-//            break;
-//        case SearchState::NO_TARGET_FOUND:
-//            std::cout << __FUNCTION__ << " No target found: " << std::endl;
-//            break;
-//    }
-//}
-//}
-//
 
 void SpecificWorker::compute()
 {
@@ -212,10 +137,10 @@ void SpecificWorker::compute()
                             currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
                             path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
                             qInfo() << __FUNCTION__ << " Path size: " << path.size();
-                            for (auto &&p: path)
-                                qInfo() << p;
                             if (not path.empty())
                             {
+                                draw_path(path, &widget_2d->scene);
+
                                 std::vector<float> x_values;
                                 x_values.reserve(path.size());
                                 std::transform(path.cbegin(), path.cend(), std::back_inserter(x_values),
@@ -254,8 +179,7 @@ void SpecificWorker::compute()
                                                                   agent_id);
                                     G->insert_or_assign_edge(edge_to_intention);
                                 }
-                                draw_path(path, &widget_2d->scene);
-                            }
+                           }
                             break;
                         case SearchState::AT_TARGET:
                             std::cout << __FUNCTION__ << " At target " << std::endl;
@@ -286,17 +210,16 @@ void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_fr
         std::terminate();
     }
     // if read_from_file is true we should read the parameters from the file to guarantee consistency
-    dim.HMIN = std::min(outerRegion.left(), outerRegion.right());
-    dim.WIDTH = std::max(outerRegion.left(), outerRegion.right()) - dim.HMIN;
-    dim.VMIN = std::min(outerRegion.top(), outerRegion.bottom());
-    dim.HEIGHT = std::max(outerRegion.top(), outerRegion.bottom()) - dim.VMIN;
+    grid.dim.setCoords(outerRegion.left(), outerRegion.top(), outerRegion.right(), outerRegion.bottom());
+
     std::cout << __FUNCTION__ << " - TileSize is " << conf_params->at("TileSize").value << std::endl;
-    dim.TILE_SIZE = stoi(conf_params->at("TileSize").value);
+    qInfo() <<  __FUNCTION__  << grid.dim.left()  << grid.dim.bottom() << grid.dim.top() << grid.dim.right() << grid.dim.width() << grid.dim.height();
+    grid.TILE_SIZE = stoi(conf_params->at("TileSize").value);
 
     collisions =  std::make_shared<Collisions>();
     collisions->initialize(G, conf_params);
 
-    grid.initialize(G, collisions, dim, read_from_file, file_name);
+    grid.initialize(G, collisions, read_from_file, file_name, num_threads_for_grid_occupancy);
     grid.draw(&widget_2d->scene);
 
     robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
@@ -339,7 +262,7 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
     // search in a spiral pattern away from object for the first free cell
     long int x_pos = target_center.x();
     long int y_pos = target_center.y();
-    int d = dim.TILE_SIZE;
+    int d = grid.TILE_SIZE;
     for(int i : iter::range(grid.size()))
     {
         while (2 * x_pos * d < i)
@@ -380,8 +303,9 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
 //// Check new target from mouse
 ///////////////////////////////////////////////////////
 
-void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
+void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id)
 {
+    qInfo() << __FUNCTION__ << pos_x, pos_y;
     // Check if there is not 'intention' node yet in G
     if (auto intention_nodes = G->get_nodes_by_type(intention_type); intention_nodes.empty())
     {
@@ -546,3 +470,77 @@ int SpecificWorker::startup_check()
 
 
 /**************************************/
+
+//Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+
+//void SpecificWorker::compute()
+//{
+//    //const auto &[search_state, candidate] = search_a_feasible_target(target, current_plan.params, robot);
+//    std::list<QPointF> path;
+//    QPointF currentRobotNose;
+//    Mat::Vector3d nose_3d;
+//    switch (search_state)
+//    {
+//        case SearchState::NEW_TARGET:
+//            break;
+//        case SearchState::NEW_FLOOR_TARGET:
+//            std::cout << __FUNCTION__ << " Candidate found on floor: " << std::endl;
+//            nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
+//            currentRobotNose = QPointF(nose_3d.x(), nose_3d.y());
+//            path = grid.computePath(currentRobotNose, QPointF(candidate.x(), candidate.y()));
+//            qInfo() << __FUNCTION__ << " Path size: " << path.size();
+//            for (auto &&p: path)
+//                qInfo() << p;
+//            if (not path.empty())
+//            {
+//                std::vector<float> x_values;
+//                x_values.reserve(path.size());
+//                std::transform(path.cbegin(), path.cend(), std::back_inserter(x_values),
+//                               [](const auto &value) { return value.x(); });
+//                std::vector<float> y_values;
+//                y_values.reserve(path.size());
+//                std::transform(path.cbegin(), path.cend(), std::back_inserter(y_values),
+//                               [](const auto &value) { return value.y(); });
+//                if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+//                {
+//                    auto path_to_target_node = node_paths.front();
+//                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+//                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+//                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node,
+//                                                                     (float) candidate.x());
+//                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node,
+//                                                                     (float) candidate.y());
+//                    G->update_node(path_to_target_node);
+//                } else // create path_to_target_node with the solution path
+//                {
+//                    auto path_to_target_node = Node(agent_id, path_to_target_type);
+//                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+//                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+//                    G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -150);
+//                    G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) -400);
+//                    G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention_node.id());
+//                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+//                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+//                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node,
+//                                                                     (float) candidate.x());
+//                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node,
+//                                                                     (float) candidate.y());
+//
+//                    auto id = G->insert_node(path_to_target_node);
+//                    auto edge_to_intention = Edge(id.value(), intention_node.id(), think_type,
+//                                                  agent_id);
+//                    G->insert_or_assign_edge(edge_to_intention);
+//                }
+//                draw_path(path, &widget_2d->scene);
+//            }
+//            break;
+//        case SearchState::AT_TARGET:
+//            std::cout << __FUNCTION__ << " At target " << std::endl;
+//            break;
+//        case SearchState::NO_TARGET_FOUND:
+//            std::cout << __FUNCTION__ << " No target found: " << std::endl;
+//            break;
+//    }
+//}
+//}
+//

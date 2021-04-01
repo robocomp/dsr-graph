@@ -167,6 +167,12 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 
     configGetString( "NavigationAgent","grid_file_name", aux.value,"");
     params["grid_file_name"] = aux;
+
+    configGetString( "NavigationAgent","num_threads_for_grid_occupancy", aux.value,"10");
+    params["num_threads_for_grid_occupancy"] = aux;
+
+    configGetString( "NavigationAgent","read_from_file", aux.value,"true");
+    params["read_from_file"] = aux;
 }
 
 //Check parameters and transform them to worker structure

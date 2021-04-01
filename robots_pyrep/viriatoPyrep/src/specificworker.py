@@ -68,7 +68,7 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '../../etc/autonomy_lab.ttt'
+        SCENE_FILE = '../../etc/autonomy_lab_no_arm.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
@@ -77,8 +77,8 @@ class SpecificWorker(GenericWorker):
         #self.robot = Viriato()
         self.robot = YouBot()
         self.robot_object = Shape("youBot")
-        self.robot_left_arm = Shape("viriato_left_arm")
-        self.robot_left_arm_tip = Dummy("viriato_left_arm_tip")
+        #self.robot_left_arm = Shape("viriato_left_arm")
+        #self.robot_left_arm_tip = Dummy("viriato_left_arm_tip")
         # self.ViriatoBase_WheelRadius = 76.2  #mm real robot
         self.ViriatoBase_WheelRadius = 44  # mm coppelia
         self.ViriatoBase_DistAxes = 380.
@@ -86,15 +86,15 @@ class SpecificWorker(GenericWorker):
         self.ViriatoBase_Rotation_Factor = 8.1  # it should be (DistAxes + AxesLength) / 2
 
         self.cameras = {}
-        # cam = VisionSensor("camera_1_rgbd_sensor")
-        # self.cameras["camera_1_rgbd_sensor"] = {    "handle": cam, 
+        # cam = VisionSensor("wall_camera_1")
+        # self.cameras["wall_camera_1"] = { "handle": cam,
         #                                             "id": 1,
-        #                                             "angle": np.radians(cam.get_perspective_angle()), 
+        #                                             "angle": np.radians(cam.get_perspective_angle()),
         #                                             "width": cam.get_resolution()[0],
         #                                             "height": cam.get_resolution()[1],
         #                                             "depth": 3,
-        #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())), 
-        #                                             "rgb": np.array(0), 
+        #                                             "focal": cam.get_resolution()[0]/np.tan(np.radians(cam.get_perspective_angle())),
+        #                                             "rgb": np.array(0),
         #                                             "depth": np.ndarray(0) }
         # cam = VisionSensor("camera_2_rgbd_sensor")                                            
         # self.cameras["camera_2_rgbd_sensor"] = {    "handle": cam, 
@@ -163,10 +163,21 @@ class SpecificWorker(GenericWorker):
                                                                 "angle": np.radians(cam.get_perspective_angle()),
                                                                 "width": cam.get_resolution()[0],
                                                                 "height": cam.get_resolution()[1],
-                                                                "focal": (cam.get_resolution()[0]/2) / np.tan(np.radians(cam.get_perspective_angle()/2)),
+                                                                "focal": (cam.get_resolution()[0]/2) / np.tan(np.radians(cam.get_perspective_angle()/2.0)),
                                                                 "rgb": np.array(0),
                                                                 "depth": np.ndarray(0) }
 
+        cam = VisionSensor("wall_camera_1")
+        self.cameras["wall_camera_1"] = {"handle": cam,
+                                                    "id": 1,
+                                                    "angle": np.radians(cam.get_perspective_angle()),
+                                                    "width": cam.get_resolution()[0],
+                                                    "height": cam.get_resolution()[1],
+                                                    "depth": 3,
+                                                    "focal": cam.get_resolution()[0]/2 / np.tan(np.radians(cam.get_perspective_angle()/2.0)),
+                                                    "rgb": np.array(0),
+                                                    "depth": np.ndarray(0)
+                                         }
     #@QtCore.Slot()
     def compute(self):
         tc = TimeControl(0.05)  # 50 millis -> 20Hz
@@ -188,14 +199,12 @@ class SpecificWorker(GenericWorker):
     ###########################################
     def read_cameras(self):
         for name, cam in self.cameras.items():
-            cam = self.cameras["viriato_head_camera_sensor"]
             # check resolution change
             if cam["width"] != cam["handle"].get_resolution()[0] or cam["height"] != cam["handle"].get_resolution()[1]:
                 print("Resolution changed")
                 self.initialize_cameras()
                 break
-                
-            
+
             image_float = cam["handle"].capture_rgb()
 #            print("len", len(image_float))
             depth = cam["handle"].capture_depth(True)
@@ -208,10 +217,10 @@ class SpecificWorker(GenericWorker):
                                                            focalx=cam["focal"], focaly=cam["focal"],
                                                            alivetime=time.time(), depthFactor=1.0, depth=depth.tobytes())
 
-            try:
-                self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
-            except Ice.Exception as e:
-                print(e)
+            # try:
+            #     self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
+            # except Ice.Exception as e:
+            #     print(e)
 
     ###########################################
     ### PEOPLE get and publish people position

@@ -35,8 +35,6 @@ struct TCellDefault
     bool visited;
     float cost;
     std::string node_name;
-    //bool
-
     // method to save the value
     void save(std::ostream &os) const {	os << free << " " << visited << " " << node_name; };
     void read(std::istream &is) {	is >> free >> visited >> node_name;};
@@ -50,11 +48,17 @@ class Grid
     using Seconds = std::chrono::seconds;
 
 public:
-        struct Dimensions
-        {
-            int TILE_SIZE = 100;
-            float HMIN = -2500, VMIN = -2500, WIDTH = 2500, HEIGHT = 2500;
-        };
+        using Dimensions = QRectF;
+        float TILE_SIZE;
+//        struct Dimensions
+//        {
+//            int TILE_SIZE = 100;
+//            float HMIN = -2500, VMIN = -2500, HMAX = 2500, VMAX = 2500;
+//            float WIDTH = fabs(HMAX-HMIN);
+//            float HEIGHT= fabs(VMAX-VMIN);
+//            void set_QRect(QPointF top_left, QPointF bottom_right) { };
+//            QRectF as_QRect() const { return QRect(HMIN, VMIN, WIDTH, HEIGHT);};
+//        };
         struct Key
         {
             long int x;
@@ -95,11 +99,12 @@ public:
         using FMap = std::unordered_map<Key, T, KeyHasher>;
         Dimensions dim;
 
-        void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,
+        void initialize(std::shared_ptr<DSR::DSRGraph> graph_,
+                        //std::shared_ptr<DSR::RunTimeParams> params_,
                         std::shared_ptr<Collisions> collisions_,
-                        Dimensions dim_,
                         bool read_from_file = true,
-                        const std::string &file_name = std::string());
+                        const std::string &file_name = std::string(),
+                        std::uint16_t num_threads = 10);
         std::tuple<bool, T &> getCell(long int x, long int z);
         std::tuple<bool, T &> getCell(const Key &k);
         T at(const Key &k) const                            { return fmap.at(k);};
@@ -129,11 +134,10 @@ public:
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
-        std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> xincs,const std::vector<int> zincs, bool all = false);
+        std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);
         void draw(QGraphicsScene* scene);
-        Dimensions getDim() const                           { return dim;};  //deprecated
 
     private:
         FMap fmap, fmap_aux;
@@ -142,7 +146,5 @@ public:
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;
 };
-
-
 
 #endif // GRID_H
