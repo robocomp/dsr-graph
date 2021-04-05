@@ -507,7 +507,7 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
                                    //if(cam_api->get_width() == YOLO_IMG_SIZE and cam_api->get_height == YOLO_IMG_SIZE)
                                    cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
                                });
-            }
+               }
             if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
             {
                 float *depth_array = (float *) g_depth.value().get().data();
