@@ -130,7 +130,7 @@ class Collisions
 {
     public:
         void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_);
-        std::tuple<bool, std::string> checkRobotValidStateAtTargetFast(DSR::DSRGraph &G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot);
+        std::tuple<bool, std::string> checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot);
         QRectF outerRegion;
 
     private:

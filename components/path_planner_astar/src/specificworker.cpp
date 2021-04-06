@@ -81,7 +81,6 @@ void SpecificWorker::initialize(int period)
             current_opts = current_opts | opts::osg;
         dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
-
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
 
         //Inner Api
@@ -90,15 +89,14 @@ void SpecificWorker::initialize(int period)
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
-        // Custom widget
+        // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(dsr_viewer->get_widget(opts::scene));
+        widget_2d->set_draw_laser(false);
+        connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
         // path planner
         //path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
         path_planner_initialize(&widget_2d->scene, read_from_file, grid_file_name);
-
-        widget_2d->set_draw_laser(false);
-        connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
         // check for existing intention node
         if (auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
@@ -373,24 +371,12 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
         auto node = G->get_node(id);
         if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {
-            std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
+            std::optional<std::string> plan = G->get_attrib_by_name<current_intention_att >(node.value());
+            //std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
             if (plan.has_value())
                   plan_buffer.put(plan.value(), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
         }
     }
-//    if (type == omnirobot_type)
-//    {
-//        float X,Y,A;
-//        if(auto robot_node = G->get_node(id); robot_node.has_value())
-//            if(auto tx = G->get_attrib_by_name<base_target_x_att>(robot_node.value()); tx.has_value())
-//                X = tx.value();
-//        if(auto robot_node = G->get_node(id); robot_node.has_value())
-//            if(auto ty = G->get_attrib_by_name<base_target_x_att>(robot_node.value()); ty.has_value())
-//                Y = ty.value();
-//        if(auto robot_node = G->get_node(id); robot_node.has_value())
-//            if(auto angle = G->get_attrib_by_name<base_target_angle_att>(robot_node.value()); angle.has_value())
-//                A = angle.value();
-//    }
 }
 
 //////////////////////////////////////////////7

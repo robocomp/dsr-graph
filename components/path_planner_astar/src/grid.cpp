@@ -44,8 +44,8 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
             threads[k] = std::thread([this, collisions_, my_coordinates, &value_vector, k, rot]() {
                 auto G_copy = G->G_copy();
                 std::transform(my_coordinates.begin(), my_coordinates.end(), std::back_inserter(value_vector[k]),
-                               [collisions_, &G_copy, rot](auto &pos) {
-                                    auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy, pos, rot);
+                               [collisions_, &G_copy, rot](auto &pos) mutable {
+                                    auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy.get(), pos, rot);
                                     return std::make_pair(Key(pos[0], pos[1]), T{0, free, true, 1.f, node_name});
                                });
             });
@@ -442,7 +442,7 @@ void Grid<T>::draw(QGraphicsScene* scene)
 
         QColor my_color = QColor(QString::fromStdString(color));
         my_color.setAlpha(40);
-        QGraphicsRectItem* aux = scene->addRect(-TILE_SIZE, -TILE_SIZE, TILE_SIZE, TILE_SIZE, QPen(my_color), QBrush(my_color));
+        QGraphicsRectItem* aux = scene->addRect(-TILE_SIZE/2, -TILE_SIZE/2, TILE_SIZE, TILE_SIZE, QPen(my_color), QBrush(my_color));
         aux->setZValue(1);
         aux->setPos(key.x, key.z);
         scene_grid_points.push_back(aux);

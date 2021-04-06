@@ -42,14 +42,14 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
 
 }
 
-std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
+std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in G_copy to the target coordinates
-    std::optional<Node> world = G_copy.get_node(world_name);
-    std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
-    std::unique_ptr<RT_API> rt = G_copy.get_rt_api();
+    std::optional<Node> world = G_copy->get_node(world_name);
+    std::optional<int> robot_id = G_copy->get_id_from_name(robot_name);
+    std::unique_ptr<RT_API> rt = G_copy->get_rt_api();
     rt->insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy.get_inner_eigen_api();
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy->get_inner_eigen_api();
 
     //// Check if the robot at the target collides with any object in restNodes
     bool collision = false;
