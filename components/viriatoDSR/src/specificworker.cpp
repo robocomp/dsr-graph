@@ -182,8 +182,8 @@ void SpecificWorker::update_omirobot()
             auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
             G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
             G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
-            G->modify_attrib_local<robot_current_linear_speed_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
-            G->modify_attrib_local<robot_current_angular_speed_att>(edge, std::vector<float>{0, 0, bState.rotV});
+            G->modify_attrib_local<robot_local_linear_velocity_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
+            G->modify_attrib_local<robot_local_angular_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
             G->insert_or_assign_edge(edge);
             last_state = bState;
         }
