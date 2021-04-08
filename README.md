@@ -10,7 +10,7 @@
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 
-Note: This documentation is related to the DSR/CORTEX **components**. You can find the DSR/CORTEX related **library** in robocomp repository ([classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr)) with some developer documentation to use the APIs and UIs.
+Note: This documentation is related to the DSR/CORTEX **components**. You can find the DSR/CORTEX related **library** in robocomp repository ([libs/dsr](https://github.com/robocomp/robocomp/tree/development/libs/dsr)) with some developer documentation to use the APIs and UIs.
 
 # Description
 CORTEX is a long term effort to build a series of architectural designs around the simple idea 
@@ -25,7 +25,7 @@ A CORTEX instance is a set of software components, called _agents_, that share a
 
 
 # Installation
-Check the [classes/dsr](https://github.com/robocomp/robocomp/tree/development/classes/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
+Check the [libs/dsr](https://github.com/robocomp/robocomp/tree/development/libs/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
 
 To install these components in this repositor it's assumed that you have already installed [robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
 You must clone this (dsr-graph) repository in ~/robocomp/components/
