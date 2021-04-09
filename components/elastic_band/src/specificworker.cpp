@@ -124,12 +124,8 @@ void SpecificWorker::compute()
         if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
         {
             const auto &[laser_poly, laser_cart] = laser_data.value();
-            // qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
-            // for (auto &&p:path) qInfo() << p;
             auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
             auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-            //LaserData laser_data = read_laser_from_G();
-            //const auto &[laser_poly, laser_cart] = update_laser_polygon(laser_data);
             auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
             compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
             clean_points(path, laser_poly, current_robot_polygon);

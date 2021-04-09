@@ -33,7 +33,9 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
+//#include  "../../../etc/viriato_graph_names.h"
+#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+
 
 class Plan
 {
@@ -73,8 +75,6 @@ class SpecificWorker : public GenericWorker
         int startup_check();
         void initialize(int period);
         void new_target_from_mouse(int pos_x, int pos_y, int id);
-        void update_node_slot(const std::uint64_t id, const std::string &type);
-        void update_attrs_slot(const std::uint64_t id, const std::map<string, DSR::Attribute> &attribs);
 
     private:
         // DSR graph
@@ -95,6 +95,11 @@ class SpecificWorker : public GenericWorker
         // DSR graph viewer
         std::unique_ptr<DSR::DSRViewer> dsr_viewer;
         QHBoxLayout mainLayout;
+        void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+        void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+        void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
 
         //local widget
@@ -103,13 +108,17 @@ class SpecificWorker : public GenericWorker
         //drawing
         DSR::QScene2dViewer *widget_2d;
 
+        // path
+       void draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d);
+
+        //laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
 
         //Signal subscription
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>>> laser_buffer;
 
-        //elastic band
+        // robot
         const float ROBOT_LENGTH = 500;  //GET FROM G
         float MAX_ADV_SPEED = 1000;
         float MAX_ROT_SPEED = 1;
@@ -119,6 +128,7 @@ class SpecificWorker : public GenericWorker
         const float FINAL_DISTANCE_TO_TARGET = 100; //mm
         float KB = 2.0;
 
+        // controller
         void path_follower_initialize();
         std::tuple<float, float, float>
         update(const std::vector<QPointF> &path, const LaserData &laser_data, const QPointF &robot_pose,
@@ -127,6 +137,8 @@ class SpecificWorker : public GenericWorker
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         float exponentialFunction(float value, float xValue, float yValue, float min);
         float rewrapAngleRestricted(const float angle);
+
+        // target
         QPointF current_target;
         std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);
         bool robot_is_active = false;

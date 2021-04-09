@@ -33,7 +33,8 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
+//#include  "../../../etc/viriato_graph_names.h"
+#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 
 class Plan
 {

@@ -22,6 +22,8 @@
 #include <cppitertools/enumerate.hpp>
 #include <algorithm>
 #include <QPointF>
+#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+
 
 /**
 * \brief Default constructor
@@ -82,8 +84,12 @@ void SpecificWorker::initialize(int period)
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
-		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::update_attrs_slot);
+        //dsr update signals
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
@@ -94,18 +100,18 @@ void SpecificWorker::initialize(int period)
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path follower", &custom_widget);
         connect(custom_widget.startButton, &QPushButton::clicked, [this](){
-                        if(robot_is_active)
-                        {
-                            robot_is_active = false;
-                            send_command_to_robot((std::make_tuple(0, 0, 0)));
-                            custom_widget.startButton->setText("Start");
-                        }
-                        else
-                        {
-                            robot_is_active = true;
-                            custom_widget.startButton->setText("Stop");
-                        }
-                    });
+            if(robot_is_active)
+            {
+                robot_is_active = false;
+                send_command_to_robot((std::make_tuple(0, 0, 0)));
+                custom_widget.startButton->setText("Start");
+            }
+            else
+            {
+                robot_is_active = true;
+                custom_widget.startButton->setText("Stop");
+            }
+        });
 
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(dsr_viewer->get_widget(opts::scene));
         if (widget_2d != nullptr)
@@ -116,7 +122,7 @@ void SpecificWorker::initialize(int period)
 
         // check for existing intention node
         if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
-            this->update_node_slot(paths.front().id(), path_to_target_type);
+            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type);
 
         this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
@@ -133,6 +139,7 @@ void SpecificWorker::compute()
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value()) // NEW PATH!
     {
+        qInfo() << __FUNCTION__ << "New path";
         path.clear();
         path = path_o.value();
     }
@@ -140,7 +147,7 @@ void SpecificWorker::compute()
     if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
     {
         const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
-        // qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
+        qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
         // for (auto &&p:path) qInfo() << p;
         auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
         auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
@@ -149,6 +156,10 @@ void SpecificWorker::compute()
         auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
         auto [adv,side,rot] =  send_command_to_robot(speeds);
         std::cout << "---------------------------" << std::endl;
+        std::cout << "Robot position: " << std::endl;
+        std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
+        std::cout << "Target position: " <<  std::endl;
+        std::cout << "\t " << current_target.x() << ", " << current_target.y() << std::endl;
         std::cout << "Dist to target: " << std::endl;
         std::cout << "\t " << QVector2D(robot_pose - current_target).length() << std::endl;
         std::cout << "Ref speeds:  " << std::endl;
@@ -208,25 +219,25 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
     };
 
     // Target achieved
-    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET or is_increasing(euc_dist_to_target)))
+    std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
+              << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
+              << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
+
+    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET) or is_increasing(euc_dist_to_target))
     {
+        qInfo() << __FUNCTION__ << "Target achieved";
         advVel = 0;  sideVel= 0; rotVel = 0;
         active = false;
         robot_is_active = false;
         custom_widget.startButton->setText("Start");
-        std::cout << std::boolalpha << __FUNCTION__ << " Target achieved. Conditions: n points < 2 " << (path.size() < 3)
-        << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
-        << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
         return std::make_tuple(0,0,0);  //adv, side, rot
     }
 
     /// Compute rotational speed
     QLineF robot_to_nose(robot, robot_nose);
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robot_nose, path[1]))));
-    if(angle >= 0)
-        rotVel = std::clamp(angle, 0.f, MAX_ROT_SPEED);
-    else
-        rotVel = std::clamp(angle, -MAX_ROT_SPEED, 0.f);
+    
+    rotVel = std::clamp(angle, -MAX_ROT_SPEED, MAX_ROT_SPEED);
     if(euc_dist_to_target < 5*FINAL_DISTANCE_TO_TARGET)
         rotVel = 0.f;
 
@@ -254,21 +265,36 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
 
 std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
 {
-    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
-    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
-    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
+//    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
+//    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
+//    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
 
     auto &[adv_, side_, rot_] = speeds;
-    auto adv = (adv_conv * QVec::vec2(adv_,1.0))[0];
-    auto rot = (rot_conv * QVec::vec2(rot_,1.0))[0];
-    auto side = (side_conv * QVec::vec2(side_, 1.0))[0];
     auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv);
-    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot);
-    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side);
+    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv_);
+    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot_);
+    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side_);
     G->update_node(robot_node.value());
-    return std::make_tuple(adv, side, rot);
+    return std::make_tuple(adv_, side_, rot_);
 }
+
+//std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
+//{
+//    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
+//    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
+//    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
+//
+//    auto &[adv_, side_, rot_] = speeds;
+//    auto adv = (adv_conv * QVec::vec2(adv_,1.0))[0];
+//    auto rot = (rot_conv * QVec::vec2(rot_,1.0))[0];
+//    auto side = (side_conv * QVec::vec2(side_, 1.0))[0];
+//    auto robot_node = G->get_node(robot_name);
+//    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv);
+//    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot);
+//    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side);
+//    G->update_node(robot_node.value());
+//    return std::make_tuple(adv, side, rot);
+//}
 
 // compute max de gauss(value) where gauss(x)=y  y min
 float SpecificWorker::exponentialFunction(float value, float xValue, float yValue, float min)
@@ -300,7 +326,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
+void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
     if (type == path_to_target_type)
@@ -319,6 +345,7 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
                 auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
                 if(t_x.has_value() and t_y.has_value())
                     current_target = QPointF(t_x.value(), t_y.value());
+                draw_path(path, &widget_2d->scene);
             }
         }
     }
@@ -354,20 +381,54 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
     }
 }
 
-void SpecificWorker::update_attrs_slot(const std::uint64_t id, const std::map<string, DSR::Attribute> &attribs)
-{
-    //qInfo() << "Update attr " << id;
-}
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
-
-
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
-
 /**************************************/
+
+void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d)
+{
+    static std::vector<QGraphicsLineItem *> scene_road_points;
+
+    //clear previous points
+    for (QGraphicsLineItem* item : scene_road_points)
+        viewer_2d->removeItem((QGraphicsItem*)item);
+    scene_road_points.clear();
+
+    /// Draw all points
+    QGraphicsLineItem *line1, *line2;
+    std::string color;
+    for (unsigned int i = 1; i < path.size(); i++)
+        for(auto &&p_pair : iter::sliding_window(path, 2))
+        {
+            if(p_pair.size() < 2)
+                continue;
+            Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+            Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+            Mat::Vector2d dir = a_point - b_point;
+            Mat::Vector2d dir_perp = dir.unitOrthogonal();
+            Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+            Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+            auto left = segment_perp.pointAt(50);
+            auto right = segment_perp.pointAt(-50);
+            QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+            QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
+
+            if(i == 1 or i == path.size()-1)
+                color = "#00FF00"; //Green
+
+            line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+            line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+
+            line1->setZValue(2000);
+            line2->setZValue(2000);
+            scene_road_points.push_back(line1);
+            scene_road_points.push_back(line2);
+        }
+}
