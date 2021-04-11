@@ -22,8 +22,7 @@
 #include <cppitertools/enumerate.hpp>
 #include <algorithm>
 #include <QPointF>
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
-
+#include <ranges>
 
 /**
 * \brief Default constructor
@@ -132,7 +131,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    static std::vector<QPointF> path;
+    static std::vector<Eigen::Vector2f> path;
 
     if(not robot_is_active) return;
 
@@ -149,10 +148,10 @@ void SpecificWorker::compute()
         const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
         qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
         // for (auto &&p:path) qInfo() << p;
-        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
+        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 500, 0), robot_name).value();
         auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
-        auto robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-        auto robot_pose = QPointF(robot_pose_3d.x(), robot_pose_3d.y());
+        auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
+        auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
         auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
         auto [adv,side,rot] =  send_command_to_robot(speeds);
         std::cout << "---------------------------" << std::endl;
@@ -161,7 +160,7 @@ void SpecificWorker::compute()
         std::cout << "Target position: " <<  std::endl;
         std::cout << "\t " << current_target.x() << ", " << current_target.y() << std::endl;
         std::cout << "Dist to target: " << std::endl;
-        std::cout << "\t " << QVector2D(robot_pose - current_target).length() << std::endl;
+        std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
         std::cout << "Ref speeds:  " << std::endl;
         std::cout << "\t Adv-> " << adv << std::endl;
         std::cout << "\t Side -> " << side << std::endl;
@@ -195,20 +194,23 @@ void SpecificWorker::path_follower_initialize()
     //    robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
 }
 
-std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF> &path, const LaserData &laser_data, const QPointF &robot_pose, const QPointF &robot_nose, const QPointF &target)
+std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::Vector2f> &path, const LaserData &laser_data, const Eigen::Vector2f &robot_pose,
+                                                       const Eigen::Vector2f &robot_nose, const Eigen::Vector2f &target)
 {
     qDebug() << "Controller - "<< __FUNCTION__;
     if(path.size() < 2)
-        return std::make_tuple(0,0,0);
+    {
+        qWarning() << __FUNCTION__ << " Path with less than 2 elements. Returning";
+        return std::make_tuple(0, 0, 0);
+    }
 
     // now y is forward direction and x is pointing rightwards
     float advVel = 0.f, sideVel = 0.f, rotVel = 0.f;
     //auto firstPointInPath = points.front();
     bool active = true;
     bool blocked = false;
-    QPointF robot = QPointF(robot_pose.x(), robot_pose.y());
     // Compute euclidean distance to target
-    float euc_dist_to_target = QVector2D(robot - target).length();
+    float euc_dist_to_target = (robot_pose - target).norm();
 
     auto is_increasing = [](float new_val)
     { static float ant_value = 0.f;
@@ -220,10 +222,9 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
 
     // Target achieved
     std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
-              << " dist < 100 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET)
-              << " der_dist > 0 " << is_increasing(euc_dist_to_target)  << std::endl;
+              << " dist < 200 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET);
 
-    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET) or is_increasing(euc_dist_to_target))
+    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
     {
         qInfo() << __FUNCTION__ << "Target achieved";
         advVel = 0;  sideVel= 0; rotVel = 0;
@@ -233,16 +234,37 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
         return std::make_tuple(0,0,0);  //adv, side, rot
     }
 
-    /// Compute rotational speed
-    QLineF robot_to_nose(robot, robot_nose);
-    float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(QLineF(robot_nose, path[1]))));
-    
-    rotVel = std::clamp(angle, -MAX_ROT_SPEED, MAX_ROT_SPEED);
-    if(euc_dist_to_target < 5*FINAL_DISTANCE_TO_TARGET)
-        rotVel = 0.f;
+    auto to_QPointF = [](const Eigen::Vector2f &a){ return QPointF(a.x(), a.y());};
 
-    /// Compute advance speed  //////////  OJO MAL
-    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, 1.5, 0.1, 0), euc_dist_to_target);
+    /// Compute rotational speed
+    // closest point to robot nose in path
+    auto closest_point_to_nose = std::ranges::min_element(path, [robot_nose](auto &a, auto &b){ return (robot_nose - a).norm() < (robot_nose - b).norm();});
+    // compute angle between robot-to-nose line and  tangent to closest point in path
+    QLineF tangent;
+    if(std::distance(path.cbegin(), closest_point_to_nose) == 0)
+        tangent = QLineF(to_QPointF(*closest_point_to_nose), to_QPointF(*std::next(path.cbegin(),1)));
+    else if(std::distance(closest_point_to_nose, path.cend()) == 0)
+        tangent = QLineF(to_QPointF(*closest_point_to_nose), to_QPointF(*path.cend()));
+    else tangent = QLineF(to_QPointF(*(closest_point_to_nose - 1)), to_QPointF(*(closest_point_to_nose + 1)));
+    QLineF robot_to_nose(to_QPointF(robot_pose), to_QPointF(robot_nose));
+    float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(tangent)));
+    // compute distance to path to cancel stationary error
+    auto e_tangent = Eigen::Hyperplane<float, 2>::Through(Eigen::Vector2f(tangent.p1().x(), tangent.p1().y()),
+                                                          Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
+    float signed_distance = e_tangent.signedDistance(robot_nose);
+    float correction = 0.2*tanh(signed_distance);
+    qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
+    angle += correction;
+    // rot speed gain
+    rotVel = 2*angle;
+    // limit angular  values to physical limits
+    rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
+    // cancel final rotation
+    if(euc_dist_to_target < 3*FINAL_DISTANCE_TO_TARGET)
+          rotVel = 0.f;
+
+    /// Compute advance speed
+    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, 0.8, 0.2, 0), euc_dist_to_target);
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};
@@ -260,7 +282,6 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<QPointF
 
     //qInfo() << advVelz << advVelx << rotVel;
     return std::make_tuple(advVel, sideVel, rotVel);
-    //return std::make_tuple (true, blocked, active, advVelz, advVelx, rotVel); //side, adv, rot
 }
 
 std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
@@ -337,14 +358,14 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto y_values = G->get_attrib_by_name<path_y_values_att>(node.value());
             if(x_values.has_value() and y_values.has_value())
             {
-                std::vector<QPointF> path;
+                std::vector<Eigen::Vector2f> path;
                 for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
-                    path.emplace_back(QPointF(x, y));
+                    path.emplace_back(Eigen::Vector2f(x, y));
                 path_buffer.put(path);
                 auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
                 auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
                 if(t_x.has_value() and t_y.has_value())
-                    current_target = QPointF(t_x.value(), t_y.value());
+                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
                 draw_path(path, &widget_2d->scene);
             }
         }
@@ -392,7 +413,7 @@ int SpecificWorker::startup_check()
 }
 /**************************************/
 
-void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d)
+void SpecificWorker::draw_path(std::vector<Eigen::Vector2f> &path, QGraphicsScene* viewer_2d)
 {
     static std::vector<QGraphicsLineItem *> scene_road_points;
 
