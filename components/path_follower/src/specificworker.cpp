@@ -154,6 +154,8 @@ void SpecificWorker::compute()
         auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
         auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
         auto [adv,side,rot] =  send_command_to_robot(speeds);
+        remove_trailing_path(path, robot_pose);
+
         std::cout << "---------------------------" << std::endl;
         std::cout << "Robot position: " << std::endl;
         std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
@@ -168,7 +170,6 @@ void SpecificWorker::compute()
         std::cout << "\tRobot_is_active -> " <<  std::boolalpha << robot_is_active << std::endl;
     }
 }
-
 void SpecificWorker::path_follower_initialize()
 {
     qDebug()<< "Controller - " << __FUNCTION__;
@@ -193,7 +194,26 @@ void SpecificWorker::path_follower_initialize()
     //    robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
     //    robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
 }
-
+void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
+{
+    // closest point to robot nose in path
+    auto closest_point_to_robot = std::ranges::min_element(path, [robot_pose](auto &a, auto &b){ return (robot_pose - a).norm() < (robot_pose - b).norm();});
+    std::vector<float> x_values;  x_values.reserve(path.size());
+    std::transform(closest_point_to_robot, path.cend(), std::back_inserter(x_values),
+                   [](const auto &value) { return value.x(); });
+    std::vector<float> y_values;  y_values.reserve(path.size());
+    std::transform(closest_point_to_robot, path.cend(), std::back_inserter(y_values),
+                   [](const auto &value) { return value.y(); });
+    if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+    {
+        auto path_to_target_node = node_paths.front();
+        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+        G->update_node(path_to_target_node);
+    }
+    else
+        std::cout << __FUNCTION__ << "No path target " << std::endl;
+}
 std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::Vector2f> &path, const LaserData &laser_data, const Eigen::Vector2f &robot_pose,
                                                        const Eigen::Vector2f &robot_nose, const Eigen::Vector2f &target)
 {
@@ -234,6 +254,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
         return std::make_tuple(0,0,0);  //adv, side, rot
     }
 
+    // lambda to convert from Eigen to QPointF
     auto to_QPointF = [](const Eigen::Vector2f &a){ return QPointF(a.x(), a.y());};
 
     /// Compute rotational speed

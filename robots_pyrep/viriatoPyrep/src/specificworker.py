@@ -157,6 +157,7 @@ class SpecificWorker(GenericWorker):
     def initialize_cameras(self):
         print("Initialize camera")
         self.cameras.clear()
+        self.cameras.clear()
         cam = VisionSensor("viriato_head_camera_sensor")
         self.cameras["viriato_head_camera_sensor"] = {    "handle": cam,
                                                                 "id": 0,
