@@ -24,8 +24,6 @@
 from genericworker import *
 
 
-# If RoboComp was compiled with Python bindings you can use InnerModel in Python
-sys.path.append('/opt/robocomp/lib')
 from pydsr import *
 
 # import librobocomp_qmat
@@ -53,6 +51,11 @@ def delete_edge(fr: int, to: int, type : str):
 
 
 class SpecificWorker(GenericWorker):
+
+    def signal_node_att(self, id: int, attribute_names: [str]):
+        print("UPDATE NODE ATT: ", id, " ", attribute_names)
+        print(self.g.get_node(id))
+
     def __init__(self, proxy_map, startup_check=False):
         super(SpecificWorker, self).__init__(proxy_map)
         self.Period = 2000
@@ -62,6 +65,7 @@ class SpecificWorker(GenericWorker):
 
         try:
             signals.connect(self.g, signals.UPDATE_NODE_ATTR, update_node_att)
+            signals.connect(self.g, signals.UPDATE_NODE_ATTR, self.signal_node_att)
             signals.connect(self.g, signals.UPDATE_NODE, update_node)
             signals.connect(self.g, signals.DELETE_NODE, delete_node)
             signals.connect(self.g, signals.UPDATE_EDGE, update_edge)
@@ -97,7 +101,7 @@ class SpecificWorker(GenericWorker):
         print('SpecificWorker.compute...')
 
         #a = Node(123, "laser", "laserprueba")
-        node = self.g.get_node("world")
+        #node = self.g.get_node("world")
 
         #print(node)
 
