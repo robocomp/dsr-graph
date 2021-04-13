@@ -1,0 +1,25 @@
+CommonBehavior.Endpoints=tcp -p 10020
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+agent_id = 20
+agent_name = graph_editor
+
+dsr_input_file = ""
+dsr_output_path = /home/robocomp/robocomp/components/dsr-graph/etc
+dsr_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent020_dsr.json
+test_output_file = /home/robocomp/robocomp/components/dsr-graph/etc/agent020_test.txt
+
+
+
+tree_view = false
+graph_view = false
+2d_view = false
+3d_view = false
+
+
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
