@@ -92,9 +92,9 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 //	params["InnerModelPath"] = aux;
 	RoboCompCommonBehavior::Parameter aux;
 	aux.editable = false;
-	configGetString( "","agent_name", aux.value,"");
+	configGetString( "","agent_name", aux.value,"noname");
 	params["agent_name"] = aux;
-	configGetString( "","agent_id", aux.value,"false");
+	configGetString( "","agent_id", aux.value, "none");
 	params["agent_id"] = aux;
 	configGetString( "","tree_view", aux.value, "none");
 	params["tree_view"] = aux;
@@ -105,12 +105,10 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
 
-    configGetString("NavigationAgent", "TileSize", aux.value,"250");
-    params["TileSize"] = aux;
 
-	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
-	params["RobotName"] = aux;
-
+//	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
+//	params["RobotName"] = aux;
+//
 	configGetString( "NavigationAgent","MaxAdvanceSpeed", aux.value,"600");
 	params["MaxAdvanceSpeed"] = aux;
 
@@ -131,15 +129,15 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 
 	configGetString( "NavigationAgent","MinControllerPeriod", aux.value,"100");
 	params["MinControllerPeriod"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphPoints", aux.value,"100");
-	params["PlannerGraphPoints"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphNeighbours", aux.value,"20");
-	params["PlannerGraphNeighbours"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphMaxDistanceToSearch", aux.value,"2500");
-	params["PlannerGraphMaxDistanceToSearch"] = aux;
+//
+//	configGetString( "NavigationAgent","PlannerGraphPoints", aux.value,"100");
+//	params["PlannerGraphPoints"] = aux;
+//
+//	configGetString( "NavigationAgent","PlannerGraphNeighbours", aux.value,"20");
+//	params["PlannerGraphNeighbours"] = aux;
+//
+//	configGetString( "NavigationAgent","PlannerGraphMaxDistanceToSearch", aux.value,"2500");
+//	params["PlannerGraphMaxDistanceToSearch"] = aux;
 
 //	configGetString( "NavigationAgent","OuterRegionLeft", aux.value,"0");
 //	params["OuterRegionLeft"] = aux;
@@ -153,17 +151,17 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 //	configGetString( "NavigationAgent","OuterRegionTop", aux.value,"4250");
 //	params["OuterRegionTop"] = aux;
 
-	configGetString( "NavigationAgent","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
-	params["ExcludedObjectsInCollisionCheck"] = aux;
-
-	configGetString( "NavigationAgent","MinimumDetectableRotation", aux.value,"0.03");
-	params["MinimumDetectableRotation"] = aux;
-
-	configGetString( "NavigationAgent","MinimumDetectableTranslation", aux.value,"10");
-	params["MinimumDetectableTranslation"] = aux;
-
-	configGetString( "NavigationAgent","MinimumSafetyDistance", aux.value,"100");
-	params["MinimumSafetyDistance"] = aux;
+//	configGetString( "NavigationAgent","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
+//	params["ExcludedObjectsInCollisionCheck"] = aux;
+//
+//	configGetString( "NavigationAgent","MinimumDetectableRotation", aux.value,"0.03");
+//	params["MinimumDetectableRotation"] = aux;
+//
+//	configGetString( "NavigationAgent","MinimumDetectableTranslation", aux.value,"10");
+//	params["MinimumDetectableTranslation"] = aux;
+//
+//	configGetString( "NavigationAgent","MinimumSafetyDistance", aux.value,"100");
+//	params["MinimumSafetyDistance"] = aux;
 }
 
 //Check parameters and transform them to worker structure

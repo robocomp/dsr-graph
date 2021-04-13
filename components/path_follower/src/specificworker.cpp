@@ -30,7 +30,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
-    QLoggingCategory::setFilterRules("*.debug=false\n");
+    //QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -45,12 +45,16 @@ SpecificWorker::~SpecificWorker()
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
-	agent_name = params["agent_name"].value;
-	agent_id = stoi(params["agent_id"].value);
-    tree_view = params["tree_view"].value == "true";
-	graph_view = params["graph_view"].value == "true";
-	qscene_2d_view = params["2d_view"].value == "true";
-	osg_3d_view = params["3d_view"].value == "true";
+    try
+    {
+        agent_name = params["agent_name"].value;
+        agent_id = stoi(params["agent_id"].value);
+        tree_view = params["tree_view"].value == "true";
+        graph_view = params["graph_view"].value == "true";
+        qscene_2d_view = params["2d_view"].value == "true";
+        osg_3d_view = params["3d_view"].value == "true";
+    }
+    catch(...){std::cout << __FUNCTION__ << "Problem reading params" << std::endl;};
 	return true;
 }
 
@@ -197,6 +201,8 @@ void SpecificWorker::path_follower_initialize()
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
 {
     // closest point to robot nose in path
+    if(path.size() == 1) return;
+
     auto closest_point_to_robot = std::ranges::min_element(path, [robot_pose](auto &a, auto &b){ return (robot_pose - a).norm() < (robot_pose - b).norm();});
     std::vector<float> x_values;  x_values.reserve(path.size());
     std::transform(closest_point_to_robot, path.cend(), std::back_inserter(x_values),

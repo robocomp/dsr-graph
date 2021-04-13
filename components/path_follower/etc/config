@@ -5,7 +5,8 @@ DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
-agent_id = 45 # Change id
+
+agent_id = 45
 agent_name = path_follower
 tree_view = false
 graph_view = true

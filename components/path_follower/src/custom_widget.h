@@ -42,6 +42,7 @@ Q_OBJECT
 public:
     Custom_widget() : Ui_local_guiDlg()
     {
+        qRegisterMetaType<std::uint64_t>("std::uint64_t");
         setupUi(this);
     }
 	~Custom_widget()
