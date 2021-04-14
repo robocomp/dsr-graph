@@ -30,6 +30,9 @@ private:
     QAction *modeMoveAction;
     QAction *modeCreatetAction;
     bool dragging;
+    GraphNode* temp_from_node;
+    GraphNode* temp_to_node;
+    GraphEdge* temp_edge;
 
 private:
     std::optional<uint64_t> create_new_node(QPointF position);
@@ -38,6 +41,7 @@ private:
     bool create_new_connected_node(QPointF position, uint64_t node_id, bool reverse=false);
     bool create_new_edge(uint64_t from, uint64_t to);
     bool _create_new_G_edge(QString type, uint64_t from_id, uint64_t to_id);
+    void delete_temps();
 //    void wheelEvent(QWheelEvent* event);
 //    void resizeEvent(QResizeEvent* e);
     void mouseMoveEvent(QMouseEvent *event);
