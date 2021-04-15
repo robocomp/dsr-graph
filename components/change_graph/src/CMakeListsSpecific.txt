@@ -13,11 +13,16 @@ SET ( HEADERS
   specificmonitor.h
 
 )
+
+find_package(dsr_gui)
+find_package(dsr_api)
+find_package(dsr_core)
+
 INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
-set(CMAKE_CXX_STANDARD 17)
-add_definitions(-g  -fmax-errors=1 -std=c++2a )
+set(CMAKE_CXX_STANDARD 20)
+add_definitions(-g  -fmax-errors=1 -std=c++20 )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
-SET(SPECIFIC_LIBS ${LIBS} dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB Eigen3::Eigen)
+SET(SPECIFIC_LIBS ${LIBS} dsr_core dsr_gui dsr_api qmat fastcdr fastrtps osgDB Eigen3::Eigen)
 
 
 
