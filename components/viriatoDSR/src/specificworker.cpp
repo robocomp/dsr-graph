@@ -364,7 +364,7 @@ void SpecificWorker::LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData)
 //SUBSCRIPTION to pushBaseState method from OmniRobotPub interface
 void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state)
 {
-	omnirobot_buffer.put(state);
+	omnirobot_buffer.put(RoboCompGenericBase::TBaseState{state});
 }
 
 void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap mstateMap)
@@ -376,7 +376,7 @@ void SpecificWorker::JointMotorPub_motorStates(RoboCompJointMotor::MotorStateMap
 /// SUBSCRIPTION to newArmState method from KinovaArmPub interface
 void SpecificWorker::KinovaArmPub_newArmState(RoboCompKinovaArmPub::TArmState armstate)
 {
-    kinovaarm_buffer.put(armstate);
+    kinovaarm_buffer.put(RoboCompKinovaArmPub::TArmState{armstate});
 }
 
 
