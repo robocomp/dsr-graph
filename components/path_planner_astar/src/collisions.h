@@ -24,8 +24,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
-
+#include  "../../../etc/viriato_graph_names.h"
 
 typedef fcl::BVHModel<fcl::OBBRSS> FCLModel;
 typedef std::shared_ptr<FCLModel> FCLModelPtr;

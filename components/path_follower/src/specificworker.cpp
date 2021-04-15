@@ -29,8 +29,9 @@
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
+    qRegisterMetaType<std::uint64_t>("std::uint64_t");
 	this->startup_check_flag = startup_check;
-    //QLoggingCategory::setFilterRules("*.debug=false\n");
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -388,7 +389,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<Eigen::Vector2f> path;
                 for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
                     path.emplace_back(Eigen::Vector2f(x, y));
-                path_buffer.put(path);
+                path_buffer.put(std::move(path));
                 auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
                 auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
                 if(t_x.has_value() and t_y.has_value())
@@ -408,7 +409,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             {
                 if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
-                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
+                laser_buffer.put(std::move(std::make_tuple(angles.value().get(), dists.value().get())),
                                  [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF,std::vector<QPointF>> &out) {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;

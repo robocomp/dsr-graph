@@ -4,6 +4,7 @@
 #include <execution>
 #include <algorithm>
 # include <cppitertools/slice.hpp>
+
 template <typename T>
 void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
                          std::shared_ptr<Collisions> collisions_,
@@ -43,6 +44,7 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
             std::vector<std::vector<float>> my_coordinates(coordinates.begin()+k*coordinates.size()/num_threads, coordinates.begin()+(k+1)*coordinates.size()/num_threads-1);
             threads[k] = std::thread([this, collisions_, my_coordinates, &value_vector, k, rot]() {
                 auto G_copy = G->G_copy();
+                qInfo() << "Initiation thread k";
                 std::transform(my_coordinates.begin(), my_coordinates.end(), std::back_inserter(value_vector[k]),
                                [collisions_, &G_copy, rot](auto &pos) mutable {
                                     auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy.get(), pos, rot);

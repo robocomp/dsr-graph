@@ -26,6 +26,10 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+
+#include  "../../../etc/viriato_graph_names.h"
+//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+
 #include "grid.cpp"
 #include "grid.h"
 #include <custom_widget.h>
@@ -35,9 +39,6 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-
-//#include  "../../../etc/viriato_graph_names.h"
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 
 
 class Plan

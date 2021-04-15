@@ -1,4 +1,4 @@
-CommonBehavior.Endpoints=tcp -p 17703
+CommonBehavior.Endpoints=tcp -p 19703
 
 # Proxies for required interfaces
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000

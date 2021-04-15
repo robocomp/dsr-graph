@@ -9,11 +9,13 @@ agent_name = idserver
 #dsr_input_file = ../../etc/omnirobot_simscene.json
 #dsr_input_file = ../../etc/simplesimpleworld-ramon.json
 #dsr_input_file = ../../etc/autonomyLab_width_integer.json
-dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
+#dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
+dsr_input_file = ../../etc/autonomyLab_complete_middle_wall.simscene.json
+
 
 tree_view = false
 graph_view = true
-2d_view = false
+2d_view = true
 3d_view = false
 
 dsr_output_path = ../../etc/
