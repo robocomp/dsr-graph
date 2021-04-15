@@ -16,6 +16,9 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
     this->dragging = false;
     this->drag_initial_position = QPoint(0,0);
     this->dragged_item = NULL;
+    this->temp_from_node = NULL;
+    this->temp_to_node = NULL;
+    this->temp_edge = NULL;
     rt = G->get_rt_api();
 
     this->edit_modes_toolbar = new QToolBar(parent);
@@ -68,10 +71,8 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
                 }
                 else{
                     // Create visual FROM node in position of the event
-
-//                    this->create_temp_node(position);
-                    // set bool for drag
-                    qDebug()<<__FUNCTION__ <<">> Create node at "<<item;
+                    this->temp_from_node = this->new_visual_node(0, "interacting", "_from_", false);
+                    this->temp_from_node->setPos(mapToScene(event->pos()));
                 }
                 this->dragging = true;
                 this->drag_initial_position = event->pos();
@@ -107,7 +108,10 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
                     to_node = dynamic_cast<GraphNode*>(item);
                     // Convert source node from temp to real
                     if (to_node) {
-                        break;
+                        if (to_node != this->temp_to_node)
+                            break;
+                        else
+                            to_node = NULL;
                     }
                 }
             }
@@ -149,6 +153,7 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
     }
     this->dragging = false;
     this->dragged_item = NULL;
+    this->delete_temps();
 }
 
 
@@ -160,8 +165,28 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
     case GraphTool::edit_tool:
         // If dragging
         if (this->dragging) {
-            if (this->dragged_item) {
-
+            if (this->temp_to_node) {
+                this->temp_to_node->setPos(mapToScene(event->pos()));
+            }
+            else
+            {
+                QLineF distance;
+                GraphNode* source_node;
+                if (this->temp_from_node)
+                {
+                    distance = QLineF(event->pos(),this->temp_from_node->pos());
+                    source_node = this->temp_from_node;
+                }
+                if (this->dragged_item and dynamic_cast<GraphNode*>(this->dragged_item))
+                {
+                    distance = QLineF(event->pos(),this->dragged_item->pos());
+                    source_node = dynamic_cast<GraphNode*>(this->dragged_item);
+                }
+                if (distance.length() > 30)
+                {
+                    this->temp_to_node = this->new_visual_node(9999,"plane", "_to_", false);
+                    this->temp_edge = this->new_visual_edge(source_node, this->temp_to_node, "_e_");
+                }
             }
         }
         event->accept();
@@ -170,6 +195,19 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
         GraphViewer::mouseMoveEvent(event);
 
     }
+}
+
+void GraphEditorView::delete_temps()
+{
+    if (this->temp_edge)
+        this->scene.removeItem(this->temp_edge);
+    if (this->temp_from_node)
+        this->scene.removeItem(this->temp_from_node);
+    if (this->temp_to_node)
+        this->scene.removeItem(this->temp_to_node);
+    this->temp_from_node = NULL;
+    this->temp_to_node = NULL;
+    this->temp_edge = NULL;
 }
 
 std::optional<uint64_t> GraphEditorView::create_new_node(QPointF position)
@@ -330,6 +368,8 @@ void GraphEditorView::enableEditMode(bool action)
 {
     this->current_tool = GraphTool::edit_tool;
 }
+
+
 //void GraphEditorView::new_node_attrib_slot()
 //{
 //    bool ok1, ok2;
