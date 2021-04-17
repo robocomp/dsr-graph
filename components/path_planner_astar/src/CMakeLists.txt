@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.11)
 
+
 IF ( "$ENV{ROBOCOMP}" STREQUAL "")
   MESSAGE(WARNING "ROBOCOMP variable not set. Using the default value: /opt/robocomp")
   SET (ENV{ROBOCOMP} "/opt/robocomp/")
@@ -25,8 +26,11 @@ SET ( SOURCES
   genericworker.cpp
 )
 
+
+
 ADD_DEFINITIONS ("-DICE_CPP11_MAPPING")
 FIND_PACKAGE( Ice REQUIRED COMPONENTS Ice++11 IceStorm++11)
+
 
 #ROBOCOMP
 ROBOCOMP_INITIALIZE( $ENV{ROBOCOMP}/ )

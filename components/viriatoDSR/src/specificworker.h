@@ -65,7 +65,6 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
-    void update_node_slot(const std::uint64_t id, const std::string &type);
 
 private:
     bool startup_check_flag;
@@ -91,10 +90,14 @@ private:
 	int osg_3d_view;
 
 	// Graph Viewer
-	std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
-	QWidget window;
-    std::unordered_map<int, int> G_person_id;
+    void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+    void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+    void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+    void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+    void del_node_slot(std::uint64_t from){};
+	std::unordered_map<int, int> G_person_id;
 
     void update_laser();
     void update_omirobot();

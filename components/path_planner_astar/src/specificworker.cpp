@@ -67,10 +67,17 @@ void SpecificWorker::initialize(int period)
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
 
+        //dsr update signals
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+
         // Graph viewer
         using opts = DSR::DSRViewer::view;
         int current_opts = 0;
-        //opts main = opts::none;
+        opts main = opts::none;
         if (tree_view)
             current_opts = current_opts | opts::tree;
         if (graph_view)
@@ -79,9 +86,9 @@ void SpecificWorker::initialize(int period)
             current_opts = current_opts | opts::scene;
         if (osg_3d_view)
             current_opts = current_opts | opts::osg;
-        dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
-        setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+
+        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+        setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
@@ -90,19 +97,21 @@ void SpecificWorker::initialize(int period)
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
 
         // 2D widget
-        widget_2d = qobject_cast<DSR::QScene2dViewer *>(dsr_viewer->get_widget(opts::scene));
+        widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
         widget_2d->set_draw_laser(false);
         connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
         // path planner
-        //path_planner_initialize(&widget_2d->scene, true, "viriato-200-vrep.simscene.grid");
         path_planner_initialize(&widget_2d->scene, read_from_file, grid_file_name);
+        qInfo() << __FUNCTION__ << "Grid created with size " << grid.size() * sizeof(Grid::T) << "bytes";
+        inject_grid_in_G(grid);
+        qInfo() << __FUNCTION__ << "Grid injected in G";
 
         // check for existing intention node
         if (auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
-            this->update_node_slot(intentions.front().id(), "intention");
+            this->add_or_assign_node_slot(intentions.front().id(), "intention");
 
-        this->Period = 100;
+        this->Period = 200;
         std::cout << __FUNCTION__ << " Initialization complete. Starting 'compute' at " << 1/(this->Period/1000.f) << " Hz"<< std::endl;
         timer.start(Period);
     }
@@ -269,7 +278,7 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
     {
         while (2 * x_pos * d < i)
         {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
+            const auto &k = Grid::Key(x_pos, y_pos);
             if (grid.isFree(k))
                 candidates.emplace_back(Mat::Vector2d (x_pos, y_pos));
             x_pos = x_pos + d;
@@ -278,7 +287,7 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
         }
         while (2 * y_pos * d < i)
         {
-            const auto &k = Grid<>::Key(x_pos, y_pos);
+            const auto &k = Grid::Key(x_pos, y_pos);
             if (grid.isFree(k))
                 candidates.emplace_back(Mat::Vector2d(x_pos, y_pos));
             y_pos = y_pos + d;
@@ -300,7 +309,38 @@ std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_
         return std::make_tuple(SearchState::NO_TARGET_FOUND, Mat::Vector2d());
 }
 
-
+void SpecificWorker::inject_grid_in_G(const Grid &grid)
+{
+  std::string grid_as_string = grid.saveToString();
+  if (auto current_grid_node_o = G->get_node(current_grid_name); current_grid_node_o.has_value())
+    G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
+  else
+  {
+      if (auto robot = G->get_node(robot_name); robot.has_value())
+      {
+          Node current_grid_node(agent_id, grid_type);
+          G->add_or_modify_attrib_local<parent_att>(current_grid_node, robot.value().id());
+          G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
+          G->add_or_modify_attrib_local<pos_x_att>(current_grid_node, (float) -70);
+          G->add_or_modify_attrib_local<pos_y_att>(current_grid_node, (float) -364);
+          if (std::optional<int> current_grid_node_id = G->insert_node(current_grid_node); current_grid_node_id.has_value())
+          {
+              if (G->insert_or_assign_edge(Edge(robot.value().id(), current_grid_node.id(), has_type, agent_id)))
+                  std::cout << __FUNCTION__ << "Edge successfully created between robot and grid" << std::endl;
+              else
+              {
+                  std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << robot.value().id() << "->" << current_grid_node_id.value()
+                            << " type: has" << std::endl;
+                  std::terminate();
+              }
+          } else
+          {
+              std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'grid' node" << std::endl;
+              std::terminate();
+          }
+      }
+  }
+}
 ///////////////////////////////////////////////////////
 //// Check new target from mouse
 ///////////////////////////////////////////////////////
@@ -362,12 +402,13 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
+void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     // check node type
     using namespace std::placeholders;
     if (type == intention_type)
     {
+        qInfo() << __FUNCTION__ ;
         auto node = G->get_node(id);
         if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {

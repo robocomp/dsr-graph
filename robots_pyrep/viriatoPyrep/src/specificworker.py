@@ -536,8 +536,9 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        self.speed_robot = [advz, advx, rot]
-
+        converted = self.convert_base_speed_to_radians(advz, advx, rot)
+        self.robot.set_base_angular_velocites(converted)
+        #self.speed_robot = [advz, advx, rot]
 
     #
     # stopBase

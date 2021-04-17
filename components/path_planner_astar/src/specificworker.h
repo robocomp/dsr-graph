@@ -30,7 +30,6 @@
 #include  "../../../etc/viriato_graph_names.h"
 //#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 
-#include "grid.cpp"
 #include "grid.h"
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>
@@ -82,7 +81,6 @@ class SpecificWorker : public GenericWorker
         int startup_check();
         void initialize(int period);
         void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
-        void update_node_slot(const std::uint64_t id, const std::string &type);
 
     private:
         // DSR graph
@@ -104,8 +102,13 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
         // DSR graph viewer
-        std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+        std::unique_ptr<DSR::DSRViewer> graph_viewer;
         QHBoxLayout mainLayout;
+        void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+        void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+        void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
 
         //local widget
@@ -125,11 +128,11 @@ class SpecificWorker : public GenericWorker
         void path_planner_initialize(  QGraphicsScene *scene, bool read_from_file = false, const std::string file_name = std::string());
 
         std::shared_ptr<Collisions> collisions;
-        Grid<> grid;
+        Grid grid;
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
-        //Grid<>::Dimensions dim;
         void draw_path( std::list<QPointF> &path, QGraphicsScene *viewer_2d);
+        void inject_grid_in_G(const Grid &grid);
 };
 
 #endif

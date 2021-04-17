@@ -26,15 +26,16 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include  "../../../etc/viriato_graph_names.h"
+//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>
 #include <dsr/gui/dsr_gui.h>
 #include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
+#include "grid.h"
 #include <doublebuffer/DoubleBuffer.h>
-//#include  "../../../etc/viriato_graph_names.h"
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 
 class Plan
 {
@@ -74,8 +75,6 @@ class SpecificWorker : public GenericWorker
         int startup_check();
         void initialize(int period);
         void new_target_from_mouse(int pos_x, int pos_y, int id);
-        void update_node_slot(const std::uint64_t id, const std::string &type);
-        void update_attrs_slot(const std::uint64_t id, const std::map<string, DSR::Attribute> &attribs);
 
 private:
         // DSR graph
@@ -94,8 +93,13 @@ private:
         std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
         // DSR graph viewer
-        std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+        std::unique_ptr<DSR::DSRViewer> graph_viewer;
         QHBoxLayout mainLayout;
+        void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+        void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+        void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
 
         //local widget
@@ -130,6 +134,10 @@ private:
         void add_points(std::vector<QPointF> &path, const QPolygonF &laser_poly,  const QPolygonF &current_robot_polygon);
         void clean_points(std::vector<QPointF> &path, const QPolygonF &laser_poly,  const QPolygonF &current_robot_polygon);
         void save_path_in_G(const std::vector<QPointF> &path);
+
+        // Grid
+        Grid grid;
+        std::shared_ptr<Collisions> collisions;
 };
 
 #endif

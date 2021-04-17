@@ -64,7 +64,14 @@ void SpecificWorker::initialize(int period)
 	{
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
+
+        //dsr update signals
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
@@ -78,11 +85,8 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
-
-		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::update_attrs_slot);
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
@@ -91,8 +95,8 @@ void SpecificWorker::initialize(int period)
         G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
 
         // Custom widget
-        dsr_viewer->add_custom_widget_to_dock("Elastic band", &custom_widget);
-		widget_2d = qobject_cast<DSR::QScene2dViewer*> (dsr_viewer->get_widget(opts::scene));
+        graph_viewer->add_custom_widget_to_dock("Elastic band", &custom_widget);
+		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
         if(widget_2d)
             widget_2d->set_draw_laser(true);
 
@@ -101,8 +105,30 @@ void SpecificWorker::initialize(int period)
 
 		// check for existing intention node
 		if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
-            this->update_node_slot(paths.front().id(), path_to_target_type);
+            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type);
 
+		// grid
+        QRectF outerRegion;
+        auto world_node = G->get_node(world_name).value();
+        outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node).value());
+        outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node).value());
+        outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node).value());
+        outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop_att>(world_node).value());
+        if(outerRegion.isNull())
+        {
+            qWarning() << __FILE__ << __FUNCTION__ << "Outer region of the scene could not be found in G. Aborting";
+            std::terminate();
+        }
+        grid.dim.setCoords(outerRegion.left(), outerRegion.top(), outerRegion.right(), outerRegion.bottom());
+        grid.TILE_SIZE = stoi(conf_params->at("TileSize").value);
+        collisions =  std::make_shared<Collisions>();
+        collisions->initialize(G, conf_params);
+        grid.initialize(G, collisions, false);
+        if( auto grid_node = G->get_node("current_grid"); grid_node.has_value())
+        {
+            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
+                grid.readFromString(grid_as_string.value());
+        }
 		this->Period = 100;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
@@ -184,31 +210,29 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
 
-//        // compute forces from map on not visible points
-        if ( not is_visible(p, laser_poly ))
-            continue;
-//        {
-//            auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
-//            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
-//            {
-//                qDebug ()  << __FUNCTION__ << "No obstacles found in map for not visible point or it is more than 10 not visible points away";
-//                nonVisiblePointsComputed++;
-//                continue;
-//            }
-//            else
-//            {
-//                qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
-//                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
-//                if (min_dist <= 0)    // hard limit to close obstables
-//                    min_dist = 0.01;
-//                eforce = vectorForce;
-//            }
-//            nonVisiblePointsComputed++;
-//        }
-
+        // compute forces from G on not visible points
+        if ( not is_visible(p, laser_poly ) and grid.size() > 0)
+        {
+            auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
+            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
+            {
+                qDebug ()  << __FUNCTION__ << "No obstacles found in map for not visible point or it is more than 10 not visible points away";
+                nonVisiblePointsComputed++;
+                continue;
+            }
+            else
+            {
+                qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
+                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
+                if (min_dist <= 0)    // hard limit to close obstables
+                    min_dist = 0.01;
+                eforce = vectorForce;
+            }
+            nonVisiblePointsComputed++;
+        }
         // compute forces from laser on visible point
-//       else
-       // {
+       else
+       {
             // vector holding a) distance from laser tip to p, vector from laser tip to p, laser tip plane coordinates
             std::vector<std::tuple<float, QVector2D, QPointF>> distances;
             // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
@@ -226,7 +250,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             });
             min_dist = std::get<float>(*min);
             eforce = std::get<QVector2D>(*min);
-        //}
+        }
         /// Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
         /// a logarithmic law can be used to compute de force from the distance.
         /// To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
@@ -392,7 +416,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
+void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     // PATH_TO_TARGET
     if (type == path_to_target_type)
@@ -409,6 +433,14 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
                 path_buffer.put(path);
                 last_path_id = id;
             }
+        }
+    }
+    else if (type == grid_type)  // grid
+    {
+        if( auto node = G->get_node(id); node.has_value())
+        {
+            if( auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
+            grid.readFromString(grid_as_string.value());
         }
     }
     else if (type == laser_type)    // Laser node updated
@@ -443,10 +475,6 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
     }
 }
 
-void SpecificWorker::update_attrs_slot(const std::uint64_t id, const std::map<string, DSR::Attribute> &attribs)
-{
-    //qInfo() << "Update attr " << id;
-}
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////

@@ -284,7 +284,9 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
     angle += correction;
     // rot speed gain
-    rotVel = 2*angle;
+    rotVel = 2*angle;  // pioneer
+    rotVel = angle;  // viriato
+
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
     // cancel final rotation
@@ -389,12 +391,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<Eigen::Vector2f> path;
                 for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
                     path.emplace_back(Eigen::Vector2f(x, y));
+                draw_path(path, &widget_2d->scene);
                 path_buffer.put(std::move(path));
                 auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
                 auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
                 if(t_x.has_value() and t_y.has_value())
                     current_target = Eigen::Vector2f(t_x.value(), t_y.value());
-                draw_path(path, &widget_2d->scene);
             }
         }
     }
