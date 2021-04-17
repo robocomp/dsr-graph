@@ -4,6 +4,8 @@ An agent that performs object tracking using YOLOv4 network. This is an upgrade 
 
 ## Installation
 
+-   Install CUDA >= 10.2 if you don't have it already. Follow instructions in https://developer.nvidia.com/cuda-toolkit-archive
+
 -   Navigate to `home` directory :
     ```bash
     cd ~
