@@ -126,7 +126,7 @@ class SpecificWorker : public GenericWorker
         float MAX_LAG = 100; //ms
         float ROBOT_RADIUS_MM = 250; //mm
         const float FINAL_DISTANCE_TO_TARGET = 200; //mm
-        float KB = 2.0;
+        float KB = 6.0;
 
         // controller
         void path_follower_initialize();

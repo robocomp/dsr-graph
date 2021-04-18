@@ -127,7 +127,7 @@ private:
         void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d, const QPolygonF &laser_poly);
         QPolygonF get_robot_polygon();
         bool is_visible(QPointF p, const QPolygonF &laser_poly);
-        bool is_point_visitable(QPointF point);
+        bool is_point_visitable(const QPointF &point);
         void compute_forces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart,
                             const QPolygonF &laser_poly,   const QPolygonF &current_robot_polygon,
                             const QPointF &current_robot_nose);

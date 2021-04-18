@@ -47,6 +47,10 @@ std::tuple<bool, Grid::T&> Grid::getCell(long int x, long int z)
         return std::forward_as_tuple(true, fmap.at(pointToGrid(x, z)));
 }
 
+std::tuple<bool, Grid::T&> Grid::getCell(const QPoint &p)
+{
+    return getCell(p.x(),p.y());
+}
 std::tuple<bool, Grid::T&> Grid::getCell(const Key &k)  //overladed version
 {
 //    if (not dim.contains(QPointF(k.x, k.z)))
@@ -57,13 +61,19 @@ std::tuple<bool, Grid::T&> Grid::getCell(const Key &k)  //overladed version
       catch(...){ qInfo() << __FUNCTION__ << " No key found in grid: (" << k.x << k.z << ")" ; return std::forward_as_tuple(false, T()) ;}
 }
 
-typename Grid::Key Grid::pointToGrid(long int x, long int z) const
+Grid::Key Grid::pointToGrid(long int x, long int z) const
 {
     int kx = (x - dim.left()) / TILE_SIZE;
     int kz = (z - dim.bottom()) / TILE_SIZE;
     return Key(dim.left() + kx * TILE_SIZE, dim.bottom() + kz * TILE_SIZE);
 };
 
+Grid::Key Grid::pointToGrid(const QPointF &p) const
+{
+    int kx = (p.x() - dim.left()) / TILE_SIZE;
+    int kz = (p.y() - dim.bottom()) / TILE_SIZE;
+    return Key(dim.left() + kx * TILE_SIZE, dim.bottom() + kz * TILE_SIZE);
+};
 ////////////////////////////////////////////////////////////////////////////////
 void Grid::saveToFile(const std::string &fich)
 {

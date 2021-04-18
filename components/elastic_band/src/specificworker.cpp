@@ -99,6 +99,8 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
         if(widget_2d)
             widget_2d->set_draw_laser(true);
+        connect(custom_widget.ke_slider, &QSlider::valueChanged, [this](auto v){ KE = v;});
+        connect(custom_widget.ki_slider, &QSlider::valueChanged, [this](auto v){ KI = v;});;
 
 		// path planner
 		elastic_band_initialize();
@@ -223,7 +225,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             }
             else
             {
-                qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
+                //qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
                 min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
                 if (min_dist <= 0)    // hard limit to close obstables
                     min_dist = 0.01;
@@ -285,18 +287,10 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         // A.3) Does not exit the laser polygon
         QPointF temp_p = p + total.toPointF();
         //qInfo()  << __FUNCTION__  << "Total force "<< total.toPointF()<< " New Point "<< temp_p;
-        if (is_point_visitable(temp_p) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill))
-            //and (std::none_of(std::begin(intimateSpaces), std::end(intimateSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
-            //and (std::none_of(std::begin(personalSpaces), std::end(personalSpaces),[temp_p](const auto &poly) { return poly.containsPoint(temp_p, Qt::OddEvenFill);}))
-                )
-        {
+
+        // check if translated point is accepted
+        if ( grid.isFree(grid.pointToGrid(temp_p)) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill)))
             path[index_of_p_in_path] = temp_p;
-        }
-//            if( auto it = find_if(pathPoints.begin(), pathPoints.end(), [p] (auto & s){ return (s.x() == p.x() and s.y() == p.y() );}); it != pathPoints.end())
-//            {
-//                int index = std::distance(pathPoints.begin(), it);
-//                pathPoints[index] = temp_p;
-//            }
     }
     // Check if robot nose is inside the laser polygon
     if(is_visible(current_robot_nose, laser_poly))
@@ -369,11 +363,6 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
     }
 }
 
-bool SpecificWorker::is_point_visitable(QPointF point)
-{
-    return true;  //// NEEDS the GRID
-}
-
 QPolygonF SpecificWorker::get_robot_polygon()
 {
     QPolygonF robotP;
@@ -391,7 +380,7 @@ QPolygonF SpecificWorker::get_robot_polygon()
 bool SpecificWorker::is_visible(QPointF p, const QPolygonF &laser_poly)
 {
     std::optional<Mat::Vector3d> pointInLaser = inner_eigen->transform(laser_name, Mat::Vector3d (p.x(),p.y(), 0), world_name);
-    return laser_poly.containsPoint(QPointF(pointInLaser.value().x(), pointInLaser.value().y()), Qt::OddEvenFill);
+    return laser_poly.containsPoint(QPointF(pointInLaser.value().x(), pointInLaser.value().y()), Qt::WindingFill);
 }
 
 void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)

@@ -125,8 +125,8 @@ void SpecificWorker::initialize(int period)
         path_follower_initialize();
 
         // check for existing intention node
-        if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
-            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type);
+        if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
+            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
 
         this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
@@ -169,9 +169,9 @@ void SpecificWorker::compute()
         std::cout << "Dist to target: " << std::endl;
         std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
         std::cout << "Ref speeds:  " << std::endl;
-        std::cout << "\t Adv-> " << adv << std::endl;
+        std::cout << "\t Advance-> " << adv << std::endl;
         std::cout << "\t Side -> " << side << std::endl;
-        std::cout << "\tRot -> " << rot << std::endl;
+        std::cout << "\t Rotate -> " << rot << std::endl;
         std::cout << "\tRobot_is_active -> " <<  std::boolalpha << robot_is_active << std::endl;
     }
 }
@@ -211,7 +211,7 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     std::vector<float> y_values;  y_values.reserve(path.size());
     std::transform(closest_point_to_robot, path.cend(), std::back_inserter(y_values),
                    [](const auto &value) { return value.y(); });
-    if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+    if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
     {
         auto path_to_target_node = node_paths.front();
         G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
@@ -380,7 +380,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
-    if (type == path_to_target_type)
+    if (type == path_to_target_type_name)
     {
         if( auto node = G->get_node(id); node.has_value())
         {
@@ -400,7 +400,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
-    else if (type == laser_type)    // Laser node updated
+    else if (type == laser_type_name)    // Laser node updated
     {
         //qInfo() << __FUNCTION__ << " laser node change";
         if( auto node = G->get_node(id); node.has_value())

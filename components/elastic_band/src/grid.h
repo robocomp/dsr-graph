@@ -95,6 +95,7 @@ class Grid
                         std::uint16_t num_threads = 10);
         std::tuple<bool, T&> getCell(long int x, long int z);
         std::tuple<bool, T&> getCell(const Key &k);
+        std::tuple<bool, T &> getCell(const QPoint &p);
         T at(const Key &k) const                            { return fmap.at(k);};
         T &at(const Key &k)                                 { return fmap.at(k);};
         typename FMap::iterator begin()                     { return fmap.begin(); };
@@ -114,6 +115,7 @@ class Grid
         void readFromString(const std::string &cadena);
         std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
         Key pointToGrid(long int x, long int z) const;
+        Key pointToGrid(const QPointF &p) const;
         void setFree(const Key &k);
         bool isFree(const Key &k) ;
         bool cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name);
@@ -133,6 +135,8 @@ class Grid
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;
+
+
 };
 
 #endif // GRID_H
