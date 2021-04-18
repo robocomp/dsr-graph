@@ -38,7 +38,7 @@ ROBOCOMP_IDSL_TO_ICE( CommonBehavior )
 ROBOCOMP_ICE_TO_SRC( CommonBehavior )
 SET (EXECUTABLE_OUTPUT_PATH ${RC_COMPONENT_DEVEL_PATH}/bin)
 
-QT_WRAP_UI( UI_HEADERS mainUI.ui )
+QT_WRAP_UI( UI_HEADERS mainUI.ui localUI.ui)
 
 # Specify construction and link process
 ADD_EXECUTABLE( mission_controller_viriato ${SOURCES} ${MOC_SOURCES} ${RC_SOURCES} ${UI_HEADERS} )

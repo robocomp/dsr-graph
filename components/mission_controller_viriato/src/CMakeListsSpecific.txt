@@ -3,6 +3,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  custom_widget.h
 )
 
 # Headers set
@@ -11,9 +12,9 @@ SET ( HEADERS
   specificmonitor.h
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
-add_definitions(-g  -fmax-errors=1 -std=c++2a )
+add_definitions(-g  -fmax-errors=1 )
 SET (LIBS ${LIBS}   dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)
 
 

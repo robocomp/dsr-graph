@@ -28,48 +28,68 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include <custom_widget.h>
+#include <opencv2/opencv.hpp>
+#include "plan.h"
+
 
 class SpecificWorker : public GenericWorker
 {
-Q_OBJECT
-public:
-	SpecificWorker(TuplePrx tprx, bool startup_check);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
+    Q_OBJECT
+    public:
+        SpecificWorker(TuplePrx tprx, bool startup_check);
+        ~SpecificWorker();
+        bool setParams(RoboCompCommonBehavior::ParameterList params);
 
+    public slots:
+        void compute();
+        int startup_check();
+        void initialize(int period);
+        void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
+        void slot_start_mission();
+        void slot_stop_mission();
+        void slot_cancel_mission();
 
+    private:
+        // DSR graph
+        std::shared_ptr<DSR::DSRGraph> G;
+        std::shared_ptr<DSR::CameraAPI> cam_api;
+        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+        std::shared_ptr<DSR::RT_API> rt_api;
 
-public slots:
-	void compute();
-	int startup_check();
-	void initialize(int period);
-private:
-	// DSR graph
-	std::shared_ptr<DSR::DSRGraph> G;
+        //DSR params
+        std::string agent_name;
+        int agent_id;
 
-	//DSR params
-	std::string agent_name;
-	int agent_id;
+        bool tree_view;
+        bool graph_view;
+        bool qscene_2d_view;
+        bool osg_3d_view;
 
-	bool tree_view;
-	bool graph_view;
-	bool qscene_2d_view;
-	bool osg_3d_view;
+        // DSR graph viewer
+        std::unique_ptr<DSR::DSRViewer> graph_viewer;
+        QHBoxLayout mainLayout;
+        void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+        void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+        void del_node_slot(std::uint64_t from){};
+        bool startup_check_flag;
 
-	// DSR graph viewer
-	std::unique_ptr<DSR::DSRViewer> graph_viewer;
-	QHBoxLayout mainLayout;
-	void add_or_assign_node_slot(std::uint64_t, const std::string &type){};
-	void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
-	void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        // local widgets
+        DSR::QScene2dViewer* widget_2d;
+        Custom_widget custom_widget;
 
-	void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
-	void del_node_slot(std::uint64_t from){};     
-	bool startup_check_flag;
+        // Missions
+        DoubleBuffer<Plan, Plan> plan_buffer;
 
+        //Path
+        std::vector<Eigen::Vector3d> path;
+        void draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScene* viewer_2d);
 };
 
 #endif
