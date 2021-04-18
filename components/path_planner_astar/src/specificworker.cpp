@@ -108,7 +108,7 @@ void SpecificWorker::initialize(int period)
         qInfo() << __FUNCTION__ << "Grid injected in G";
 
         // check for existing intention node
-        if (auto intentions = G->get_nodes_by_type(intention_type); not intentions.empty())
+        if (auto intentions = G->get_nodes_by_type(intention_type_name); not intentions.empty())
             this->add_or_assign_node_slot(intentions.front().id(), "intention");
 
         this->Period = 200;
@@ -128,7 +128,7 @@ void SpecificWorker::compute()
         if( auto robot_o = G->get_node(robot_name); robot_o.has_value())
         {
            auto robot = robot_o.value();
-            if( auto intention_nodes = G->get_nodes_by_type(intention_type); not intention_nodes.empty())
+            if( auto intention_nodes = G->get_nodes_by_type(intention_type_name); not intention_nodes.empty())
             {
                 auto intention_node = intention_nodes.front();
                 if (auto target_o = G->get_node(current_plan.target_place); target_o.has_value())
@@ -160,7 +160,7 @@ void SpecificWorker::compute()
                                 y_values.reserve(path.size());
                                 std::transform(path.cbegin(), path.cend(), std::back_inserter(y_values),
                                                [](const auto &value) { return value.y(); });
-                                if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+                                if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
                                 {
                                     auto path_to_target_node = node_paths.front();
                                     G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
@@ -172,7 +172,7 @@ void SpecificWorker::compute()
                                     G->update_node(path_to_target_node);
                                 } else // create path_to_target_node with the solution path
                                 {
-                                    auto path_to_target_node = Node(agent_id, path_to_target_type);
+                                    auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_intention_name);
                                     G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
                                     G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
                                     G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -150);
@@ -180,10 +180,8 @@ void SpecificWorker::compute()
                                     G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention_node.id());
                                     G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
                                     G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
-                                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node,
-                                                                                     (float) candidate.x());
-                                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node,
-                                                                                     (float) candidate.y());
+                                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) candidate.x());
+                                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) candidate.y());
 
                                     auto id = G->insert_node(path_to_target_node);
                                     auto edge_to_intention = Edge(id.value(), intention_node.id(), think_type,
@@ -318,7 +316,8 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
   {
       if (auto robot = G->get_node(robot_name); robot.has_value())
       {
-          Node current_grid_node(agent_id, grid_type);
+          DSR::Node current_grid_node = DSR::Node::create<grid_node_type>(current_grid_name);
+          G->add_or_modify_attrib_local<name_att>(current_grid_node, current_grid_name);
           G->add_or_modify_attrib_local<parent_att>(current_grid_node, robot.value().id());
           G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
           G->add_or_modify_attrib_local<pos_x_att>(current_grid_node, (float) -70);
@@ -349,11 +348,11 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
 {
     qInfo() << __FUNCTION__ << pos_x, pos_y;
     // Check if there is not 'intention' node yet in G
-    if (auto intention_nodes = G->get_nodes_by_type(intention_type); intention_nodes.empty())
+    if (auto intention_nodes = G->get_nodes_by_type(intention_type_name); intention_nodes.empty())
     {
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
-            Node intention_node(agent_id, intention_type);
+            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
             G->add_or_modify_attrib_local<parent_att>(intention_node,  robot.value().id());
             G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(robot.value()).value() + 1);
             G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float)-90);
@@ -406,7 +405,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 {
     // check node type
     using namespace std::placeholders;
-    if (type == intention_type)
+    if (type == intention_type_name)
     {
         qInfo() << __FUNCTION__ ;
         auto node = G->get_node(id);

@@ -104,8 +104,8 @@ void SpecificWorker::initialize(int period)
 		elastic_band_initialize();
 
 		// check for existing intention node
-		if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
-            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type);
+		if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
+            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
 
 		// grid
         QRectF outerRegion;
@@ -129,6 +129,7 @@ void SpecificWorker::initialize(int period)
             if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
                 grid.readFromString(grid_as_string.value());
         }
+        qInfo() << "SIZE " << grid.size();
 		this->Period = 100;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
@@ -419,7 +420,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     // PATH_TO_TARGET
-    if (type == path_to_target_type)
+    if (type == path_to_target_type_name)
     {
         if( auto node = G->get_node(id); node.has_value())
         {
@@ -435,7 +436,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
-    else if (type == grid_type)  // grid
+    else if (type == grid_type_name)  // grid
     {
         if( auto node = G->get_node(id); node.has_value())
         {
@@ -443,7 +444,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             grid.readFromString(grid_as_string.value());
         }
     }
-    else if (type == laser_type)    // Laser node updated
+    else if (type == laser_type_name)    // Laser node updated
     {
         //qInfo() << __FUNCTION__ << " laser node change";
         if( auto node = G->get_node(id); node.has_value())

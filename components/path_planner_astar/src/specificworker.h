@@ -39,7 +39,6 @@
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
 
-
 class Plan
 {
     public:
