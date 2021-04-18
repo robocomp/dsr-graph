@@ -132,7 +132,7 @@ void SpecificWorker::initialize(int period)
                 grid.readFromString(grid_as_string.value());
         }
         qInfo() << "SIZE " << grid.size();
-		this->Period = 100;
+		this->Period = 60;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
 	}
@@ -141,6 +141,7 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     static std::vector<QPointF> path;
+    static std::tuple<QPolygonF, std::vector<QPointF>> laser_data;
 
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value())
@@ -150,18 +151,17 @@ void SpecificWorker::compute()
     }
     else
     {
-        if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
-        {
-            const auto &[laser_poly, laser_cart] = laser_data.value();
-            auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
-            auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-            auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
-            compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
-            clean_points(path, laser_poly, current_robot_polygon);
-            add_points(path, laser_poly, current_robot_polygon);
-            draw_path(path, &widget_2d->scene, laser_poly);
-            save_path_in_G(path);
-        }
+        if( const auto laser_data_o = laser_buffer.try_get(); laser_data_o.has_value())
+            laser_data = laser_data_o.value();
+        const auto &[laser_poly, laser_cart] = laser_data;
+        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
+        auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
+        auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
+        compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
+        clean_points(path, laser_poly, current_robot_polygon);
+        add_points(path, laser_poly, current_robot_polygon);
+        draw_path(path, &widget_2d->scene, laser_poly);
+        save_path_in_G(path);
     }
 }
 
@@ -188,14 +188,11 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
     // Go through points using a sliding windows of 3
     for (auto &&[i, group] : iter::enumerate(iter::sliding_window(path, 3)))
     {
-        if (group.size() < 3)
-            continue; // break if too short
+        const auto &p1 = QVector2D(group[0]);
+        const auto &p2 = QVector2D(group[1]);
+        const auto &p3 = QVector2D(group[2]);
+        if(p1==p2 or p2==p3)  continue;
 
-        auto p1 = QVector2D(group[0]);
-        auto p2 = QVector2D(group[1]);
-        auto p3 = QVector2D(group[2]);
-        if(p1==p2 or p2==p3)
-            continue;
         QPointF p = group[1];
         int index_of_p_in_path = i+1;  //index of p in path
 
@@ -225,10 +222,8 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             }
             else
             {
-                //qDebug()  << __FUNCTION__  << "--- Obstacle found in grid ---";
                 min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
-                if (min_dist <= 0)    // hard limit to close obstables
-                    min_dist = 0.01;
+                min_dist = std::clamp(min_dist, 0.01f, 2000.f);
                 eforce = vectorForce;
             }
             nonVisiblePointsComputed++;
@@ -266,9 +261,9 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         QVector2D f_force = magnitude * eforce.normalized();
 
         // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
-//        QVector2D base_line = (p1 - p3).normalized();
-//        const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
-//        f_force = f_force - itangential;
+        QVector2D base_line = (p1 - p3).normalized();
+        const QVector2D itangential = QVector2D::dotProduct(f_force, base_line) * base_line;
+        f_force = f_force - itangential;
 
         // update node pos. KI and KE are approximating inverse Jacobians modules. This should be CHANGED
         // Directions are taken as the vector going from p to closest obstacle.
@@ -339,10 +334,10 @@ void SpecificWorker::add_points(std::vector<QPointF> &path, const QPolygonF &las
     std::vector<std::tuple<int, QPointF>> points_to_insert;
     for (auto &&[k, group] : iter::enumerate(iter::sliding_window(path, 2)))
     {
-        auto &p1 = group[0];
-        auto &p2 = group[1];
+        const auto &p1 = group[0];
+        const auto &p2 = group[1];
 
-        if ( not is_visible(p1, laser_poly) or not is_visible(p2, laser_poly)) //not visible
+        if ( not is_visible(p1, laser_poly))// or not is_visible(p2, laser_poly)) //not visible
             continue;
 
         float dist = QVector2D(p1 - p2).length();
@@ -475,8 +470,6 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     ///////////////////////
     // Preconditions
     ///////////////////////
-    if (path.size() == 0)
-        return;
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
@@ -488,8 +481,6 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     std::string color;
     for(auto &&p_pair : iter::sliding_window(path, 2))
     {
-        if(p_pair.size() < 2)
-            continue;
         Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
         Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
         Mat::Vector2d dir = a_point - b_point;
@@ -501,11 +492,8 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
         QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
         QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
-//        if(i == 1 or i == path.size()-1)
-//            color = "#00FF00"; //Green
-
         if(is_visible(QPointF(b_point.x(), b_point.y()), laser_poly))
-            color = "#F0FF00";
+            color = "#00FF00";
         else
             color = "#FF0000";
         line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));

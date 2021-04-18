@@ -108,6 +108,7 @@ private:
         //drawing
         DSR::QScene2dViewer* widget_2d;
 
+        //laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
 
         //Signal subscription
@@ -117,7 +118,7 @@ private:
         //elastic band
         const float ROBOT_LENGTH = 500;
         const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
-        float KE = 40;
+        float KE = 50;
         float KI = 300;
         std::uint64_t last_path_id;  // ID of last path node that came through the slot
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};

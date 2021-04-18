@@ -279,7 +279,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-    if (type == left_hand_type)
+    if (type == left_hand_type_name)
     {
         if (auto node = G->get_node(id); node.has_value() and node.value().name() == viriato_left_arm_tip_name)
             if (auto target = G->get_attrib_by_name<viriato_arm_tip_target_att>(node.value()); target.has_value())
@@ -300,7 +300,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 }
             }
     }
-    else if (type == omnirobot_type)
+    else if (type == omnirobot_type_name)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
@@ -323,7 +323,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
-    else if(type == pan_tilt_type)
+    else if(type == pan_tilt_type_name)
     {
         if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {

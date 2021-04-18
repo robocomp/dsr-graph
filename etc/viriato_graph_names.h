@@ -27,9 +27,9 @@ const std::string intention_type_name = "intention";
 const std::string laser_type_name = "laser";
 const std::string omnirobot_type_name = "omnirobot";
 const std::string rgbd_type_name = "rgbd";
-//const std::string left_hand_type_name = "left_hand";
-//const std::string pan_tilt_type_name = "pan_tilt";
-//const std::string glass_type_name = "glass";
+const std::string left_hand_type_name = "left_hand";
+const std::string pan_tilt_type_name = "pan_tilt";
+const std::string glass_type_name = "glass";
 const std::string grid_type_name = "grid";
 
 // EDGES TYPES
