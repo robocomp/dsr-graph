@@ -136,7 +136,7 @@ void SpecificWorker::compute()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-   if (type == path_to_target_type)
+   if (type == path_to_target_type_name)
     {
         if( auto path_to_target_node = G->get_node(id); path_to_target_node.has_value())
         {
@@ -215,9 +215,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
     // Check if there is not 'intention' node yet in G
     if(auto robot = G->get_node(robot_name); robot.has_value())
     {
-        if (auto intention_nodes = G->get_nodes_by_type(intention_type); intention_nodes.empty())
+        if (auto intention_nodes = G->get_nodes_by_type(intention_type_name); intention_nodes.empty())
         {
-            DSR::Node intention_node(agent_id, intention_type);
+            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
             G->add_or_modify_attrib_local<parent_att>(intention_node, robot.value().id());
             G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(robot.value()).value() + 1);
             G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -90);
@@ -227,7 +227,8 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
             {
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
                 // insert EDGE
-                if (G->insert_or_assign_edge(DSR::Edge(robot.value().id(), intention_node.id(), has_type, agent_id)))
+                DSR::Edge edge = DSR::Edge::create<has_edge_type>(robot.value().id(), intention_node.id());
+                if (G->insert_or_assign_edge(edge))
                     std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
                 else
                     std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << robot.value().id() << "->" << intention_node_id.value()

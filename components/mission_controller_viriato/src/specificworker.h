@@ -28,12 +28,13 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+#include  "../../../etc/viriato_graph_names.h"
+#include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include <custom_widget.h>
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/core.hpp>
 #include "plan.h"
 
 
