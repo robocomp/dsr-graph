@@ -107,6 +107,7 @@ private:
 
         //drawing
         DSR::QScene2dViewer* widget_2d;
+        std::vector<std::tuple<QVector2D, QVector2D>> forces_vector;
 
         //laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>

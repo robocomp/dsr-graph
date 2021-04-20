@@ -99,6 +99,7 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
         if(widget_2d)
             widget_2d->set_draw_laser(true);
+        //widget_2d->set_draw_axis(bool draw);
         connect(custom_widget.ke_slider, &QSlider::valueChanged, [this](auto v){ KE = v;});
         connect(custom_widget.ki_slider, &QSlider::valueChanged, [this](auto v){ KI = v;});;
 
@@ -184,6 +185,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
     if (path.size() < 3)
         return;
     int nonVisiblePointsComputed = 0;
+    forces_vector.clear();  // drawing only
 
     // Go through points using a sliding windows of 3
     for (auto &&[i, group] : iter::enumerate(iter::sliding_window(path, 3)))
@@ -207,6 +209,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         ///////////////////////////////////////////7
         float min_dist;
         QVector2D eforce;
+        QVector2D laser_min_element;
 
         qDebug() << __FUNCTION__  << nonVisiblePointsComputed;
 
@@ -248,10 +251,11 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             });
             min_dist = std::get<float>(*min);
             eforce = std::get<QVector2D>(*min);
+            laser_min_element = QVector2D(std::get<QPointF>(*min));
         }
-        /// Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
-        /// a logarithmic law can be used to compute de force from the distance.
-        /// To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
+        // Note: instead of min, we could compute the resultant of all forces acting on the point, i.e. inside a given radius.
+        // a logarithmic law can be used to compute de force from the distance.
+        // To avoid constants, we need to compute de Jacobian of the sum of forces wrt the (x,y) coordinates of the point
 
         // rescale min_dist so 1 is ROBOT_LENGTH
         float magnitude = (1.f / ROBOT_LENGTH) * min_dist;
@@ -267,6 +271,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
         // update node pos. KI and KE are approximating inverse Jacobians modules. This should be CHANGED
         // Directions are taken as the vector going from p to closest obstacle.
+        forces_vector.push_back(std::make_tuple(QVector2D(path[index_of_p_in_path]), laser_min_element));
         auto total = (KI * iforce) + (KE * f_force);
         //
         // limiters CHECK!!!!!!!!!!!!!!!!!!!!!!
@@ -285,7 +290,10 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
         // check if translated point is accepted
         if ( grid.isFree(grid.pointToGrid(temp_p)) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill)))
-            path[index_of_p_in_path] = temp_p;
+        {
+//            forces_vector.push_back(std::make_tuple(QVector2D(path[index_of_p_in_path]), QVector2D(temp_p)));
+            path[index_of_p_in_path] = temp_p;  //METER UN TRY
+        }
     }
     // Check if robot nose is inside the laser polygon
     if(is_visible(current_robot_nose, laser_poly))
@@ -437,9 +445,9 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
             if(dists.has_value() and angles.has_value())
             {
-                if(dists.value().get().empty() or angles.value().get().empty()) return;
+                //if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
-                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
+                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),  // CHECK WITHOUT get
                                  [this](const LaserData &in, std::tuple<QPolygonF,std::vector<QPointF>> &out) {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
@@ -449,9 +457,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                          //convert laser polar coordinates to cartesian
                                          float x = dist * sin(angle);
                                          float y = dist * cos(angle);
-                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
+                                         auto robot = widget_2d->get_robot_polygon();
+                                         QPointF p = robot->mapToScene(x, y);
+                                         //Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
                                          laser_poly << QPointF(x, y);
-                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+                                         //laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+                                         laser_cart.emplace_back(p);
                                      }
                                      out = std::make_tuple(laser_poly, laser_cart);
                                  });
@@ -466,6 +477,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewer_2d, const QPolygonF &laser_poly)
 {
     static std::vector<QGraphicsLineItem *> scene_road_points;
+
     qDebug() << __FUNCTION__;
     ///////////////////////
     // Preconditions
@@ -478,7 +490,9 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
 
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
-    std::string color;
+    QColor green_color("Green");
+    QColor red_color("Red");
+    QPen pen; pen.setWidth(20);
     for(auto &&p_pair : iter::sliding_window(path, 2))
     {
         Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
@@ -493,17 +507,28 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
         QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
         if(is_visible(QPointF(b_point.x(), b_point.y()), laser_poly))
-            color = "#00FF00";
+            pen.setColor(green_color);
         else
-            color = "#FF0000";
-        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
-        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+            pen.setColor(red_color);
+        line1 = viewer_2d->addLine(qsegment, pen);
+        line2 = viewer_2d->addLine(qsegment_perp, pen);
 
         line1->setZValue(2000);
         line2->setZValue(2000);
         scene_road_points.push_back(line1);
         scene_road_points.push_back(line2);
     }
+    QColor fcolor("Orange");
+    pen.setColor(fcolor);
+    for(auto &&[orig, dest] : forces_vector)
+    {
+        qInfo() << orig << dest;
+        //dest = dest + (dest-orig) * 50;
+        auto l = viewer_2d->addLine(QLineF(orig.toPointF(), dest.toPointF()), pen);
+        l->setZValue(2000);
+        scene_road_points.push_back(l);
+    }
+    qInfo() << "----------";
 }
 
 int SpecificWorker::startup_check()
