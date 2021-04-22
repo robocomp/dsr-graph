@@ -15,8 +15,8 @@ dsr_input_file = ../../etc/autonomyLab_one_room.simscene.json
 
 tree_view = false
 graph_view = true
-2d_view = true
-3d_view = true
+2d_view = false
+3d_view = false
 
 dsr_output_path = ../../etc/
 dsr_write_to_file = false

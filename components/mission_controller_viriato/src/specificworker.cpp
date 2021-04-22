@@ -115,20 +115,13 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+    // check for existing missions
+    if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
+    {
+        auto current_plan = plan_o.value();
+        current_plan.print();
+        custom_widget.current_plan->setPlainText(QString::fromStdString(current_plan.pprint()));
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,32 +163,31 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
-    for (unsigned int i = 1; i < path.size(); i++)
-        for(auto &&p_pair : iter::sliding_window(path, 2))
-        {
-            if(p_pair.size() < 2)
-                continue;
-            Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
-            Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
-            Mat::Vector2d dir = a_point - b_point;
-            Mat::Vector2d dir_perp = dir.unitOrthogonal();
-            Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
-            Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
-            auto left = segment_perp.pointAt(50);
-            auto right = segment_perp.pointAt(-50);
-            QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
-            QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
+    for(auto &&p_pair : iter::sliding_window(path, 2))
+    {
+        if(p_pair.size() < 2)
+            continue;
+        Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+        Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+        Mat::Vector2d dir = a_point - b_point;
+        Mat::Vector2d dir_perp = dir.unitOrthogonal();
+        Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+        Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+        auto left = segment_perp.pointAt(50);
+        auto right = segment_perp.pointAt(-50);
+        QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+        QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
-            if(i == 1 or i == path.size()-1)
-                color = "#00FF00"; //Green
+        if(i == 1 or i == path.size()-1)
+            color = "#00FF00"; //Green
 
-            line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
-            line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
-            line1->setZValue(2000);
-            line2->setZValue(2000);
-            scene_road_points.push_back(line1);
-            scene_road_points.push_back(line2);
-        }
+        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+        line1->setZValue(2000);
+        line2->setZValue(2000);
+        scene_road_points.push_back(line1);
+        scene_road_points.push_back(line2);
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -213,6 +205,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
     plan_buffer.put(plan);
 
     // Check if there is not 'intention' node yet in G
+    std::cout << robot_name << std::endl;
     if(auto robot = G->get_node(robot_name); robot.has_value())
     {
         if (auto intention_nodes = G->get_nodes_by_type(intention_type_name); intention_nodes.empty())

@@ -365,6 +365,29 @@
                         "src": 1
                     },
                     {
+                        "dst": 80,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 1
+                    },
+                    {
                         "dst": 200,
                         "label": "RT",
                         "linkAttribute": {
@@ -527,6 +550,39 @@
                 ],
                 "name": "Wall2",
                 "type": "plane"
+            },
+            "1000": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Orange"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 200
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -233.561554
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -14.802025
+                    }
+                },
+                "id": 1000,
+                "links": [
+                ],
+                "name": "mind",
+                "type": "transform"
             },
             "11": {
                 "attribute": {
@@ -916,11 +972,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -213.085815
+                        "value": -203.472305
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -185.232941
+                        "value": -192.099731
                     },
                     "robot_ref_adv_speed": {
                         "type": 2,
@@ -1008,6 +1064,52 @@
                     },
                     {
                         "dst": 220,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 500,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 200
+                    },
+                    {
+                        "dst": 1000,
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -2301,17 +2403,50 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 222.19873
+                        "value": 264.621399
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 233.631851
+                        "value": 196.512024
                     }
                 },
                 "id": 50,
                 "links": [
                 ],
-                "name": "room_dinning_room",
+                "name": "dinning_room",
+                "type": "room"
+            },
+            "500": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Orange"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 200
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -305.963074
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -86.002792
+                    }
+                },
+                "id": 500,
+                "links": [
+                ],
+                "name": "body",
                 "type": "transform"
             },
             "60": {
@@ -2330,11 +2465,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 245.92598
+                        "value": 307.792358
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 173.984482
+                        "value": 115.653336
                     }
                 },
                 "id": 60,
@@ -2409,8 +2544,8 @@
                         "src": 60
                     }
                 ],
-                "name": "room_kitchen",
-                "type": "transform"
+                "name": "kitchen",
+                "type": "room"
             },
             "64": {
                 "attribute": {
@@ -2890,6 +3025,35 @@
                 ],
                 "name": "fridge_mesh",
                 "type": "mesh"
+            },
+            "80": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 186.846512
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 260.145996
+                    }
+                },
+                "id": 80,
+                "links": [
+                ],
+                "name": "entrance",
+                "type": "room"
             }
         }
     }
