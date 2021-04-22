@@ -2408,6 +2408,24 @@
                     "pos_y": {
                         "type": 2,
                         "value": 196.512024
+                    },
+                    "delimiting_polygon_x": {
+                        "type": 3,
+                        "value": [
+                            -3892,
+                            -262,
+                            -3761,
+                            -336
+                        ]
+                    },
+                    "delimiting_polygon_y": {
+                        "type": 3,
+                        "value": [
+                            -767,
+                            -280,
+                            2133,
+                            2227
+                        ]
                     }
                 },
                 "id": 50,
@@ -2470,6 +2488,24 @@
                     "pos_y": {
                         "type": 2,
                         "value": 115.653336
+                    },
+                    "delimiting_polygon_x": {
+                        "type": 3,
+                        "value": [
+                            -262,
+                            3237,
+                            -280,
+                            3181
+                        ]
+                    },
+                    "delimiting_polygon_y": {
+                        "type": 3,
+                        "value": [
+                            -262,
+                            -149,
+                            2301,
+                            2283
+                        ]
                     }
                 },
                 "id": 60,
@@ -3047,6 +3083,24 @@
                     "pos_y": {
                         "type": 2,
                         "value": 260.145996
+                    },
+                    "delimiting_polygon_x": {
+                        "type": 3,
+                        "value": [
+                            3293,
+                            5296,
+                            3293,
+                            5221
+                        ]
+                    },
+                    "delimiting_polygon_y": {
+                        "type": 3,
+                        "value": [
+                            -1740,
+                            -1721,
+                            112,
+                            74
+                        ]
                     }
                 },
                 "id": 80,

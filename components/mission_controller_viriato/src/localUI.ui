@@ -30,7 +30,7 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -62,6 +62,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QComboBox" name="comboBox_select_target"/>
+              </item>
               <item>
                <widget class="QPushButton" name="pushButton_start_mission">
                 <property name="text">
@@ -101,7 +104,7 @@
         </size>
        </property>
        <property name="text">
-        <string>TextLabel</string>
+        <string>[TextLabel intencionalmente en blanco]</string>
        </property>
       </widget>
      </item>

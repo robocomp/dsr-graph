@@ -87,10 +87,12 @@ class SpecificWorker : public GenericWorker
 
         // Missions
         DoubleBuffer<Plan, Plan> plan_buffer;
+        void update_room_list();
 
         //Path
         std::vector<Eigen::Vector3d> path;
         void draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScene* viewer_2d);
+
 };
 
 #endif
