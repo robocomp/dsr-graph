@@ -69,8 +69,8 @@ class SpecificWorker(GenericWorker):
     def setParams(self, params):
         
         #SCENE_FILE = '../../etc/autonomy_lab_no_arm_bill.ttt'
-        SCENE_FILE = '../../etc/autonomy_lab_bill.ttt'
-        #SCENE_FILE = '../../etc/autonomy_lab_no_arm_middle_wall.ttt'
+        #SCENE_FILE = '../../etc/autonomy_lab_bill.ttt'
+        SCENE_FILE = '../../etc/autonomy_lab_no_arm_middle_wall.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
