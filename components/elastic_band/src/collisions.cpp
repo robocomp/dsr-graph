@@ -19,6 +19,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     if(outerRegion.isNull())
     {
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
+        std::terminate();
     }
     QStringList ls = QString::fromStdString(params_->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
     std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
@@ -28,23 +29,27 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
-    //    std::cout << __FUNCTION__ << "RESTNODES" << std::endl;
-    //    for(auto n : restNodes)
-    //        std::cout << n << std::endl;
-    // std::cout << __FUNCTION__ << "lists" ;
-    //std::cout << __FUNCTION__ << " robot: " << robotNodes << std::endl;
-    //std::cout << __FUNCTION__ << " rest: " << restNodes << std::endl;
+//    std::cout << __FUNCTION__ << " RESTNODES:" << std::endl;
+//    for(auto n : restNodes)
+//        std::cout << n << std::endl;
+//    std::cout << __FUNCTION__ << " ROBOT:" ;
+//    for(auto r : robotNodes)
+//        std::cout << r << std::endl;
+//    std::cout << __FUNCTION__ << " EXCLUDED:" ;
+//    for(auto r : excludedNodes)
+//        std::cout << r << std::endl;
     qsrand( QTime::currentTime().msec() );
+
 }
 
-std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph& G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
+std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in G_copy to the target coordinates
-    std::optional<Node> world = G_copy.get_node(world_name);
-    std::optional<int> robot_id = G_copy.get_id_from_name(robot_name);
-    std::unique_ptr<RT_API> rt = G_copy.get_rt_api();
+    std::optional<Node> world = G_copy->get_node(world_name);
+    std::optional<int> robot_id = G_copy->get_id_from_name(robot_name);
+    std::unique_ptr<RT_API> rt = G_copy->get_rt_api();
     rt->insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy.get_inner_eigen_api();
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy->get_inner_eigen_api();
 
     //// Check if the robot at the target collides with any object in restNodes
     bool collision = false;
@@ -104,7 +109,7 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
         inside = true;
     if (node.type() == "mesh" or node.type() == "plane")
     {
-        if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())
+        if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())  //not found in excluded
         {
             if (inside)
                 in.push_back(node.name());

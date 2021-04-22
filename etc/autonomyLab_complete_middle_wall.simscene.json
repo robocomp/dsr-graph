@@ -949,7 +949,7 @@
                     },
                     "height": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "level": {
                         "type": 1,
@@ -1039,7 +1039,7 @@
                     },
                     "height": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "level": {
                         "type": 1,
@@ -1204,7 +1204,7 @@
                 "id": 20,
                 "links": [
                 ],
-                "name": "infiniteFloor",
+                "name": "floor",
                 "type": "plane"
             },
             "21": {
@@ -1308,9 +1308,9 @@
                             "rt_rotation_euler_xyz": {
                                 "type": 3,
                                 "value": [
-                                    3.140000104904175,
                                     0,
-                                    0
+                                    0,
+                                    1.57
                                 ]
                             },
                             "rt_translation": {
@@ -1394,7 +1394,7 @@
                         "src": 200
                     }
                 ],
-                "name": "omnirobot",
+                "name": "viriato",
                 "type": "omnirobot"
             },
             "201": {
@@ -1432,6 +1432,18 @@
                         "value": -298.670929
                     },
                     "width": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
                         "type": 1,
                         "value": 1
                     }
@@ -1616,6 +1628,18 @@
                     "width": {
                         "type": 1,
                         "value": 1
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 204,
@@ -1659,6 +1683,18 @@
                         "value": -201.698074
                     },
                     "width": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
                         "type": 1,
                         "value": 1
                     }
@@ -2234,6 +2270,18 @@
                     "width": {
                         "type": 1,
                         "value": 800
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1800
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 100
                     }
                 },
                 "id": 25,
@@ -2513,6 +2561,18 @@
                     "width": {
                         "type": 1,
                         "value": 1200
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 29,
@@ -2603,6 +2663,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 30,
@@ -2715,15 +2787,15 @@
                     },
                     "scalex": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scaley": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scalez": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "width": {
                         "type": 1,
@@ -2840,15 +2912,15 @@
                     },
                     "scalex": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scaley": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scalez": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "width": {
                         "type": 1,
@@ -2965,15 +3037,15 @@
                     },
                     "scalex": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scaley": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scalez": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "width": {
                         "type": 1,
@@ -3023,6 +3095,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 31,
@@ -3135,15 +3219,15 @@
                     },
                     "scalex": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scaley": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "scalez": {
                         "type": 1,
-                        "value": 1000
+                        "value": 1
                     },
                     "width": {
                         "type": 1,
@@ -3193,6 +3277,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 32,
@@ -3238,6 +3334,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 33,
@@ -3381,6 +3489,18 @@
                     "width": {
                         "type": 1,
                         "value": 800
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 35,
@@ -3660,6 +3780,18 @@
                     "width": {
                         "type": 1,
                         "value": 800
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 39,
@@ -3750,6 +3882,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 40,
@@ -3795,6 +3939,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 41,
@@ -3840,6 +3996,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 42,
@@ -3885,6 +4053,18 @@
                     "width": {
                         "type": 1,
                         "value": 25
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 43,
@@ -4216,6 +4396,18 @@
                     "width": {
                         "type": 1,
                         "value": 750
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 800
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 2200
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 100
                     }
                 },
                 "id": 65,
@@ -4426,6 +4618,18 @@
                     "width": {
                         "type": 1,
                         "value": 2110
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 2000
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 800
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 100
                     }
                 },
                 "id": 69,
@@ -4561,6 +4765,18 @@
                     "width": {
                         "type": 1,
                         "value": 600
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 1
                     }
                 },
                 "id": 71,

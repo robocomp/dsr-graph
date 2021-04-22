@@ -4,7 +4,7 @@ Component path_planner_astar
     {
     };
     language Cpp11;
-    gui Qt(QWidget);
+    gui Qt(QMainWindow);
     options dsr;
 };
 

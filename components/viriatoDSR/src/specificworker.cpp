@@ -59,12 +59,20 @@ void SpecificWorker::initialize(int period)
 		this->startup_check();
 	else
 	{
+	    // Create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout<< __FUNCTION__ << " - Graph loaded" << std::endl;
         rt = G->get_rt_api();
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
+
+        // dsr update signals
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         // Remove existing pan-tilt target
         if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
@@ -84,16 +92,19 @@ void SpecificWorker::initialize(int period)
         }
 
         // Graph viewer
-		using opts = DSR::DSRViewer::view;
-		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
-		opts main = opts::none;
-        if (graph_view)
-            main = opts::graph;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
-
-		// Connect G SLOTS
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::update_node_slot);
+        using opts = DSR::DSRViewer::view;
+        int current_opts = 0;
+        //opts main = opts::none;
+        if(tree_view)
+            current_opts = current_opts | opts::tree;
+        if(graph_view)
+            current_opts = current_opts | opts::graph;
+        if(qscene_2d_view)
+            current_opts = current_opts | opts::scene;
+        if(osg_3d_view)
+            current_opts = current_opts | opts::osg;
+        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+        setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
         timer.start(100);
     }
@@ -266,9 +277,9 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////////////////////
-void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string &type)
+void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-    if (type == left_hand_type)
+    if (type == left_hand_type_name)
     {
         if (auto node = G->get_node(id); node.has_value() and node.value().name() == viriato_left_arm_tip_name)
             if (auto target = G->get_attrib_by_name<viriato_arm_tip_target_att>(node.value()); target.has_value())
@@ -289,7 +300,7 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
                 }
             }
     }
-    else if (type == omnirobot_type)
+    else if (type == omnirobot_type_name)
     {
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
@@ -312,7 +323,7 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
             }
         }
     }
-    else if(type == pan_tilt_type)
+    else if(type == pan_tilt_type_name)
     {
         if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
         {

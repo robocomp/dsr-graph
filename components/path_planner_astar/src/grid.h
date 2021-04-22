@@ -28,26 +28,13 @@
 #include <QGraphicsScene>
 #include <chrono>
 
-struct TCellDefault
-{
-    std::uint32_t id;
-    bool free;
-    bool visited;
-    float cost;
-    std::string node_name;
-    // method to save the value
-    void save(std::ostream &os) const {	os << free << " " << visited << " " << node_name; };
-    void read(std::istream &is) {	is >> free >> visited >> node_name;};
-};
-
-template <typename T = TCellDefault>
 class Grid
 {
     using Myclock = std::chrono::system_clock;
     using Msec = std::chrono::duration<double, std::milli>;
     using Seconds = std::chrono::seconds;
 
-public:
+    public:
         using Dimensions = QRectF;
         float TILE_SIZE;
         struct Key
@@ -72,7 +59,6 @@ public:
                 void save(std::ostream &os) const   { os << x << " " << z << " "; }; //method to save the keys
                 void read(std::istream &is)         { is >> x >> z; };					   //method to read the keys
         };
-
         struct KeyHasher
         {
             std::size_t operator()(const Key &k) const
@@ -87,6 +73,17 @@ public:
                 return seed;
             };
         };
+        struct T
+        {
+            std::uint32_t id;
+            bool free;
+            bool visited;
+            float cost;
+            std::string node_name;
+            // method to save the value
+            void save(std::ostream &os) const {	os << free << " " << visited << " " << node_name; };
+            void read(std::istream &is) {	is >> free >> visited >> node_name;};
+        };
         using FMap = std::unordered_map<Key, T, KeyHasher>;
         Dimensions dim;
 
@@ -96,8 +93,8 @@ public:
                         bool read_from_file = true,
                         const std::string &file_name = std::string(),
                         std::uint16_t num_threads = 10);
-        std::tuple<bool, T &> getCell(long int x, long int z);
-        std::tuple<bool, T &> getCell(const Key &k);
+        std::tuple<bool, T&> getCell(long int x, long int z);
+        std::tuple<bool, T&> getCell(const Key &k);
         T at(const Key &k) const                            { return fmap.at(k);};
         T &at(const Key &k)                                 { return fmap.at(k);};
         typename FMap::iterator begin()                     { return fmap.begin(); };
@@ -113,6 +110,8 @@ public:
         void clear();
         void saveToFile(const std::string &fich);
         void readFromFile(const std::string &fich);
+        std::string saveToString() const;
+        void readFromString(const std::string &cadena);
         std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
         Key pointToGrid(long int x, long int z) const;
         void setFree(const Key &k);

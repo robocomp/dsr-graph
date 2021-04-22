@@ -120,6 +120,14 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
             if (from_node and to_node) {
                 this->create_new_edge(from_node->id_in_graph, to_node->id_in_graph);
             }
+            else if ((from_node and !to_node) or (!from_node and to_node))
+            {
+                bool new_node_is_to = (to_node==NULL);
+                auto new_node_pos = new_node_is_to?event->pos():this->drag_initial_position;
+                auto existing_node = new_node_is_to?from_node: to_node;
+                if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph, !new_node_is_to))
+                    qDebug() << "Problem creating TO node";
+            }
             // No node taken but user is dragging
             else if (this->dragging) {
                 QLineF distance = QLine(event->pos(),this->drag_initial_position);
@@ -333,9 +341,9 @@ bool GraphEditorView::create_two_connected_nodes(QPointF position1, QPointF posi
     std::optional<uint64_t> new_node_id2 = this->_create_new_G_node(results[2], results[3], position2);
     if (new_node_id1.has_value() and new_node_id2.has_value())
         if(reverse)
-            return this->_create_new_G_edge(results[4], new_node_id1.value(), new_node_id2.value());
-        else
             return this->_create_new_G_edge(results[4], new_node_id2.value(), new_node_id1.value());
+        else
+            return this->_create_new_G_edge(results[4], new_node_id1.value(), new_node_id2.value());
     else
         return false;
 
@@ -351,10 +359,12 @@ bool GraphEditorView::create_new_connected_node(QPointF position, uint64_t node_
     // Create node
     std::optional<uint64_t> new_node_id = this->_create_new_G_node(results[0], results[1], position);
     if (new_node_id.has_value())
+    {
         if(reverse)
             return this->_create_new_G_edge(results[2], new_node_id.value(), node_id);
         else
             return this->_create_new_G_edge(results[2],  node_id, new_node_id.value());
+    }
     else
         return false;
 

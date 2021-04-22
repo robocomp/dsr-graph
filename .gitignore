@@ -35,3 +35,8 @@ components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_empty_file.json
 components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_initial_dsr2.json
 **/perf.data
 **/__pycache__/
+
+*cmake-build-default/
+*cmake-build-debug/
+
+components/graph_editor/src/3rd_party/

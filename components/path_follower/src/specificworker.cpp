@@ -125,8 +125,8 @@ void SpecificWorker::initialize(int period)
         path_follower_initialize();
 
         // check for existing intention node
-        if(auto paths = G->get_nodes_by_type(path_to_target_type); not paths.empty())
-            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type);
+        if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
+            this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
 
         this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
@@ -146,6 +146,7 @@ void SpecificWorker::compute()
         qInfo() << __FUNCTION__ << "New path";
         path.clear();
         path = path_o.value();
+        draw_path(path, &widget_2d->scene);
     }
     // keep controlling
     if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
@@ -169,9 +170,9 @@ void SpecificWorker::compute()
         std::cout << "Dist to target: " << std::endl;
         std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
         std::cout << "Ref speeds:  " << std::endl;
-        std::cout << "\t Adv-> " << adv << std::endl;
+        std::cout << "\t Advance-> " << adv << std::endl;
         std::cout << "\t Side -> " << side << std::endl;
-        std::cout << "\tRot -> " << rot << std::endl;
+        std::cout << "\t Rotate -> " << rot << std::endl;
         std::cout << "\tRobot_is_active -> " <<  std::boolalpha << robot_is_active << std::endl;
     }
 }
@@ -211,7 +212,7 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     std::vector<float> y_values;  y_values.reserve(path.size());
     std::transform(closest_point_to_robot, path.cend(), std::back_inserter(y_values),
                    [](const auto &value) { return value.y(); });
-    if (auto node_paths = G->get_nodes_by_type(path_to_target_type); not node_paths.empty())
+    if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
     {
         auto path_to_target_node = node_paths.front();
         G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
@@ -284,7 +285,9 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
     angle += correction;
     // rot speed gain
-    rotVel = 2*angle;
+    rotVel = 2*angle;  // pioneer
+    rotVel = angle;  // viriato
+
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
     // cancel final rotation
@@ -305,8 +308,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
             total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
     }
     QVector2D bumperVel = total * KB;  // Parameter set in slidebar
-    if (abs(bumperVel.y()) < MAX_SIDE_SPEED)
-    sideVel = bumperVel.y();
+    sideVel = std::clamp(bumperVel.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
 
     //qInfo() << advVelz << advVelx << rotVel;
     return std::make_tuple(advVel, sideVel, rotVel);
@@ -378,7 +380,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
-    if (type == path_to_target_type)
+    if (type == path_to_target_type_name)
     {
         if( auto node = G->get_node(id); node.has_value())
         {
@@ -387,18 +389,19 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             if(x_values.has_value() and y_values.has_value())
             {
                 std::vector<Eigen::Vector2f> path;
-                for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
+                auto x = x_values.value().get();
+                auto y = y_values.value().get();
+                for (const auto &[x, y] : iter::zip(x, y))
                     path.emplace_back(Eigen::Vector2f(x, y));
                 path_buffer.put(std::move(path));
                 auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
                 auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
                 if(t_x.has_value() and t_y.has_value())
                     current_target = Eigen::Vector2f(t_x.value(), t_y.value());
-                draw_path(path, &widget_2d->scene);
             }
         }
     }
-    else if (type == laser_type)    // Laser node updated
+    else if (type == laser_type_name)    // Laser node updated
     {
         //qInfo() << __FUNCTION__ << " laser node change";
         if( auto node = G->get_node(id); node.has_value())
@@ -407,10 +410,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
             if(dists.has_value() and angles.has_value())
             {
-                if(dists.value().get().empty() or angles.value().get().empty()) return;
+                //if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
-                laser_buffer.put(std::move(std::make_tuple(angles.value().get(), dists.value().get())),
-                                 [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF,std::vector<QPointF>> &out) {
+                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
+                                 [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out) {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
                                      const auto &[angles, dists] = in;
@@ -453,31 +456,23 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector2f> &path, QGraphicsScen
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
-    for (unsigned int i = 1; i < path.size(); i++)
-        for(auto &&p_pair : iter::sliding_window(path, 2))
-        {
-            if(p_pair.size() < 2)
-                continue;
-            Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
-            Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
-            Mat::Vector2d dir = a_point - b_point;
-            Mat::Vector2d dir_perp = dir.unitOrthogonal();
-            Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
-            Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
-            auto left = segment_perp.pointAt(50);
-            auto right = segment_perp.pointAt(-50);
-            QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
-            QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
+    for(auto &&p_pair : iter::sliding_window(path, 2))
+    {
+        Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+        Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+        Mat::Vector2d dir = a_point - b_point;
+        Mat::Vector2d dir_perp = dir.unitOrthogonal();
+        Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+        Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+        auto left = segment_perp.pointAt(50);
+        auto right = segment_perp.pointAt(-50);
+        QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+        QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
-            if(i == 1 or i == path.size()-1)
-                color = "#00FF00"; //Green
+        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
 
-            line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
-            line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
-
-            line1->setZValue(2000);
-            line2->setZValue(2000);
-            scene_road_points.push_back(line1);
-            scene_road_points.push_back(line2);
-        }
+        scene_road_points.push_back(line1);
+        scene_road_points.push_back(line2);
+    }
 }

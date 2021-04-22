@@ -67,8 +67,8 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
             }
             if (collision)
             {
-                //std::cout << "COLLISION: " << in << " to " << out << " pos: (" << targetPos[0] << "," << targetPos[1]
-                //          << "," << targetPos[2] << ")" << std::endl;
+                std::cout << "COLLISION: " << in << " to " << out << " pos: (" << targetPos[0] << "," << targetPos[1]
+                          << "," << targetPos[2] << ")" << std::endl;
                 return std::make_tuple(false, out);
             }
         }
@@ -109,7 +109,7 @@ void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool 
         inside = true;
     if (node.type() == "mesh" or node.type() == "plane")
     {
-        if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())
+        if (std::find(excluded.begin(), excluded.end(), node.name()) == excluded.end())  //not found in excluded
         {
             if (inside)
                 in.push_back(node.name());

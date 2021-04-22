@@ -1,0 +1,11 @@
+
+Component mission_controller_viriato
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+

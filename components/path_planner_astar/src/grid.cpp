@@ -5,8 +5,29 @@
 #include <algorithm>
 # include <cppitertools/slice.hpp>
 
-template <typename T>
-void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
+auto operator<<(std::ostream &os, const Grid::Key &k) -> decltype(k.save(os), os)
+{
+    k.save(os);
+    return os;
+};
+auto operator>>(std::istream &is, Grid::Key &k) -> decltype(k.read(is), is)
+{
+    k.read(is);
+    return is;
+};
+auto operator<<(std::ostream &os, const Grid::T &t) -> decltype(t.save(os), os)
+{
+    t.save(os);
+    return os;
+};
+auto operator>>(std::istream &is, Grid::T &t) -> decltype(t.read(is), is)
+{
+    t.read(is);
+    return is;
+};
+
+
+void Grid::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
                          std::shared_ptr<Collisions> collisions_,
                          bool read_from_file,
                          const std::string &file_name,
@@ -44,7 +65,7 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
             std::vector<std::vector<float>> my_coordinates(coordinates.begin()+k*coordinates.size()/num_threads, coordinates.begin()+(k+1)*coordinates.size()/num_threads-1);
             threads[k] = std::thread([this, collisions_, my_coordinates, &value_vector, k, rot]() {
                 auto G_copy = G->G_copy();
-                qInfo() << "Initiation thread k";
+                qInfo() << "Initiation thread " << k;
                 std::transform(my_coordinates.begin(), my_coordinates.end(), std::back_inserter(value_vector[k]),
                                [collisions_, &G_copy, rot](auto &pos) mutable {
                                     auto[free, node_name] = collisions_->checkRobotValidStateAtTargetFast(G_copy.get(), pos, rot);
@@ -73,9 +94,7 @@ void Grid<T>::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
     }
 }
 
-
-template <typename T>
-std::tuple<bool, T &> Grid<T>::getCell(long int x, long int z)
+std::tuple<bool, Grid::T&> Grid::getCell(long int x, long int z)
 {
     if( not dim.contains(QPointF(x,z)))
         return std::forward_as_tuple(false, T());
@@ -83,8 +102,7 @@ std::tuple<bool, T &> Grid<T>::getCell(long int x, long int z)
         return std::forward_as_tuple(true, fmap.at(pointToGrid(x, z)));
 }
 
-template <typename T>
-std::tuple<bool, T &> Grid<T>::getCell(const Key &k) //overladed version
+std::tuple<bool, Grid::T&> Grid::getCell(const Key &k)  //overladed version
 {
 //    if (not dim.contains(QPointF(k.x, k.z)))
 //        return std::forward_as_tuple(false, T());
@@ -94,8 +112,7 @@ std::tuple<bool, T &> Grid<T>::getCell(const Key &k) //overladed version
       catch(...){ qInfo() << __FUNCTION__ << " No key found in grid: (" << k.x << k.z << ")" ; return std::forward_as_tuple(false, T()) ;}
 }
 
-template <typename T>
-typename Grid<T>::Key Grid<T>::pointToGrid(long int x, long int z) const
+typename Grid::Key Grid::pointToGrid(long int x, long int z) const
 {
     int kx = (x - dim.left()) / TILE_SIZE;
     int kz = (z - dim.bottom()) / TILE_SIZE;
@@ -103,21 +120,43 @@ typename Grid<T>::Key Grid<T>::pointToGrid(long int x, long int z) const
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void Grid<T>::saveToFile(const std::string &fich)
+void Grid::saveToFile(const std::string &fich)
 {
     std::ofstream myfile;
     myfile.open(fich);
-    for (auto &[k, v] : fmap)
+    for (const auto &[k, v] : fmap)
         myfile << k << v << std::endl;
 
     myfile.close();
     std::cout << __FUNCTION__ << " " << fmap.size() << " elements written to " << fich << std::endl;
 }
+std::string Grid::saveToString() const
+{
+    std::ostringstream stream;
+    for (const auto &[k, v] : fmap)
+        stream << k << v << std::endl;
 
-template <typename T>
-void Grid<T>::readFromFile(const std::string &fich)
+    std::cout << "Grid::" << __FUNCTION__ << " " << fmap.size() << " elements written to osdtringstream";
+    return stream.str();
+}
+void Grid::readFromString(const std::string &cadena)
+{
+    std::istringstream stream(cadena);
+    std::string line;
+    std::uint32_t count = 0;
+    while ( std::getline (stream, line) )
+    {
+        //std::cout << line << std::endl;
+        std::stringstream ss(line);
+        int x, z;
+        bool free, visited;
+        std::string node_name;
+        ss >> x >> z >> free >> visited >> node_name;
+        fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f, node_name});
+    }
+    std::cout << __FUNCTION__ << " " << fmap.size() << " elements read from "  << std::endl;
+}
+void Grid::readFromFile(const std::string &fich)
 {
     std::ifstream myfile(fich);
     std::string line;
@@ -140,9 +179,7 @@ void Grid<T>::readFromFile(const std::string &fich)
     std::cout << __FUNCTION__ << " " << fmap.size() << " elements read from " << fich << std::endl;
 }
 
-
-template <typename T>
-bool Grid<T>::isFree(const Key &k)
+bool Grid::isFree(const Key &k)
 {
     const auto &[success, v] = getCell(k);
     if(success)
@@ -151,16 +188,14 @@ bool Grid<T>::isFree(const Key &k)
         return false;
 }
 
-template <typename T>
-void Grid<T>::setFree(const Key &k)
+void Grid::setFree(const Key &k)
 {
-    auto &[success, v] = getCell(k);
+    auto &&[success, v] = getCell(k);
     if(success)
         v.free = true;
 }
 
-template <typename T>
-bool Grid<T>::cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name)
+bool Grid::cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name)
 {
     auto neigh = this->neighboors_8(k, true);
     for(const auto &[key, val] : neigh)
@@ -169,25 +204,22 @@ bool Grid<T>::cellNearToOccupiedCellByObject(const Key &k, const std::string &ta
     return false;
 }
 
-template <typename T>
-void Grid<T>::setOccupied(const Key &k)
+void Grid::setOccupied(const Key &k)
 {
-    auto &[success, v] = getCell(k);
+    auto &&[success, v] = getCell(k);
     if(success)
         v.free = false;
 }
 
-template <typename T>
-void Grid<T>::setCost(const Key &k,float cost)
+void Grid::setCost(const Key &k,float cost)
 {
-    auto &[success, v] = getCell(k);
+    auto &&[success, v] = getCell(k);
     if(success)
         v.cost = cost;
 }
 
 // if true area becomes free
-template <typename T>
-void Grid<T>::markAreaInGridAs(const QPolygonF &poly, bool free)
+void Grid::markAreaInGridAs(const QPolygonF &poly, bool free)
 {
     const qreal step = TILE_SIZE / 4;
     QRectF box = poly.boundingRect();
@@ -204,8 +236,7 @@ void Grid<T>::markAreaInGridAs(const QPolygonF &poly, bool free)
         }
 }
 
-template <typename T>
-void Grid<T>::modifyCostInGrid(const QPolygonF &poly, float cost)
+void Grid::modifyCostInGrid(const QPolygonF &poly, float cost)
 {
     const qreal step = TILE_SIZE / 4.f;
     QRectF box = poly.boundingRect();
@@ -215,8 +246,7 @@ void Grid<T>::modifyCostInGrid(const QPolygonF &poly, float cost)
                 setCost(pointToGrid(x, y),cost);
 }
 
-template <typename T>
-std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
+std::tuple<bool, QVector2D> Grid::vectorToClosestObstacle(QPointF center)
 {
     QTime reloj = QTime::currentTime();
     qDebug()<<" reloj "<< reloj.restart();
@@ -263,8 +293,7 @@ std::tuple<bool, QVector2D> Grid<T>::vectorToClosestObstacle(QPointF center)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &target_)
+std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &target_)
 {
     Key source = pointToGrid(source_.x(), source_.y());
     Key target = pointToGrid(target_.x(), target_.y());
@@ -342,8 +371,7 @@ std::list<QPointF> Grid<T>::computePath(const QPointF &source_, const QPointF &t
     return std::list<QPointF>();
 };
 
-template <typename T>
-std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors(const Grid<T>::Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all)
+std::vector<std::pair<Grid::Key, Grid::T>> Grid::neighboors(const Grid::Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all)
 {
     std::vector<std::pair<Key, T>> neigh;
     // list of increments to access the neighboors of a given position
@@ -366,8 +394,7 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors(const Grid<
     return neigh;
 }
 
-template <typename T>
-std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_8(const Grid<T>::Key &k, bool all)
+std::vector<std::pair<Grid::Key, Grid::T>> Grid::neighboors_8(const Grid::Key &k, bool all)
 {
     const int &I = TILE_SIZE;
     static const std::vector<int> xincs = {I, I, I, 0, -I, -I, -I, 0};
@@ -376,8 +403,7 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_8(const Gri
     return r;
 }
 
-template <typename T>
-std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_16(const Grid<T>::Key &k, bool all)
+std::vector<std::pair<Grid::Key, Grid::T>> Grid::neighboors_16(const Grid::Key &k, bool all)
 {
     const int &I = TILE_SIZE;
     static const std::vector<int> xincs = {0,   I,   2*I,  2*I, 2*I, 2*I, 2*I, I, 0, -I, -2*I, -2*I,-2*I,-2*I,-2*I, -I};
@@ -388,8 +414,7 @@ std::vector<std::pair<typename Grid<T>::Key, T>> Grid<T>::neighboors_16(const Gr
 /**
  @brief Recovers the optimal path from the list of previous nodes
 */
-template <typename T>
-std::list<QPointF> Grid<T>::orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target)
+std::list<QPointF> Grid::orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target)
 {
     std::list<QPointF> res;
     Key k = target;
@@ -404,14 +429,12 @@ std::list<QPointF> Grid<T>::orderPath(const std::vector<std::pair<std::uint32_t,
     return res;
 };
 
-template <typename T>
-inline double Grid<T>::heuristicL2(const Key &a, const Key &b) const
+inline double Grid::heuristicL2(const Key &a, const Key &b) const
 {
     return sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
 }
 
-template <typename T>
-void Grid<T>::draw(QGraphicsScene* scene)
+void Grid::draw(QGraphicsScene* scene)
 {
     //clear previous points
     for (QGraphicsRectItem* item : scene_grid_points)
@@ -451,21 +474,7 @@ void Grid<T>::draw(QGraphicsScene* scene)
     }
 }
 
-template <typename T>
-void Grid<T>::clear()
+void Grid::clear()
 {
     fmap.clear();
 }
-
-template <class T>
-auto operator<<(std::ostream &os, const T &t) -> decltype(t.save(os), os)
-{
-    t.save(os);
-    return os;
-};
-template <class T>
-auto operator>>(std::istream &is, T &t) -> decltype(t.read(is), is)
-{
-    t.read(is);
-    return is;
-};

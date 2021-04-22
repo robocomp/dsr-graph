@@ -33,8 +33,8 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-//#include  "../../../etc/viriato_graph_names.h"
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+#include  "../../../etc/viriato_graph_names.h"
+//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
 
 
 class Plan
@@ -122,11 +122,11 @@ class SpecificWorker : public GenericWorker
         const float ROBOT_LENGTH = 500;  //GET FROM G
         float MAX_ADV_SPEED = 1000;
         float MAX_ROT_SPEED = 3;
-        float MAX_SIDE_SPEED = 1;
+        float MAX_SIDE_SPEED = 200;
         float MAX_LAG = 100; //ms
         float ROBOT_RADIUS_MM = 250; //mm
         const float FINAL_DISTANCE_TO_TARGET = 200; //mm
-        float KB = 2.0;
+        float KB = 6.0;
 
         // controller
         void path_follower_initialize();

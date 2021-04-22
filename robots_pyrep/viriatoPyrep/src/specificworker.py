@@ -376,6 +376,9 @@ class SpecificWorker(GenericWorker):
             focal = semiwidth/np.tan(semiangle)
             data = laser.capture_depth(in_meters=True)
             m = laser.get_matrix(robot)     # these data should be read first
+            # print("m", m)
+            # print("m.shape", m.shape)
+            # m = [item for sublist in m for item in sublist]
             imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
 
             for i,d in enumerate(data.T):
@@ -538,8 +541,9 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        self.speed_robot = [advz, advx, rot]
-
+        converted = self.convert_base_speed_to_radians(advz, advx, rot)
+        self.robot.set_base_angular_velocites(converted)
+        #self.speed_robot = [advz, advx, rot]
 
     #
     # stopBase

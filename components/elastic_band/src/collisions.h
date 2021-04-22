@@ -8,7 +8,6 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/api/dsr_inner_api.h"
 #include <CommonBehavior.h>
-
 #include <fcl/collision.h>
 #include <fcl/distance.h>
 #include <fcl/narrowphase/narrowphase.h>
@@ -25,6 +24,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
+#include  "../../../etc/viriato_graph_names.h"
 
 typedef fcl::BVHModel<fcl::OBBRSS> FCLModel;
 typedef std::shared_ptr<FCLModel> FCLModelPtr;
@@ -129,7 +129,7 @@ class Collisions
 {
     public:
         void initialize(const std::shared_ptr<DSR::DSRGraph> &graph_, const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_);
-        std::tuple<bool, std::string> checkRobotValidStateAtTargetFast(DSR::DSRGraph &G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot);
+        std::tuple<bool, std::string> checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot);
         QRectF outerRegion;
 
     private:
@@ -138,11 +138,6 @@ class Collisions
         std::vector<std::string> robotNodes;
         std::vector<std::string> restNodes;
         std::set<std::string> excludedNodes;
-
-        // node names
-        std::string robot_name = "omnirobot";
-        std::string world_name = "world";
-
 
         void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
         bool collide(std::shared_ptr<DSR::InnerEigenAPI> inner_eigen, const std::string &node_a_name, const std::string &node_b_name);
