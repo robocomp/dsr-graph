@@ -68,7 +68,9 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
         
-        SCENE_FILE = '../../etc/autonomy_lab_no_arm.ttt'
+        #SCENE_FILE = '../../etc/autonomy_lab_no_arm_bill.ttt'
+        SCENE_FILE = '../../etc/autonomy_lab_bill.ttt'
+        #SCENE_FILE = '../../etc/autonomy_lab_no_arm_middle_wall.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
@@ -168,17 +170,17 @@ class SpecificWorker(GenericWorker):
                                                                 "rgb": np.array(0),
                                                                 "depth": np.ndarray(0) }
 
-        cam = VisionSensor("wall_camera_1")
-        self.cameras["wall_camera_1"] = {"handle": cam,
-                                                    "id": 1,
-                                                    "angle": np.radians(cam.get_perspective_angle()),
-                                                    "width": cam.get_resolution()[0],
-                                                    "height": cam.get_resolution()[1],
-                                                    "depth": 3,
-                                                    "focal": cam.get_resolution()[0]/2 / np.tan(np.radians(cam.get_perspective_angle()/2.0)),
-                                                    "rgb": np.array(0),
-                                                    "depth": np.ndarray(0)
-                                         }
+        # cam = VisionSensor("wall_camera_1")
+        # self.cameras["wall_camera_1"] = {"handle": cam,
+        #                                             "id": 1,
+        #                                             "angle": np.radians(cam.get_perspective_angle()),
+        #                                             "width": cam.get_resolution()[0],
+        #                                             "height": cam.get_resolution()[1],
+        #                                             "depth": 3,
+        #                                             "focal": cam.get_resolution()[0]/2 / np.tan(np.radians(cam.get_perspective_angle()/2.0)),
+        #                                             "rgb": np.array(0),
+        #                                             "depth": np.ndarray(0)
+#                                 }
     #@QtCore.Slot()
     def compute(self):
         tc = TimeControl(0.05)  # 50 millis -> 20Hz
@@ -218,10 +220,10 @@ class SpecificWorker(GenericWorker):
                                                            focalx=cam["focal"], focaly=cam["focal"],
                                                            alivetime=time.time(), depthFactor=1.0, depth=depth.tobytes())
 
-            # try:
-            #     self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
-            # except Ice.Exception as e:
-            #     print(e)
+            try:
+                self.camerargbdsimplepub_proxy.pushRGBD(cam["rgb"], cam["depth"])
+            except Ice.Exception as e:
+                print(e)
 
     ###########################################
     ### PEOPLE get and publish people position
