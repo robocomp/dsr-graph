@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.10)
 
 
 IF ( "$ENV{ROBOCOMP}" STREQUAL "")
@@ -24,7 +24,7 @@ SET ( SOURCES
   genericmonitor.cpp
   commonbehaviorI.cpp
   genericworker.cpp
-        GraphEditorView.cpp GraphEditorView.h GraphNewElementDialog.h)
+)
 
 
 
@@ -41,7 +41,7 @@ SET (EXECUTABLE_OUTPUT_PATH ${RC_COMPONENT_DEVEL_PATH}/bin)
 QT_WRAP_UI( UI_HEADERS mainUI.ui )
 
 # Specify construction and link process
-ADD_EXECUTABLE( graph_editor ${SOURCES} ${MOC_SOURCES} ${RC_SOURCES} ${UI_HEADERS} )
+ADD_EXECUTABLE( graph_editor ${SOURCES} ${MOC_SOURCES} ${RC_SOURCES} ${UI_HEADERS} QAttributeBrowser.cpp QAttributeBrowser.h)
 TARGET_LINK_LIBRARIES( graph_editor ${LIBS} ${STATIC_LIBS} ${SPECIFIC_LIBS} ${QT_LIBRARIES} ${Ice_LIBRARIES})
-target_include_directories(graph_editor PRIVATE $SPECIFIC_INCLUDES_DIR)
+target_include_directories(graph_editor PRIVATE ${SPECIFIC_INCLUDES_DIR})
 INSTALL(FILES ${EXECUTABLE_OUTPUT_PATH}/graph_editor DESTINATION ${RC_COMPONENT_INSTALL_PATH}/bin/ PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE )
