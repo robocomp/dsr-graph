@@ -117,7 +117,7 @@ void SpecificWorker::initialize(int period)
         G->set_ignored_attributes<laser_angles_att, laser_dists_att>();
 
         // Initialize combobox
-        auto glass_nodes = G->get_nodes_by_type(glass_type);
+        auto glass_nodes = G->get_nodes_by_type(glass_type_name);
         for(const auto &node : glass_nodes)
         {
             QVariant data;
@@ -144,7 +144,7 @@ void SpecificWorker::compute()
     {
         if( time_to_change )       // if finished with current object, pick a new object from G -> update
         {
-            auto glass_nodes = G->get_nodes_by_type(glass_type);
+            auto glass_nodes = G->get_nodes_by_type(glass_type_name);
             remove_edge();
             object_of_interest = random_selector(glass_nodes).name();
             auto index = custom_widget.comboBox->findText(QString::fromStdString(object_of_interest));
@@ -494,7 +494,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string &type)
 {
-    if (type == rgbd_type and id == cam_api->get_id())
+    if (type == rgbd_type_name and id == cam_api->get_id())
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
         {
@@ -522,7 +522,7 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
             qWarning() << __FUNCTION__ << "No camera_node found in G";
         }
     }
-    else if (type == intention_type)
+    else if (type == intention_type_name)
     {
         auto node = G->get_node(id);
         if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
