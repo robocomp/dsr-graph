@@ -89,6 +89,9 @@ void SpecificWorker::initialize(int period)
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
+        // Ignore attributes from G
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();
+
 		this->Period = 200;
 
         // Compute max Id in G
@@ -119,7 +122,9 @@ void SpecificWorker::check_rt_tree(const DSR::Node &node)
     if (edges_map.has_value()) {
         for (const auto&[pair, edge] : edges_map.value())
         {
-            if(edge.type() == "RT") {
+            if(edge.type() == "RT")
+            {
+                std::cout << __FUNCTION__  << "edge from " << edge.from() << " to " << edge.to() << std::endl;
                 std::optional<DSR::Node> child = G->get_node(edge.to());
                 assertm(child.has_value() == true, "Edge without child node");
                 std::optional<std::uint64_t> parent_id = G->get_parent_id(child.value());

@@ -7,6 +7,8 @@
 
 // NODES
 const std::string robot_name = "viriato";
+const std::string robot_mind_name = "mind";
+const std::string robot_body_name = "body";
 const std::string world_name = "world";
 const std::string floor_name = "floor";
 const std::string viriato_head_camera_pan_tilt = "viriato_head_camera_pan_tilt";
@@ -20,6 +22,8 @@ const std::string viriato_left_arm_tip_name = "viriato_left_arm_tip";
 
 const std::string current_grid_name = "current_grid";
 const std::string current_intention_name = "current_intention";
+const std::string current_path_name = "current_path";
+
 
 //NODE TYPES
 const std::string path_to_target_type_name = "path_to_target";
@@ -31,6 +35,8 @@ const std::string left_hand_type_name = "left_hand";
 const std::string pan_tilt_type_name = "pan_tilt";
 const std::string glass_type_name = "glass";
 const std::string grid_type_name = "grid";
+const std::string room_type_name = "room";
+
 
 // EDGES TYPES
 const std::string think_type = "thinks";

@@ -38,31 +38,32 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
+#include "plan.h"
 
-class Plan
-{
-    public:
-        enum class Actions {GOTO};
-        Actions action;
-        std::string target_place;
-        std::map<std::string, double> params;
-        bool is_active = false;
-        bool is_location(const Mat::Vector2d &loc)
-        {
-            return Mat::Vector2d(params.at("x"), params.at("y")) == loc;
-        }
-        void print()
-        {
-            std::cout << "------ Begin Plan ----------" << std::endl;
-            std::cout << "\t Action: " << action_strings[action] << " Taget_place: " << target_place << std::endl;
-            for(auto &&[k,v]: params)
-                std::cout << "\t par1: " << k << " : " << std::to_string(v) << std::endl;
-            std::cout << "------ End Plan ----------" << std::endl;
-        };
-
-    private:
-        std::map<Actions, std::string> action_strings{{Actions::GOTO, "GOTO"}};
-};
+//class Plan
+//{
+//    public:
+//        enum class Actions {GOTO};
+//        Actions action;
+//        std::string target_place;
+//        std::map<std::string, double> params;
+//        bool is_active = false;
+//        bool is_location(const Mat::Vector2d &loc)
+//        {
+//            return Mat::Vector2d(params.at("x"), params.at("y")) == loc;
+//        }
+//        void print()
+//        {
+//            std::cout << "------ Begin Plan ----------" << std::endl;
+//            std::cout << "\t Action: " << action_strings[action] << " Taget_place: " << target_place << std::endl;
+//            for(auto &&[k,v]: params)
+//                std::cout << "\t par1: " << k << " : " << std::to_string(v) << std::endl;
+//            std::cout << "------ End Plan ----------" << std::endl;
+//        };
+//
+//    private:
+//        std::map<Actions, std::string> action_strings{{Actions::GOTO, "GOTO"}};
+//};
 
 class SpecificWorker : public GenericWorker
 {
@@ -107,7 +108,7 @@ class SpecificWorker : public GenericWorker
         void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
         void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
-        void del_node_slot(std::uint64_t from){};
+        void del_node_slot(std::uint64_t from);
         bool startup_check_flag;
 
         //local widget
@@ -118,7 +119,7 @@ class SpecificWorker : public GenericWorker
 
         //Plan
         Plan current_plan;
-        DoubleBuffer<std::string, Plan> plan_buffer;
+        DoubleBuffer<Plan, Plan> plan_buffer;
         void json_to_plan(const std::string &plan_string, Plan &plan);
 
         //Path planner

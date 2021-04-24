@@ -216,8 +216,8 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         // compute forces from G on not visible points
         if ( not is_visible(p, laser_poly ) and grid.size() > 0)
         {
-            auto [obstacleFound, vectorForce] = grid.vectorToClosestObstacle(p);
-            if (( not obstacleFound) or (nonVisiblePointsComputed > 10))
+            auto closest_obstacle = grid.closest_obstacle(p);
+            if (not closest_obstacle.has_value() or (nonVisiblePointsComputed > 10))
             {
                 qDebug ()  << __FUNCTION__ << "No obstacles found in map for not visible point or it is more than 10 not visible points away";
                 nonVisiblePointsComputed++;
@@ -225,9 +225,12 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             }
             else
             {
-                min_dist = vectorForce.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
+                //qInfo() << __FUNCTION__  << closest_obstacle.value();
+                QVector2D vector_to_obs(QVector2D(p) - QVector2D(closest_obstacle.value()));
+                min_dist = vector_to_obs.length() - (ROBOT_LENGTH / 2);   // subtract robot semi-width
                 min_dist = std::clamp(min_dist, 0.01f, 2000.f);
-                eforce = vectorForce;
+                eforce = vector_to_obs;
+                laser_min_element = QVector2D(closest_obstacle.value());  // for drawing
             }
             nonVisiblePointsComputed++;
         }
@@ -290,10 +293,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
         // check if translated point is accepted
         if ( grid.isFree(grid.pointToGrid(temp_p)) and (not current_robot_polygon.containsPoint(temp_p, Qt::OddEvenFill)))
-        {
-//            forces_vector.push_back(std::make_tuple(QVector2D(path[index_of_p_in_path]), QVector2D(temp_p)));
-            path[index_of_p_in_path] = temp_p;  //METER UN TRY
-        }
+           path[index_of_p_in_path] = temp_p;  //METER UN TRY
     }
     // Check if robot nose is inside the laser polygon
     if(is_visible(current_robot_nose, laser_poly))
@@ -452,12 +452,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
                                      const auto &[angles, dists] = in;
+                                     auto robot = widget_2d->get_robot_polygon();
                                      for (const auto &[angle, dist] : iter::zip(angles, dists))
                                      {
                                          //convert laser polar coordinates to cartesian
-                                         float x = dist * sin(angle);
-                                         float y = dist * cos(angle);
-                                         auto robot = widget_2d->get_robot_polygon();
+                                         if(dist == 0) continue;
+                                         float x = dist * sin(angle); float y = dist * cos(angle);
                                          QPointF p = robot->mapToScene(x, y);
                                          //Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
                                          laser_poly << QPointF(x, y);
@@ -522,13 +522,13 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     pen.setColor(fcolor);
     for(auto &&[orig, dest] : forces_vector)
     {
-        qInfo() << orig << dest;
+        //qInfo() << orig << dest;
         //dest = dest + (dest-orig) * 50;
         auto l = viewer_2d->addLine(QLineF(orig.toPointF(), dest.toPointF()), pen);
         l->setZValue(2000);
         scene_road_points.push_back(l);
     }
-    qInfo() << "----------";
+    //qInfo() << "----------";
 }
 
 int SpecificWorker::startup_check()

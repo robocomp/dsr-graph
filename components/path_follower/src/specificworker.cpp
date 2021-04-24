@@ -90,9 +90,9 @@ void SpecificWorker::initialize(int period)
 
         //dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
         connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         //Inner Api
@@ -124,7 +124,7 @@ void SpecificWorker::initialize(int period)
         // path planner
         path_follower_initialize();
 
-        // check for existing intention node
+        // check for existing path node
         if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
             this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
 
@@ -138,7 +138,7 @@ void SpecificWorker::compute()
 {
     static std::vector<Eigen::Vector2f> path;
 
-    if(not robot_is_active) return;
+    //if(not robot_is_active) return;
 
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value()) // NEW PATH!
@@ -148,12 +148,11 @@ void SpecificWorker::compute()
         path = path_o.value();
         draw_path(path, &widget_2d->scene);
     }
+    if(path.size() <= 1) return;
     // keep controlling
     if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
     {
         const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
-        qInfo() << "Path: " << path.size()  << " Laser size:" << laser_poly.size();
-        // for (auto &&p:path) qInfo() << p;
         auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 500, 0), robot_name).value();
         auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
         auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
@@ -431,6 +430,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
+}
+
+void SpecificWorker::del_node_slot(std::uint64_t from)
+{
+        if( auto node = G->get_node(current_path_name); not node.has_value())
+            qInfo() << __FUNCTION__  << "Path node deleter. Aborting control";
 }
 
 ///////////////////////////////////////////////////

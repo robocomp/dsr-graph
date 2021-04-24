@@ -36,7 +36,8 @@
 #include <custom_widget.h>
 #include <opencv4/opencv2/core.hpp>
 #include "plan.h"
-
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -54,6 +55,7 @@ class SpecificWorker : public GenericWorker
         void slot_start_mission();
         void slot_stop_mission();
         void slot_cancel_mission();
+        //void slot_select_target_object(int);
 
     private:
         // DSR graph
@@ -88,11 +90,20 @@ class SpecificWorker : public GenericWorker
         // Missions
         DoubleBuffer<Plan, Plan> plan_buffer;
         void update_room_list();
+        void create_mission(const QPointF &pos, std::uint64_t target_node_id);
 
-        //Path
-        std::vector<Eigen::Vector3d> path;
+        // Path
+        //std::vector<Eigen::Vector3d> path;
+        DoubleBuffer<std::vector<Eigen::Vector3d>,std::vector<Eigen::Vector3d>> path_buffer;
         void draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScene* viewer_2d);
 
+        //Camera
+        DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+
+        // Robot
+        void send_command_to_robot(const std::tuple<float, float, float> &speeds);  //adv, side, rot
+
+        // random
 };
 
 #endif

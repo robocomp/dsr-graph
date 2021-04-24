@@ -295,6 +295,7 @@ std::tuple<bool, QVector2D> Grid::vectorToClosestObstacle(QPointF center)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &target_)
 {
+    qInfo() << __FUNCTION__  << " from nose pos: " << source_ << " to " << target_ ;
     Key source = pointToGrid(source_.x(), source_.y());
     Key target = pointToGrid(target_.x(), target_.y());
 

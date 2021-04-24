@@ -563,7 +563,7 @@
                     },
                     "mass": {
                         "type": 1,
-                        "value": 0
+                        "value": 2
                     },
                     "parent": {
                         "type": 7,
@@ -571,11 +571,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -233.561554
+                        "value": -274.216583
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -14.802025
+                        "value": -16.569635
                     }
                 },
                 "id": 1000,
@@ -972,11 +972,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -203.472305
+                        "value": -171.655319
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -192.099731
+                        "value": -109.022034
                     },
                     "robot_ref_adv_speed": {
                         "type": 2,
@@ -993,98 +993,6 @@
                 },
                 "id": 200,
                 "links": [
-                    {
-                        "dst": 201,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    1.5700000524520874
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    200
-                                ]
-                            }
-                        },
-                        "src": 200
-                    },
-                    {
-                        "dst": 202,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    400,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 200
-                    },
-                    {
-                        "dst": 206,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    57,
-                                    1368
-                                ]
-                            }
-                        },
-                        "src": 200
-                    },
-                    {
-                        "dst": 220,
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": 200
-                    },
                     {
                         "dst": 500,
                         "label": "RT",
@@ -1151,11 +1059,11 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 3
                     },
                     "parent": {
                         "type": 7,
-                        "value": 200
+                        "value": 500
                     },
                     "path": {
                         "type": 0,
@@ -1163,11 +1071,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -279.904114
+                        "value": -297.580231
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -298.670929
+                        "value": -332.255524
                     },
                     "scalex": {
                         "type": 1,
@@ -1200,15 +1108,15 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 3
                     },
                     "parent": {
                         "type": 7,
-                        "value": 200
+                        "value": 500
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -48.646378
+                        "value": -103.442307
                     },
                     "pos_y": {
                         "type": 2,
@@ -1308,7 +1216,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 4
                     },
                     "parent": {
                         "type": 7,
@@ -1345,7 +1253,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 4
                     },
                     "parent": {
                         "type": 7,
@@ -1402,7 +1310,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 4
                     },
                     "parent": {
                         "type": 7,
@@ -1451,7 +1359,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 3
                     },
                     "mass": {
                         "type": 1,
@@ -1459,15 +1367,15 @@
                     },
                     "parent": {
                         "type": 7,
-                        "value": 200
+                        "value": 500
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -357.970642
+                        "value": -379.181976
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -231.077576
+                        "value": -204.563416
                     },
                     "viriato_head_pan_tilt_nose_target": {
                         "type": 3,
@@ -1515,7 +1423,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 3
+                        "value": 4
                     },
                     "parent": {
                         "type": 7,
@@ -1523,11 +1431,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -373.471283
+                        "value": -410.591095
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -162.293488
+                        "value": -282.490997
                     }
                 },
                 "id": 207,
@@ -1567,7 +1475,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 4
+                        "value": 5
                     },
                     "mass": {
                         "type": 1,
@@ -1579,11 +1487,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -386.632111
+                        "value": -466.174591
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -107.49485
+                        "value": -250.67131
                     }
                 },
                 "id": 208,
@@ -1623,7 +1531,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 5
+                        "value": 6
                     },
                     "parent": {
                         "type": 7,
@@ -1631,11 +1539,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -403.429169
+                        "value": -463.527924
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -52.065125
+                        "value": -163.424591
                     }
                 },
                 "id": 209,
@@ -1728,7 +1636,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 6
+                        "value": 7
                     },
                     "parent": {
                         "type": 7,
@@ -1736,11 +1644,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -437.235199
+                        "value": -426.629547
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 14.53627
+                        "value": -86.217537
                     },
                     "width": {
                         "type": 1,
@@ -1761,7 +1669,7 @@
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 3
                     },
                     "mass": {
                         "type": 1,
@@ -1769,15 +1677,15 @@
                     },
                     "parent": {
                         "type": 7,
-                        "value": 200
+                        "value": 500
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -112.574669
+                        "value": -177.976257
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -282.137909
+                        "value": -303.349243
                     },
                     "viriato_left_arm_target": {
                         "type": 3,
@@ -2393,22 +2301,6 @@
                         "type": 0,
                         "value": "SteelBlue"
                     },
-                    "level": {
-                        "type": 1,
-                        "value": 1
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": 1
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 264.621399
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": 196.512024
-                    },
                     "delimiting_polygon_x": {
                         "type": 3,
                         "value": [
@@ -2426,6 +2318,22 @@
                             2133,
                             2227
                         ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 264.621399
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 196.512024
                     }
                 },
                 "id": 50,
@@ -2454,15 +2362,107 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -305.963074
+                        "value": -263.540405
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -86.002792
+                        "value": -147.869156
                     }
                 },
                 "id": 500,
                 "links": [
+                    {
+                        "dst": 201,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    1.5700000524520874
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": 500
+                    },
+                    {
+                        "dst": 202,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    400,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 500
+                    },
+                    {
+                        "dst": 206,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    57,
+                                    1368
+                                ]
+                            }
+                        },
+                        "src": 500
+                    },
+                    {
+                        "dst": 220,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 500
+                    }
                 ],
                 "name": "body",
                 "type": "transform"
@@ -2472,22 +2472,6 @@
                     "color": {
                         "type": 0,
                         "value": "SteelBlue"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 1
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": 1
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 307.792358
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": 115.653336
                     },
                     "delimiting_polygon_x": {
                         "type": 3,
@@ -2506,6 +2490,22 @@
                             2301,
                             2283
                         ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 307.792358
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 115.653336
                     }
                 },
                 "id": 60,
@@ -3068,22 +3068,6 @@
                         "type": 0,
                         "value": "SteelBlue"
                     },
-                    "level": {
-                        "type": 1,
-                        "value": 1
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": 1
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 186.846512
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": 260.145996
-                    },
                     "delimiting_polygon_x": {
                         "type": 3,
                         "value": [
@@ -3101,6 +3085,22 @@
                             112,
                             74
                         ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 1
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 186.846512
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 260.145996
                     }
                 },
                 "id": 80,

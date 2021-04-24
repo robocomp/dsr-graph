@@ -20,6 +20,8 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/enumerate.hpp>
+#include <clocale>
+
 
 /**
 * \brief Default constructor
@@ -48,7 +50,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
-
+    std::setlocale(LC_NUMERIC, "C");                // for std::to_string(float) to put dots instead of commas
 	return true;
 }
 
@@ -83,10 +85,12 @@ void SpecificWorker::initialize(int period)
 		if(graph_view)
 		{
 		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
 		}
 		if(qscene_2d_view)
-		    current_opts = current_opts | opts::scene;
+        {
+            current_opts = current_opts | opts::scene;
+            main = opts::graph;
+        }
 		if(osg_3d_view)
 		    current_opts = current_opts | opts::osg;
 
@@ -103,28 +107,133 @@ void SpecificWorker::initialize(int period)
         connect(custom_widget.pushButton_start_mission, SIGNAL(clicked()), this, SLOT(slot_start_mission()));
         connect(custom_widget.pushButton_stop_mission, SIGNAL(clicked()), this, SLOT(slot_stop_mission()));
         connect(custom_widget.pushButton_cancel_mission, SIGNAL(clicked()), this, SLOT(slot_cancel_mission()));
+        //connect(custom_widget.comboBox_select_target, SIGNAL(activated(int)), this, SLOT(slot_select_target_object(int)));
+
+        // Ignore attributes
+        G->set_ignored_attributes<cam_depth_att>();
 
         // Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
+        // get camera_api
+        if(auto cam_node = G->get_node(viriato_head_camera_name); cam_node.has_value())
+            cam_api = G->get_camera_api(cam_node.value());
+        else
+            qFatal("YoloV4_tracker terminate: could not find a camera node");
+
+        // Update combo
+        update_room_list();
+
         this->Period = period;
 		timer.start(Period);
 	}
-
-    update_room_list();
 }
 
 void SpecificWorker::compute()
 {
     // check for existing missions
+    static Plan plan;
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
-        auto current_plan = plan_o.value();
-        current_plan.print();
-        custom_widget.current_plan->setPlainText(QString::fromStdString(current_plan.pprint()));
+        plan = plan_o.value();
+        plan.print();
+        custom_widget.current_plan->setPlainText(QString::fromStdString(plan.pprint()));
+        plan.set_active(true);
+    }
+    if(plan.is_active())
+    {
+        if( auto path = path_buffer.try_get(); path.has_value())
+        {
+            if (path.value().size() < 2)
+            {
+                plan.set_active(false);
+                send_command_to_robot(std::make_tuple(0.f, 0.f, 0.f));
+                slot_stop_mission();
+                if(custom_widget.checkBox_cyclic->isChecked())
+                {
+                    std::random_device rd; std::mt19937 mt(rd());
+                    std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count());
+                    auto index = random_index(mt);
+                    qInfo() << "new index selected" << index;
+                    custom_widget.comboBox_select_target->setCurrentIndex(index);
+                    slot_start_mission();
+                }
+            }
+            else
+                qInfo() << "Path size: " << path.value().size();
+        }
+    }
+    else
+    { // there should be a plan after a few seconds  }
     }
 }
 
+void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_node_id)
+{
+    qInfo() << __FUNCTION__ << " Creating GOTO mission to " << pos;
+    Plan plan;
+    // we get the id of the object clicked from the 2D representation
+    if (auto target_node = G->get_node(target_node_id); target_node.has_value())
+    {
+        stringstream location;
+        //location.imbue(std::locale("en_US.UTF8"));
+        location << "[" << std::to_string(pos.x()) << "," << std::to_string(pos.y()) << "," << 0 << "]";
+        std::cout << __FUNCTION__ << location.str();
+        const std::string plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node->name() + "\"}}]}";
+        std::cout << __FUNCTION__ << " " << plan_string << std::endl;
+        plan = Plan(plan_string);
+        plan_buffer.put(plan);
+    }
+
+    // Check if there is not 'intention' node yet in G
+    if(auto mind = G->get_node(robot_mind_name); mind.has_value())
+    {
+        if (auto intention = G->get_node(current_intention_name); intention.has_value())
+        {
+            std::cout << __FUNCTION__ << " Adding plan to intention node " << plan.to_string() << std::endl;
+            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_string());
+            if (G->update_node(intention.value()))
+                std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
+            else
+                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'intention' node" << std::endl;
+        }
+        else  // create a new node
+        {
+            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
+            G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
+            G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
+            G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -466);
+            G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 42);
+            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
+            if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
+            {
+                std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
+                // insert EDGE
+                DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
+                if (G->insert_or_assign_edge(edge))
+                    std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
+                else
+                    std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << mind.value().id() << "->" << intention_node_id.value()
+                              << " type: has" << std::endl;
+            } else
+                std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << __FILE__ << __FUNCTION__ << " Fatal error. robot mind node not found. Terminating" << std::endl;
+        std::terminate();
+    }
+}
+void SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds)   //adv, side, rot
+{
+    auto &[adv_, side_, rot_] = speeds;
+    auto robot_node = G->get_node(robot_name);
+    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv_);
+    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot_);
+    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side_);
+    G->update_node(robot_node.value());
+}
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,36 +247,50 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto y_values_o = G->get_attrib_by_name<path_y_values_att >(path_to_target_node.value());
             if(x_values_o.has_value() and y_values_o.has_value())
             {
-                path.clear();
                 auto &x_values = x_values_o.value().get();
                 auto &y_values = y_values_o.value().get();
-                path.reserve(x_values.size());
+                std::vector<Eigen::Vector3d> path; path.reserve(x_values.size());
                 for(auto &&[p, q] : iter::zip(x_values,y_values))
                     path.emplace_back(Eigen::Vector3d(p, q, 0.f));
+                path_buffer.put(path);
                 draw_path(path, &widget_2d->scene);
             }
         }
     }
-
-   //TODO
-   // MOVE!?
-   if (type == room_type_str)
+   else if (type == room_type_name)
        update_room_list();
+    if (type == rgbd_type_name and id == cam_api->get_id())
+    {
+        if(auto cam_node = G->get_node(id); cam_node.has_value())
+        {
+            if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
+            {
+                //cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(g_image.value().get()).data());
+                //cv::Mat out;
+                //cv::resize(img, out, cv::Size(custom_widget.label_rgb->width(), custom_widget.label_rgb->height()), 0, 0);
+                const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
+                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888);
+                auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
+                auto pix = QPixmap::fromImage(qimage_s);
+                custom_widget.label_rgb->setPixmap(pix);
+            }
+            else
+                qWarning() << __FUNCTION__ << "No cam_rgb_att found in camera " << cam_api->get_id();
+        }
+        else
+            qWarning() << __FUNCTION__ << "No camera_node found in G";
+    }
 }
 
 void SpecificWorker::update_room_list()
 {
-    auto nodes = G->get_nodes_by_type(std::string(room_type_str));
+    auto nodes = G->get_nodes_by_type(std::string(room_type_name));
     QStringList node_names = QStringList();
     custom_widget.comboBox_select_target->clear();
     for (auto node : nodes)
         node_names.insert(0, QString::fromStdString(node.name()));
-    for (auto name: node_names)
-        cout << name.toStdString() << endl;
     custom_widget.comboBox_select_target->insertItems(0, node_names);
 }
-
-
 
 void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScene* viewer_2d)
 {
@@ -216,53 +339,7 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id)
 {
     qInfo() << __FUNCTION__ << " Creating GOTO mission to " << pos_x << pos_y;
-    const std::string location =
-            "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," + std::to_string(0) + "]";
-    const std::string plan_string =
-            "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + "floor" + "\"}}]}";
-    std::cout << __FUNCTION__ << " " << plan_string << std::endl;
-    auto plan = Plan(plan_string);
-    plan_buffer.put(plan);
-
-    // Check if there is not 'intention' node yet in G
-    std::cout << robot_name << std::endl;
-    if(auto robot = G->get_node(robot_name); robot.has_value())
-    {
-        if (auto intention_nodes = G->get_nodes_by_type(intention_type_name); intention_nodes.empty())
-        {
-            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
-            G->add_or_modify_attrib_local<parent_att>(intention_node, robot.value().id());
-            G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(robot.value()).value() + 1);
-            G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -90);
-            G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) -304);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
-            if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
-            {
-                std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
-                // insert EDGE
-                DSR::Edge edge = DSR::Edge::create<has_edge_type>(robot.value().id(), intention_node.id());
-                if (G->insert_or_assign_edge(edge))
-                    std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
-                else
-                    std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << robot.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
-            } else
-                std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
-        } else // there is one intention node
-        {
-            DSR::Node intention_node = intention_nodes.front();
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
-            if (G->update_node(intention_node))
-                std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
-            else
-                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'intention' node" << std::endl;
-        }
-    }
-    else
-    {
-        std::cout << __FILE__ << __FUNCTION__ << " Fatal error. Robot node not found. Terminating" << std::endl;
-        std::terminate();
-    }
+    create_mission(QPointF(pos_x, pos_y), id);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,78 +348,58 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
 
 void SpecificWorker::slot_start_mission()
 {
-    string name = custom_widget.comboBox_select_target->currentText().toStdString();
-    auto node = G->get_node(name);
-    auto id = node->id();
+    std::string name = custom_widget.comboBox_select_target->currentText().toStdString();
+    qInfo() << __FUNCTION__ << "New mission to " << QString::fromStdString(name);
 
-    /* TODO
-    auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x>(node);
-    auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x>(node);
-
-    float pos_x = node->attrs()["pos_x"].fl();
-    float pos_y = node->attrs()["pos_y"].fl();
-
-    qInfo() << __FUNCTION__ << " Creating GOTO mission to " << pos_x << pos_y;
-    const std::string location =
-            "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," + std::to_string(0) + "]";
-    const std::string plan_string =
-            "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + "floor" + "\"}}]}";
-    std::cout << __FUNCTION__ << " " << plan_string << std::endl;
-    auto plan = Plan(plan_string);
-    plan_buffer.put(plan);
-
-    // Check if there is not 'intention' node yet in G
-    std::cout << robot_name << std::endl;
-    if(auto robot = G->get_node(robot_name); robot.has_value())
+    if (auto node = G->get_node(name); node.has_value())
     {
-        if (auto intention_nodes = G->get_nodes_by_type(intention_type_name); intention_nodes.empty())
+        auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(node.value());
+        auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(node.value());
+        if (polygon_x.has_value() and polygon_y.has_value())
         {
-            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
-            G->add_or_modify_attrib_local<parent_att>(intention_node, robot.value().id());
-            G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(robot.value()).value() + 1);
-            G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -90);
-            G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) -304);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
-            if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
+            QPolygonF pol;
+            for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+                pol << QPointF(px, py);
+            QRectF rect = pol.boundingRect();
+            QPointF pos = rect.center();
+            if (custom_widget.checkBox_random->isChecked())
             {
-                std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
-                // insert EDGE
-                DSR::Edge edge = DSR::Edge::create<has_edge_type>(robot.value().id(), intention_node.id());
-                if (G->insert_or_assign_edge(edge))
-                    std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
-                else
-                    std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << robot.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
-            } else
-                std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
-        } else // there is one intention node
-        {
-            DSR::Node intention_node = intention_nodes.front();
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
-            if (G->update_node(intention_node))
-                std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
-            else
-                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'intention' node" << std::endl;
+                std::random_device rd;
+                std::mt19937 mt(rd());
+                std::uniform_int_distribution<int> dist_x(-rect.width()/3, rect.width()/3);
+                std::uniform_int_distribution<int> dist_y(-rect.height()/3, rect.height()/3);
+                pos.setX(pos.x()+dist_x(mt));
+                pos.setY(pos.y()+dist_y(mt));
+            }
+            create_mission(pos, node.value().id());
         }
     }
-    else
-    {
-        std::cout << __FILE__ << __FUNCTION__ << " Fatal error. Robot node not found. Terminating" << std::endl;
-        std::terminate();
-    }
-     */
 }
 
 void SpecificWorker::slot_stop_mission()
 {
-
+    qInfo() << __FUNCTION__  ;
+    // Check if there is intention node in G
+    if(auto intention = G->get_node(current_intention_name); intention.has_value())
+    {
+        if (auto path = G->get_node(current_path_name); path.has_value())
+        {
+            if (G->delete_node(path.value().id()))
+                qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_path_name) << " deleted ";
+            else
+                qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_path_name);
+        }
+        if (G->delete_node(intention.value().id()))
+            qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_intention_name) << " deleted ";
+        else
+            qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_intention_name);
+    }
 }
 
 void SpecificWorker::slot_cancel_mission()
 {
-
+    slot_stop_mission();
 }
-
 
 int SpecificWorker::startup_check()
 {

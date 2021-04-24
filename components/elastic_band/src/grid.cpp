@@ -201,52 +201,6 @@ void Grid::modifyCostInGrid(const QPolygonF &poly, float cost)
                 setCost(pointToGrid(x, y),cost);
 }
 
-std::tuple<bool, QVector2D> Grid::vectorToClosestObstacle(QPointF center)
-{
-    QTime reloj = QTime::currentTime();
-    qDebug()<<" reloj "<< reloj.restart();
-    qDebug()<< "Computing neighboors of " << center;
-    auto k = pointToGrid(center.x(),center.y());
-    QVector2D closestVector;
-    bool obstacleFound = false;
-
-    auto neigh = neighboors_8(k, true);
-    float dist = std::numeric_limits<float>::max();
-    for (auto n : neigh)
-    {
-        if (n.second.free == false)
-        {
-            QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x,n.first.z)) ;
-            if (vec.length() < dist)
-            {
-                dist = vec.length();
-                closestVector = vec;
-            }
-            qDebug() << __FUNCTION__ << "Obstacle found";
-            obstacleFound = true;
-        }
-    }
-
-    if (!obstacleFound)
-    {
-        auto DistNeigh = neighboors_16(k, true);
-        for (auto n : DistNeigh)
-        {
-            if (n.second.free == false)
-            {
-                QVector2D vec = QVector2D(QPointF(k.x, k.z)) - QVector2D(QPointF(n.first.x, n.first.z)) ;
-                if (vec.length() < dist)
-                {
-                    dist = vec.length();
-                    closestVector = vec;
-                }
-                obstacleFound = true;
-            }
-        }
-    }
-    return std::make_tuple(obstacleFound,closestVector);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &target_)
 {
@@ -432,4 +386,33 @@ void Grid::draw(QGraphicsScene* scene)
 void Grid::clear()
 {
     fmap.clear();
+}
+
+std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
+{
+    Key key = pointToGrid(p);
+    std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
+    std::vector<std::pair<Grid::Key, Grid::T>> L2;
+    QPointF obstacle;
+    bool end = false;
+    bool found = false;
+    while( not end and not found)
+    {
+        for(auto &&current_cell : L1)
+        {
+            if(not current_cell.second.free)
+            {
+                obstacle = current_cell.first.toQPointF();
+                found = true;
+                break;
+            }
+            auto selected = neighboors_8(current_cell.first, true);
+            L2.insert(L2.end(), selected.begin(), selected.end());
+        }
+        end = L2.empty();
+        L1.swap(L2);
+        L2.clear();
+    }
+    if(found) return obstacle;
+    else return {};
 }
