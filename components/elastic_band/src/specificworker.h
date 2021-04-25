@@ -74,7 +74,6 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void new_target_from_mouse(int pos_x, int pos_y, int id);
 
 private:
         // DSR graph

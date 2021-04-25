@@ -110,7 +110,7 @@ void SpecificWorker::initialize(int period)
         //connect(custom_widget.comboBox_select_target, SIGNAL(activated(int)), this, SLOT(slot_select_target_object(int)));
 
         // Ignore attributes
-        G->set_ignored_attributes<cam_depth_att>();
+        G->set_ignored_attributes<cam_depth_att, laser_angles_att, laser_dists_att>();
 
         // Inner Api
         inner_eigen = G->get_inner_eigen_api();
@@ -144,7 +144,9 @@ void SpecificWorker::compute()
     {
         if( auto path = path_buffer.try_get(); path.has_value())
         {
-            if (path.value().size() < 2)
+            auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
+            float dist = (robot_pose - plan.get_target_trans()).norm();
+            if (path.value().size() < 2 or dist < 200)
             {
                 plan.set_active(false);
                 send_command_to_robot(std::make_tuple(0.f, 0.f, 0.f));
@@ -152,7 +154,7 @@ void SpecificWorker::compute()
                 if(custom_widget.checkBox_cyclic->isChecked())
                 {
                     std::random_device rd; std::mt19937 mt(rd());
-                    std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count());
+                    std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count()-1);
                     auto index = random_index(mt);
                     qInfo() << "new index selected" << index;
                     custom_widget.comboBox_select_target->setCurrentIndex(index);
@@ -185,7 +187,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
         plan_buffer.put(plan);
     }
 
-    // Check if there is not 'intention' node yet in G
+    // Check if there is 'intention' node yet in G
     if(auto mind = G->get_node(robot_mind_name); mind.has_value())
     {
         if (auto intention = G->get_node(current_intention_name); intention.has_value())
@@ -195,7 +197,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
             if (G->update_node(intention.value()))
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
             else
-                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'intention' node" << std::endl;
+                std::cout << __FILE__ << __FUNCTION__ << " Fatal error updating 'intention' node" << std::endl;
         }
         else  // create a new node
         {
@@ -243,12 +245,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     {
         if( auto path_to_target_node = G->get_node(id); path_to_target_node.has_value())
         {
-            auto x_values_o = G->get_attrib_by_name<path_x_values_att>(path_to_target_node.value());
-            auto y_values_o = G->get_attrib_by_name<path_y_values_att >(path_to_target_node.value());
+            const auto x_values_o = G->get_attrib_by_name<path_x_values_att>(path_to_target_node.value());
+            const auto y_values_o = G->get_attrib_by_name<path_y_values_att >(path_to_target_node.value());
             if(x_values_o.has_value() and y_values_o.has_value())
             {
-                auto &x_values = x_values_o.value().get();
-                auto &y_values = y_values_o.value().get();
+                const auto &x_values = x_values_o.value().get();
+                const auto &y_values = y_values_o.value().get();
                 std::vector<Eigen::Vector3d> path; path.reserve(x_values.size());
                 for(auto &&[p, q] : iter::zip(x_values,y_values))
                     path.emplace_back(Eigen::Vector3d(p, q, 0.f));
@@ -259,19 +261,16 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
    else if (type == room_type_name)
        update_room_list();
-    if (type == rgbd_type_name and id == cam_api->get_id())
+   if (type == rgbd_type_name and id == cam_api->get_id())
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
         {
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
             {
-                //cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(g_image.value().get()).data());
-                //cv::Mat out;
-                //cv::resize(img, out, cv::Size(custom_widget.label_rgb->width(), custom_widget.label_rgb->height()), 0, 0);
                 const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
-                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888);
-                auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
-                auto pix = QPixmap::fromImage(qimage_s);
+                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
+                //auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
+                auto pix = QPixmap::fromImage(qimage);
                 custom_widget.label_rgb->setPixmap(pix);
             }
             else
@@ -394,6 +393,8 @@ void SpecificWorker::slot_stop_mission()
         else
             qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_intention_name);
     }
+    else
+        qWarning() << __FUNCTION__ << "No intention node found";
 }
 
 void SpecificWorker::slot_cancel_mission()

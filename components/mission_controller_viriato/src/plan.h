@@ -11,7 +11,7 @@ class Plan
         enum class Actions {GOTO};
         Actions action;
         std::string target_place;
-        std::map<std::string, double> params;
+
         void set_active(bool s) {active = s;};
         bool is_active() const {return active;};
         bool is_location(const Mat::Vector2d &loc)
@@ -34,11 +34,12 @@ class Plan
             ss << "Intention: " << action_strings[action] << std::endl;
             ss << "      location: " << target_place << std::endl;
             ss << "      final pose: " << target_place << std::endl;
-            ss.precision(2);
             for(auto &&[k,v]: params)
-                ss << std::fixed << "\t" << k << " : " << std::to_string((float)v) << std::endl;  //OJO PONER EN FLOAT
+                ss << "\t" << k << " : " << ss.precision(2) << std::fixed << std::to_string((float)v) << std::endl;  //OJO PONER EN FLOAT
            return ss.str();
         };
+        Eigen::Vector3d get_target_trans() { return Eigen::Vector3d(params["x"], params["y"], 0.f);};
+        float get_target_rot() { return params["angle"];};
         //////////////////////////////////////////////
         /// parser form JSON plan to Plan structure
         //////////////////////////////////////////////
@@ -65,11 +66,11 @@ class Plan
             }
             plan_string = plan_string_;
         };
-
-        std::string plan_string;
     private:
         std::map<Actions, std::string> action_strings{{Actions::GOTO, "GOTO"}};
         bool active = false;
+        std::string plan_string;
+        std::map<std::string, double> params;
 };
 
 

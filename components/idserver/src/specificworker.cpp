@@ -90,7 +90,7 @@ void SpecificWorker::initialize(int period)
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
         // Ignore attributes from G
-        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();
+        //G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();
 
 		this->Period = 200;
 

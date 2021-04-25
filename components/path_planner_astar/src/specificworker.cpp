@@ -95,7 +95,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // Ignore attributes from G
-        G->set_ignored_attributes<cam_rgb_att, cam_depth_att>();
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
 
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
@@ -120,7 +120,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    // Check for new plan
+    // Check for new published intention/plan
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
         current_plan = plan_o.value();
@@ -136,12 +136,13 @@ void SpecificWorker::compute()
             if (not path.empty())
             {
                 draw_path(path, &widget_2d->scene);
-                std::vector<float> x_values;
-                x_values.reserve(path.size());
-                std::transform(path.cbegin(), path.cend(), std::back_inserter(x_values), [](const auto &value) { return value.x(); });
-                std::vector<float> y_values;
-                y_values.reserve(path.size());
-                std::transform(path.cbegin(), path.cend(), std::back_inserter(y_values), [](const auto &value) { return value.y(); });
+                std::vector<float> x_values; x_values.reserve(path.size());
+                std::vector<float> y_values; y_values.reserve(path.size());
+                for(auto &&p : path)
+                {
+                    x_values.push_back(p.x());
+                    y_values.push_back(p.y());
+                }
                 if (auto path = G->get_node(current_path_name); path.has_value())
                 {
                     auto path_to_target_node = path.value();
@@ -158,7 +159,6 @@ void SpecificWorker::compute()
                     G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -542);
                     G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) 106);
                     G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention.value().id());
-                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
                     G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
                     G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
                     G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
@@ -283,7 +283,10 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
 {
   std::string grid_as_string = grid.saveToString();
   if (auto current_grid_node_o = G->get_node(current_grid_name); current_grid_node_o.has_value())
-    G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
+  {
+      G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
+      G->update_node(current_grid_node_o.value());
+  }
   else
   {
       if (auto mind = G->get_node(robot_mind_name); mind.has_value())

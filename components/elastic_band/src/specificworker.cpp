@@ -391,20 +391,15 @@ void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)
     if( auto node_path = G->get_node(last_path_id); node_path.has_value())
     {
         std::vector<float> x_points, y_points;
+        x_points.reserve(path.size()); y_points.reserve(path.size());
         for(const auto &p : path)
-        { x_points.emplace_back(p.x()); y_points.emplace_back(p.y());  }
+            { x_points.emplace_back(p.x()); y_points.emplace_back(p.y());  }
         G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_points);
         G->add_or_modify_attrib_local<path_y_values_att>(node_path.value(), y_points);
         G->update_node(node_path.value());
     }
 }
 
-///////////////////////////////////////////////////////
-//// Check new target from mouse
-///////////////////////////////////////////////////////
-void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
-{
-}
 
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
@@ -445,9 +440,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
             if(dists.has_value() and angles.has_value())
             {
-                //if(dists.value().get().empty() or angles.value().get().empty()) return;
-                //qInfo() << __FUNCTION__ << dists->get().size();
-                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),  // CHECK WITHOUT get
+                const auto &d = dists.value().get();
+                const auto &a = angles.value().get();
+                if(d.empty() or a.empty()) return;
+                laser_buffer.put(std::make_tuple(a, d),  // CHECK WITHOUT get
                                  [this](const LaserData &in, std::tuple<QPolygonF,std::vector<QPointF>> &out) {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;

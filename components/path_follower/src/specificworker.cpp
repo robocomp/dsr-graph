@@ -211,12 +211,13 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     std::vector<float> y_values;  y_values.reserve(path.size());
     std::transform(closest_point_to_robot, path.cend(), std::back_inserter(y_values),
                    [](const auto &value) { return value.y(); });
-    if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
+    if (auto node_path = G->get_node(current_path_name); node_path.has_value())
+    //if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
     {
-        auto path_to_target_node = node_paths.front();
-        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-        G->update_node(path_to_target_node);
+        //auto path_to_target_node = node_paths.front();
+        G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_values);
+        G->add_or_modify_attrib_local<path_y_values_att>(node_path.value(), y_values);
+        G->update_node(node_path.value());
     }
     else
         std::cout << __FUNCTION__ << "No path target " << std::endl;
@@ -315,16 +316,15 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
 std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
 {
-//    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
-//    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
-//    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
-
     auto &[adv_, side_, rot_] = speeds;
-    auto robot_node = G->get_node(robot_name);
-    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv_);
-    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot_);
-    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side_);
-    G->update_node(robot_node.value());
+    if(auto robot_node = G->get_node(robot_name); robot_node.has_value())
+    {
+        G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(), (float) adv_);
+        G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float) rot_);
+        G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(), (float) side_);
+        G->update_node(robot_node.value());
+    }
+    else qWarning() << __FUNCTION__ << "No robot node found";
     return std::make_tuple(adv_, side_, rot_);
 }
 
@@ -373,9 +373,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
 {
 }
 
-///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
-///////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     //check node type
@@ -412,7 +412,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 //if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
                 laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
-                                 [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out) {
+                                 [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out)
+                                 {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
                                      const auto &[angles, dists] = in;
