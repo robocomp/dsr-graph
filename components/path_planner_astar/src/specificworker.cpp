@@ -99,11 +99,14 @@ void SpecificWorker::initialize(int period)
 
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
-        widget_2d->set_draw_laser(false);
-        connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
+        if (widget_2d != nullptr)
+        {
+            widget_2d->set_draw_laser(false);
+            connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
+        }
 
         // path planner
-        path_planner_initialize(&widget_2d->scene, read_from_file, grid_file_name);
+        path_planner_initialize(widget_2d, read_from_file, grid_file_name);
         qInfo() << __FUNCTION__ << "Grid created with size " << grid.size() * sizeof(Grid::T) << "bytes";
         inject_grid_in_G(grid);
         qInfo() << __FUNCTION__ << "Grid injected in G";
@@ -135,7 +138,8 @@ void SpecificWorker::compute()
             qInfo() << __FUNCTION__ << " Path size: " << path.size();
             if (not path.empty())
             {
-                draw_path(path, &widget_2d->scene);
+                if (widget_2d != nullptr)
+                    draw_path(path, &widget_2d->scene);
                 std::vector<float> x_values; x_values.reserve(path.size());
                 std::vector<float> y_values; y_values.reserve(path.size());
                 for(auto &&p : path)
@@ -176,7 +180,7 @@ void SpecificWorker::compute()
     {}
 }
 
-void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_from_file, const std::string file_name)
+void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, bool read_from_file, const std::string file_name)
 {
     QRectF outerRegion;
     auto world_node = G->get_node(world_name).value();
@@ -200,7 +204,8 @@ void SpecificWorker::path_planner_initialize(QGraphicsScene *scene, bool read_fr
     collisions->initialize(G, conf_params);
 
     grid.initialize(G, collisions, read_from_file, file_name, num_threads_for_grid_occupancy);
-    grid.draw(&widget_2d->scene);
+    if (widget_2d != nullptr)
+        grid.draw(&widget_2d->scene);
 
     robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
     robotZLong = std::stof(conf_params->at("RobotZLong").value);
@@ -390,7 +395,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     {
         if (auto intention = G->get_node(id); intention.has_value())
         {
-            std::optional<std::string> plan = G->get_attrib_by_name<current_intention_att >(intention.value());
+            std::optional<std::string> plan = G->get_attrib_by_name<current_intention_att>(intention.value());
             if (plan.has_value())
             {
                 qInfo() << __FUNCTION__ << QString::fromStdString(plan.value()) << " " << intention.value().id();
@@ -420,7 +425,7 @@ void SpecificWorker::draw_path(std::list<QPointF> &path, QGraphicsScene* viewer_
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem((QGraphicsItem*)item);
+        viewer_2d->removeItem(item);
     scene_road_points.clear();
 
     /// Draw all points

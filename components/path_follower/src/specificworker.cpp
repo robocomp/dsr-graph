@@ -76,16 +76,17 @@ void SpecificWorker::initialize(int period)
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
-		//opts main = opts::none;
+		opts main = opts::none;
 		if(tree_view)
 			current_opts = current_opts | opts::tree;
 		if(graph_view)
 			current_opts = current_opts | opts::graph;
+            main = opts::graph;
 		if(qscene_2d_view)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
         //dsr update signals
@@ -119,7 +120,7 @@ void SpecificWorker::initialize(int period)
 
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(dsr_viewer->get_widget(opts::scene));
         if (widget_2d != nullptr)
-            widget_2d->set_draw_laser(true);
+            widget_2d->set_draw_laser(false);
 
         // path planner
         path_follower_initialize();
@@ -138,42 +139,47 @@ void SpecificWorker::compute()
 {
     static std::vector<Eigen::Vector2f> path;
 
-    //if(not robot_is_active) return;
-
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value()) // NEW PATH!
     {
         qInfo() << __FUNCTION__ << "New path";
         path.clear();
         path = path_o.value();
-        draw_path(path, &widget_2d->scene);
+        if(widget_2d != nullptr)
+            draw_path(path, &widget_2d->scene);
     }
-    if(path.size() <= 1) return;
-    // keep controlling
-    if( const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
+    // if no path node, stop controlling
+    if(auto node_path = G->get_node(current_path_name); node_path.has_value())
     {
-        const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
-        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 500, 0), robot_name).value();
-        auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
-        auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
-        auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
-        auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
-        auto [adv,side,rot] =  send_command_to_robot(speeds);
-        remove_trailing_path(path, robot_pose);
+        if (const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
+        {
+            const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
+            auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 500, 0), robot_name).value();
+            auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
+            auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
+            auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
+            auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
+            auto[adv, side, rot] =  send_command_to_robot(speeds);
+            remove_trailing_path(path, robot_pose);
 
-        std::cout << "---------------------------" << std::endl;
-        std::cout << "Robot position: " << std::endl;
-        std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
-        std::cout << "Target position: " <<  std::endl;
-        std::cout << "\t " << current_target.x() << ", " << current_target.y() << std::endl;
-        std::cout << "Dist to target: " << std::endl;
-        std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
-        std::cout << "Ref speeds:  " << std::endl;
-        std::cout << "\t Advance-> " << adv << std::endl;
-        std::cout << "\t Side -> " << side << std::endl;
-        std::cout << "\t Rotate -> " << rot << std::endl;
-        std::cout << "\tRobot_is_active -> " <<  std::boolalpha << robot_is_active << std::endl;
+            std::cout << "---------------------------" << std::endl;
+            std::cout << "Robot position: " << std::endl;
+            std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
+            std::cout << "Target position: " << std::endl;
+            std::cout << "\t " << current_target.x() << ", " << current_target.y() << std::endl;
+            std::cout << "Dist to target: " << std::endl;
+            std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
+            std::cout << "Ref speeds:  " << std::endl;
+            std::cout << "\t Advance-> " << adv << std::endl;
+            std::cout << "\t Side -> " << side << std::endl;
+            std::cout << "\t Rotate -> " << rot << std::endl;
+            std::cout << "\tRobot_is_active -> " << std::boolalpha << robot_is_active << std::endl;
+        }
+        else
+        {} // check elapsed time since last reading. Stop the robot if too long
     }
+    else
+        qWarning() << __FUNCTION__ << "No path_node found in G";
 }
 void SpecificWorker::path_follower_initialize()
 {
@@ -286,7 +292,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     angle += correction;
     // rot speed gain
     rotVel = 2*angle;  // pioneer
-    rotVel = angle;  // viriato
+    rotVel = 0.8*angle;  // viriato
 
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
@@ -456,7 +462,7 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector2f> &path, QGraphicsScen
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem((QGraphicsItem*)item);
+        viewer_2d->removeItem(item);
     scene_road_points.clear();
 
     /// Draw all points

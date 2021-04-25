@@ -1,10 +1,11 @@
 CommonBehavior.Endpoints=tcp -p 17700
 
 # Proxies for required interfaces
-DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+#DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 # This property is used by the clients to connect to IceStorm.
-TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
+#TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
+
 agent_id = 44 # Change id
 agent_name = elastic_band
 

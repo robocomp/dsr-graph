@@ -555,7 +555,7 @@
                 "attribute": {
                     "color": {
                         "type": 0,
-                        "value": "Orange"
+                        "value": "Magenta"
                     },
                     "level": {
                         "type": 1,
@@ -1018,7 +1018,7 @@
                     },
                     {
                         "dst": 1000,
-                        "label": "RT",
+                        "label": "has",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
                                 "type": 3,

@@ -79,19 +79,14 @@ void SpecificWorker::initialize(int period)
 		// Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
-		opts main = opts::none;
+		opts main =  opts::graph;
 		if(tree_view)
 		    current_opts = current_opts | opts::tree;
 		if(graph_view)
-		{
 		    current_opts = current_opts | opts::graph;
-		}
 		if(qscene_2d_view)
-        {
             current_opts = current_opts | opts::scene;
-            main = opts::graph;
-        }
-		if(osg_3d_view)
+ 		if(osg_3d_view)
 		    current_opts = current_opts | opts::osg;
 
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
@@ -99,7 +94,9 @@ void SpecificWorker::initialize(int period)
 
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
-        widget_2d->set_draw_laser(true);
+        if(widget_2d != nullptr)
+            widget_2d->set_draw_laser(false);
+
         connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
         // custom widget
@@ -131,6 +128,8 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+    static size_t iterations = 0;
+    static int last_selected_index = custom_widget.comboBox_select_target->currentIndex();
     // check for existing missions
     static Plan plan;
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
@@ -139,6 +138,7 @@ void SpecificWorker::compute()
         plan.print();
         custom_widget.current_plan->setPlainText(QString::fromStdString(plan.pprint()));
         plan.set_active(true);
+        qInfo() << "Iterations: " << iterations++;
     }
     if(plan.is_active())
     {
@@ -151,13 +151,15 @@ void SpecificWorker::compute()
                 plan.set_active(false);
                 send_command_to_robot(std::make_tuple(0.f, 0.f, 0.f));
                 slot_stop_mission();
-                if(custom_widget.checkBox_cyclic->isChecked())
+                if(custom_widget.checkBox_cyclic->isChecked())  // cycli
                 {
                     std::random_device rd; std::mt19937 mt(rd());
                     std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count()-1);
-                    auto index = random_index(mt);
-                    qInfo() << "new index selected" << index;
-                    custom_widget.comboBox_select_target->setCurrentIndex(index);
+                    int new_index;
+                    do { new_index = random_index(mt);} while( new_index == last_selected_index);  //avoid repeating rooms
+                    last_selected_index = new_index;
+                    qInfo() << "new index selected" << new_index;
+                    custom_widget.comboBox_select_target->setCurrentIndex(last_selected_index);
                     slot_start_mission();
                 }
             }
@@ -261,24 +263,24 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
    else if (type == room_type_name)
        update_room_list();
-   if (type == rgbd_type_name and id == cam_api->get_id())
-    {
-        if(auto cam_node = G->get_node(id); cam_node.has_value())
-        {
-            if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
-            {
-                const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
-                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
-                //auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
-                auto pix = QPixmap::fromImage(qimage);
-                custom_widget.label_rgb->setPixmap(pix);
-            }
-            else
-                qWarning() << __FUNCTION__ << "No cam_rgb_att found in camera " << cam_api->get_id();
-        }
-        else
-            qWarning() << __FUNCTION__ << "No camera_node found in G";
-    }
+//   if (type == rgbd_type_name and id == cam_api->get_id())
+//    {
+//        if(auto cam_node = G->get_node(id); cam_node.has_value())
+//        {
+//            if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
+//            {
+//                const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
+//                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
+//                //auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
+//                auto pix = QPixmap::fromImage(qimage);
+//                custom_widget.label_rgb->setPixmap(pix);
+//            }
+//            else
+//                qWarning() << __FUNCTION__ << "No cam_rgb_att found in camera " << cam_api->get_id();
+//        }
+//        else
+//            qWarning() << __FUNCTION__ << "No camera_node found in G";
+//    }
 }
 
 void SpecificWorker::update_room_list()

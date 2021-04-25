@@ -76,7 +76,7 @@ void SpecificWorker::initialize(int period)
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
-		//opts main = opts::none;
+		opts main = opts::graph;
 		if(tree_view)
 			current_opts = current_opts | opts::tree;
 		if(graph_view)
@@ -85,11 +85,12 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
 			current_opts = current_opts | opts::osg;
-		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts);
+		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
+        rt_api = G->get_rt_api();
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
@@ -97,8 +98,10 @@ void SpecificWorker::initialize(int period)
         // Custom widget
         graph_viewer->add_custom_widget_to_dock("Elastic band", &custom_widget);
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
-        if(widget_2d)
-            widget_2d->set_draw_laser(true);
+
+		if(widget_2d != nullptr)
+            widget_2d->set_draw_laser(false);
+
         //widget_2d->set_draw_axis(bool draw);
         connect(custom_widget.ke_slider, &QSlider::valueChanged, [this](auto v){ KE = v;});
         connect(custom_widget.ki_slider, &QSlider::valueChanged, [this](auto v){ KI = v;});;
@@ -152,17 +155,27 @@ void SpecificWorker::compute()
     }
     else
     {
-        if( const auto laser_data_o = laser_buffer.try_get(); laser_data_o.has_value())
-            laser_data = laser_data_o.value();
-        const auto &[laser_poly, laser_cart] = laser_data;
-        auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
-        auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
-        auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
-        compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
-        clean_points(path, laser_poly, current_robot_polygon);
-        add_points(path, laser_poly, current_robot_polygon);
-        draw_path(path, &widget_2d->scene, laser_poly);
-        save_path_in_G(path);
+        // path_node has been deleted, stop processing
+        if(auto node_path = G->get_node(current_path_name);node_path.has_value())
+        {
+            if (const auto laser_data_o = laser_buffer.try_get(); laser_data_o.has_value())
+            {
+                std::get<1>(laser_data).clear(); std::get<0>(laser_data).clear();
+                laser_data = laser_data_o.value();
+            }
+            const auto &[laser_poly, laser_cart] = laser_data;
+            auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
+            auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
+            auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
+            compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
+            clean_points(path, laser_poly, current_robot_polygon);
+            add_points(path, laser_poly, current_robot_polygon);
+            if(widget_2d != nullptr)
+                draw_path(path, &widget_2d->scene, laser_poly);
+            save_path_in_G(path);
+        }
+        else
+            qWarning() << __FUNCTION__ << "No path node";
     }
 }
 
@@ -242,6 +255,8 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             // Apply to all laser points a functor to compute the distances to point p2. laser_cart must be up to date
             std::transform(std::begin(laser_cart), std::end(laser_cart), std::back_inserter(distances), [p, RL=ROBOT_LENGTH](const QPointF &laser)
             {   // compute distance from laser measure to point minus RLENGTH/2 or 0 and keep it positive
+
+                //if p is MAX_LASER_RANGE distance should be INF
                 float dist = (QVector2D(p) - QVector2D(laser)).length() - (RL / 2);
                 if (dist <= 0)
                     dist = 0.01;
@@ -444,10 +459,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 const auto &a = angles.value().get();
                 if(d.empty() or a.empty()) return;
                 laser_buffer.put(std::make_tuple(a, d),  // CHECK WITHOUT get
-                                 [this](const LaserData &in, std::tuple<QPolygonF,std::vector<QPointF>> &out) {
+                                 [this](const LaserData &in, std::tuple<QPolygonF,std::vector<QPointF>> &out)
+                                 {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
                                      const auto &[angles, dists] = in;
+                                     laser_cart.reserve(angles.size());
                                      auto robot = widget_2d->get_robot_polygon();
                                      for (const auto &[angle, dist] : iter::zip(angles, dists))
                                      {
@@ -455,7 +472,14 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                          if(dist == 0) continue;
                                          float x = dist * sin(angle); float y = dist * cos(angle);
                                          QPointF p = robot->mapToScene(x, y);
-                                         //Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
+                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), robot_name).value();
+                                         //auto diff = Eigen::Vector3d(p.x(),p.y(),0) - laserWorld;
+                                         //qInfo() << p << " - [" << laserWorld.x() << "," << laserWorld.y() << "] = " << "[" << diff.x() << "," << diff.y() << "]";
+                                         //auto r = inner_eigen->transform_axis(world_name, robot_name);
+                                         //auto po = rt_api->get_translation(G->get_node(world_name).value(), G->get_node(robot_name).value().id());
+                                         //qInfo() << "q_robot:" << robot->pos() << " g_robot:" << r.value().x() << r.value().y() << r.value()[5];
+                                         //qInfo() << "q_robot:" << robot->pos() << " g_robot:" << po.value().x() << po.value().y() << " g2_robot:" << r.value().x() << r.value().y()  ;
+
                                          laser_poly << QPointF(x, y);
                                          //laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
                                          laser_cart.emplace_back(p);
@@ -481,7 +505,7 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem((QGraphicsItem*)item);
+        viewer_2d->removeItem(item);
     scene_road_points.clear();
 
     /// Draw all points
