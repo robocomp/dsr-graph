@@ -143,11 +143,14 @@ void SpecificWorker::compute()
     if (robot.has_value() and g_image.has_value() and g_depth.has_value())
     {
         auto glass_nodes = G->get_nodes_by_type(glass_type_name);
+        auto cup_nodes = G->get_nodes_by_type(cup_type_name);
+        auto object_nodes = glass_nodes;
+        object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
         std::vector<std::string> object_names;
-        for(auto &&g : glass_nodes)
+        for(auto &&o : object_nodes)
         {
             //cout<<"node name "<<g.name()<<endl;
-            object_names.push_back(g.name());
+            object_names.push_back(o.name());
         }
         this->depth_array = g_depth.value();
         cv::Mat imgyolo = g_image.value();
@@ -155,12 +158,15 @@ void SpecificWorker::compute()
         std::vector<Box> synth_objects = process_graph_with_yolosynth(object_names);
         show_image(imgyolo, real_objects, synth_objects);
         for(auto b_real : real_objects)
+        {
+            cout<<"real object "<<b_real.name<<" "<<b_real.Tx<<" "<<b_real.Ty<<" "<<b_real.Tz<<" "<<endl;
             for(auto b_synth : synth_objects)
             {
-                cout<<"real name "<< b_real.name<<" "<<"synth name "<<b_synth.name<<endl;
-                if(b_real.name == b_synth.name)
+                //cout<<"real name "<< b_real.name<<" "<<"synth name "<<b_synth.name<<endl;
+                if(b_synth.visible and b_synth.name.find(b_real.name, 0)==0)
                     cout<<"potential match"<<endl;
             }
+        }
 
 
     }
@@ -248,7 +254,20 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         if(top < 0) top = 0;
         if(bot > yolo_img.h-1) bot = yolo_img.h-1;
         float prob = d.prob;
-        bboxes[i] = Box{names.at(cls), left, top, right, bot, prob*100, 0};
+
+        auto tp = cam_api->get_roi_depth(this->depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(left, bot), Eigen::Vector2f(right, top)));
+        float Tx, Ty, Tz;
+        if (tp.has_value())
+        {
+            auto [x,y,z] = tp.value();
+            Tx = x; Ty = y; Tz = z;
+        }
+        else
+            Tx = Ty = Tz = 0.;
+
+        auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(Tx, Ty, Tz), camera_name).value();
+        
+        bboxes[i] = Box{names.at(cls), left, top, right, bot, prob*100, 0, true, t_world[0], t_world[1], t_world[2]};
     }
     qDebug() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
     ynets[0]->free_image(yolo_img);
@@ -295,6 +314,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             box.bot = yExtremes.second->y();
             box.prob = 100;
             box.name = object_name;
+            if( box.left>=0 and box.right<YOLO_IMG_SIZE and box.top>=0 and box.bot<YOLO_IMG_SIZE)
+                box.visible = true;
+            else
+                box.visible = false;
             if( auto d = rt_api->get_translation(cam_api->get_id(), object.value().id()); d.has_value())
                 box.depth = d.value().norm();
             else box.depth = 0;

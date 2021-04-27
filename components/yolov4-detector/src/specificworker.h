@@ -77,6 +77,8 @@ class SpecificWorker : public GenericWorker
             int bot;
             float prob;
             float depth;
+            bool visible;
+            float Tx, Ty, Tz;
             int width() const { return right-left;};
             int height() const { return bot-top;};
             int cx() const { return left + width()/2;};
