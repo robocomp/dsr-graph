@@ -153,7 +153,7 @@ class SpecificWorker : public GenericWorker
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
         //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
-        void compute_prediction_error(Box &real_box, const Box &synth_box);
+        bool compute_prediction_error(Box &real_box, const Box &synth_box);
         void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
         void change_to_new_target();

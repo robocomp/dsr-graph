@@ -164,7 +164,16 @@ void SpecificWorker::compute()
             {
                 //cout<<"real name "<< b_real.name<<" "<<"synth name "<<b_synth.name<<endl;
                 if(b_synth.visible and b_synth.name.find(b_real.name, 0)==0)
+                {
+                    
                     cout<<"potential match"<<endl;
+                    if(compute_prediction_error(b_synth, b_real))
+                    {
+                        auto node = G->get_node(b_synth.name);
+                        //G->add_attrib_local<"visible">(node, std::vector<int> {1});
+                    }
+
+                }
             }
         }
 
@@ -326,7 +335,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     }
     return synth_box;
 }
-void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
+bool SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
 {
     auto are_close = [](const Box &b1, const Box &b2)
                      {
@@ -357,9 +366,9 @@ void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_bo
     {
         auto [x,y,z] = tp.value();
         real_box.depth = sqrt(x*x+y*y+z*z);
-        if (are_close(real_box, synth_box))
-                add_edge(tp.value());
+        return are_close(real_box, synth_box);
     }
+    return false;
 }
 void SpecificWorker::add_edge(const std::tuple<float,float,float> &tp)
 {

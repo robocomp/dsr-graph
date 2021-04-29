@@ -378,7 +378,7 @@ class SpecificWorker(GenericWorker):
             m = laser.get_matrix(robot)     # these data should be read first
             # print("m", m)
             # print("m.shape", m.shape)
-            if len(m.shape) == 2:
+            if type(m) != list:
                 m = [item for sublist in m for item in sublist]
             imat = np.array([[m[0],m[1],m[2],m[3]],[m[4],m[5],m[6],m[7]],[m[8],m[9],m[10],m[11]],[0,0,0,1]])
 
