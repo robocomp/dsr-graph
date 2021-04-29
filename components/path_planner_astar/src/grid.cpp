@@ -119,6 +119,12 @@ typename Grid::Key Grid::pointToGrid(long int x, long int z) const
     return Key(dim.left() + kx * TILE_SIZE, dim.bottom() + kz * TILE_SIZE);
 };
 
+Grid::Key Grid::pointToGrid(const QPointF &p) const
+{
+    int kx = (p.x() - dim.left()) / TILE_SIZE;
+    int kz = (p.y() - dim.bottom()) / TILE_SIZE;
+    return Key(dim.left() + kx * TILE_SIZE, dim.bottom() + kz * TILE_SIZE);
+};
 ////////////////////////////////////////////////////////////////////////////////
 void Grid::saveToFile(const std::string &fich)
 {
@@ -478,4 +484,33 @@ void Grid::draw(QGraphicsScene* scene)
 void Grid::clear()
 {
     fmap.clear();
+}
+
+std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
+{
+    Key key = pointToGrid(p);
+    std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
+    std::vector<std::pair<Grid::Key, Grid::T>> L2;
+    QPointF obstacle;
+    bool end = false;
+    bool found = false;
+    while( not end and not found)
+    {
+        for(auto &&current_cell : L1)
+        {
+            if(not current_cell.second.free)
+            {
+                obstacle = current_cell.first.toQPointF();
+                found = true;
+                break;
+            }
+            auto selected = neighboors_8(current_cell.first, true);
+            L2.insert(L2.end(), selected.begin(), selected.end());
+        }
+        end = L2.empty();
+        L1.swap(L2);
+        L2.clear();
+    }
+    if(found) return obstacle;
+    else return {};
 }

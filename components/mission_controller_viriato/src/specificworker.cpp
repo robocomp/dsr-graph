@@ -263,24 +263,24 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
    else if (type == room_type_name)
        update_room_list();
-//   if (type == rgbd_type_name and id == cam_api->get_id())
-//    {
-//        if(auto cam_node = G->get_node(id); cam_node.has_value())
-//        {
-//            if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
-//            {
-//                const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
-//                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
-//                //auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
-//                auto pix = QPixmap::fromImage(qimage);
-//                custom_widget.label_rgb->setPixmap(pix);
-//            }
-//            else
-//                qWarning() << __FUNCTION__ << "No cam_rgb_att found in camera " << cam_api->get_id();
-//        }
-//        else
-//            qWarning() << __FUNCTION__ << "No camera_node found in G";
-//    }
+   if (type == rgbd_type_name and id == cam_api->get_id())
+    {
+        if(auto cam_node = G->get_node(id); cam_node.has_value())
+        {
+            if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
+            {
+                const auto &image = const_cast<std::vector<uint8_t> &>(g_image.value().get()).data();
+                auto qimage = QImage(image, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
+                //auto qimage_s = qimage.scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);
+                auto pix = QPixmap::fromImage(qimage);
+                custom_widget.label_rgb->setPixmap(pix);
+            }
+            else
+                qWarning() << __FUNCTION__ << "No cam_rgb_att found in camera " << cam_api->get_id();
+        }
+        else
+            qWarning() << __FUNCTION__ << "No camera_node found in G";
+    }
 }
 
 void SpecificWorker::update_room_list()
@@ -319,11 +319,6 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
         auto right = segment_perp.pointAt(-50);
         QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
         QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
-
-	/*
-        if(i == 1 or i == path.size()-1)
-            color = "#00FF00"; //Green
-    	*/
 
         line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
         line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
