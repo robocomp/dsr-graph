@@ -142,58 +142,97 @@ void SpecificWorker::compute()
     auto robot = G->get_node(robot_name);
     if (robot.has_value() and g_image.has_value() and g_depth.has_value())
     {
-        if( time_to_change )       // if finished with current object, pick a new object from G -> update
+        auto glass_nodes = G->get_nodes_by_type(glass_type_name);
+        auto cup_nodes = G->get_nodes_by_type(cup_type_name);
+        auto object_nodes = glass_nodes;
+        object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
+        std::vector<std::string> object_names;
+        for(auto &&o : object_nodes)
         {
-            auto glass_nodes = G->get_nodes_by_type(glass_type_name);
-            remove_edge();
-            object_of_interest = random_selector(glass_nodes).name();
-            auto index = custom_widget.comboBox->findText(QString::fromStdString(object_of_interest));
-            custom_widget.comboBox->setCurrentIndex(index);
-            time_to_change = false;
-            std::cout << __FUNCTION__ << " " << object_of_interest << std::endl;
+            //cout<<"node name "<<g.name()<<endl;
+            object_names.push_back(o.name());
         }
         this->depth_array = g_depth.value();
         cv::Mat imgyolo = g_image.value();
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
-        std::vector<Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
+        std::vector<Box> synth_objects = process_graph_with_yolosynth(object_names);
         show_image(imgyolo, real_objects, synth_objects);
-        if( tracking )
+        for(auto b_real : real_objects)
         {
-            track_object_of_interest(robot.value());
-            if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
-                compute_prediction_error(*res, synth_objects.front());
-
-            // check end of object cycle
-            const auto link = G->get_edge(camera_name, object_of_interest, "looking-at");
-            const auto r_angle = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint).value();
-            const auto dist = inner_eigen->transform_axis(camera_name, object_of_interest).value().norm();
-
-            //std::cout << __FUNCTION__ << " Tracking: " << link.has_value() << " " << fabs(r_angle[5]) << " " << elapsed.count() << std::endl;
-            if( link.has_value() and (fabs(r_angle[5])<0.04 or dist < 1300))
+            cout<<"real object "<<b_real.name<<" "<<b_real.Tx<<" "<<b_real.Ty<<" "<<b_real.Tz<<" "<<endl;
+            for(auto b_synth : synth_objects)
             {
-                stop_robot();
-                if( first_time )
+                //cout<<"real name "<< b_real.name<<" "<<"synth name "<<b_synth.name<<endl;
+                if(b_synth.visible and b_synth.name.find(b_real.name, 0)==0)
                 {
-                    before = myclock::now();
-                    first_time = false;
-                }
-                msec duration = myclock::now() - before;
-                if(duration.count() > 2000)
-                {
-                    time_to_change = true;
-                    std::cout << __FUNCTION__ << " object completed" << std::endl;
-                }
-                else std::cout << __FUNCTION__ << " Watching" << std::endl;
-            }
-            else first_time = true;
-        }
-        else
-            set_nose_target_to_default();
+                    
+                    cout<<"potential match"<<endl;
+                    if(compute_prediction_error(b_synth, b_real))
+                    {
+                        auto node = G->get_node(b_synth.name);
+                        //G->add_attrib_local<"visible">(node, std::vector<int> {1});
+                    }
 
-//        qInfo() << real_objects.size() << synth_objects.size();
-//        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
-//        for(auto s : real_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right << s.prob;
+                }
+            }
+        }
+
+
     }
+
+
+//         if( time_to_change )       // if finished with current object, pick a new object from G -> update
+//         {
+//             auto glass_nodes = G->get_nodes_by_type(glass_type_name);
+//             remove_edge();
+//             object_of_interest = random_selector(glass_nodes).name();
+//             auto index = custom_widget.comboBox->findText(QString::fromStdString(object_of_interest));
+//             custom_widget.comboBox->setCurrentIndex(index);
+//             time_to_change = false;
+//             std::cout << __FUNCTION__ << " " << object_of_interest << std::endl;
+//         }
+//         this->depth_array = g_depth.value();
+//         cv::Mat imgyolo = g_image.value();
+//         std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
+//         std::vector<Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
+//         show_image(imgyolo, real_objects, synth_objects);
+//         if( tracking )
+//         {
+//             track_object_of_interest(robot.value());
+//             if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
+//                 compute_prediction_error(*res, synth_objects.front());
+
+//             // check end of object cycle
+//             const auto link = G->get_edge(camera_name, object_of_interest, "looking-at");
+//             const auto r_angle = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint).value();
+//             const auto dist = inner_eigen->transform_axis(camera_name, object_of_interest).value().norm();
+
+//             //std::cout << __FUNCTION__ << " Tracking: " << link.has_value() << " " << fabs(r_angle[5]) << " " << elapsed.count() << std::endl;
+//             if( link.has_value() and (fabs(r_angle[5])<0.04 or dist < 1300))
+//             {
+//                 stop_robot();
+//                 if( first_time )
+//                 {
+//                     before = myclock::now();
+//                     first_time = false;
+//                 }
+//                 msec duration = myclock::now() - before;
+//                 if(duration.count() > 2000)
+//                 {
+//                     time_to_change = true;
+//                     std::cout << __FUNCTION__ << " object completed" << std::endl;
+//                 }
+//                 else std::cout << __FUNCTION__ << " Watching" << std::endl;
+//             }
+//             else first_time = true;
+//         }
+//         else
+//             set_nose_target_to_default();
+
+// //        qInfo() << real_objects.size() << synth_objects.size();
+// //        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
+// //        for(auto s : real_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right << s.prob;
+//     }
 }
 Detector* SpecificWorker::init_detector()
 {
@@ -224,7 +263,20 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         if(top < 0) top = 0;
         if(bot > yolo_img.h-1) bot = yolo_img.h-1;
         float prob = d.prob;
-        bboxes[i] = Box{names.at(cls), left, top, right, bot, prob*100, 0};
+
+        auto tp = cam_api->get_roi_depth(this->depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(left, bot), Eigen::Vector2f(right, top)));
+        float Tx, Ty, Tz;
+        if (tp.has_value())
+        {
+            auto [x,y,z] = tp.value();
+            Tx = x; Ty = y; Tz = z;
+        }
+        else
+            Tx = Ty = Tz = 0.;
+
+        auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(Tx, Ty, Tz), camera_name).value();
+        
+        bboxes[i] = Box{names.at(cls), left, top, right, bot, prob*100, 0, true, t_world[0], t_world[1], t_world[2]};
     }
     qDebug() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
     ynets[0]->free_image(yolo_img);
@@ -238,8 +290,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     for(auto &&object_name : object_names)
     {
         //get object from G
+        cout<<"processing synthetic objects "<<object_name<<endl;
         if (auto object = G->get_node(object_name); object.has_value())
         {
+            cout<<"processing synthetic objects "<<endl;
             // project corners of object's bounding box in the camera image plane
             std::vector<Mat::Vector2d> bb_in_camera(8);
             const float h = 150;
@@ -269,6 +323,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             box.bot = yExtremes.second->y();
             box.prob = 100;
             box.name = object_name;
+            if( box.left>=0 and box.right<YOLO_IMG_SIZE and box.top>=0 and box.bot<YOLO_IMG_SIZE)
+                box.visible = true;
+            else
+                box.visible = false;
             if( auto d = rt_api->get_translation(cam_api->get_id(), object.value().id()); d.has_value())
                 box.depth = d.value().norm();
             else box.depth = 0;
@@ -277,7 +335,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
     }
     return synth_box;
 }
-void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
+bool SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
 {
     auto are_close = [](const Box &b1, const Box &b2)
                      {
@@ -308,9 +366,9 @@ void SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_bo
     {
         auto [x,y,z] = tp.value();
         real_box.depth = sqrt(x*x+y*y+z*z);
-        if (are_close(real_box, synth_box))
-                add_edge(tp.value());
+        return are_close(real_box, synth_box);
     }
+    return false;
 }
 void SpecificWorker::add_edge(const std::tuple<float,float,float> &tp)
 {
@@ -484,6 +542,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
+        cout<<box.name<<" "<<"p1 "<<p1.x<<" "<<p1.y<<endl;
     }
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);

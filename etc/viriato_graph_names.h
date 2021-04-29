@@ -34,6 +34,7 @@ const std::string rgbd_type_name = "rgbd";
 const std::string left_hand_type_name = "left_hand";
 const std::string pan_tilt_type_name = "pan_tilt";
 const std::string glass_type_name = "glass";
+const std::string cup_type_name = "cup";
 const std::string grid_type_name = "grid";
 const std::string room_type_name = "room";
 
