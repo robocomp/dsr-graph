@@ -124,6 +124,7 @@ class Grid
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
         std::optional<QPointF> closest_obstacle(const QPointF &p);
+        std::optional<QPointF> closest_free(const QPointF &p);
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
@@ -136,6 +137,7 @@ class Grid
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;
+        std::optional<QPointF> closest_matching(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred);
 };
 
 #endif // GRID_H
