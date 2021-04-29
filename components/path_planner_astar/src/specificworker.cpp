@@ -121,6 +121,9 @@ void SpecificWorker::initialize(int period)
     }
 }
 
+/* TODO: borrar */
+static int n_ok = 0;
+
 void SpecificWorker::compute()
 {
     // Check for new published intention/plan
@@ -133,9 +136,15 @@ void SpecificWorker::compute()
         if(auto intention = G->get_node(current_intention_name); intention.has_value())
         {
             QPointF target = current_plan.get_target();
+            if( not grid.dim.contains(target)){
+                cout << "El target está fuera del grid" << endl;
+                std::terminate();
+            }
             Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
-            if(auto valid_target = search_a_feasible_target(current_plan) ; valid_target.has_value())
+            auto valid_target = search_a_feasible_target(current_plan);
+            if( valid_target.has_value())
             {}
+            cout << "x: " << valid_target->x() << " y: " << valid_target->y() << endl;
             std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), target);
             qInfo() << __FUNCTION__ << " Path size: " << path.size();
             if (not path.empty())
@@ -159,6 +168,7 @@ void SpecificWorker::compute()
                     G->update_node(path_to_target_node);
                 } else // create path_to_target_node with the solution path
                 {
+                    cout << "Ha funcionao " << ++n_ok << " veces" << endl;
                     auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
                     G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
                     G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
@@ -226,8 +236,10 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
-    auto target = current_plan.get_target();
-    // ad to GRID, closest free cell in the direction of the robot.
+        auto target = current_plan.get_target();
+        return grid.closest_free(target);
+
+        // ad to GRID, closest free cell in the direction of the robot.
 }
 
 void SpecificWorker::inject_grid_in_G(const Grid &grid)

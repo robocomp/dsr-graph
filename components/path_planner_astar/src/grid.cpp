@@ -3,6 +3,7 @@
 #include <QGraphicsRectItem>
 #include <execution>
 #include <algorithm>
+#include <tuple>
 # include <cppitertools/slice.hpp>
 
 auto operator<<(std::ostream &os, const Grid::Key &k) -> decltype(k.save(os), os)
@@ -109,7 +110,7 @@ std::tuple<bool, Grid::T&> Grid::getCell(const Key &k)  //overladed version
 //    else
 //        return std::forward_as_tuple(true, fmap.at(pointToGrid(k.x, k.z)));  // Key should already be correct
       try{ return std::forward_as_tuple(true, fmap.at(pointToGrid(k.x, k.z))); }
-      catch(...){ qInfo() << __FUNCTION__ << " No key found in grid: (" << k.x << k.z << ")" ; return std::forward_as_tuple(false, T()) ;}
+      catch(...){ /*qInfo() << __FUNCTION__ << " No key found in grid: (" << k.x << k.z << ")" ;*/ return std::forward_as_tuple(false, T()) ;}
 }
 
 typename Grid::Key Grid::pointToGrid(long int x, long int z) const
@@ -350,20 +351,23 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
 
     while (not active_vertices.empty())
     {
+        //qInfo() << __FILE__ << __LINE__ << "Entrando en while";
         Key where = active_vertices.begin()->second;
         if (where == target)
         {
-            // qDebug() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
+            //qInfo() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
             auto p = orderPath(previous, source, target);
             if (p.size() > 1)
                 return p;
             else
                 return std::list<QPointF>();
         }
+        //qInfo() << "No where == target";
         active_vertices.erase(active_vertices.begin());
+#if 1
         for (auto ed : neighboors_8(where))
         {
-//				qDebug() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
+            //qInfo() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
             if (min_distance[ed.second.id] > min_distance[fmap.at(where).id] + ed.second.cost)
             {
                 active_vertices.erase({min_distance[ed.second.id], ed.first});
@@ -373,8 +377,9 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
                 // active_vertices.insert( { min_distance[ed.second.id] + heuristicL2(ed.first, target), ed.first } ); //A*
             }
         }
+#endif
     }
-    qDebug() << __FUNCTION__ << "Path from (" << source.x << "," << source.z << ") not  found. Returning empty path";
+    qInfo() << __FUNCTION__ << "Path from (" << source.x << "," << source.z << ") not  found. Returning empty path";
     return std::list<QPointF>();
 };
 
@@ -486,21 +491,22 @@ void Grid::clear()
     fmap.clear();
 }
 
-std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
+std::optional<QPointF> Grid::closest_matching(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred)
 {
     Key key = pointToGrid(p);
     std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
     std::vector<std::pair<Grid::Key, Grid::T>> L2;
-    QPointF obstacle;
+    QPointF match;
+    const auto &[success, v] = getCell(key);
     bool end = false;
-    bool found = false;
+    bool found = success and pred(std::make_pair(key, v));
     while( not end and not found)
     {
         for(auto &&current_cell : L1)
         {
-            if(not current_cell.second.free)
+            if(pred(current_cell))
             {
-                obstacle = current_cell.first.toQPointF();
+                match = current_cell.first.toQPointF();
                 found = true;
                 break;
             }
@@ -511,6 +517,16 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
         L1.swap(L2);
         L2.clear();
     }
-    if(found) return obstacle;
+    if(found) return match;
     else return {};
+}
+
+std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
+{
+    return this->closest_matching(p, [](auto cell){ return not cell.second.free; });
+}
+
+std::optional<QPointF> Grid::closest_free(const QPointF &p)
+{
+    return this->closest_matching(p, [](auto cell){ return cell.second.free; });
 }
