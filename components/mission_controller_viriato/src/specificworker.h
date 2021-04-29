@@ -38,6 +38,8 @@
 #include "plan.h"
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <chrono>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -72,7 +74,6 @@ class SpecificWorker : public GenericWorker
         bool graph_view;
         bool qscene_2d_view;
         bool osg_3d_view;
-
         // DSR graph viewer
         std::unique_ptr<DSR::DSRViewer> graph_viewer;
         QHBoxLayout mainLayout;

@@ -129,6 +129,8 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     static size_t iterations = 0;
+    static bool primera_vez=false;
+    static std::chrono::steady_clock::time_point begin;
     static int last_selected_index = custom_widget.comboBox_select_target->currentIndex();
     // check for existing missions
     static Plan plan;
@@ -144,6 +146,21 @@ void SpecificWorker::compute()
     {
         if( auto path = path_buffer.try_get(); path.has_value())
         {
+            if(!primera_vez) {
+                primera_vez = true;
+                begin = std::chrono::steady_clock::now();
+                int vel_media = 300;
+                auto dist = 0;
+                for (int i = 0; i < path.value().size() - 1; ++i)
+                    dist = dist + (path.value()[i] - path.value()[i + 1]).norm();
+
+                qInfo() << path.value().size();
+                qInfo() << "Inicio: " << path.value()[0].x() << "," << path.value()[0].y();
+                qInfo() << "Final: " << path.value()[path.value().size() - 1].x() << ","
+                        << path.value()[path.value().size() - 1].y();
+                qInfo() << "Distancia: " << dist;
+                auto time = dist / vel_media;
+            }
             auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
             float dist = (robot_pose - plan.get_target_trans()).norm();
             if (path.value().size() < 2 or dist < 200)
@@ -151,6 +168,10 @@ void SpecificWorker::compute()
                 plan.set_active(false);
                 send_command_to_robot(std::make_tuple(0.f, 0.f, 0.f));
                 slot_stop_mission();
+                primera_vez=false;
+                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+                auto d=std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+                qInfo() << "Tiempo: " << d << "s";
                 if(custom_widget.checkBox_cyclic->isChecked())  // cycli
                 {
                     std::random_device rd; std::mt19937 mt(rd());
