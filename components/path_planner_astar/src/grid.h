@@ -52,6 +52,7 @@ class Grid
                     x = p.x();
                     z = p.y();
                 };
+                QPointF toQPointF() const { return QPointF(x,z);};
                 bool operator==(const Key &other) const
                 {
                     return x == other.x && z == other.z;
@@ -114,6 +115,7 @@ class Grid
         void readFromString(const std::string &cadena);
         std::list<QPointF> computePath(const QPointF &source_, const QPointF &target_);
         Key pointToGrid(long int x, long int z) const;
+        Key pointToGrid(const QPointF &p) const;
         void setFree(const Key &k);
         bool isFree(const Key &k) ;
         bool cellNearToOccupiedCellByObject(const Key &k, const std::string &target_name);
@@ -121,6 +123,7 @@ class Grid
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
+        std::optional<QPointF> closest_obstacle(const QPointF &p);
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);

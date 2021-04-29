@@ -126,6 +126,7 @@ class SpecificWorker : public GenericWorker
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
         std::tuple<SearchState, Mat::Vector2d> search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot);
         void path_planner_initialize(  DSR::QScene2dViewer *viewer_2d, bool read_from_file = false, const std::string file_name = std::string());
+        std::optional<QPointF> search_a_feasible_target(const Plan &current_plan);
 
         std::shared_ptr<Collisions> collisions;
         Grid grid;

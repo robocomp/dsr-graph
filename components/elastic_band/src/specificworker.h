@@ -78,8 +78,8 @@ class SpecificWorker : public GenericWorker
 private:
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
-        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-        std::shared_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::InnerEigenAPI> inner_eigen;
+        std::unique_ptr<DSR::RT_API> rt_api;
 
         //DSR params
         std::string agent_name;
@@ -110,8 +110,9 @@ private:
 
         //laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
+        std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data();
 
-        //Signal subscription
+            //Signal subscription
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 

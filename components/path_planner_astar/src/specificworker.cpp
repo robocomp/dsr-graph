@@ -134,6 +134,8 @@ void SpecificWorker::compute()
         {
             QPointF target = current_plan.get_target();
             Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
+            if(auto valid_target = search_a_feasible_target(current_plan) ; valid_target.has_value())
+            {}
             std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), target);
             qInfo() << __FUNCTION__ << " Path size: " << path.size();
             if (not path.empty())
@@ -222,66 +224,10 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 // if not select one. One option is to analyze the local orientation of the barrier
 //
 
-std::tuple<SpecificWorker::SearchState, Mat::Vector2d> SpecificWorker::search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot)
+std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
-    std::cout << __FUNCTION__ << " Target node: " << target.name() << " Robot name: " << robot.name() << std::endl;
-    Mat::Vector3d tc = inner_eigen->transform(world_name, target.name()).value();
-    Mat::Vector3d rc = inner_eigen->transform(world_name, robot_name).value();
-    std::cout << __FUNCTION__ << " Target node id: " << target.id() << " located at: " << tc.x() << ", " << tc.y() << " and final coors: " << params.at("x") << ", " << params.at("y") << std::endl;
-    std::cout << __FUNCTION__ << " Robot located at: " << rc.x() << ", " << rc.y() << std::endl;
-
-    // if x,y not empty
-    if(not params.empty())
-    {
-        // if already in current_target return
-        if (this->current_plan.is_location(Mat::Vector2d(rc.x(), rc.y())))
-            return std::make_tuple(SearchState::AT_TARGET, Mat::Vector2d());
-        // if node is floor_plane take coordinates directly
-        if (target.name() == floor_name) // floor
-            return std::make_tuple(SearchState::NEW_FLOOR_TARGET, Mat::Vector2d(params.at("x"), params.at("y")));
-    }
-    std::string target_name = target.name();
-    Mat::Vector2d target_center(tc.x(), tc.y());
-    Mat::Vector2d robot_center(rc.x(), rc.y());
-    std::vector<Mat::Vector2d> candidates;
-
-    // search in a spiral pattern away from object for the first free cell
-    long int x_pos = target_center.x();
-    long int y_pos = target_center.y();
-    int d = grid.TILE_SIZE;
-    for(int i : iter::range(grid.size()))
-    {
-        while (2 * x_pos * d < i)
-        {
-            const auto &k = Grid::Key(x_pos, y_pos);
-            if (grid.isFree(k))
-                candidates.emplace_back(Mat::Vector2d (x_pos, y_pos));
-            x_pos = x_pos + d;
-            if(candidates.size() > 0)   // arbitrary number hard to fix
-                break;
-        }
-        while (2 * y_pos * d < i)
-        {
-            const auto &k = Grid::Key(x_pos, y_pos);
-            if (grid.isFree(k))
-                candidates.emplace_back(Mat::Vector2d(x_pos, y_pos));
-            y_pos = y_pos + d;
-            if(candidates.size() > 0)   // arbitrary number hard to fix
-                break;
-        }
-        d = -1 * d;
-    }
-
-    // sort by distances to target
-    if(candidates.size() > 0)
-    {
-        std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
-            return (robot_center - p1).norm() < (robot_center - p2).norm();
-        });
-        return std::make_tuple(SearchState::NEW_TARGET, candidates.front());
-    }
-    else
-        return std::make_tuple(SearchState::NO_TARGET_FOUND, Mat::Vector2d());
+    auto target = current_plan.get_target();
+    // ad to GRID, closest free cell in the direction of the robot.
 }
 
 void SpecificWorker::inject_grid_in_G(const Grid &grid)
@@ -556,4 +502,73 @@ int SpecificWorker::startup_check()
 //        else
 //            std::cout << "No robot node found:" << std::endl;
 //    } // do whatever you do without a plan
+//}
+
+//
+// Search
+// sample radially from target floor projection and create path to all acceptable places
+// merge paths into a tree and wait to see if the decision can be visually solved at the knot
+// if not select one. One option is to analyze the local orientation of the barrier
+//
+//
+//std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Node &target, const std::map<std::string, double> &params)
+//{
+//    std::cout << __FUNCTION__ << " Target node: " << target.name() << " Robot name: " << robot.name() << std::endl;
+//    Mat::Vector3d tc = inner_eigen->transform(world_name, target.name()).value();
+//    Mat::Vector3d rc = inner_eigen->transform(world_name, robot_name).value();
+//    std::cout << __FUNCTION__ << " Target node id: " << target.id() << " located at: " << tc.x() << ", " << tc.y() << " and final coors: " << params.at("x") << ", " << params.at("y") << std::endl;
+//    std::cout << __FUNCTION__ << " Robot located at: " << rc.x() << ", " << rc.y() << std::endl;
+//
+//    // if x,y not empty
+//    if(not params.empty())
+//    {
+//        // if already in current_target return
+//        if (this->current_plan.is_location(Mat::Vector2d(rc.x(), rc.y())))
+//            return std::make_tuple(SearchState::AT_TARGET, Mat::Vector2d());
+//        // if node is floor_plane take coordinates directly
+//        if (target.name() == floor_name) // floor
+//            return std::make_tuple(SearchState::NEW_FLOOR_TARGET, Mat::Vector2d(params.at("x"), params.at("y")));
+//    }
+//    std::string target_name = target.name();
+//    Mat::Vector2d target_center(tc.x(), tc.y());
+//    Mat::Vector2d robot_center(rc.x(), rc.y());
+//    std::vector<Mat::Vector2d> candidates;
+//
+//    // search in a spiral pattern away from object for the first free cell
+//    long int x_pos = target_center.x();
+//    long int y_pos = target_center.y();
+//    int d = grid.TILE_SIZE;
+//    for(int i : iter::range(grid.size()))
+//    {
+//        while (2 * x_pos * d < i)
+//        {
+//            const auto &k = Grid::Key(x_pos, y_pos);
+//            if (grid.isFree(k))
+//                candidates.emplace_back(Mat::Vector2d (x_pos, y_pos));
+//            x_pos = x_pos + d;
+//            if(candidates.size() > 0)   // arbitrary number hard to fix
+//                break;
+//        }
+//        while (2 * y_pos * d < i)
+//        {
+//            const auto &k = Grid::Key(x_pos, y_pos);
+//            if (grid.isFree(k))
+//                candidates.emplace_back(Mat::Vector2d(x_pos, y_pos));
+//            y_pos = y_pos + d;
+//            if(candidates.size() > 0)   // arbitrary number hard to fix
+//                break;
+//        }
+//        d = -1 * d;
+//    }
+//
+//    // sort by distances to target
+//    if(candidates.size() > 0)
+//    {
+//        std::sort(std::begin(candidates), std::end(candidates), [robot_center](const auto &p1, const auto &p2) {
+//            return (robot_center - p1).norm() < (robot_center - p2).norm();
+//        });
+//        return std::make_tuple(SearchState::NEW_TARGET, candidates.front());
+//    }
+//    else
+//        return std::make_tuple(SearchState::NO_TARGET_FOUND, Mat::Vector2d());
 //}
