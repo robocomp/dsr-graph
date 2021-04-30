@@ -61,8 +61,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
     return true;
 
     //dsr_input_file = params["dsr_input_file"].value;
-
-    return true;
 }
 
 void SpecificWorker::initialize(int period) 
@@ -133,24 +131,24 @@ void SpecificWorker::initialize(int period)
     edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
     edge_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
-    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
-    connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
-    connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
-    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
-    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
-    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
-    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
-    connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
-    connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
-    connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
-    connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
+//    connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
+//    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_clicked()));
+//    connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
+//    connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
+//    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
+//    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
+//    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
+//    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
+//    connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
+//    connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
+//    connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
+//    connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
 
     //G signals
-    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::G_add_or_assign_node_slot);
-    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::G_add_or_assign_edge_slot);
-    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::G_del_edge_slot);
-    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::G_del_node_slot);
+//    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::G_add_or_assign_node_slot);
+//    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::G_add_or_assign_edge_slot);
+//    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::G_del_edge_slot);
+//    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::G_del_node_slot);
 	
 	// create graph
     std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
@@ -170,6 +168,11 @@ void SpecificWorker::initialize(int period)
 //    TODO: set Editor as main
     this->setCentralWidget(editor_view);
     this->Period = 200;
+    attribute_browser = new QAttributeBrowser(G, this);
+    dsr_viewer->add_custom_widget_to_dock("Browser", attribute_browser );
+    connect(editor_view, &GraphEditorView::graph_node_clicked,
+            attribute_browser, &QAttributeBrowser::update_node_combobox);
+
 
 }
 
@@ -180,341 +183,6 @@ void SpecificWorker::compute()
 
 }
 
-void SpecificWorker::change_node_slot(int id)
-{
-//    qDebug()<<id;
-//    Node node = node_cb->itemData(id).value<Node>();
-//    node_id_label->setText("("+QString::number(node.id())+":"+QString::fromStdString(node.type())+")");
-//    fill_table(node_attrib_tw, node.attrs());
-}
-
-void SpecificWorker::change_edge_slot(int id)
-{
-//    Edge edge = edge_cb->itemData(id).value<Edge>();
-//    edge_id_label->setText("("+QString::number(edge.from())+"-"+QString::number(edge.to())+":"+QString::fromStdString(edge.type())+")");
-//    fill_table(edge_attrib_tw, edge.attrs());
-}
-
-
-void SpecificWorker::fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attribs)
-{
-    table_widget->setRowCount(0);
-    for(auto [key, value] : attribs)
-    {
-        table_widget->insertRow( table_widget->rowCount() );
-        QTableWidgetItem *item =new QTableWidgetItem(QString::fromStdString(key));
-        item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        table_widget->setItem(table_widget->rowCount()-1, 0, item);
-        switch (value.selected())
-        {
-            case 0:
-                {
-                    QLineEdit *ledit = new QLineEdit(QString::fromStdString(value.str()));
-                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, ledit);
-                }
-                break;
-            case 1:
-            {
-                QSpinBox *spin = new QSpinBox();
-                spin->setMinimum(-10000);
-                spin->setMaximum(10000);
-                spin->setValue(value.dec());
-                table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
-            }
-                break;
-            case 6:
-                {
-                    QSpinBox *spin = new QSpinBox();
-                    spin->setMinimum(-10000);
-                    spin->setMaximum(10000);
-                    spin->setValue(value.uint());
-                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
-                }
-                break;
-            case 2:
-                {
-                    QDoubleSpinBox *spin = new QDoubleSpinBox();
-                    spin->setMinimum(-10000);
-                    spin->setMaximum(10000);
-                    spin->setValue(std::round(static_cast<double>(value.fl()) *1000000)/ 1000000);
-                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, spin);
-                }
-                break;
-            case 3:
-                {
-                    QWidget  *widget = new QWidget();
-                    QHBoxLayout *layout = new QHBoxLayout;
-                    widget->setLayout(layout);
-                    if (!value.float_vec().empty())
-                    {
-                        for(std::size_t i = 0; i < value.float_vec().size(); ++i)
-                        {
-                            QDoubleSpinBox *spin = new QDoubleSpinBox();
-                            spin->setMinimum(-10000);
-                            spin->setMaximum(10000);
-                            spin->setValue(value.float_vec()[i]);
-                            layout->addWidget(spin);
-                        }
-                        table_widget->setCellWidget(table_widget->rowCount()-1, 1, widget);
-                    }
-                }
-                break;
-            case 4:
-                {
-                    QComboBox *combo = new QComboBox();
-                    combo->addItem("true");
-                    combo->addItem("false");
-                    if (value.bl())
-                        combo->setCurrentText("true");
-                    else
-                        combo->setCurrentText("false");
-                    table_widget->setCellWidget(table_widget->rowCount()-1, 1, combo);
-                }
-                break;
-        }
-    }
-    table_widget->resizeColumnsToContents();
-    table_widget->horizontalHeader()->setStretchLastSection(true);
-}
-
-
-std::map<std::string, DSR::Attribute> SpecificWorker::get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs)
-{
-    for (int row=0; row < table_widget->rowCount(); row++)
-    {
-        std::string key = table_widget->item(row, 0)->text().toStdString();
-        switch(attrs[key].selected())
-        {
-            case 0:
-                {
-                    QLineEdit *ledit = (QLineEdit*)table_widget->cellWidget(row, 1);
-                    attrs[key].str(ledit->text().toStdString());
-                }
-                break;
-            case 1:
-            case 6:
-                {
-                    QSpinBox *spin = (QSpinBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].dec(spin->value());
-                }
-                break;
-            case 2:
-                {
-                    QDoubleSpinBox *spin = (QDoubleSpinBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].fl(spin->value());
-                }
-                break;
-            case 4:
-                {
-                    QComboBox *combo = (QComboBox*)table_widget->cellWidget(row, 1);
-                    attrs[key].bl(combo->currentText().contains("true"));
-                }
-                break;
-            case 3:
-                {
-                    qDebug()<<__LINE__;
-                    std::vector<float> r;
-                    for (QDoubleSpinBox *spin: table_widget->cellWidget(row, 1)->findChildren<QDoubleSpinBox *>())
-                    {
-                        r.push_back(spin->value());
-                    }
-                    attrs[key].float_vec(r);
-                    std::cout<<r;
-                }
-                break;                
-        }       
-    }
-    return attrs;
-}
-
-
-void SpecificWorker::save_node_slot()
-{
-    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-
-    std::map<std::string, DSR::Attribute> new_attrs = get_table_content(node_attrib_tw, node.attrs());
-    node.attrs(new_attrs);
-    
-    if(G->update_node(node))
-        qDebug()<<"Node saved";
-    else
-    {
-        qDebug()<<"Error saving node";
-    }
-}
-
-
-void SpecificWorker::save_edge_slot()
-{
-    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-
-    std::map<std::string, DSR::Attribute> new_attrs = get_table_content(edge_attrib_tw, edge.attrs());
-    edge.attrs(new_attrs);
-    
-    if(G->insert_or_assign_edge(edge))
-        qDebug()<<"Edge saved";
-    else
-    {
-        qDebug()<<"Error saving edge";
-    }
-  
-}
-
-void SpecificWorker::delete_edge_slot()
-{
-    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-    if (not G->delete_edge(edge.from(), edge.to(), edge.type()))
-        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") could not be deleted";
-}
-
-void SpecificWorker::delete_node_slot()
-{
-    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-    if( not  G->delete_node(node.id()))
-       qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";
-}
-
-
-void SpecificWorker::new_node_slot()
-{
-    //get node type
-    bool ok;
-    QStringList items;
-    items << tr("plane") << tr("transform") << tr("mesh") << tr("person")<< tr("omnirobot")<< tr("rgbd");
-    QString node_type = QInputDialog::getItem(this, tr("New node"), tr("Attrib name:"), items, 0, false, &ok);
-    if(not ok or node_type.isEmpty())
-        return;
-
-    Node node;
-    node.type(node_type.toStdString());
-    G->add_or_modify_attrib_local<pos_x_att>(node, 100.0f);
-    G->add_or_modify_attrib_local<pos_y_att>(node, 130.0f);
-    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
-    try
-    {
-        G->insert_node(node);
-    }
-    catch(const std::exception& e)
-    {
-        std::cout << __FUNCTION__ <<  e.what() << std::endl;
-    }
-}
-
-void SpecificWorker::new_node_attrib_slot()
-{
-    bool ok1, ok2;
-    QString attrib_name = QInputDialog::getText(this, tr("New node attrib"),
-                                         tr("Attrib name:"), QLineEdit::Normal,
-                                         "name", &ok1);
-    QStringList items;
-    items << tr("int") << tr("float") << tr("string") << tr("bool");
-    QString attrib_type = QInputDialog::getItem(this, tr("New node attrib"), tr("Attrib type:"), items, 0, false, &ok2);
-
-    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
-        return;
-
-    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-    if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
-    else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
-    else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
-    else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
-
-    fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
-}
-
-void SpecificWorker::new_edge_slot() {
-    bool ok1, ok2, ok3;
-    int from = QInputDialog::getInt(this, tr("New edge"), "From  node id:", 0, 1, 50000, 1, &ok1);
-    int to = QInputDialog::getInt(this, tr("New edge"), "To  node id:", 0, 1, 50000, 1, &ok2);
-    QStringList items;
-    items << tr("RT") << tr("interacting");
-    QString edge_type = QInputDialog::getItem(this, tr("New edge"), tr("Edge type:"), items, 0, false, &ok3);
-
-    if (not ok1 or not ok2 or not ok3 or edge_type.isEmpty())
-        return;
-
-    std::optional<Node> from_node = G->get_node(from);
-    std::optional<Node> to_node = G->get_node(to);
-    if (from_node.has_value() and to_node.has_value()) {
-        if(edge_type == "RT")
-        {
-            try {
-                std::vector<float> trans{0.f, 0.f, 0.f};
-                std::vector<float> rot{0, 0.f, 0};
-                rt->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
-            }
-            catch (const std::exception &e) {
-                std::cout << __FUNCTION__ << e.what() << std::endl;
-            }
-        }
-        else if(edge_type == "interacting")
-        {
-            Edge edge;
-            edge.type(edge_type.toStdString());
-            //get two ids
-            edge.from(from);
-            edge.to(to);
-            if(not G->insert_or_assign_edge(edge))
-                std::cout<<"Error inserting new edge: "<<from<<"->"<<to<<" type: "<<edge_type.toStdString()<<std::endl;
-        }
-    }
-    else{
-        qDebug()<<"Selected node from or to does not exist";
-    }
-}
-void SpecificWorker::new_edge_attrib_slot()
-{
-    bool ok1, ok2;
-    QString attrib_name = QInputDialog::getText(this, tr("New edge attrib"),
-                                                tr("Attrib name:"), QLineEdit::Normal,
-                                                "name", &ok1);
-    QStringList items;
-    items << tr("int") << tr("float") << tr("string") << tr("bool") <<tr("vector");
-    QString attrib_type = QInputDialog::getItem(this, tr("New edge attrib"), tr("Attrib type:"), items, 0, false, &ok2);
-
-    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
-        return;
-
-    Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-    if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
-    else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
-    else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
-    else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
-    else if(attrib_type == "vector") {
-        std::vector<float> zeros{0.f,0.f,0.f};
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
-    }
-    fill_table(edge_attrib_tw, edge.attrs());
-}
-void SpecificWorker::del_node_attrib_slot() {
-//    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-//    std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
-//    if(G->remove_attrib_by_name(node, attrib_name))
-//    {
-//        fill_table(node_attrib_tw, node.attrs());
-//    }
-//    else
-//        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
-}
-
-void SpecificWorker::del_edge_attrib_slot() {
-//    Edge edge = node_cb->itemData(edge_cb->currentIndex()).value<Edge>();
-//    std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
-//    if(G->remove_attrib_by_name(edge, attrib_name))
-//    {
-//        fill_table(edge_attrib_tw, edge.attrs());
-//    }
-//    else
-//        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
-}
 
 void SpecificWorker::G_add_or_assign_node_slot(const std::uint64_t id, const std::string &type) {
 //    Node node = G->get_node(id).value();

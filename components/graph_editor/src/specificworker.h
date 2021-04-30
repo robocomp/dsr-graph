@@ -36,6 +36,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include "GraphEditorView.h"
+#include "QAttributeBrowser.h"
 
 
 
@@ -51,7 +52,7 @@ Q_OBJECT
 
 	private:
 		bool startup_check_flag;
-		int agent_id;
+		int agent_id{};
 		std::string dsr_input_file;
 		std::string dsr_output_file;
 		std::string test_output_file;
@@ -59,9 +60,10 @@ Q_OBJECT
 
 		// graph viewer
 		std::unique_ptr<DSR::DSRViewer> dsr_viewer;
-        std::map<int, QString> node_combo_names;
+        std::map<std::uint64_t, QString> node_combo_names;
         std::map<std::string, QString> edge_combo_names;
-        GraphEditorView *editor_view;
+        GraphEditorView *editor_view{};
+        QAttributeBrowser *attribute_browser{};
         QTemporaryFile new_graph_file;
 	public:
 		SpecificWorker(TuplePrx tprx, bool startup_check);
@@ -71,18 +73,18 @@ Q_OBJECT
 	public slots:
 		void compute();
 		void initialize(int period);
-		void change_node_slot(int id);
-		void save_node_slot();
-		void delete_node_slot();
-		void change_edge_slot(int id);
-		void delete_edge_slot();
-		void save_edge_slot();
-        void new_edge_slot();
-        void new_node_slot();
-        void new_node_attrib_slot();
-        void new_edge_attrib_slot();
-        void del_node_attrib_slot();
-        void del_edge_attrib_slot();
+//		void change_node_slot(int id);
+//		void save_node_clicked();
+//		void delete_node_slot();
+//		void change_edge_slot(int id);
+//		void delete_edge_slot();
+//		void save_edge_slot();
+//        void new_edge_slot();
+//        void new_node_slot();
+//        void new_node_attrib_slot();
+//        void new_edge_attrib_slot();
+//        void del_node_attrib_slot();
+//        void del_edge_attrib_slot();
 
         //G signals
         void G_add_or_assign_node_slot(const std::uint64_t id, const std::string &type);
@@ -94,14 +96,11 @@ Q_OBJECT
 	private:
 		void fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrib);
 		std::map<std::string, DSR::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs);
-		    int tree_view;
-    int graph_view;
-    int qscene_2d_view;
-    int osg_3d_view;
+		    int tree_view{};
+    int graph_view{};
+    int qscene_2d_view{};
+    int osg_3d_view{};
 
 
 };
-Q_DECLARE_METATYPE(DSR::Node);
-Q_DECLARE_METATYPE(DSR::Edge);
-
 #endif
