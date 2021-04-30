@@ -382,8 +382,10 @@ void SpecificWorker::draw_path(std::list<QPointF> &path, QGraphicsScene* viewer_
         return;
 
     //clear previous points
-    for (QGraphicsLineItem* item : scene_road_points)
+    for (QGraphicsLineItem* item : scene_road_points) {
         viewer_2d->removeItem(item);
+        delete item;
+    }
     scene_road_points.clear();
 
     /// Draw all points

@@ -17,5 +17,5 @@ SET ( HEADERS
 )
 
 set(CMAKE_CXX_STANDARD 20)
-add_definitions(-g -fmax-errors=5 -std=c++2a )
+add_definitions(-g -fmax-errors=5 -std=c++2a -fno-char8_t)
 SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB fcl tbb)
