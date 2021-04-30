@@ -1,4 +1,4 @@
-
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 # Sources set
 SET ( SOURCES
   specificworker.cpp
@@ -14,4 +14,4 @@ SET ( HEADERS
 
 set(CMAKE_CXX_STANDARD 20)
 add_definitions(-g  -fmax-errors=5 )
-SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB fcl)
+SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB fcl Eigen3::Eigen)
