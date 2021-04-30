@@ -28,7 +28,8 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 SET ( SOURCES
     specificworker.cpp
     specificmonitor.cpp
-    GraphEditorView.cpp GraphEditorView.h
+    GraphEditorView.h
+    GraphEditorView.cpp
     GraphNewElementDialog.h
     QAttributeBrowser.cpp
     QAttributeBrowser.h

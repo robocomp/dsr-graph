@@ -17,6 +17,7 @@ enum class GraphTool{
 };
 
 class GraphEditorView : public DSR::GraphViewer{
+Q_OBJECT
 public:
     GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow *parent=0);
 private:
@@ -33,14 +34,17 @@ private:
     GraphNode* temp_from_node;
     GraphNode* temp_to_node;
     GraphEdge* temp_edge;
+    int distance_moved{};
+    QPoint press_point = QPoint();
+    QPoint release_point = QPoint();
 
 private:
     std::optional<uint64_t> create_new_node(QPointF position);
-    std::optional<uint64_t> _create_new_G_node(QString name, QString type, QPointF position);
+    std::optional<uint64_t> _create_new_G_node(const QString& name, QString type, QPointF position);
     bool create_two_connected_nodes(QPointF position1, QPointF position2, bool reverse=false);
     bool create_new_connected_node(QPointF position, uint64_t node_id, bool reverse=false);
     bool create_new_edge(uint64_t from, uint64_t to);
-    bool _create_new_G_edge(QString type, uint64_t from_id, uint64_t to_id);
+    bool _create_new_G_edge(const QString& type, uint64_t from_id, uint64_t to_id);
     void delete_temps();
 //    void wheelEvent(QWheelEvent* event);
 //    void resizeEvent(QResizeEvent* e);
@@ -51,6 +55,10 @@ private:
 
     void enableMoveMode(bool action);
     void enableEditMode(bool action);
+
+signals:
+    void graph_node_clicked(int64_t node_id);
+    void graph_edge_clicked(int64_t source_id, int64_t dest_id, int type);
 
 };
 
