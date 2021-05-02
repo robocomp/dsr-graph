@@ -88,7 +88,10 @@ void SpecificWorker::initialize(int period)
         if (tree_view)
             current_opts = current_opts | opts::tree;
         if (graph_view)
+        {
             current_opts = current_opts | opts::graph;
+            main = opts::graph;
+        }
         if (qscene_2d_view)
             current_opts = current_opts | opts::scene;
         if (osg_3d_view)

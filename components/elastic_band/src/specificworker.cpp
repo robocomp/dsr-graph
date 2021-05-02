@@ -482,7 +482,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<QPointF> path;
                 for (const auto &[x, y] : iter::zip(x_values.value().get(), y_values.value().get()))
                     path.emplace_back(QPointF(x, y));
-                path_buffer.put(path);
+                path_buffer.put(std::move(path));
                 last_path_id = id;
             }
         }
@@ -557,7 +557,10 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem(item);
+    {
+        viewer_2d->removeItem((QGraphicsItem *) item);
+        delete item;
+    }
     scene_road_points.clear();
 
     /// Draw all points

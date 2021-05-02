@@ -78,13 +78,33 @@ class SpecificWorker : public GenericWorker
             float prob;
             float depth;
             bool visible;
-            float Tx, Ty, Tz;
+            float Tx, Ty, Tz;  // world ref sys
+            float Cx, Cy, Cz;  // camera ref sys
             bool match;
+            float area;
+            float match_error;
             int width() const { return right-left;};
             int height() const { return bot-top;};
             int cx() const { return left + width()/2;};
             int cy() const { return top + height()/2;};
+            void print(const std::string_view &s) const
+            {
+                std::cout << "--- " << s << " -----" << std::endl;
+                std::cout << "\t name " << name << std::endl;
+                std::cout << "\t prob " << prob << std::endl;
+                std::cout << "\t visible " << visible << std::endl;
+                std::cout << "\t match " << match << std::endl;
+                std::cout << "\t depth " << depth << std::endl;
+                std::cout << "\t box " << left << " " << top << " " << width() << " " << height() << std::endl;
+                std::cout << "\t World: " << Tx << " " << Ty << " " << Tz << std::endl;
+                std::cout << "\t Camera: " << Cx << " " << Cy << " " << Cz << std::endl;
+                std::cout << "\t centre: " << cx() << " " << cy() << std::endl;
+                std::cout << "\t match error: " << match_error << std::endl;
+                std::cout << "\t area: " << area << std::endl;
+                std::cout << "---------------------" << std::endl;
+            };
         };
+        using Boxes = std::vector<Box>;
 
         // NODE NAMES
         std::string object_of_interest = "no_object";
@@ -119,7 +139,7 @@ class SpecificWorker : public GenericWorker
         QHBoxLayout mainLayout;
         void add_or_assign_node_slot(std::uint64_t, const std::string &type);
         void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
-        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type);
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
         void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
@@ -132,7 +152,6 @@ class SpecificWorker : public GenericWorker
         DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
-        std::vector<float> depth_array;
 
         //Plan
         Plan current_plan;
@@ -148,13 +167,13 @@ class SpecificWorker : public GenericWorker
 
         // YOLOv4 methods
         Detector* init_detector();
-        std::vector<Box> process_image_with_yolo(const cv::Mat& img);
+        std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array);
         image_t createImage(const cv::Mat &src);
         //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
         //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
-        bool compute_prediction_error(Box &real_box, const Box &synth_box);
+        bool both_boxes_match(Box &real_box, Box &synth_box);
         void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
         void change_to_new_target();
@@ -163,8 +182,14 @@ class SpecificWorker : public GenericWorker
         void update_base_slider();
         void move_base(DSR::Node &robot);
         void stop_robot();
+        void compute_visible_objects();
+        std::vector<Box> get_visible_objects_from_graph();
+        std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
+        std::tuple<Boxes, Boxes> add_new_objects(const std::tuple<Boxes, Boxes> &lists_after_match);
+        std::tuple<Boxes, Boxes> delete_unseen_objects(const std::tuple<Boxes, Boxes> &lists_after_add);
 
-        // Tracker
+
+    // Tracker
         enum class TState {IDLE, TRACKING, CHANGING };
         TState tracking_state = TState::IDLE;
 

@@ -126,67 +126,76 @@ static int n_ok = 0;
 
 void SpecificWorker::compute()
 {
+    static QGraphicsEllipseItem *target_draw = nullptr;
+
     // Check for new published intention/plan
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
         current_plan = plan_o.value();
         qInfo() << __FUNCTION__ << "New plan arrived: ";
         current_plan.print();
+        auto t = current_plan.get_target();
+        if(target_draw != nullptr) delete target_draw;
+        target_draw = widget_2d->scene.addEllipse(t.x(), t.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magente")));
 
         if(auto intention = G->get_node(current_intention_name); intention.has_value())
         {
             QPointF target = current_plan.get_target();
-            if( not grid.dim.contains(target)){
+            if( not grid.dim.contains(target))
+            {
                 cout << "El target está fuera del grid" << endl;
                 std::terminate();
             }
             Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
             auto valid_target = search_a_feasible_target(current_plan);
             if( valid_target.has_value())
-            {}
-            cout << "x: " << valid_target->x() << " y: " << valid_target->y() << endl;
-            std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), target);
-            qInfo() << __FUNCTION__ << " Path size: " << path.size();
-            if (not path.empty())
             {
-                if (widget_2d != nullptr)
-                    draw_path(path, &widget_2d->scene);
-                std::vector<float> x_values; x_values.reserve(path.size());
-                std::vector<float> y_values; y_values.reserve(path.size());
-                for(auto &&p : path)
+                cout << "x: " << valid_target->x() << " y: " << valid_target->y() << endl;
+                std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), valid_target.value());
+                qInfo() << __FUNCTION__ << " Path size: " << path.size();
+                if (not path.empty())
                 {
-                    x_values.push_back(p.x());
-                    y_values.push_back(p.y());
+                    if (widget_2d != nullptr)
+                        draw_path(path, &widget_2d->scene);
+                    std::vector<float> x_values;
+                    x_values.reserve(path.size());
+                    std::vector<float> y_values;
+                    y_values.reserve(path.size());
+                    for (auto &&p : path)
+                    {
+                        x_values.push_back(p.x());
+                        y_values.push_back(p.y());
+                    }
+                    if (auto path = G->get_node(current_path_name); path.has_value())
+                    {
+                        auto path_to_target_node = path.value();
+                        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                        G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
+                        G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
+                        G->update_node(path_to_target_node);
+                    } else // create path_to_target_node with the solution path
+                    {
+                        cout << "Ha funcionao " << ++n_ok << " veces" << endl;
+                        auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
+                        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                        G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -542);
+                        G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) 106);
+                        G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention.value().id());
+                        G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+                        G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
+                        G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
+                        auto id = G->insert_node(path_to_target_node);
+                        DSR::Edge edge_to_intention = DSR::Edge::create<thinks_edge_type>(id.value(), intention.value().id());
+                        G->insert_or_assign_edge(edge_to_intention);
+                    }
                 }
-                if (auto path = G->get_node(current_path_name); path.has_value())
-                {
-                    auto path_to_target_node = path.value();
-                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
-                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
-                    G->update_node(path_to_target_node);
-                } else // create path_to_target_node with the solution path
-                {
-                    cout << "Ha funcionao " << ++n_ok << " veces" << endl;
-                    auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
-                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-                    G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -542);
-                    G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) 106);
-                    G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention.value().id());
-                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
-                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
-                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
-                    auto id = G->insert_node(path_to_target_node);
-                    DSR::Edge edge_to_intention = DSR::Edge::create<thinks_edge_type>(id.value(), intention.value().id());
-                    G->insert_or_assign_edge(edge_to_intention);
-                }
-            } else
-                qWarning() << __FUNCTION__ << "Empty path";
+                else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
+            }
+            else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
         }
-        else
-            qWarning() << __FUNCTION__ << "Mo intention node found";
+        else qWarning() << __FUNCTION__ << "Mo intention node found";
     }
     else //do whatever you do without a plan
     {}
@@ -237,8 +246,9 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
         auto target = current_plan.get_target();
-        return grid.closest_free(target);
-
+        auto new_target = grid.closest_free(target);
+        qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
+        return new_target;
         // ad to GRID, closest free cell in the direction of the robot.
 }
 
@@ -383,12 +393,16 @@ void SpecificWorker::draw_path(std::list<QPointF> &path, QGraphicsScene* viewer_
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem(item);
+    {
+        viewer_2d->removeItem((QGraphicsItem *) item);
+        delete item;
+    }
     scene_road_points.clear();
 
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
-    std::string color;
+    QColor color("green");
+    QColor color_perp("yellow");
     for(auto &&p_pair : iter::sliding_window(path, 2))
     {
         if(p_pair.size() < 2)
@@ -404,8 +418,8 @@ void SpecificWorker::draw_path(std::list<QPointF> &path, QGraphicsScene* viewer_
         QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
         QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
 
-        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
-        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+        line1 = viewer_2d->addLine(qsegment, QPen(QBrush(color), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(color_perp), 20));
 
         line1->setZValue(2000);
         line2->setZValue(2000);

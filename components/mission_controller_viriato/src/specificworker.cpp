@@ -309,45 +309,45 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
 }
 
-void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
-{
-    if (type == RT_edge_type_str and to == G->get_node(robot_name).value().id())
-    {
-        auto edge = G->get_edge(from, to, "RT");
-        const auto x_values_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
-        auto rooms = G->get_nodes_by_type(room_type_name);
-        for( const auto &r : rooms)
-        {
-            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(r);
-            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(r);
-            if (polygon_x.has_value() and polygon_y.has_value())
-            {
-                QPolygonF pol;
-                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
-                    pol << QPointF(px, py);
-                if(pol.containsPoint(QPointF(x_values_o.value().get()[0], x_values_o.value().get()[1]), Qt::WindingFill))
-                {
-                    // modificar o crear arco entre robot y r
-                    if( auto room_edges = G->get_node_edges_by_type(G->get_node(robot_name).value(), "in"); not room_edges.empty())
-                    {  //
-                        for(const auto &r_edge : room_edges)
-                            if(r_edge.to() == r.id()) return;
-                            else G->delete_edge(r_edge.from(), r_edge.to(), "in");
-                    }
-
-                    // crear
-                    DSR::Edge new_room_edge = DSR::Edge::create<in_edge_type>(G->get_node(robot_name).value().id(), r.id());
-                    if (G->insert_or_assign_edge(new_room_edge))
-                        std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
-                    else
-                        std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(robot_name).value().id() << "->" << r.id()
-                                  << " type: is_in" << std::endl;
-
-                }
-            }
-        }
-    }
-}
+//void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
+//{
+//    if (type == RT_edge_type_str and to == G->get_node(robot_name).value().id())
+//    {
+//        auto edge = G->get_edge(from, to, "RT");
+//        const auto x_values_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
+//        auto rooms = G->get_nodes_by_type(room_type_name);
+//        for( const auto &r : rooms)
+//        {
+//            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(r);
+//            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(r);
+//            if (polygon_x.has_value() and polygon_y.has_value())
+//            {
+//                QPolygonF pol;
+//                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+//                    pol << QPointF(px, py);
+//                if(pol.containsPoint(QPointF(x_values_o.value().get()[0], x_values_o.value().get()[1]), Qt::WindingFill))
+//                {
+//                    // modificar o crear arco entre robot y r
+//                    if( auto room_edges = G->get_node_edges_by_type(G->get_node(robot_name).value(), "in"); not room_edges.empty())
+//                    {  //
+//                        for(const auto &r_edge : room_edges)
+//                            if(r_edge.to() == r.id()) return;
+//                            else G->delete_edge(r_edge.from(), r_edge.to(), "in");
+//                    }
+//
+//                    // crear
+//                    DSR::Edge new_room_edge = DSR::Edge::create<in_edge_type>(G->get_node(robot_name).value().id(), r.id());
+//                    if (G->insert_or_assign_edge(new_room_edge))
+//                        std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
+//                    else
+//                        std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(robot_name).value().id() << "->" << r.id()
+//                                  << " type: is_in" << std::endl;
+//
+//                }
+//            }
+//        }
+//    }
+//}
 
 void SpecificWorker::update_room_list()
 {
@@ -365,7 +365,10 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
 
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
-        viewer_2d->removeItem((QGraphicsItem*)item);
+    {
+        viewer_2d->removeItem((QGraphicsItem *) item);
+        delete item;
+    }
     scene_road_points.clear();
 
     /// Draw all points
@@ -441,6 +444,8 @@ void SpecificWorker::slot_start_mission()
 void SpecificWorker::slot_stop_mission()
 {
     qInfo() << __FUNCTION__  ;
+    send_command_to_robot(std::make_tuple(0.f,0.f,0.f));   //adv, side, rot
+
     // Check if there is intention node in G
     if(auto intention = G->get_node(current_intention_name); intention.has_value())
     {

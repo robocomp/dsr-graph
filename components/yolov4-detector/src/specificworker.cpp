@@ -19,6 +19,7 @@
 #include "specificworker.h"
 #include <ranges>
 #include <algorithm>
+#include <cppitertools/product.hpp>
 
 /**
 * \brief Default constructor
@@ -77,9 +78,9 @@ void SpecificWorker::initialize(int period)
         //dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
         connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+//        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+//        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+//        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
@@ -88,7 +89,10 @@ void SpecificWorker::initialize(int period)
         if (tree_view)
             current_opts = current_opts | opts::tree;
         if (graph_view)
+        {
             current_opts = current_opts | opts::graph;
+            main = opts::graph;
+        }
         if (qscene_2d_view)
             current_opts = current_opts | opts::scene;
         if (osg_3d_view)
@@ -135,89 +139,128 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    static auto before = myclock::now();
-    static bool first_time = true;
-    const auto g_image = rgb_buffer.try_get();
     const auto g_depth = depth_buffer.try_get();
+    const auto g_image = rgb_buffer.try_get();
     auto robot = G->get_node(robot_name);
-    auto world_node = G->get_node("world");
-    if (robot.has_value() and g_image.has_value() and g_depth.has_value())
+    if( g_image.has_value() and g_depth.has_value())
     {
-        auto glass_nodes = G->get_nodes_by_type(glass_type_name);
-        auto cup_nodes = G->get_nodes_by_type(cup_type_name);
-        auto object_nodes = glass_nodes;
-        object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
-        std::vector<std::string> object_names;
-        for(auto &&o : object_nodes)
-        {
-            //cout<<"node name "<<g.name()<<endl;
-            object_names.push_back(o.name());
-        }
-        this->depth_array = g_depth.value();
         cv::Mat imgyolo = g_image.value();
-        std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
-        std::vector<Box> synth_objects = process_graph_with_yolosynth(object_names);
+        std::vector<float> depth_array = g_depth.value();
+        std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
+        std::vector<Box> synth_objects = get_visible_objects_from_graph();
+        //for(auto o: real_objects) std::cout << o.name << std::endl;
         show_image(imgyolo, real_objects, synth_objects);
-        for(auto b_real : real_objects)
+        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
+        //auto lists_after_add = add_new_objects(lists_after_match);
+        //auto lists_after_delete = delete_unseen_objects(lists_after_add);
+    }
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_lists(Boxes &real_objects,
+                                                                                     Boxes &synth_objects,
+                                                                                     const std::vector<float> &depth_array)
+{
+    auto world_node = G->get_node(world_name);
+    for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
+    {
+        //std::cout << __FUNCTION__ << " trying match between " << b_synth.name << " and " << b_real.name << std::endl;
+        if (b_synth.name.find(b_real.name, 0) == 0 or b_synth.name.find("glass", 0) == 0)
         {
-            cout<<"real object "<<b_real.name<<" "<<b_real.Tx<<" "<<b_real.Ty<<" "<<b_real.Tz<<" "<<endl;
-            for(auto b_synth : synth_objects)
+//            std::cout << __FUNCTION__ << " potential match " << std::endl;
+//            std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
+//            std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
+            if (both_boxes_match(b_synth, b_real))
             {
-                //cout<<"real name "<< b_real.name<<" "<<"synth name "<<b_synth.name<<endl;
-                int visible = 1;
-                if(b_synth.visible and b_synth.name.find(b_real.name, 0)==0)
-                {
-                    
-                    cout<<"potential match"<<endl;
-                    if(compute_prediction_error(b_synth, b_real))
-                    {
-                        auto node = G->get_node(b_synth.name);
-                        auto parent = G->get_parent_node(node.value());                        
-                        auto edge = rt_api->get_edge_RT(parent.value(), node->id()).value();
-                        G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
-                        G->insert_or_assign_edge(edge);
-                        b_synth.match = true;
-                        b_real.match = true;
-                    }
+                std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
+                auto node = G->get_node(b_synth.name);
+                auto parent = G->get_parent_node(node.value());
+                auto edge = rt_api->get_edge_RT(parent.value(), node->id()).value();
+                //G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                //G->insert_or_assign_edge(edge);
+                b_real.print("Real Box");
+                b_synth.print("Synth Box");
+            }
+        }
+    }
+    // remove matched elements
+    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),
+                          [](Box const &p) { return p.match == true; }), real_objects.end());
+    synth_objects.erase(std::remove_if(synth_objects.begin(),synth_objects.end(),
+                                      [](Box const &p) { return p.match == true; }), synth_objects.end());
 
+    return(std::make_tuple(real_objects, synth_objects));
+}
+std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
+        SpecificWorker::add_new_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match)
+{
+    auto world_node = G->get_node(world_name);
+    const auto &[real_objects, synth_objects] = lists_after_match;
+    for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
+    {
+        DSR::Node object_node;
+        bool node_created = false;
+        if(b_real.name.find("glass", 0) == 0)
+        {
+            object_node = DSR::Node::create<glass_node_type>(b_real.name);
+            node_created = true;
+        }
+        else if(b_real.name.find("cup", 0) == 0)
+        {
+            object_node = DSR::Node::create<cup_node_type>(b_real.name);
+            node_created = true;
+        }
+        if(node_created)
+        {
+            G->add_or_modify_attrib_local<parent_att>(object_node, world_node.value().id());
+            G->add_or_modify_attrib_local<level_att>(object_node, 1);
+            if (std::optional<int> id = G->insert_node(object_node); id.has_value())
+            {
+                std::cout << __FUNCTION__ << "object id "<<object_node.id()<<endl;
+                DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
+                G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
+                G->insert_or_assign_edge(edge);
+                G->update_node(world_node.value());
+            }
+        }
+   }
+}
+std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
+        SpecificWorker::delete_unseen_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
+{}
+std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph()
+{
+    std::vector<Box> boxes;
+    const auto visibles = G->get_edges_by_type("visible");  //Should taka a type instead of a string
+    //qInfo() << __FUNCTION__ << visibles.size();
+    for(const auto &edge: visibles)
+    {
+        if(auto att = G->get_attrib_by_name<projected_bounding_box_att>(edge); att.has_value())
+        {
+            auto object = G->get_node(edge.to());
+            Box box;
+            box.left = (int)att.value().get()[0]; box.top=(int)att.value().get()[1]; box.right=(int)att.value().get()[2]; box.bot=(int)att.value().get()[3];
+            box.name = object.value().name();
+            box.prob = 100;
+            box.match = false;
+            box.visible = true;
+            if(auto t_world = inner_eigen->transform(world_name, object.value().name()); t_world.has_value())
+            {
+                if (auto t_camera = inner_eigen->transform(camera_name, object.value().name()); t_camera.has_value())
+                {
+                    box.depth = t_camera.value().norm();
+                    box.Cx = t_camera.value().x();
+                    box.Cy = t_camera.value().y();
+                    box.Cx = t_camera.value().z();
+                    box.Tx = t_world.value().x();
+                    box.Ty = t_world.value().y();
+                    box.Tz = t_world.value().z();
+                    boxes.emplace_back(box);  //move
                 }
             }
-            if(not b_real.match)
-            {
-                DSR::Node object_node;
-                bool node_created = false;
-                if(b_real.name.find("glass", 0) == 0)
-                {
-                    object_node = DSR::Node::create<glass_node_type>(b_real.name);
-                    node_created = true;
-                }
-                else if(b_real.name.find("cup", 0) == 0)
-                {
-                    object_node = DSR::Node::create<cup_node_type>(b_real.name);
-                    node_created = true;
-                }
-                if(node_created)
-                {
-                    G->add_or_modify_attrib_local<parent_att>(object_node, world_node.value().id());
-                    G->add_or_modify_attrib_local<level_att>(object_node, 1);
-                    if (std::optional<int> id = G->insert_node(object_node); id.has_value())
-                    {
-                        cout<<"object id "<<object_node.id()<<endl;
-                        DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
-                        G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
-                        G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});  
-                        G->insert_or_assign_edge(edge);
-                        G->update_node(world_node.value());
-                    }
-                }
-
-           }
         }
-
-
     }
-
-
+    return boxes;
 }
 Detector* SpecificWorker::init_detector()
 {
@@ -228,41 +271,49 @@ Detector* SpecificWorker::init_detector()
     Detector* detector = new Detector(cfg_file, weights_file);
     return detector;
 }
-std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img)
+std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img, const std::vector<float> &depth_array)
 {
     // get detections from RGB image
     image_t yolo_img = createImage(img);
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, 0.2, false);
     // process detected bounding boxes
-    std::vector<Box> bboxes(detections.size());
-    for(unsigned int i = 0; i < detections.size(); i++)
+    std::vector<Box> bboxes; bboxes.reserve(detections.size());
+    for(const auto &d : detections)
     {
-        const auto &d = detections[i];
+        Box box;
         int cls = d.obj_id;
-        int left  = d.x;
-        int right = d.x + d.w;
-        int top   = d.y;
-        int bot   = d.y + d.h;
-        if(left < 0) left = 0;
-        if(right > yolo_img.w-1) right = yolo_img.w-1;
-        if(top < 0) top = 0;
-        if(bot > yolo_img.h-1) bot = yolo_img.h-1;
-        float prob = d.prob;
-
-        auto tp = cam_api->get_roi_depth(this->depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(left, bot), Eigen::Vector2f(right, top)));
-        float Tx, Ty, Tz;
+        box.name = names.at(cls);
+        box.left = d.x;
+        box.right = d.x + d.w;
+        box.top = d.y;
+        box.bot = d.y + d.h;
+        if (box.left < 0) box.left = 0;
+        if (box.right > yolo_img.w - 1) box.right = yolo_img.w - 1;
+        if (box.top < 0) box.top = 0;
+        if (box.bot > yolo_img.h - 1) box.bot = yolo_img.h - 1;
+        box.prob = d.prob*100;
+        box.visible = true;
+        box.match = false;
+        auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(box.left, box.bot),
+                                                                                  Eigen::Vector2f(box.right, box.top)));
         if (tp.has_value())
         {
-            auto [x,y,z] = tp.value();
-            Tx = x; Ty = y; Tz = z;
+            auto[x, y, z] = tp.value();
+            if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), camera_name); t_world.has_value())
+            {
+                //std::cout << "POS 3D "<<names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
+                box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
+                box.Cx = x;
+                box.Cy = y;
+                box.Cx = z;
+                box.Tx = t_world.value().x();
+                box.Ty = t_world.value().y();
+                box.Tz = t_world.value().z();
+                bboxes.push_back(box);
+            }
         }
-        auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(Tx, Ty, Tz), camera_name).value();
-
-        cout<<"POS 3D "<<names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2];
-        
-        bboxes[i] = Box{names.at(cls), left, top, right, bot, prob*100, 0, true, t_world[0], t_world[1], t_world[2], false};
     }
-    qDebug() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
+    //qInfo() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
     ynets[0]->free_image(yolo_img);
     return bboxes;
 }
@@ -322,44 +373,34 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
             G->add_attrib_local<obj_visible_att>(node.value(), (int) box.visible);
             G->update_node(node.value());
             cout<<"end processing synthetic objects "<<endl;
-
         }
     }
     return synth_box;
 }
-bool SpecificWorker::compute_prediction_error(Box &real_box, const Box &synth_box)
+bool SpecificWorker::both_boxes_match(Box &real_box, Box &synth_box)
 {
-    auto are_close = [](const Box &b1, const Box &b2){
-                        //A rectangle with the real object is created
-                        QRect r(QPoint(b1.top, b1.left), QSize(b1.width(), b1.height()));
-                        //A rectangle with the sythetic object is created
-                        QRect rs(QPoint(b2.top, b2.left), QSize(b2.width(), b2.height()));
-                        //Compute intersection percentage between synthetic and real
-                        QRect i = rs.intersected(r);
-                        //The area is normalized between 0 and 1 dividing by the minimum between both areas of each object
-                        float area = (float)(i.width() * i.height()) / std::min(rs.width() * rs.height(), r.width() * r.height());
-                        //The displacement vector between the two images is calculated
-                        QPoint error = r.center() - rs.center();
-                        // If the area is 0 there is no intersection
-                        // If the error is less than twice the width of the synthetic rectangle
-                        if(area > 0 or error.manhattanLength() < rs.width()*3) //ADD DEPTH CHECK
-                        {
-                            //qInfo() << __FUNCTION__ << r << rs << area << error.manhattanLength() << rs.width()*3;
-                            return true;
-                        }
-                        else
-                            return false;
-                     };
-
-    const auto &r = real_box;
-    auto tp = cam_api->get_roi_depth(this->depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(r.left, r.bot), Eigen::Vector2f(r.right, r.top)));
-    if (tp.has_value())
+    //A rectangle with the real object is created
+    QRect r(QPoint(real_box.top, real_box.left), QSize(real_box.width(), real_box.height()));
+    //A rectangle with the sythetic object is created
+    QRect rs(QPoint(synth_box.top, synth_box.left), QSize(synth_box.width(), synth_box.height()));
+    //Compute intersection percentage between synthetic and real
+    QRect i = rs.intersected(r);
+    //The area is normalized between 0 and 1 dividing by the minimum between both areas of each object
+    float area = (float)(i.width() * i.height()) / std::min(rs.width() * rs.height(), r.width() * r.height());
+    //The displacement vector between the two images is calculated
+    QPoint error = r.center() - rs.center();
+    // If the area is 0 there is no intersection
+    // If the error is less than twice the width of the synthetic rectangle
+    if(area > 0 or error.manhattanLength() < rs.width()*3) //ADD DEPTH CHECK
     {
-        auto [x,y,z] = tp.value();
-        real_box.depth = sqrt(x*x+y*y+z*z);
-        return are_close(real_box, synth_box);
+        qInfo() << __FUNCTION__ << " area " << area << "error " << error.manhattanLength() << "rs widrh " << rs.width()*3;
+        real_box.match = true; synth_box.match = true;
+        real_box.area = area; real_box.match_error = error.manhattanLength();
+        synth_box.area = area; synth_box.match_error = error.manhattanLength();
+        return true;
     }
-    return false;
+    else
+        return false;
 }
 void SpecificWorker::add_edge(const std::tuple<float,float,float> &tp)
 {
@@ -480,7 +521,80 @@ void SpecificWorker::update_base_slider()
         custom_widget.pan->display(current_angle);
     }
 }
+void SpecificWorker::compute_visible_objects()
+{
+    std::vector<Box> synth_box;
+    auto object_nodes = G->get_nodes_by_type(glass_type_name);
+    auto cup_nodes = G->get_nodes_by_type(cup_type_name);
+    object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
 
+    auto c = YOLO_IMG_SIZE/2;
+    for(auto &object : object_nodes)
+    {
+        const std::string object_name = object.name();
+        // std::cout << __FUNCTION__ << " processing synthetic objects " << object_name << endl;
+
+        // project corners of object's bounding box in the camera image plane
+        std::vector<Mat::Vector2d> bb_in_camera(8);
+        const float h = 150;
+        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
+        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
+        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
+        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
+        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
+        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
+        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
+        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
+
+        // Compute a 2D bounding box
+        auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
+                                             [](const Mat::Vector2d & lhs, const Mat::Vector2d& rhs) {
+                                                 return lhs.x() < rhs.x();
+                                             });
+        auto yExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
+                                             [](const Mat::Vector2d& lhs, const Mat::Vector2d& rhs) {
+                                                 return lhs.y() < rhs.y();
+                                             });
+        // Take the most separated ends to build the rectangle
+        Box box;
+        box.left = xExtremes.first->x();
+        box.top = yExtremes.first->y();
+        box.right = xExtremes.second->x();
+        box.bot = yExtremes.second->y();
+        box.prob = 100;
+        box.name = object_name;
+        box.match = false;
+        if( box.left>=0 and box.right<YOLO_IMG_SIZE and box.top>=0 and box.bot<YOLO_IMG_SIZE)
+        {
+            box.visible = true;
+            if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
+                box.depth = d.value().norm();
+            else box.depth = 0;
+            synth_box.push_back(box);
+
+            // update edges
+            auto edges = G->get_edges_to_id(object.id());
+            if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())
+            {
+                //add edge
+                DSR::Edge new_edge = DSR::Edge::create<visible_edge_type>(cam_api->get_id(), object.id());
+                G->add_or_modify_attrib_local<projected_bounding_box_att>(new_edge, std::vector<float>{(float)box.left, (float)box.top, (float)box.right, (float)box.bot});
+                G->insert_or_assign_edge(new_edge);
+            }
+            else    // already there. update projection bounding box
+            {
+                if( auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value())
+                    G->insert_or_assign_attrib<projected_bounding_box_att>(old_edge.value(), std::vector<float>{(float)box.left, (float)box.top, (float)box.right, (float)box.bot});
+                else
+                    qWarning() << __FUNCTION__ << "No VISIBLE edge going from camera to " << QString::fromStdString(object.name());
+            }
+        }
+        else  // remove edge
+        {
+            G->delete_edge(cam_api->get_id(), object.id(), "visible");
+        }
+    }
+}
 /////////////////////////////////////////////////////////////////////////////
 image_t SpecificWorker::createImage(const cv::Mat &src)
 {
@@ -533,7 +647,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
-        cout<<box.name<<" "<<"p1 "<<p1.x<<" "<<p1.y<<endl;
+        //cout<<box.name<<" "<<"p1 "<<p1.x<<" "<<p1.y<<endl;
     }
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
@@ -548,15 +662,12 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
         {
-            //cam_api->bind_node(std::move(cam_node.value()));
-            //if (const auto g_image = cam_api->get_existing_rgb_image(); g_image.has_value())
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
                 {
                     rgb_buffer.put(g_image.value().get(),
                                [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
                                    cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
                                                const_cast<std::vector<uint8_t> &>(in).data());
-                                   //if(cam_api->get_width() == YOLO_IMG_SIZE and cam_api->get_height == YOLO_IMG_SIZE)
                                    cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
                                });
                }
@@ -567,10 +678,7 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
                 depth_buffer.put(std::move(res));
             }
         }
-        else
-        {
-            qWarning() << __FUNCTION__ << "No camera_node found in G";
-        }
+        else qWarning() << __FUNCTION__ << "No camera_node found in G";
     }
     else if (type == intention_type_name)
     {
@@ -583,6 +691,14 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
         }
     }
 }
+
+void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
+{
+    if(from == G->get_node(world_name).value().id() and to == G->get_node(robot_name).value().id() and type == "RT")
+            compute_visible_objects();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::start_button_slot(bool checked)
 {
     if(checked)  //track
