@@ -417,8 +417,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             {
                 //if(dists.value().get().empty() or angles.value().get().empty()) return;
                 //qInfo() << __FUNCTION__ << dists->get().size();
-                laser_buffer.put(std::make_tuple(angles.value().get(), dists.value().get()),
-                                 [this](const LaserData &in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out)
+
+                std::tuple<std::vector<float>, std::vector<float>> && tuple = std::make_tuple(angles.value().get(), dists.value().get());
+                laser_buffer.put(std::move(tuple),
+                                 [this](LaserData &&in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out)
                                  {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
@@ -461,9 +463,10 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector2f> &path, QGraphicsScen
     static std::vector<QGraphicsLineItem *> scene_road_points;
 
     //clear previous points
+
     for (QGraphicsLineItem* item : scene_road_points)
     {
-        viewer_2d->removeItem((QGraphicsItem *) item);
+        viewer_2d->removeItem(item);
         delete item;
     }
     scene_road_points.clear();

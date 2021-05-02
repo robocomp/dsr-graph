@@ -558,7 +558,7 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     //clear previous points
     for (QGraphicsLineItem* item : scene_road_points)
     {
-        viewer_2d->removeItem((QGraphicsItem *) item);
+        viewer_2d->removeItem(item);
         delete item;
     }
     scene_road_points.clear();
