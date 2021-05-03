@@ -4,9 +4,9 @@ execute_process(COMMAND "git" "clone" "https://github.com/sthlm58/QtMaterialDesi
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
   RESULT_VARIABLE git_result)
 
-execute_process(COMMAND "git" "clone" "https://github.com/ArsMasiuk/qvge"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
-  RESULT_VARIABLE git_result)
+#execute_process(COMMAND "git" "clone" "https://github.com/ArsMasiuk/qvge"
+#  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/ 
+#  RESULT_VARIABLE git_result)
 
 #execute_process(COMMAND "git" "clone" "https://github.com/qtproject/qt-solutions.git"
 #  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
@@ -61,9 +61,9 @@ SET(SPECIFIC_LIBS
 Robocomp::dsr_gui Robocomp::dsr_api Robocomp::dsr_core qmat
 fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen Qt5::Svg )
 
-SET(SPECIFIC_INCLUDES_DIR
-3rd_party/qt-solutions/qtpropertybrowser/src/
-)
+# SET(SPECIFIC_INCLUDES_DIR
+# 3rd_party/qt-solutions/qtpropertybrowser/src/
+# )
 
 
 
