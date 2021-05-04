@@ -1,0 +1,26 @@
+CommonBehavior.Endpoints=tcp -p 15000
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+
+# Agent configuration
+agent_id = 19 # Change id
+agent_name = yolov4_tracker
+tree_view = false
+graph_view = true
+2d_view = false
+3d_view = false
+
+# YOLOv4 configuration
+cfg_file = /home/robocomp/software/darknet/cfg/yolov4.cfg
+weight_file = /home/robocomp/software/darknet/yolov4.weights
+names_file = /home/robocomp/software/darknet/data/coco.names
+
+
+# Ice configuration
+Ice.MessageSizeMax=20004800
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
