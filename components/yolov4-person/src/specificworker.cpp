@@ -150,7 +150,7 @@ void SpecificWorker::compute()
         std::vector<Box> synth_objects = get_visible_objects_from_graph();
         //for(auto o: real_objects) std::cout << o.name << std::endl;
         show_image(imgyolo, real_objects, synth_objects);
-        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
+        //auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
         //auto lists_after_add = add_new_objects(lists_after_match);
         //auto lists_after_delete = delete_unseen_objects(lists_after_add);
     }
@@ -280,6 +280,8 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     std::vector<Box> bboxes; bboxes.reserve(detections.size());
     for(const auto &d : detections)
     {
+        if(names.at(d.obj_id) != "person") continue;         // person filter
+
         Box box;
         int cls = d.obj_id;
         box.name = names.at(cls);
@@ -524,27 +526,26 @@ void SpecificWorker::update_base_slider()
 void SpecificWorker::compute_visible_objects()
 {
     std::vector<Box> synth_box;
-    auto object_nodes = G->get_nodes_by_type(glass_type_name);
-    auto cup_nodes = G->get_nodes_by_type(cup_type_name);
-    object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
+    auto person_nodes = G->get_nodes_by_type(person_type_name);
 
     auto c = YOLO_IMG_SIZE/2;
-    for(auto &object : object_nodes)
+    for(auto &object : person_nodes)
     {
         const std::string object_name = object.name();
         // std::cout << __FUNCTION__ << " processing synthetic objects " << object_name << endl;
 
-        // project corners of object's bounding box in the camera image plane
+        // project corners of PERSON's bounding box in the camera image plane. CHANGE to real person dimensions
         std::vector<Mat::Vector2d> bb_in_camera(8);
-        const float h = 150;
-        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
-        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
-        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
-        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
-        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
-        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
-        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
-        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
+        const float height = 1700;
+        const float width = 600;
+        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(width,width,0), object_name).value(),c,c);
+        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width,0), object_name).value(),c,c);
+        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width,-width,0), object_name).value(),c,c);
+        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,-width,0), object_name).value(),c,c);
+        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, width, height), object_name).value(),c,c);
+        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width, height), object_name).value(),c,c);
+        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, -width, height), object_name).value(),c,c);
+        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width, -width,height), object_name).value(),c,c);
 
         // Compute a 2D bounding box
         auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -679,16 +680,6 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
             }
         }
         else qWarning() << __FUNCTION__ << "No camera_node found in G";
-    }
-    else if (type == intention_type_name)
-    {
-        auto node = G->get_node(id);
-        if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
-        {
-            std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
-            if (plan.has_value())
-                plan_buffer.put(std::move(plan.value()),[](const std::string& plan_text, Plan &plan){ plan.json_to_plan(plan_text);});
-        }
     }
 }
 
