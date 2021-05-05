@@ -251,7 +251,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
                     box.depth = t_camera.value().norm();
                     box.Cx = t_camera.value().x();
                     box.Cy = t_camera.value().y();
-                    box.Cx = t_camera.value().z();
+                    box.Cz = t_camera.value().z();
                     box.Tx = t_world.value().x();
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
@@ -305,7 +305,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                 box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
                 box.Cx = x;
                 box.Cy = y;
-                box.Cx = z;
+                box.Cz = z;
                 box.Tx = t_world.value().x();
                 box.Ty = t_world.value().y();
                 box.Tz = t_world.value().z();
