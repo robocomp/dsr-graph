@@ -71,7 +71,7 @@ void SpecificWorker::initialize(int period)
 
 		//dsr update signals
 		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-		connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+	//	connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
@@ -249,6 +249,26 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
                               << " type: has" << std::endl;
             } else
                 std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
+        }
+
+        bool exists = false;
+        if( auto target_room_edges = G->get_node_edges_by_type(G->get_node(current_intention_name).value(), "goto_action"); not target_room_edges.empty())
+        {
+            for (const auto &tr_edge : target_room_edges)
+                if (tr_edge.to() == target_node_id)    //  found goto edge to the target room
+                    exists = true;
+                else
+                    G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");   // found got edge to other room. Deleted
+        }
+        if(not exists)  // not found edge to target room
+        {
+            // create edge from intention node to the target room node
+            DSR::Edge target_room_edge = DSR::Edge::create<goto_action_edge_type>(G->get_node(current_intention_name).value().id(), target_node_id);
+            if (G->insert_or_assign_edge(target_room_edge))
+                std::cout << __FUNCTION__ << " Edge \"goto_action_type\" inserted in G" << std::endl;
+            else
+                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(current_intention_name).value().id() << "->" << target_node_id
+                  << " type: goto_action" << std::endl;
         }
     }
     else
@@ -457,6 +477,13 @@ void SpecificWorker::slot_stop_mission()
             else
                 qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_path_name);
         }
+
+        if( auto target_room_edges = G->get_node_edges_by_type(intention.value(), "goto_action"); not target_room_edges.empty())
+        {
+            for (const auto &tr_edge : target_room_edges)
+               G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");
+        }
+
         if (G->delete_node(intention.value().id()))
             qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_intention_name) << " deleted ";
         else
