@@ -144,6 +144,7 @@ void SpecificWorker::compute()
     auto robot = G->get_node(robot_name);
     if( g_image.has_value() and g_depth.has_value())
     {
+        compute_visible_objects();
         cv::Mat imgyolo = g_image.value();
         std::vector<float> depth_array = g_depth.value();
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
@@ -151,7 +152,7 @@ void SpecificWorker::compute()
         //for(auto o: real_objects) std::cout << o.name << std::endl;
         show_image(imgyolo, real_objects, synth_objects);
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
-        //auto lists_after_add = add_new_objects(lists_after_match);
+        // auto lists_after_add = add_new_objects(lists_after_match);
         //auto lists_after_delete = delete_unseen_objects(lists_after_add);
     }
 }
@@ -175,8 +176,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 auto node = G->get_node(b_synth.name);
                 auto parent = G->get_parent_node(node.value());
                 auto edge = rt_api->get_edge_RT(parent.value(), node->id()).value();
-                //G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
-                //G->insert_or_assign_edge(edge);
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                G->insert_or_assign_edge(edge);
                 b_real.print("Real Box");
                 b_synth.print("Synth Box");
             }
@@ -283,19 +284,31 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         Box box;
         int cls = d.obj_id;
         box.name = names.at(cls);
-        box.left = d.x;
-        box.right = d.x + d.w;
-        box.top = d.y;
-        box.bot = d.y + d.h;
-        if (box.left < 0) box.left = 0;
-        if (box.right > yolo_img.w - 1) box.right = yolo_img.w - 1;
-        if (box.top < 0) box.top = 0;
-        if (box.bot > yolo_img.h - 1) box.bot = yolo_img.h - 1;
+        box.left = d.x-yolo_img.w/2;
+        box.right = d.x + d.w-yolo_img.w/2;
+        box.top = d.y-yolo_img.h/2;
+        box.bot = d.y + d.h-yolo_img.h/2;
+        if (box.left < -yolo_img.w/2) box.left = -yolo_img.w/2;
+        if (box.right > yolo_img.w/2 - 1) box.right = yolo_img.w/2 - 1;
+        if (box.top < -yolo_img.h/2) box.top = -yolo_img.h/2;
+        if (box.bot > yolo_img.h/2 - 1) box.bot = yolo_img.h/2 - 1;
         box.prob = d.prob*100;
         box.visible = true;
         box.match = false;
-        auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(box.left, box.bot),
-                                                                                  Eigen::Vector2f(box.right, box.top)));
+        int wDepth = cam_api->get_width();
+        int hDepth = cam_api->get_height();
+        int BDleft = box.left+wDepth/2;
+        if (BDleft<0) BDleft = 0;
+        int BDright = box.right+wDepth/2;
+        if (BDright>=wDepth) BDright = wDepth-1;
+        int BDtop = box.top+hDepth/2;
+        if (BDtop<0) BDtop = 0;
+        int BDbot = box.bot+hDepth/2;
+        if (BDbot>=hDepth) BDbot = hDepth-1;
+
+
+        auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(BDleft, BDbot),
+                                                                                  Eigen::Vector2f(BDright, BDtop)));
         if (tp.has_value())
         {
             auto[x, y, z] = tp.value();
@@ -537,14 +550,14 @@ void SpecificWorker::compute_visible_objects()
         // project corners of object's bounding box in the camera image plane
         std::vector<Mat::Vector2d> bb_in_camera(8);
         const float h = 150;
-        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),c,c);
-        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),c,c);
-        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),c,c);
-        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),c,c);
-        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),c,c);
-        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),c,c);
-        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),c,c);
-        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),c,c);
+        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),0,0);
+        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),0,0);
+        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),0,0);
+        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),0,0);
+        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),0,0);
+        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),0,0);
+        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),0,0);
+        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),0,0);
 
         // Compute a 2D bounding box
         auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -564,7 +577,7 @@ void SpecificWorker::compute_visible_objects()
         box.prob = 100;
         box.name = object_name;
         box.match = false;
-        if( box.left>=0 and box.right<YOLO_IMG_SIZE and box.top>=0 and box.bot<YOLO_IMG_SIZE)
+        if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
         {
             box.visible = true;
             if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
@@ -629,10 +642,14 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     {
         if(box.prob > 40)
         {
-            auto p1 = cv::Point(box.left, box.top);
-            auto p2 = cv::Point(box.right, box.bot);
-            auto offset = int((box.bot - box.top) / 2);
-            auto pt = cv::Point(box.left + offset, box.top + offset);
+            auto left = box.left+YOLO_IMG_SIZE/2;
+            auto right = box.right+YOLO_IMG_SIZE/2;
+            auto top = box.top+YOLO_IMG_SIZE/2;
+            auto bot = box.bot+YOLO_IMG_SIZE/2;
+            auto p1 = cv::Point(left, top);
+            auto p2 = cv::Point(right, bot);
+            auto offset = int((bot - top) / 2);
+            auto pt = cv::Point(left + offset, top + offset);
             cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
             auto font = cv::FONT_HERSHEY_SIMPLEX;
             cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 255), 2);
@@ -640,10 +657,14 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     }
     for(const auto &box : synth_boxes)
     {
-        auto p1 = cv::Point(box.left, box.top);
-        auto p2 = cv::Point(box.right, box.bot);
-        auto offset = int((box.bot - box.top) / 2);
-        auto pt = cv::Point(box.left + offset, box.top + offset);
+        auto left = box.left+YOLO_IMG_SIZE/2;
+        auto right = box.right+YOLO_IMG_SIZE/2;
+        auto top = box.top+YOLO_IMG_SIZE/2;
+        auto bot = box.bot+YOLO_IMG_SIZE/2;
+        auto p1 = cv::Point(left, top);
+        auto p2 = cv::Point(right, bot);
+        auto offset = int((bot - top) / 2);
+        auto pt = cv::Point(left + offset, top + offset);
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
