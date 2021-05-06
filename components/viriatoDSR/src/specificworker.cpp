@@ -188,9 +188,9 @@ void SpecificWorker::update_omirobot()
         auto parent = G->get_parent_node(robot.value());
         if (not parent.has_value())
             qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
-        if( are_different(std::vector<float>{bState.x, bState.z, bState.alpha},
-                          std::vector<float>{last_state.x, last_state.z, last_state.alpha},
-                          std::vector<float>{1, 1, 0.1}))
+//        if( are_different(std::vector<float>{bState.x, bState.z, bState.alpha},
+//                          std::vector<float>{last_state.x, last_state.z, last_state.alpha},
+//                          std::vector<float>{1, 1, 0.1}))
         {
             auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
             G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
