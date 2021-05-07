@@ -18,7 +18,7 @@
 DOXYFILE_ENCODING      = UTF-8
 
 # ROBOCOMP
-PROJECT_NAME           = yolov4_detector
+PROJECT_NAME           = yolov4_person
 PROJECT_NUMBER         =
 
 

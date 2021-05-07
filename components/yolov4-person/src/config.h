@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "yolov4_detector"
-#define SERVER_FULL_NAME   "RoboComp yolov4_detector:: yolov4_detector"
+#define PROGRAM_NAME    "yolov4_person"
+#define SERVER_FULL_NAME   "RoboComp yolov4_person:: yolov4_person"
 
 #endif

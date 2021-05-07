@@ -1,4 +1,5 @@
-# YOLOv4 Tracker
+# yolov4_person
+
 
 An agent that performs object tracking using YOLOv4 network. This is an upgrade of `yolo-tracker` agent.
 
