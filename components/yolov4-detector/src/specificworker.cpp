@@ -20,6 +20,7 @@
 #include <ranges>
 #include <algorithm>
 #include <cppitertools/product.hpp>
+#include <cppitertools/zip.hpp>
 
 /**
 * \brief Default constructor
@@ -77,7 +78,8 @@ void SpecificWorker::initialize(int period)
 
         //dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+//        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+
 //        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
 //        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
 //        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
@@ -149,10 +151,9 @@ void SpecificWorker::compute()
         std::vector<float> depth_array = g_depth.value();
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
         std::vector<Box> synth_objects = get_visible_objects_from_graph();
-        //for(auto o: real_objects) std::cout << o.name << std::endl;
-        show_image(imgyolo, real_objects, synth_objects);
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
-        // auto lists_after_add = add_new_objects(lists_after_match);
+        auto lists_after_add = add_new_objects(lists_after_match);
+        show_image(imgyolo, real_objects, synth_objects);
         //auto lists_after_delete = delete_unseen_objects(lists_after_add);
     }
 }
@@ -195,40 +196,57 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::add_new_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match)
 {
     auto world_node = G->get_node(world_name);
-    const auto &[real_objects, synth_objects] = lists_after_match;
+    auto [real_objects, synth_objects] = lists_after_match;
+    const std::vector<std::string> known_objects{"glass", "cup"};   // LIST OF KNOWN OBJECT NAMES
     for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
-        DSR::Node object_node;
-        bool node_created = false;
-        if(b_real.name.find("glass", 0) == 0)
+        for(const auto &known_object : known_objects)
         {
-            object_node = DSR::Node::create<glass_node_type>(b_real.name);
-            node_created = true;
-        }
-        else if(b_real.name.find("cup", 0) == 0)
-        {
-            object_node = DSR::Node::create<cup_node_type>(b_real.name);
-            node_created = true;
-        }
-        if(node_created)
-        {
-            G->add_or_modify_attrib_local<parent_att>(object_node, world_node.value().id());
-            G->add_or_modify_attrib_local<level_att>(object_node, 1);
-            if (std::optional<int> id = G->insert_node(object_node); id.has_value())
+            DSR::Node object_node;
+            if (b_real.name.find(known_object, 0) == 0)
             {
-                std::cout << __FUNCTION__ << "object id "<<object_node.id()<<endl;
-                DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
-                G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
-                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
-                G->insert_or_assign_edge(edge);
-                G->update_node(world_node.value());
+                if(known_object == "glass")
+                    object_node = DSR::Node::create<glass_node_type>(b_real.name);
+                else if (known_object == "cup")
+                    object_node = DSR::Node::create<cup_node_type>(b_real.name);
+
+                // decide here who is going to be the parent
+                auto parent_node = G->get_node(world_name);
+                if(not parent_node.has_value()) { qWarning() << __FUNCTION__ << "No parent node " << QString::fromStdString(world_name) << " found "; continue; }
+                G->add_or_modify_attrib_local<parent_att>(object_node, parent_node.value().id());
+                G->add_or_modify_attrib_local<level_att>(object_node, G->get_node_level(parent_node.value()).value()+1);
+                // object size in an object centered reference system: looking from the robot, center at roi center. x+ to the right, y+ upwards, z+ away from robot
+                G->add_or_modify_attrib_local<obj_depth_att>(object_node, 1);  // get correct size
+                G->add_or_modify_attrib_local<obj_height_att>(object_node, 1);  // get correct size
+                G->add_or_modify_attrib_local<obj_width_att>(object_node, 1);  // get correct size
+
+                if (std::optional<int> id = G->insert_node(object_node); id.has_value())
+                {
+                    std::cout << __FUNCTION__ << "object id " << object_node.id() << endl;
+                    DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
+                    G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                    G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
+                    G->insert_or_assign_edge(edge);
+                    G->update_node(world_node.value());
+                    // mark real_box to remove from real_objects lists
+                    b_real.marked_for_delete = true;
+                    qInfo() << __FUNCTION__ << "Created node " << QString::fromStdString(b_real.name);
+                }
+                else
+                    qWarning() << "Object " << QString::fromStdString(b_real.name) << " could NOT be created";
             }
         }
-   }
+    }
+    // remove marked objects
+    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
+    return std::make_tuple(real_objects, synth_objects);
 }
+
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::delete_unseen_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
-{}
+{
+
+}
 std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph()
 {
     std::vector<Box> boxes;
@@ -541,13 +559,34 @@ void SpecificWorker::compute_visible_objects()
     auto cup_nodes = G->get_nodes_by_type(cup_type_name);
     object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
 
+    // computer room's delimting polygon that contains the robot
+    auto robot_node = G->get_node(robot_name);
+    QPolygonF room_polygon;
+    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), "in"); not in_edges.empty())
+        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )
+        {
+            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
+            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
+            if (polygon_x.has_value() and polygon_y.has_value())
+                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+                    room_polygon << QPointF(px, py);
+        }
+        else { qWarning() << __FUNCTION__ << "No room node found for robot"; return; }
+    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room"; return; }
+
+    // project object
     auto c = YOLO_IMG_SIZE/2;
     for(auto &object : object_nodes)
     {
-        const std::string object_name = object.name();
-        // std::cout << __FUNCTION__ << " processing synthetic objects " << object_name << endl;
+        const std::string &object_name = object.name();
+
+        // check if object is in the same room as the robot
+        auto object_pos = inner_eigen->transform(world_name, object_name);
+        if(not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::WindingFill))
+                continue;
 
         // project corners of object's bounding box in the camera image plane
+        // get object's bounding box from object's node
         std::vector<Mat::Vector2d> bb_in_camera(8);
         const float h = 150;
         bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),0,0);
@@ -559,7 +598,7 @@ void SpecificWorker::compute_visible_objects()
         bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),0,0);
         bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),0,0);
 
-        // Compute a 2D bounding box
+        // Compute a 2D projected bounding box
         auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
                                              [](const Mat::Vector2d & lhs, const Mat::Vector2d& rhs) {
                                                  return lhs.x() < rhs.x();
@@ -577,6 +616,8 @@ void SpecificWorker::compute_visible_objects()
         box.prob = 100;
         box.name = object_name;
         box.match = false;
+
+        // check if is inside the image
         if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
         {
             box.visible = true;
@@ -587,7 +628,7 @@ void SpecificWorker::compute_visible_objects()
 
             // update edges
             auto edges = G->get_edges_to_id(object.id());
-            if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())
+            if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())  //not found
             {
                 //add edge
                 DSR::Edge new_edge = DSR::Edge::create<visible_edge_type>(cam_api->get_id(), object.id());

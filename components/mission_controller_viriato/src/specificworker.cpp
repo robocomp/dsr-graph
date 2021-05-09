@@ -95,7 +95,7 @@ void SpecificWorker::initialize(int period)
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
         if(widget_2d != nullptr)
-            widget_2d->set_draw_laser(false);
+            widget_2d->set_draw_laser(true);
 
         connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
@@ -107,7 +107,7 @@ void SpecificWorker::initialize(int period)
         //connect(custom_widget.comboBox_select_target, SIGNAL(activated(int)), this, SLOT(slot_select_target_object(int)));
 
         // Ignore attributes
-        G->set_ignored_attributes<cam_depth_att, laser_angles_att, laser_dists_att>();
+        G->set_ignored_attributes<cam_depth_att>();
 
         // Inner Api
         inner_eigen = G->get_inner_eigen_api();

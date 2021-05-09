@@ -182,7 +182,7 @@ void SpecificWorker::compute()
             save_path_in_G(path);
         }
         else
-            qWarning() << __FUNCTION__ << "No path node";
+            qDebug() << __FUNCTION__ << "No path node";
     }
 }
 

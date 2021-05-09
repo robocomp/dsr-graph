@@ -267,6 +267,7 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
           DSR::Node current_grid_node = DSR::Node::create<grid_node_type>(current_grid_name);
           G->add_or_modify_attrib_local<name_att>(current_grid_node, current_grid_name);
           G->add_or_modify_attrib_local<parent_att>(current_grid_node, mind.value().id());
+          G->add_or_modify_attrib_local<level_att>(current_grid_node, G->get_node_level(mind.value()).value() + 1);
           G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
           G->add_or_modify_attrib_local<pos_x_att>(current_grid_node, (float) -262);
           G->add_or_modify_attrib_local<pos_y_att>(current_grid_node, (float) 91);

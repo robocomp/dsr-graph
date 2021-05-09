@@ -64,9 +64,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << __FUNCTION__ << std::endl;
 	this->Period = period;
 	if(this->startup_check_flag)
-	{
 		this->startup_check();
-	}
 	else
 	{
 		// create graph
@@ -179,7 +177,7 @@ void SpecificWorker::compute()
         {} // check elapsed time since last reading. Stop the robot if too long
     }
     else
-        qWarning() << __FUNCTION__ << "No path_node found in G";
+        qDebug() << __FUNCTION__ << "No path_node found in G";
 }
 void SpecificWorker::path_follower_initialize()
 {

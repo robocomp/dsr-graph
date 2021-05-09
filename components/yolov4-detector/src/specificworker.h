@@ -87,6 +87,7 @@ class SpecificWorker : public GenericWorker
             int height() const { return bot-top;};
             int cx() const { return left + width()/2;};
             int cy() const { return top + height()/2;};
+            bool marked_for_delete = false;
             void print(const std::string_view &s) const
             {
                 std::cout << "--- " << s << " -----" << std::endl;
