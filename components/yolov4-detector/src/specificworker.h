@@ -160,7 +160,7 @@ class SpecificWorker : public GenericWorker
         // YOLOv4 attributes
         const std::size_t YOLO_INSTANCES = 1;
         std::vector<Detector*> ynets;
-        std::vector<std::string> names;
+        std::vector<std::string> yolo_names;
         bool SHOW_IMAGE = false;
         bool READY_TO_GO = false;
         FPSCounter fps;

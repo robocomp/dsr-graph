@@ -78,11 +78,10 @@ void SpecificWorker::initialize(int period)
 
         //dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-//        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-
-//        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-//        connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-//        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+        // connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        // connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        // connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        // connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         // Graph viewer
         using opts = DSR::DSRViewer::view;
@@ -198,32 +197,39 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     auto world_node = G->get_node(world_name);
     auto [real_objects, synth_objects] = lists_after_match;
 
-    const std::map<std::string, std::vector<float>> known_object_types{{"glass",     {100, 100, 200}},
-                                                                       {"cup",       {100, 100, 200}},
-                                                                       {"microwave", {300, 250, 350}},
-                                                                       {"plant",     {350, 350, 600}}};   // LIST OF KNOWN OBJECT TYPES
+    // PROTO SEMANTIC MEMORY. Standard size of objects in object's reference frame.
+    //          looking from the robot: center at roi center. x+ to the right, y+ upwards, z+ away from robot
+    static const std::map<std::string, std::vector<int>> known_object_types{{"glass",     {100, 100, 200}},
+                                                                            {"cup",       {100, 100, 200}},
+                                                                            {"microwave", {300, 250, 350}},
+                                                                            {"plant",     {350, 350, 600}}};
 
     for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
         for(const auto &[known_object, size] : known_object_types)
         {
             DSR::Node object_node;
-            if (b_real.name.find(known_object, 0) == 0)
+            if (b_real.name.find(known_object, 0) == 0)     // type name must be equal or part of YOLO yolo_names.
             {
                 if(known_object == "glass")
                     object_node = DSR::Node::create<glass_node_type>(b_real.name);
                 else if (known_object == "cup")
                     object_node = DSR::Node::create<cup_node_type>(b_real.name);
+                else if (known_object == "plant")
+                    object_node = DSR::Node::create<plant_node_type>(b_real.name);
+                else if (known_object == "microwave")
+                    object_node = DSR::Node::create<microwave_node_type>(b_real.name);
 
                 // decide here who is going to be the parent
                 auto parent_node = G->get_node(world_name);
                 if(not parent_node.has_value()) { qWarning() << __FUNCTION__ << "No parent node " << QString::fromStdString(world_name) << " found "; continue; }
+
+                // complete attributes
                 G->add_or_modify_attrib_local<parent_att>(object_node, parent_node.value().id());
                 G->add_or_modify_attrib_local<level_att>(object_node, G->get_node_level(parent_node.value()).value()+1);
-                // object size in an object centered reference system: looking from the robot, center at roi center. x+ to the right, y+ upwards, z+ away from robot
-                G->add_or_modify_attrib_local<obj_depth_att>(object_node, 1);  // get correct size
-                G->add_or_modify_attrib_local<obj_height_att>(object_node, 1);  // get correct size
-                G->add_or_modify_attrib_local<obj_width_att>(object_node, 1);  // get correct size
+                G->add_or_modify_attrib_local<obj_width_att>(object_node, size[0]);
+                G->add_or_modify_attrib_local<obj_height_att>(object_node, size[1]);
+                G->add_or_modify_attrib_local<obj_depth_att>(object_node, size[2]);
 
                 if (std::optional<int> id = G->insert_node(object_node); id.has_value())
                 {
@@ -250,7 +256,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::delete_unseen_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
 {
-
+    auto [real_objects, synth_objects] = lists_after_add;
+    return std::make_tuple(real_objects, synth_objects);
 }
 std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph()
 {
@@ -288,9 +295,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
 }
 Detector* SpecificWorker::init_detector()
 {
-    // read objects names from file
+    // read objects yolo_names from file
     std::ifstream file(names_file);
-    for(std::string line; getline(file, line);) names.push_back(line);
+    for(std::string line; getline(file, line);) yolo_names.push_back(line);
     // initialize YOLOv4 detector
     Detector* detector = new Detector(cfg_file, weights_file);
     return detector;
@@ -306,7 +313,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     {
         Box box;
         int cls = d.obj_id;
-        box.name = names.at(cls);
+        box.name = yolo_names.at(cls);
         box.left = d.x-yolo_img.w/2;
         box.right = d.x + d.w-yolo_img.w/2;
         box.top = d.y-yolo_img.h/2;
@@ -337,7 +344,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
             auto[x, y, z] = tp.value();
             if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), camera_name); t_world.has_value())
             {
-                //std::cout << "POS 3D "<<names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
+                //std::cout << "POS 3D "<<yolo_names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
                 box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
                 box.Cx = x;
                 box.Cy = y;
