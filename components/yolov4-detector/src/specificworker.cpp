@@ -197,10 +197,15 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 {
     auto world_node = G->get_node(world_name);
     auto [real_objects, synth_objects] = lists_after_match;
-    const std::vector<std::string> known_objects{"glass", "cup"};   // LIST OF KNOWN OBJECT NAMES
+
+    const std::map<std::string, std::vector<float>> known_object_types{{"glass",     {100, 100, 200}},
+                                                                       {"cup",       {100, 100, 200}},
+                                                                       {"microwave", {300, 250, 350}},
+                                                                       {"plant",     {350, 350, 600}}};   // LIST OF KNOWN OBJECT TYPES
+
     for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
-        for(const auto &known_object : known_objects)
+        for(const auto &[known_object, size] : known_object_types)
         {
             DSR::Node object_node;
             if (b_real.name.find(known_object, 0) == 0)
