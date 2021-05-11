@@ -11,6 +11,7 @@
 GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow* parent)
         :GraphViewer(std::move(G_), parent)
 {
+    this->setInteractive(true);
     this->current_tool = GraphTool::edit_tool;
     this->dragging = false;
     this->drag_initial_position = QPoint(0,0);
@@ -18,7 +19,11 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
     this->temp_from_node = nullptr;
     this->temp_to_node = nullptr;
     this->temp_edge = nullptr;
+    selection_box = new QGraphicsRectItem(0,0,0,0);
+    selection_box->setPen(QPen( Qt::lightGray, 1, Qt::DotLine ) );
     rt = G->get_rt_api();
+    delete_shortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Delete), this);
+    connect(delete_shortcut, SIGNAL(activated()), this, SLOT(delete_slot()));
 
     this->edit_modes_toolbar = new QToolBar(parent);
     parent->addToolBar(this->edit_modes_toolbar);
@@ -77,12 +82,20 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
                 this->dragging = true;
                 this->drag_initial_position = event->pos();
             }
+            event->accept();
         case GraphTool::move_tool:
+        case GraphTool::selecction_tool:
+            selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(press_point)));
+            this->selecting=true;
+            selected_items.clear();
+            this->scene.clearSelection();
+            this->scene.addItem(selection_box);
             GraphViewer::mousePressEvent(event);
-    case GraphTool::selecction_tool:break;
+            break;
     }
 
 }
+
 void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
 {
     release_point = event->pos();
@@ -157,9 +170,29 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
 
             }
         }
+        event->accept();
         break;
     }
     case GraphTool::move_tool:
+        if(selecting)
+        {
+
+            for ( auto item : selection_box->collidingItems() ) {
+                auto node = dynamic_cast<GraphNode *>(item);
+                if (node!=nullptr) {
+                    selected_items<<node;
+
+                }
+                auto edge = dynamic_cast<GraphEdge *>(item);
+                if (edge!=nullptr) {
+                    selected_items<<edge;
+                }
+                item->setSelected(true);
+            }
+            qDebug()<<selected_items.count();
+            this->scene.removeItem(selection_box);
+            this->selecting = false;
+        }
         if (event->button()==Qt::LeftButton) {
             if (distance.length()<20) {
                 // Look for TO node
@@ -229,11 +262,12 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
         event->accept();
         break;
     case GraphTool::move_tool:
+        if(this->selecting)
+            selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(event->pos())));
         GraphViewer::mouseMoveEvent(event);
         break;
     default:
         GraphViewer::mouseMoveEvent(event);
-
     }
 }
 
@@ -254,7 +288,7 @@ std::optional<uint64_t> GraphEditorView::create_new_node(QPointF position)
 {
     //get node type
     bool ok;
-    QStringList results = NewGraphElementDlg2::getNodeParams(this, ok);
+    QStringList results = GraphNewElementDialog::getNodeParams(this, ok);
     qDebug()<<results;
     if(not ok or results.size()<2)
         return std::optional<uint64_t>();
@@ -290,7 +324,7 @@ std::optional<uint64_t> GraphEditorView::_create_new_G_node(const QString& name,
 bool GraphEditorView::create_new_edge(uint64_t from, uint64_t to) {
     bool ok;
 
-    QStringList results = NewGraphElementDlg2::getEdgeParams(this, ok);
+    QStringList results = GraphNewElementDialog::getEdgeParams(this, ok);
     if(not ok or results.empty())
         return false;
 
@@ -365,7 +399,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
 
 bool GraphEditorView::create_two_connected_nodes(QPointF position1, QPointF position2, bool reverse) {
     bool ok;
-    QStringList results = NewGraphElementDlg2::getAllParams(this, ok);
+    QStringList results = GraphNewElementDialog::getAllParams(this, ok);
     if(not ok or results.size()<2)
         return ok;
 
@@ -385,7 +419,7 @@ bool GraphEditorView::create_two_connected_nodes(QPointF position1, QPointF posi
 bool GraphEditorView::create_new_connected_node(QPointF position, uint64_t node_id, bool reverse)
 {
     bool ok;
-    QStringList results = NewGraphElementDlg2::getConnectedNodeParams(this, ok);
+    QStringList results = GraphNewElementDialog::getConnectedNodeParams(this, ok);
     if(not ok or results.size()<2)
         return ok;
 
@@ -405,6 +439,8 @@ bool GraphEditorView::create_new_connected_node(QPointF position, uint64_t node_
 void GraphEditorView::enableMoveMode(bool action)
 {
     this->current_tool = GraphTool::move_tool;
+    selection_box->setRect(0,0,0,0);
+    this->scene.removeItem(selection_box);
 }
 
 void GraphEditorView::enableEditMode(bool action)
@@ -412,29 +448,15 @@ void GraphEditorView::enableEditMode(bool action)
     this->current_tool = GraphTool::edit_tool;
 }
 
-
-//void GraphEditorView::new_node_attrib_slot()
-//{
-//    bool ok1, ok2;
-//    QString attrib_name = QInputDialog::getText(this, tr("New node attrib"),
-//            tr("Attrib name:"), QLineEdit::Normal,
-//            "name", &ok1);
-//    QStringList items;
-//    items << tr("int") << tr("float") << tr("string") << tr("bool");
-//    QString attrib_type = QInputDialog::getItem(this, tr("New node attrib"), tr("Attrib type:"), items, 0, false, &ok2);
-//
-//    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
-//        return;
-//
-//    Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
-//    if(attrib_type == "int")
-//        this->G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
-//    else if(attrib_type == "float")
-//        this->G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
-//    else if(attrib_type == "bool")
-//        this->G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
-//    else if(attrib_type == "string")
-//        this->G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
-//
-//    fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
-//}
+void GraphEditorView::delete_slot()
+{
+    qDebug()<<"To remove "<<selected_items.count();
+    for(auto item : selected_items) {
+        auto node = dynamic_cast<GraphNode*>(item);
+        if(node!=nullptr)
+        {
+            if (not G->delete_node(node->id_in_graph))
+                qDebug() << "Node" << node->id_in_graph << "could not be deleted";
+        }
+    }
+}

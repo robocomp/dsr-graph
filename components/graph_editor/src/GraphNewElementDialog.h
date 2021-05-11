@@ -5,14 +5,14 @@
 #ifndef TESTCOMP_GRAPHNEWELEMENTDIALOG_H
 #define TESTCOMP_GRAPHNEWELEMENTDIALOG_H
 
-#include "ui_NewGraphElementDlg.h"
+#include "ui_GraphNewElementDialog.h"
 
 
 
-class NewGraphElementDlg2 : public QDialog, private Ui::NewElementDlg
+class GraphNewElementDialog : public QDialog, private Ui::NewElementDlg
 {
     public:
-        NewGraphElementDlg2(QWidget *parent): QDialog(parent)
+        GraphNewElementDialog(QWidget *parent):QDialog(parent)
         {
             this->setupUi(this);
             this->node_type_cmb->addItems(
@@ -39,7 +39,7 @@ class NewGraphElementDlg2 : public QDialog, private Ui::NewElementDlg
 
         static QStringList getElementsParams(QWidget * parent, bool node1, bool node2, bool edge, bool &ok)
         {
-            NewGraphElementDlg2 dlg(parent);
+            GraphNewElementDialog dlg(parent);
             if (!node1)
                 dlg.node_group->setVisible(false);
             if (!node2)

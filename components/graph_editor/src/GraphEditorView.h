@@ -9,6 +9,7 @@
 #include <dsr/gui/viewers/graph_viewer/graph_viewer.h>
 #include <dsr/gui/viewers/graph_viewer/graph_node.h>
 #include <QToolBar>
+#include <QShortcut>
 
 enum class GraphTool{
     edit_tool,
@@ -23,6 +24,7 @@ public:
 private:
     GraphTool current_tool;
     QGraphicsItem *dragged_item;
+    QGraphicsRectItem* selection_box;
     QPoint drag_initial_position;
     std::unique_ptr<DSR::RT_API> rt;
     QToolBar *edit_modes_toolbar;
@@ -30,7 +32,11 @@ private:
     QActionGroup* modeActionsGroup;
     QAction *modeMoveAction;
     QAction *modeCreatetAction;
+    QShortcut* delete_shortcut;
+
     bool dragging;
+    bool selecting;
+    QList<QGraphicsItem*> selected_items;
     GraphNode* temp_from_node;
     GraphNode* temp_to_node;
     GraphEdge* temp_edge;
@@ -59,6 +65,9 @@ private:
 signals:
     void graph_node_clicked(int64_t node_id);
     void graph_edge_clicked(int64_t source_id, int64_t dest_id, int type);
+private slots:
+    void delete_slot();
+
 
 };
 

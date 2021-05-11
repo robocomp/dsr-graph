@@ -9,7 +9,9 @@
 
 #include <dsr/core/types/user_types.h>
 #include <QWidget>
+#include <QMessageBox>
 #include "ui_AttributeBrowser.h"
+#include "GraphNewAttributeDialog.h"
 #include <dsr/api/dsr_api.h>
 
 class QAttributeBrowser : public QWidget, private Ui::AttributeBrowserWidget
@@ -31,17 +33,13 @@ public slots:
     void G_edge_deleted(std::uint64_t from, std::uint64_t to, const std::string &type);
     void add_node_to_combobox(uint64_t node_id);
 
-    void new_node_clicked();
-    void new_edge_clicked();
-    void delete_edge_clicked();
-    void delete_node_clicked();
+
 
     void new_node_attrib_clicked();
-    void del_node_attrib_clicked();
     void new_edge_attrib_clicked();
-    void del_edge_attrib_clicked();
     void save_node_clicked();
     void save_edge_clicked();
+    void update_edge_slot(uint64_t from, uint64_t to, const std::string& type);
 
 
 
@@ -51,8 +49,7 @@ private:
     std::map<std::string, QString> edge_combo_names;
     static std::map<std::string, DSR::Attribute>
     get_table_content(QTableWidget* table_widget, std::map<std::string, DSR::Attribute> attrs);
-
-
+    template<class Ta> void new_attrib_clicked();
 };
 
 
