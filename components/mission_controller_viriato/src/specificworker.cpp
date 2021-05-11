@@ -71,7 +71,7 @@ void SpecificWorker::initialize(int period)
 
 		//dsr update signals
 		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-	//	connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+//		connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
@@ -204,6 +204,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
 {
     qInfo() << __FUNCTION__ << " Creating GOTO mission to " << pos;
     Plan plan;
+    std::string plan_string;
     // we get the id of the object clicked from the 2D representation
     if (auto target_node = G->get_node(target_node_id); target_node.has_value())
     {
@@ -211,10 +212,10 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
         //location.imbue(std::locale("en_US.UTF8"));
         location << "[" << std::to_string(pos.x()) << "," << std::to_string(pos.y()) << "," << 0 << "]";
         std::cout << __FUNCTION__ << location.str();
-        const std::string plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node->name() + "\"}}]}";
+        plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node->name() + "\"}}]}";
         std::cout << __FUNCTION__ << " " << plan_string << std::endl;
         plan = Plan(plan_string);
-        plan_buffer.put(plan);
+        plan_buffer.put(std::move(plan));
     }
 
     // Check if there is 'intention' node yet in G
@@ -222,8 +223,8 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
     {
         if (auto intention = G->get_node(current_intention_name); intention.has_value())
         {
-            std::cout << __FUNCTION__ << " Adding plan to intention node " << plan.to_string() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_string());
+            std::cout << __FUNCTION__ << " Adding plan to intention node " << plan_string << std::endl;
+            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
             if (G->update_node(intention.value()))
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
             else
@@ -236,7 +237,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
             G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
             G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -466);
             G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 42);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
+            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
             if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
             {
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
@@ -304,8 +305,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<Eigen::Vector3d> path; path.reserve(x_values.size());
                 for(auto &&[p, q] : iter::zip(x_values,y_values))
                     path.emplace_back(Eigen::Vector3d(p, q, 0.f));
-                path_buffer.put(path);
                 draw_path(path, &widget_2d->scene);
+                path_buffer.put(std::move(path));
             }
         }
     }
@@ -395,7 +396,7 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
-    for(auto &&p_pair : iter::sliding_window(path, 2))
+    for(auto &p_pair : iter::sliding_window(path, 2))
     {
         if(p_pair.size() < 2)
             continue;

@@ -126,6 +126,7 @@ static int n_ok = 0;
 
 void SpecificWorker::compute()
 {
+
     static QGraphicsEllipseItem *target_draw = nullptr;
 
     // Check for new published intention/plan
@@ -298,16 +299,17 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
 {
     qInfo() << __FUNCTION__ << "[" << pos_x << " " << pos_y << "] Id:" << id;
     Plan plan;
+    std::string plan_string;
     // we get the id of the object clicked from the 2D representation
     if (auto target_node = G->get_node(id); target_node.has_value())
     {
         //const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," + std::to_string(0) + "]";
         std::stringstream location;
         location <<"[" << std::to_string(pos_x) << "," << std::to_string(pos_y) << "," + std::to_string(0) << "]";
-        const std::string plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
+        plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
         plan = Plan(plan_string);
-        plan_buffer.put(plan);
         plan.print();
+        plan_buffer.put(std::move(plan));
     }
     else
         qWarning() << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
@@ -322,7 +324,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
             G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
             G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -440);
             G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 13);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
+            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
             if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
             {
                 DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
@@ -344,7 +346,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
         } else
         {
             std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_string());
+            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
             G->update_node(intention.value());
         }
     }
