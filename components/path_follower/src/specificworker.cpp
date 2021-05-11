@@ -135,6 +135,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+
     static std::vector<Eigen::Vector2f> path;
 
     // Check for existing path_to_target_nodes
@@ -422,8 +423,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                  {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
-                                     const auto &[angles, dists] = in;
-                                     for (const auto &[angle, dist] : iter::zip(angles, dists))
+                                     auto &&[angles, dists] = in;
+                                     for (auto &&[angle, dist] : iter::zip(std::move(angles), std::move(dists)))
                                      {
                                          //convert laser polar coordinates to cartesian
                                          float x = dist * sin(angle);

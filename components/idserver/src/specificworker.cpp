@@ -103,7 +103,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	G->write_to_json_file(dsr_output_path + agent_name + "_" + std::to_string(output_file_count) + ".json");
+    G->write_to_json_file(dsr_output_path + agent_name + "_" + std::to_string(output_file_count) + ".json");
     output_file_count++;
 }
 
