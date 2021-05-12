@@ -128,27 +128,27 @@ if __name__ == '__main__':
         sys.exit(-1)
 
 
-    HumanToDSR_adapter = ic.createObjectAdapter("HumanToDSRTopic")
-    humantodsrI_ = humantodsrI.HumanToDSRI(worker)
-    humantodsr_proxy = HumanToDSR_adapter.addWithUUID(humantodsrI_).ice_oneway()
+    HumanToDSRPub_adapter = ic.createObjectAdapter("HumanToDSRPubTopic")
+    humantodsrpubI_ = humantodsrpubI.HumanToDSRPubI(worker)
+    humantodsrpub_proxy = HumanToDSRPub_adapter.addWithUUID(humantodsrpubI_).ice_oneway()
 
     subscribeDone = False
     while not subscribeDone:
         try:
-            humantodsr_topic = topicManager.retrieve("HumanToDSR")
+            humantodsrpub_topic = topicManager.retrieve("HumanToDSRPub")
             subscribeDone = True
         except Ice.Exception as e:
             print("Error. Topic does not exist (creating)")
             time.sleep(1)
             try:
-                humantodsr_topic = topicManager.create("HumanToDSR")
+                humantodsrpub_topic = topicManager.create("HumanToDSRPub")
                 subscribeDone = True
             except:
                 print("Error. Topic could not be created. Exiting")
                 status = 0
     qos = {}
-    humantodsr_topic.subscribeAndGetPublisher(qos, humantodsr_proxy)
-    HumanToDSR_adapter.activate()
+    humantodsrpub_topic.subscribeAndGetPublisher(qos, humantodsrpub_proxy)
+    HumanToDSRPub_adapter.activate()
 
     signal.signal(signal.SIGINT, sigint_handler)
     app.exec_()

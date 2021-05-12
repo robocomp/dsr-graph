@@ -18,15 +18,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
 #
+import traceback
 
 from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import QApplication
 from genericworker import *
 
-
 # If RoboComp was compiled with Python bindings you can use InnerModel in Python
 sys.path.append('/opt/robocomp/lib')
 from pydsr import *
+
 
 # import librobocomp_qmat
 # import librobocomp_osgviewer
@@ -35,27 +36,34 @@ from pydsr import *
 def update_node_att(id: int, attribute_names: [str]):
     print("UPDATE NODE ATT: ", id, " ", attribute_names)
 
+
 def update_node(id: int, type: str):
-    print("UPDATE NODE: ", id," ",  type)
+    print("UPDATE NODE: ", id, " ", type)
+
 
 def delete_node(id: int):
     print("DELETE NODE: ", id)
 
-def update_edge(fr: int, to: int, type : str):
-    print("UPDATE EDGE: ", fr," ", to," ", type)
 
-def update_edge_att(fr: int, to: int, attribute_names : [str]):
-    print("UPDATE EDGE ATT: ", fr," ", to," ", attribute_names)
+def update_edge(fr: int, to: int, type: str):
+    print("UPDATE EDGE: ", fr, " ", to, " ", type)
 
-def delete_edge(fr: int, to: int, type : str):
-    print("DELETE EDGE: ", fr," ", to," ", type)
+
+def update_edge_att(fr: int, to: int, attribute_names: [str]):
+    print("UPDATE EDGE ATT: ", fr, " ", to, " ", attribute_names)
+
+
+def delete_edge(fr: int, to: int, type: str):
+    print("DELETE EDGE: ", fr, " ", to, " ", type)
+
 
 class SpecificWorker(GenericWorker):
     def __init__(self, proxy_map, startup_check=False):
         super(SpecificWorker, self).__init__(proxy_map)
         self.Period = 2000
 
-        self.g = DSRGraph(0, "pythonAgent", 111)
+        self.agent_id = 222
+        self.g = DSRGraph(0, "human_social_spaces_dsr", self.agent_id)
 
         try:
             signals.connect(self.g, signals.UPDATE_NODE_ATTR, update_node_att)
@@ -78,13 +86,12 @@ class SpecificWorker(GenericWorker):
         print('SpecificWorker destructor')
 
     def setParams(self, params):
-        #try:
+        # try:
         #	self.innermodel = InnerModel(params["InnerModelPath"])
-        #except:
+        # except:
         #	traceback.print_exc()
         #	print("Error reading config params")
         return True
-
 
     @QtCore.Slot()
     def compute(self):
@@ -113,24 +120,64 @@ class SpecificWorker(GenericWorker):
     # ===================================================================
 
     #
-    # SUBSCRIPTION to newPeopleData method from HumanToDSR interface
+    # SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
     #
-    def HumanToDSR_newPeopleData(self, people):
-    
-        #
-        # write your CODE here
-        #
-        pass
+    def HumanToDSRPub_newPeopleData(self, people):
+        print('HumanToDSRPub_newPeopleData ------')
+
+        rt = rt_api(self.g)
+
+        people_list = people.peoplelist
+        people_nodes = self.g.get_nodes_by_type('person')
+
+        for person in people_list:
+            person_node_in_dsr = None
+
+            for p_node in people_nodes:
+                if p_node.attrs['person_id'].value == person.id:
+                    person_node_in_dsr = p_node
+                    break
+
+            if person_node_in_dsr is not None:  #Update Node
+
+                try:
+                    rt.insert_or_assign_edge_RT(self.g.get_node('world'), person_node_in_dsr.id,
+                                                [person.x, person.y, person.z], [.0, person.ry, .0])
+                except:
+                    traceback.print_exc()
+                    print('Cant update RT edge')
+
+                print(rt.get_edge_RT(self.g.get_node("world"), person_node_in_dsr.id))
+
+            else:  #Create Node
+
+                node_name = 'person_' + str(person.id)
+                new_node = Node(agent_id=self.agent_id, type='person', name=node_name)
+                new_node.attrs['person_id'] = Attribute(person.id,0, self.agent_id)
+
+                try:
+                    id_result = self.g.insert_node(new_node)
+                    print(' inserted new node  ', id_result)
+
+                except:
+                    traceback.print_exc()
+                    print('cant update node')
+
+                try:
+                    rt.insert_or_assign_edge_RT(self.g.get_node('world'), id_result,
+                                                [person.x, person.y, person.z], [.0, person.ry, .0])
+                except:
+                    traceback.print_exc()
+                    print('Cant add RT edge')
+
+
 
 
     # ===================================================================
     # ===================================================================
-
-
 
     ######################
-    # From the RoboCompHumanToDSR you can use this types:
-    # RoboCompHumanToDSR.TJointData
-    # RoboCompHumanToDSR.Person
-    # RoboCompHumanToDSR.PeopleData
-
+    # From the RoboCompHumanToDSRPub you can use this types:
+    # RoboCompHumanToDSRPub.TJointData
+    # RoboCompHumanToDSRPub.Person
+    # RoboCompHumanToDSRPub.PeopleData

@@ -1,11 +1,11 @@
-import "HumanToDSR.idsl";
+import "HumanToDSRPub.idsl";
 
 Component human_social_spaces_dsr
 {
     Communications
     {
         
-        subscribesTo HumanToDSR;
+        subscribesTo HumanToDSRPub;
        
     };
     language python;

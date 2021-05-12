@@ -31,30 +31,30 @@ except KeyError:
 Ice.loadSlice("-I ./src/ --all ./src/CommonBehavior.ice")
 import RoboCompCommonBehavior
 
-Ice.loadSlice("-I ./src/ --all ./src/HumanToDSR.ice")
-import RoboCompHumanToDSR
+Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
+import RoboCompHumanToDSRPub
 
 class People(list):
     def __init__(self, iterable=list()):
         super(People, self).__init__(iterable)
 
     def append(self, item):
-        assert isinstance(item, RoboCompHumanToDSR.Person)
+        assert isinstance(item, RoboCompHumanToDSRPub.Person)
         super(People, self).append(item)
 
     def extend(self, iterable):
         for item in iterable:
-            assert isinstance(item, RoboCompHumanToDSR.Person)
+            assert isinstance(item, RoboCompHumanToDSRPub.Person)
         super(People, self).extend(iterable)
 
     def insert(self, index, item):
-        assert isinstance(item, RoboCompHumanToDSR.Person)
+        assert isinstance(item, RoboCompHumanToDSRPub.Person)
         super(People, self).insert(index, item)
 
-setattr(RoboCompHumanToDSR, "People", People)
+setattr(RoboCompHumanToDSRPub, "People", People)
 
 
-import humantodsrI
+import humantodsrpubI
 
 
 

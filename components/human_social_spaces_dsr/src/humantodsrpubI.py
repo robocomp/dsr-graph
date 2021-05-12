@@ -29,14 +29,14 @@ if len(ROBOCOMP)<1:
     raise RuntimeError('ROBOCOMP environment variable not set! Exiting.')
 
 
-Ice.loadSlice("-I ./src/ --all ./src/HumanToDSR.ice")
+Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
 
-from RoboCompHumanToDSR import *
+from RoboCompHumanToDSRPub import *
 
-class HumanToDSRI(HumanToDSR):
+class HumanToDSRPubI(HumanToDSRPub):
     def __init__(self, worker):
         self.worker = worker
 
 
     def newPeopleData(self, people, c):
-        return self.worker.HumanToDSR_newPeopleData(people)
+        return self.worker.HumanToDSRPub_newPeopleData(people)
