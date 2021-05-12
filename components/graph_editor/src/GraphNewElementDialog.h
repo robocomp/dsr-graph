@@ -12,7 +12,7 @@
 class GraphNewElementDialog : public QDialog, private Ui::NewElementDlg
 {
     public:
-        GraphNewElementDialog(QWidget *parent):QDialog(parent)
+        explicit GraphNewElementDialog(QWidget *parent):QDialog(parent)
         {
             this->setupUi(this);
             this->node_type_cmb->addItems(

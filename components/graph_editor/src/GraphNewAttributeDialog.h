@@ -6,7 +6,6 @@
 #define TESTCOMP_GRAPHNEWELEMENTDIALOG_H
 #include <iostream>
 #include <stdexcept>
-#include <stdio.h>
 #include <sstream>
 #include <string>
 

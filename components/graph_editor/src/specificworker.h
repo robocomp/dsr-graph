@@ -44,59 +44,35 @@ class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
 
-	public:
-		std::shared_ptr<DSR::DSRGraph> G;
-        std::shared_ptr<DSR::DSRGraph> G_prima;
-        std::unique_ptr<DSR::RT_API> rt;
-		std::string agent_name;
+public:
+    std::shared_ptr<DSR::DSRGraph> G;
+    std::string agent_name;
 
-	private:
-		bool startup_check_flag;
-		int agent_id{};
-		std::string dsr_input_file;
-		std::string dsr_output_file;
-		std::string test_output_file;
-		std::string dsr_output_path;
+private:
+    bool startup_check_flag;
+    int agent_id{};
+    std::string dsr_input_file;
+    std::string dsr_output_file;
+    std::string test_output_file;
+    std::string dsr_output_path;
 
-		// graph viewer
-		std::unique_ptr<DSR::DSRViewer> dsr_viewer;
-        std::map<std::uint64_t, QString> node_combo_names;
-        std::map<std::string, QString> edge_combo_names;
-        GraphEditorView *editor_view{};
-        QAttributeBrowser *attribute_browser{};
-        QTemporaryFile new_graph_file;
-	public:
-		SpecificWorker(TuplePrx tprx, bool startup_check);
-		~SpecificWorker();
-		bool setParams(RoboCompCommonBehavior::ParameterList params);
+    // graph viewer
+    std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+    GraphEditorView *editor_view{};
+    QAttributeBrowser *attribute_browser{};
+    QTemporaryFile new_graph_file;
+public:
+    SpecificWorker(TuplePrx tprx, bool startup_check);
+    ~SpecificWorker();
+    bool setParams(RoboCompCommonBehavior::ParameterList params) override;
 
-	public slots:
-		void compute();
-		void initialize(int period);
-//		void change_node_slot(int id);
-//		void save_node_clicked();
-//		void delete_node_slot();
-//		void change_edge_slot(int id);
-//		void delete_edge_slot();
-//		void save_edge_slot();
-//        void new_edge_slot();
-//        void new_node_slot();
-//        void new_node_attrib_slot();
-//        void new_edge_attrib_slot();
-//        void del_node_attrib_slot();
-//        void del_edge_attrib_slot();
-
-        //G signals
-        void G_add_or_assign_node_slot(const std::uint64_t id, const std::string &type);
-        void G_add_or_assign_edge_slot(const std::uint64_t  from, const std::uint64_t  to, const std::string& type);
-        void G_del_node_slot(const std::uint64_t  id);
-        void G_del_edge_slot(const std::uint64_t  from, const std::uint64_t  to, const std::string &edge_tag);
+public slots:
+    void compute() override;
+    void initialize(int period) override;
 
 
-	private:
-		void fill_table(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrib);
-		std::map<std::string, DSR::Attribute> get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs);
-		    int tree_view{};
+private:
+    int tree_view{};
     int graph_view{};
     int qscene_2d_view{};
     int osg_3d_view{};
