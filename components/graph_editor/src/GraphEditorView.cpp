@@ -4,6 +4,8 @@
 #include <QPushButton>
 #include <utility>
 #include <3rd_party/QtMaterialDesignIcons/sources/MaterialDesignIcons.h>
+#include <QMessageBox>
+#include <QCursor>
 #include "GraphEditorView.h"
 #include "GraphNewElementDialog.h"
 
@@ -19,11 +21,10 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
     this->temp_from_node = nullptr;
     this->temp_to_node = nullptr;
     this->temp_edge = nullptr;
+    this->selecting = false;
     selection_box = new QGraphicsRectItem(0,0,0,0);
     selection_box->setPen(QPen( Qt::lightGray, 1, Qt::DotLine ) );
     rt = G->get_rt_api();
-    delete_shortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Delete), this);
-    connect(delete_shortcut, SIGNAL(activated()), this, SLOT(delete_slot()));
 
     this->edit_modes_toolbar = new QToolBar(parent);
     parent->addToolBar(this->edit_modes_toolbar);
@@ -46,12 +47,18 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
     modeCreatetAction->setChecked(true);
     modeActionsGroup->addAction(modeCreatetAction);
 
+    modeDeleteAction = editMenu->addAction(material::pixmap("eraser", QSize(32,32)), tr("Delete Nodes"));
+    modeDeleteAction->setCheckable(true);
+    modeActionsGroup->addAction(modeDeleteAction);
+
 
 
     GraphEditorView::connect(modeMoveAction, &QAction::triggered, this, &GraphEditorView::enableMoveMode);
     GraphEditorView::connect(modeCreatetAction, &QAction::triggered, this, &GraphEditorView::enableEditMode);
+    GraphEditorView::connect(modeDeleteAction, &QAction::triggered, this, &GraphEditorView::enableDeleteMode);
 
     this->edit_modes_toolbar->addAction(modeCreatetAction);
+    this->edit_modes_toolbar->addAction(modeDeleteAction);
     this->edit_modes_toolbar->addAction(modeMoveAction);
 //    this->edit_modes_toolbar->addAction(modeNodesAction);
 //    this->edit_modes_toolbar->addAction(modeTransformAction);
@@ -64,34 +71,39 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
     press_point = event->pos();
     release_point = QPoint();
     // Check the tool being used
+    if (event->button() == Qt::LeftButton) {
+        QPointF position = mapToScene(event->pos());
+        auto item = this->scene.itemAt(position, QTransform());
+        if(item) {
+            qDebug()<<__FUNCTION__ <<">> Taken "<<item;
+            this->dragged_item = item;
+            this->dragging = true;
+            this->drag_initial_position = event->pos();
+        }
+    }
+    event->accept();
     switch (this->current_tool) {
-        // If it's editing nodes
-        case GraphTool::edit_tool:
-            if (event->button() == Qt::LeftButton) {
-                QPointF position = mapToScene(event->pos());
-                auto item = this->scene.itemAt(position, QTransform());
-                if(item) {
-                    qDebug()<<__FUNCTION__ <<">> Taken "<<item;
-                    this->dragged_item = item;
-                }
-                else{
-                    // Create visual FROM node in position of the event
-                    this->temp_from_node = this->new_visual_node(0, "interacting", "_from_", false);
-                    this->temp_from_node->setPos(mapToScene(event->pos()));
-                }
-                this->dragging = true;
-                this->drag_initial_position = event->pos();
-            }
-            event->accept();
-        case GraphTool::move_tool:
-        case GraphTool::selecction_tool:
-            selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(press_point)));
-            this->selecting=true;
-            selected_items.clear();
+
+    case GraphTool::delete_tool:
+    case GraphTool::move_tool:
+    case GraphTool::selecction_tool:
+        selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(press_point)));
+        if(!dragging) {
             this->scene.clearSelection();
+            this->selecting = true;
             this->scene.addItem(selection_box);
-            GraphViewer::mousePressEvent(event);
-            break;
+        }
+        GraphViewer::mousePressEvent(event);
+        break;
+    case GraphTool::edit_tool:
+        if(!dragging)
+        {
+            // Create visual FROM node in position of the event
+            this->temp_from_node = this->new_visual_node(0, "interacting", "_from_", false);
+            this->temp_from_node->setPos(mapToScene(event->pos()));
+            this->dragging = true;
+            this->drag_initial_position = event->pos();
+        }
     }
 
 }
@@ -120,16 +132,16 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
             // Look for TO node
             auto items = this->scene.items(mapToScene(position));
             if (!items.empty()) {
-                foreach (auto item, items) {
-                    to_node = dynamic_cast<GraphNode*>(item);
-                    // Convert source node from temp to real
-                    if (to_node) {
-                        if (to_node != this->temp_to_node)
-                            break;
-                        else
-                            to_node = nullptr;
+                        foreach (auto item, items) {
+                        to_node = dynamic_cast<GraphNode*>(item);
+                        // Convert source node from temp to real
+                        if (to_node) {
+                            if (to_node != this->temp_to_node)
+                                break;
+                            else
+                                to_node = nullptr;
+                        }
                     }
-                }
             }
 
             // Both exists, Dragged one node into other
@@ -144,7 +156,7 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
                 if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph, !new_node_is_to))
                     qDebug() << "Problem creating TO node";
             }
-            // No node taken but user is dragging
+                // No node taken but user is dragging
             else if (this->dragging) {
                 QLineF node_distance = QLine(event->pos(),this->drag_initial_position);
                 if (from_node == nullptr and to_node == nullptr and node_distance.length() > 30)
@@ -178,18 +190,9 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
         {
 
             for ( auto item : selection_box->collidingItems() ) {
-                auto node = dynamic_cast<GraphNode *>(item);
-                if (node!=nullptr) {
-                    selected_items<<node;
-
-                }
-                auto edge = dynamic_cast<GraphEdge *>(item);
-                if (edge!=nullptr) {
-                    selected_items<<edge;
-                }
-                item->setSelected(true);
+                if(dynamic_cast<GraphNode*>(item))
+                    item->setSelected(true);
             }
-            qDebug()<<selected_items.count();
             this->scene.removeItem(selection_box);
             this->selecting = false;
         }
@@ -217,6 +220,20 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
             }
         }
         GraphViewer::mouseReleaseEvent(event);
+    case GraphTool::delete_tool: {
+        if(selecting)
+        {
+
+            for ( auto item : selection_box->collidingItems() ) {
+                if(dynamic_cast<GraphNode*>(item))
+                    item->setSelected(true);
+            }
+            this->scene.removeItem(selection_box);
+            this->selecting = false;
+        }
+        this->delete_slot();
+    }
+    break;
     default:
         GraphViewer::mouseReleaseEvent(event);
     }
@@ -261,10 +278,11 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
         }
         event->accept();
         break;
+    case GraphTool::delete_tool:
     case GraphTool::move_tool:
         if(this->selecting)
             selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(event->pos())));
-        GraphViewer::mouseMoveEvent(event);
+        event->accept();
         break;
     default:
         GraphViewer::mouseMoveEvent(event);
@@ -296,7 +314,7 @@ std::optional<uint64_t> GraphEditorView::create_new_node(QPointF position)
 }
 
 
-std::optional<uint64_t> GraphEditorView::_create_new_G_node(const QString& name, QString type, QPointF position)
+std::optional<uint64_t> GraphEditorView::_create_new_G_node(const QString& name, const QString& type, QPointF position)
 {
     DSR::Node node;
     node.type(type.toStdString());
@@ -328,7 +346,7 @@ bool GraphEditorView::create_new_edge(uint64_t from, uint64_t to) {
     if(not ok or results.empty())
         return false;
 
-    this->_create_new_G_edge(results[0], from, to);
+    return this->_create_new_G_edge(results[0], from, to);
 }
 
 
@@ -436,22 +454,44 @@ bool GraphEditorView::create_new_connected_node(QPointF position, uint64_t node_
         return false;
 
 }
-void GraphEditorView::enableMoveMode(bool action)
+void GraphEditorView::enableMoveMode()
 {
     this->current_tool = GraphTool::move_tool;
     selection_box->setRect(0,0,0,0);
     this->scene.removeItem(selection_box);
 }
 
-void GraphEditorView::enableEditMode(bool action)
+void GraphEditorView::enableEditMode()
 {
     this->current_tool = GraphTool::edit_tool;
 }
 
+void GraphEditorView::enableDeleteMode()
+{
+    this->current_tool = GraphTool::delete_tool;
+    delete_shortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Delete), this);
+    connect(delete_shortcut, SIGNAL(activated()), this, SLOT(delete_slot()));
+
+    safe_delete_shortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    connect(safe_delete_shortcut, SIGNAL(activated()), this, SLOT(safe_delete_slot()));
+
+
+    setCursor(QCursor(material::pixmap("eraser", QSize(32,32)), 0, 0));
+}
+
+void GraphEditorView::safe_delete_slot(){
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::warning(this, QString("Deleting %1 elements").arg(this->scene.selectedItems().count()), QString("Are you sure that you want to delete %1 elements?").arg(this->scene.selectedItems().count()),
+            QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        delete_slot();
+    }
+}
+
 void GraphEditorView::delete_slot()
 {
-    qDebug()<<"To remove "<<selected_items.count();
-    for(auto item : selected_items) {
+    qDebug()<<"To remove "<<this->scene.selectedItems().count();
+    for(auto item : this->scene.selectedItems()) {
         auto node = dynamic_cast<GraphNode*>(item);
         if(node!=nullptr)
         {
