@@ -31,6 +31,7 @@ SET ( SOURCES
     GraphEditorView.h
     GraphEditorView.cpp
     GraphNewElementDialog.h
+    GraphNewAttributeDialog.h
     QAttributeBrowser.cpp
     QAttributeBrowser.h
     3rd_party/QtMaterialDesignIcons/sources/MaterialDesignIcons.cpp
@@ -50,15 +51,11 @@ find_package(dsr_api)
 find_package(dsr_core)
 find_package(qmat)
 find_package(Qt5 COMPONENTS Svg CONFIG REQUIRED)
-
-# TODO: REMOVE, FOR DEVELOP ONLY
-include_directories("/home/robolab/robocomp/libs/")
-
 INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
 add_definitions(-g  -fmax-errors=1 -std=c++20 )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
 SET(SPECIFIC_LIBS
-Robocomp::dsr_gui Robocomp::dsr_api Robocomp::dsr_core qmat
+dsr_gui dsr_api dsr_core qmat
 fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen Qt5::Svg )
 
 # SET(SPECIFIC_INCLUDES_DIR

@@ -79,79 +79,15 @@ void SpecificWorker::initialize(int period)
     else {
         // If not
         // Ask if want to create new file or try to load from the network
-        // Crreate new tempfile
+        // Create new tempfile
         if (this->new_graph_file.open()) {
             // file.fileName() returns the unique file name
             QTextStream outStream(&this->new_graph_file);
             outStream << "{}";
             G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, this->new_graph_file.fileName().toStdString());
         }
-
-
         // Create empty json file in path
     }
-
-
-    rt = G->get_rt_api();
-    // Graph viewer
-    //	graph_viewer = std::make_unique<DSR::GraphViewer>(G);
-
-    //initialize node combobox
-    auto map = G->getCopy();
-	for(const auto &[k, node] : map)
-    {
-        QVariant data;
-        data.setValue(node);
-	    this->node_cb->addItem(QString::fromStdString(node.name()), data);
-        node_combo_names[node.id()] = QString::fromStdString(node.name());
-        //edges
-        for(const auto &[key, edge] : node.fano())
-        {
-            QVariant edge_data;
-            edge_data.setValue(edge);
-            QString from = QString::fromStdString(G->get_node(edge.from()).value().name());
-            QString to = QString::fromStdString(G->get_node(edge.to()).value().name());
-            QString name = from + "_" + to + "_" + QString::fromStdString(edge.type());
-            this->edge_cb->addItem(name, edge_data);
-            edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
-        }
-    }
-
-    node_attrib_tw->setColumnCount(2);
-    edge_attrib_tw->setColumnCount(2);
-    QStringList horzHeaders;
-    horzHeaders <<"Attribute"<< "Value";
-    node_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
-    node_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    node_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-    node_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-    edge_attrib_tw->setHorizontalHeaderLabels( horzHeaders );
-    edge_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
-    edge_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-//    connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_node_slot(int)));
-//    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_clicked()));
-//    connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
-//    connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
-//    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_slot()));
-//    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_slot()));
-//    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
-//    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
-//    connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_slot()));
-//    connect(new_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(new_edge_attrib_slot()));
-//    connect(del_node_attrib_pb, SIGNAL(clicked()), this, SLOT(del_node_attrib_slot()));
-//    connect(del_edge_attrib_pb, SIGNAL(clicked()), this, SLOT(del_edge_attrib_slot()));
-
-    //G signals
-//    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::G_add_or_assign_node_slot);
-//    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::G_add_or_assign_edge_slot);
-//    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::G_del_edge_slot);
-//    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::G_del_node_slot);
-	
-	// create graph
-    std::cout << __FUNCTION__ << "Graph loaded" << std::endl;
 
     // Graph viewer
     using opts = DSR::DSRViewer::view;
@@ -181,53 +117,4 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 
-}
-
-
-void SpecificWorker::G_add_or_assign_node_slot(const std::uint64_t id, const std::string &type) {
-//    Node node = G->get_node(id).value();
-//    QVariant data;
-//    data.setValue(node);
-//    int pos = this->node_cb->findText(QString::fromStdString(node.name()));
-//    if (pos == -1) { //insert item
-//        this->node_cb->addItem(QString::fromStdString(node.name()), data);
-//        node_combo_names[node.id()] = QString::fromStdString(node.name());
-//    }
-//    else //update item
-//        this->node_cb->setItemData(pos, data);
-}
-void SpecificWorker::G_add_or_assign_edge_slot(const std::uint64_t from, const std::uint64_t to, const std::string& type){
-//    Edge edge = G->get_edge(from, to, type).value();
-//    QVariant edge_data;
-//    edge_data.setValue(edge);
-//    QString from_s = QString::fromStdString(G->get_node(edge.from()).value().name());
-//    QString to_s = QString::fromStdString(G->get_node(edge.to()).value().name());
-//    QString name = from_s + "_" + to_s + "_" + QString::fromStdString(type);
-//
-//    int pos = this->edge_cb->findText(name);
-//    if (pos == -1) { //insert item
-//        this->edge_cb->addItem(name, edge_data);
-//        edge_combo_names[std::to_string(edge.from())+"_"+std::to_string(edge.to())+"_"+edge.type()] = name;
-//    }
-//    else //update item
-//        this->edge_cb->setItemData(pos, edge_data);
-
-}
-void SpecificWorker::G_del_node_slot(const std::uint64_t id){
-//    QString combo_name = node_combo_names[id];
-//    qDebug()<<"G_del_node"<<id<<combo_name;
-//    int pos = this->node_cb->findText(combo_name);
-//    if (pos != -1) {
-//        this->node_cb->removeItem(pos);
-//        node_combo_names.erase(id);
-//    }
-}
-void SpecificWorker::G_del_edge_slot(const std::uint64_t from, const std::uint64_t to, const std::string &type){
-//    QString combo_name = edge_combo_names[std::to_string(from)+"_"+std::to_string(to)+"_"+type];
-//    int pos = this->edge_cb->findText(combo_name);
-//    if (pos != -1)
-//    {
-//        this->edge_cb->removeItem(pos);
-//        edge_combo_names.erase(std::to_string(from)+"_"+std::to_string(to)+"_"+type);
-//    }
 }

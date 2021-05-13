@@ -32,14 +32,14 @@ QAttributeBrowser::QAttributeBrowser(const std::shared_ptr<DSR::DSRGraph>& G, QW
     edge_attrib_tw->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     edge_attrib_tw->verticalHeader()->setDefaultSectionSize(40);
     edge_attrib_tw->setSelectionBehavior(QAbstractItemView::SelectRows);
-
+    new_node_attrib_pb->setEnabled(false);
     connect(node_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(node_combobox_changed(int)));
     connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(edge_combobox_changed(int)));
-//    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_slot()));
+    connect(save_node_pb, SIGNAL(clicked()), this, SLOT(save_node_clicked()));
+    connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_clicked()));
 //    connect(edge_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(change_edge_slot(int)));
-//    connect(save_edge_pb, SIGNAL(clicked()), this, SLOT(save_edge_slot()));
-    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_clicked()));
-    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_clicked()));
+//    connect(del_node_pb, SIGNAL(clicked()), this, SLOT(delete_node_clicked()));
+//    connect(del_edge_pb, SIGNAL(clicked()), this, SLOT(delete_edge_clicked()));
 //    connect(new_node_pb, SIGNAL(clicked()), this, SLOT(new_node_slot()));
 //    connect(new_edge_pb, SIGNAL(clicked()), this, SLOT(new_edge_slot()));
     connect(new_node_attrib_pb, SIGNAL(clicked()), this, SLOT(new_node_attrib_clicked()));
@@ -50,6 +50,8 @@ QAttributeBrowser::QAttributeBrowser(const std::shared_ptr<DSR::DSRGraph>& G, QW
             this, &QAttributeBrowser::add_node_to_combobox);
     connect(G.get(), &DSR::DSRGraph::del_node_signal,
             this, &QAttributeBrowser::G_node_deleted);
+    connect(G.get(), &DSR::DSRGraph::update_edge_signal,
+            this, &QAttributeBrowser::update_edge_slot);
     connect(G.get(), &DSR::DSRGraph::del_edge_signal,
             this, &QAttributeBrowser::G_edge_deleted);
 //    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &QAttributeBrowser::update_node_combobox);
@@ -74,7 +76,7 @@ void QAttributeBrowser::node_combobox_changed(uint64_t id)
     qDebug() << __FUNCTION__;
     auto node_opt = G->get_node(id);
     auto combo_str = this->node_combo_names[id];
-    this->node_cb->setCurrentText(combo_str);
+    node_attrib_tw->setRowCount(0);
     if (node_opt.has_value()) {
         DSR::Node node = node_opt.value();
         this->node_combobox_changed(node);
@@ -177,11 +179,19 @@ void QAttributeBrowser::update_node_combobox(uint64_t node_id)
         int index = this->node_cb->findText(node_combo_name);
         if ( index != -1 ) { // -1 for not found
             QVariant data;
-            data.setValue(G->get_node(node_id).value());
+            DSR::Node the_node = G->get_node(node_id).value();
+            data.setValue(the_node);
             this->node_cb->setItemData(index, data);
             this->node_cb->setCurrentIndex(index);
+            node_combobox_changed(index);
         }
     }
+
+    if(this->node_cb->count()>0)
+        this->new_node_attrib_pb->setEnabled(true);
+    else
+        this->new_node_attrib_pb->setEnabled(false);
+
 }
 void QAttributeBrowser::add_node_to_combobox(uint64_t node_id)
 {
@@ -194,9 +204,16 @@ void QAttributeBrowser::add_node_to_combobox(uint64_t node_id)
             auto node_name = QString::fromStdString(node.name());
             this->node_combo_names[node_id] = node_name;
             node_cb->addItem(node_name, data);
+            node_combobox_changed(0);
             update_edge_combobox(0);
         }
     }
+}
+
+
+void QAttributeBrowser::update_edge_slot(uint64_t from, uint64_t to,  const std::string &type)
+{
+    update_node_combobox(from);
 }
 
 void QAttributeBrowser::update_edge_combobox(int node_cb_index=-1)
@@ -204,7 +221,6 @@ void QAttributeBrowser::update_edge_combobox(int node_cb_index=-1)
     DSR::Node node;
     if(node_cb_index!=-1) {
          node = qvariant_cast<DSR::Node>(this->node_cb->itemData(node_cb_index));
-
     }
     else {
         node = qvariant_cast<DSR::Node>(this->node_cb->currentData());
@@ -224,7 +240,12 @@ void QAttributeBrowser::update_edge_combobox(DSR::Node node)
         QString to = QString::fromStdString(G->get_node(edge.to()).value().name());
         QString name = from+"_"+to+"_"+QString::fromStdString(edge.type());
         this->edge_cb->addItem(name, edge_data);
+        edge_combobox_changed(0);
     }
+    if(edge_cb->count()>0)
+        edges_groupbox->setChecked(true);
+    else
+        edges_groupbox->setChecked(false);
 }
 
 std::map<std::string, DSR::Attribute> QAttributeBrowser::get_table_content(QTableWidget *table_widget, std::map<std::string, DSR::Attribute> attrs)
@@ -232,34 +253,34 @@ std::map<std::string, DSR::Attribute> QAttributeBrowser::get_table_content(QTabl
     for (int row=0; row < table_widget->rowCount(); row++)
     {
         std::string key = table_widget->item(row, 0)->text().toStdString();
-        switch(attrs[key].selected())
+        switch(attrs.at(key).selected())
         {
-        case 0:
+        case Types::STRING:
         {
             auto *ledit = (QLineEdit*)table_widget->cellWidget(row, 1);
             attrs[key].str(ledit->text().toStdString());
         }
             break;
-        case 1:
-        case 6:
+        case Types::INT:
+        case Types::UINT:
         {
             auto *spin = (QSpinBox*)table_widget->cellWidget(row, 1);
             attrs[key].dec(spin->value());
         }
             break;
-        case 2:
+        case Types::FLOAT:
         {
             auto *spin = (QDoubleSpinBox*)table_widget->cellWidget(row, 1);
             attrs[key].fl(spin->value());
         }
             break;
-        case 4:
+        case Types::BOOL:
         {
             auto *combo = (QComboBox*)table_widget->cellWidget(row, 1);
             attrs[key].bl(combo->currentText().contains("true"));
         }
             break;
-        case 3:
+        case Types::FLOAT_VEC:
         {
             qDebug()<<__LINE__;
             std::vector<float> r;
@@ -309,160 +330,71 @@ void QAttributeBrowser::save_edge_clicked()
 
 }
 
-void QAttributeBrowser::delete_edge_clicked()
-{
-    auto edge = edge_cb->itemData(edge_cb->currentIndex()).value<DSR::Edge>();
-    if (not G->delete_edge(edge.from(), edge.to(), edge.type()))
-        qDebug()<<"Edge ("<<edge.from()<<"=>"<<edge.to()<<") could not be deleted";
-}
-
-void QAttributeBrowser::delete_node_clicked()
-{
-    auto node = node_cb->itemData(node_cb->currentIndex()).value<DSR::Node>();
-    if( not  G->delete_node(node.id()))
-        qDebug()<<"Node"<<QString::fromStdString(node.name())<<"could not be deleted";
-}
 
 
-void QAttributeBrowser::new_node_clicked()
+
+template<class Ta>
+void QAttributeBrowser::new_attrib_clicked()
 {
-    //get node type
     bool ok;
-    QStringList items;
-    items << tr("plane") << tr("transform") << tr("mesh") << tr("person")<< tr("omnirobot")<< tr("rgbd");
-    QString node_type = QInputDialog::getItem(this, tr("New node"), tr("Attrib name:"), items, 0, false, &ok);
-    if(not ok or node_type.isEmpty())
+    QStringList results = GraphNewAttributeDialog::getAttribute(this, ok);
+    QString attrib_name = results[0];
+    QString attrib_type = results[1];
+
+    if(not ok or attrib_name.isEmpty() or attrib_type.isEmpty())
         return;
 
-    DSR::Node node;
-    node.type(node_type.toStdString());
-    G->add_or_modify_attrib_local<pos_x_att>(node, 100.0f);
-    G->add_or_modify_attrib_local<pos_y_att>(node, 130.0f);
-    G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
-    try
+    Ta element;
+    QComboBox* combo;
+    QTableWidget* table;
+    if constexpr(std::is_same_v<Ta, DSR::Node>)
     {
-        G->insert_node(node);
+        combo = node_cb;
+        table = node_attrib_tw;
     }
-    catch(const std::exception& e)
+    else
     {
-        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+        combo = edge_cb;
+        table = edge_attrib_tw;
     }
+    element = combo->itemData(combo->currentIndex()).value<Ta>();
+    if(attrib_type == "int")
+        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),0);
+    else if(attrib_type == "float")
+        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),0.0f);
+    else if(attrib_type == "bool")
+        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),false);
+    else if(attrib_type == "string")
+        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),std::string(""));
+    else if(attrib_type == "vector") {
+        std::vector<float> zeros{0.f,0.f,0.f};
+        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(), zeros);
+    }
+    else {
+        QMessageBox msgBox;
+        msgBox.setText("Could not create specific attribute \""+attrib_name+"\"");
+        msgBox.setInformativeText("Widget not found for type \""+attrib_type+"\"");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+    }
+
+    fill_table(table, element.attrs());
+    // Updates information in the local edge
+    QVariant data;
+    data.setValue(element);
+    combo->setItemData(combo->currentIndex(),data);
+}
+
+
+void QAttributeBrowser::new_edge_attrib_clicked()
+{
+    new_attrib_clicked<DSR::Edge>();
 }
 
 void QAttributeBrowser::new_node_attrib_clicked()
 {
-    bool ok1, ok2;
-    QString attrib_name = QInputDialog::getText(this, tr("New node attrib"),
-            tr("Attrib name:"), QLineEdit::Normal,
-            "name", &ok1);
-    QStringList items;
-    items << tr("int") << tr("float") << tr("string") << tr("bool");
-    QString attrib_type = QInputDialog::getItem(this, tr("New node attrib"), tr("Attrib type:"), items, 0, false, &ok2);
-
-    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty())
-        return;
-
-    auto node = node_cb->itemData(node_cb->currentIndex()).value<DSR::Node>();
-    if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
-    else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
-    else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
-    else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
-
-    fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
-}
-
-void QAttributeBrowser::new_edge_clicked() {
-    bool ok1, ok2, ok3;
-    int from = QInputDialog::getInt(this, tr("New edge"), "From  node id:", 0, 1, 50000, 1, &ok1);
-    int to = QInputDialog::getInt(this, tr("New edge"), "To  node id:", 0, 1, 50000, 1, &ok2);
-    QStringList items;
-    items << tr("RT") << tr("interacting");
-    QString edge_type = QInputDialog::getItem(this, tr("New edge"), tr("Edge type:"), items, 0, false, &ok3);
-
-    if (not ok1 or not ok2 or not ok3 or edge_type.isEmpty())
-        return;
-
-    std::optional<DSR::Node> from_node = G->get_node(from);
-    std::optional<DSR::Node> to_node = G->get_node(to);
-    if (from_node.has_value() and to_node.has_value()) {
-        if(edge_type == "RT")
-        {
-            try {
-                std::vector<float> trans{0.f, 0.f, 0.f};
-                std::vector<float> rot{0, 0.f, 0};
-//                rt->insert_or_assign_edge_RT(from_node.value(), to, trans, rot);
-            }
-            catch (const std::exception &e) {
-                std::cout << __FUNCTION__ << e.what() << std::endl;
-            }
-        }
-        else if(edge_type == "interacting")
-        {
-            DSR::Edge edge;
-            edge.type(edge_type.toStdString());
-            //get two ids
-            edge.from(from);
-            edge.to(to);
-            if(not G->insert_or_assign_edge(edge))
-                std::cout<<"Error inserting new edge: "<<from<<"->"<<to<<" type: "<<edge_type.toStdString()<<std::endl;
-        }
-    }
-    else{
-        qDebug()<<"Selected node from or to does not exist";
-    }
-}
-void QAttributeBrowser::new_edge_attrib_clicked()
-{
-    bool ok1, ok2;
-    QString attrib_name = QInputDialog::getText(this, tr("New edge attrib"),
-            tr("Attrib name:"), QLineEdit::Normal,
-            "name", &ok1);
-    QStringList items;
-    items << tr("int") << tr("float") << tr("string") << tr("bool") <<tr("vector");
-    QString attrib_type = QInputDialog::getItem(this, tr("New edge attrib"), tr("Attrib type:"), items, 0, false, &ok2);
-
-    if(not ok1 or not ok2 or attrib_name.isEmpty() or attrib_type.isEmpty() or edge_cb->count()<=0)
-        return;
-
-    auto edge = edge_cb->itemData(edge_cb->currentIndex()).value<DSR::Edge>();
-    if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
-    else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
-    else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
-    else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
-    else if(attrib_type == "vector") {
-        std::vector<float> zeros{0.f,0.f,0.f};
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
-    }
-    fill_table(edge_attrib_tw, edge.attrs());
-}
-void QAttributeBrowser::del_node_attrib_clicked() {
-    auto node = node_cb->itemData(node_cb->currentIndex()).value<DSR::Node>();
-    std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
-    if(G->remove_attrib_by_name(node, attrib_name))
-    {
-        fill_table(node_attrib_tw, node.attrs());
-    }
-    else
-        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
-}
-
-void QAttributeBrowser::del_edge_attrib_clicked() {
-    auto edge = node_cb->itemData(edge_cb->currentIndex()).value<DSR::Edge>();
-    std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
-    if(G->remove_attrib_by_name(edge, attrib_name))
-    {
-        fill_table(edge_attrib_tw, edge.attrs());
-    }
-    else
-        qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
+    new_attrib_clicked<DSR::Node>();
 }
 
 void QAttributeBrowser::G_node_deleted(uint64_t node_id)
@@ -485,6 +417,7 @@ void QAttributeBrowser::G_edge_deleted(const std::uint64_t from, const std::uint
         edge_combo_names.erase(std::to_string(from)+"_"+std::to_string(to)+"_"+type);
     }
 }
+
 
 
 
