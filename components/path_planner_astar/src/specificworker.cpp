@@ -379,6 +379,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 void SpecificWorker::del_node_slot(std::uint64_t from)
 {
     qInfo() << __FUNCTION__ << "Node " << from << " deleted";
+    qInfo() << __FUNCTION__ << " Waiting for a new goal";
 }
 
 ///////////////////////////////////////////////////

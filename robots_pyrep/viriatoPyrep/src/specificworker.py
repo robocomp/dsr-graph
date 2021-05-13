@@ -86,6 +86,7 @@ class SpecificWorker(GenericWorker):
         self.ViriatoBase_DistAxes = 380.
         self.ViriatoBase_AxesLength = 422.
         self.ViriatoBase_Rotation_Factor = 8.1  # it should be (DistAxes + AxesLength) / 2
+        self.bState_ant = RoboCompGenericBase.TBaseState()
 
         self.cameras = {}
         # cam = VisionSensor("wall_camera_1")
@@ -288,36 +289,41 @@ class SpecificWorker(GenericWorker):
                                                      rotV=ang_vel[2],
                                                      isMoving=isMoving)
 
-        try:
-            self.omnirobotpub_proxy.pushBaseState(self.bState)
+        try:        # parameters are adjusted for Coppelia sensibility
+            if not np.allclose([self.bState.x, self.bState.z], [self.bState_ant.x, self.bState_ant.z], rtol=1e-01, atol=1) \
+            or not np.isclose(self.bState.alpha, self.bState_ant.alpha, rtol=1e-03, atol=1e-02):
+                self.omnirobotpub_proxy.pushBaseState(self.bState)
+                self.bState_ant = self.bState
+                print("now")
+
         except Ice.Exception as e:
             print(e)
 
-        self.tm.add_transform("world", "robot", pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz
-                                                                    ([0.0, 0.0, pose[2] - np.pi]),
-                                                                    [pose[0] * 1000.0, pose[1] * 1000.0, 0.0]
-                                                                    ))
-
-        t = self.tm.get_transform("origin", "robot")
-        angles = pyrot.extrinsic_euler_xyz_from_active_matrix(t[0:3, 0:3])
-
-        self.robot_full_pose_write.x = t[0][3]
-        self.robot_full_pose_write.y = t[1][3]
-        self.robot_full_pose_write.z = t[2][3]
-        self.robot_full_pose_write.rx = angles[0]
-        self.robot_full_pose_write.ry = angles[1]
-        self.robot_full_pose_write.rz = angles[2]
-        self.robot_full_pose_write.vx = linear_vel[0] * 1000.0
-        self.robot_full_pose_write.vy = linear_vel[1] * 1000.0
-        self.robot_full_pose_write.vz = linear_vel[2] * 1000.0
-        self.robot_full_pose_write.vrx = ang_vel[0]
-        self.robot_full_pose_write.vry = ang_vel[1]
-        self.robot_full_pose_write.vrz = ang_vel[2]
-
-        # swap
-        self.mutex_pose.acquire()
-        self.robot_full_pose_write, self.robot_full_pose_read = self.robot_full_pose_read, self.robot_full_pose_write
-        self.mutex_pose.release()
+        # self.tm.add_transform("world", "robot", pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz
+        #                                                             ([0.0, 0.0, pose[2] - np.pi]),
+        #                                                             [pose[0] * 1000.0, pose[1] * 1000.0, 0.0]
+        #                                                             ))
+        #
+        # t = self.tm.get_transform("origin", "robot")
+        # angles = pyrot.extrinsic_euler_xyz_from_active_matrix(t[0:3, 0:3])
+        #
+        # self.robot_full_pose_write.x = t[0][3]
+        # self.robot_full_pose_write.y = t[1][3]
+        # self.robot_full_pose_write.z = t[2][3]
+        # self.robot_full_pose_write.rx = angles[0]
+        # self.robot_full_pose_write.ry = angles[1]
+        # self.robot_full_pose_write.rz = angles[2]
+        # self.robot_full_pose_write.vx = linear_vel[0] * 1000.0
+        # self.robot_full_pose_write.vy = linear_vel[1] * 1000.0
+        # self.robot_full_pose_write.vz = linear_vel[2] * 1000.0
+        # self.robot_full_pose_write.vrx = ang_vel[0]
+        # self.robot_full_pose_write.vry = ang_vel[1]
+        # self.robot_full_pose_write.vrz = ang_vel[2]
+        #
+        # # swap
+        # self.mutex_pose.acquire()
+        # self.robot_full_pose_write, self.robot_full_pose_read = self.robot_full_pose_read, self.robot_full_pose_write
+        # self.mutex_pose.release()
 
     ###########################################
     ### ROBOT POSE get and publish robot position

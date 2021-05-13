@@ -197,7 +197,6 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     auto world_node = G->get_node(world_name);
     auto [real_objects, synth_objects] = lists_after_match;
 
-
     //for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     for (auto&& b_real : real_objects)
     {
@@ -247,7 +246,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         }
     }
     // remove marked objects
-    // real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
+    //real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
+    //synth_objects.clear();
     return std::make_tuple(real_objects, synth_objects);
 }
 
@@ -255,7 +255,27 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::delete_unseen_objects(const std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
 {
     auto [real_objects, synth_objects] = lists_after_add;
-    return std::make_tuple(real_objects, synth_objects);
+    for (auto&& b_real : real_objects)
+    {
+        if (not b_real.marked_for_delete and not b_real.match)   // objects in G not corroborated
+        {
+            if (auto object_node = G->get_node(b_real.name); object_node.has_value())
+            {
+                if (auto unseen_time = G->get_attrib_by_name<time_unseen_att>(object_node); unseen_time.has_value())
+                {
+                    if (unseen_time.value() > MAX_ALLOWED_UNSEEN_TIME)
+                    {
+                        G->delete_node(object_node->name());
+                    }
+                    else  //update unseen time
+                    {
+                        G->add_or_modify_attrib_local<time_unseen_att>(object_node.value(), );
+                        G->update_node(object_node.value());
+                    }
+                }
+            }
+        }
+    }
 }
 std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph()
 {

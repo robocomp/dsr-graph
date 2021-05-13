@@ -108,7 +108,7 @@ void SpecificWorker::initialize(int period)
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
-        timer.start(100);
+        timer.start(80);
     }
 }
 void SpecificWorker::compute()
@@ -178,27 +178,62 @@ void SpecificWorker::update_laser()
 }
 void SpecificWorker::update_omirobot()
 {
-    static RoboCompGenericBase::TBaseState last_state;
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
     {
+        qInfo() << "now";
         const auto bState = bState_o.value();
-        auto robot = G->get_node(robot_name);
-        if (not robot.has_value())
-            qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
-        auto parent = G->get_parent_node(robot.value());
-        if (not parent.has_value())
-            qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
-//        if( are_different(std::vector<float>{bState.x, bState.z, bState.alpha},
-//                          std::vector<float>{last_state.x, last_state.z, last_state.alpha},
-//                          std::vector<float>{1, 1, 0.1}))
+        if(auto robot = G->get_node(robot_name); robot.has_value())
         {
-            auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
-            G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
-            G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x,  bState.z, 0.0});
-            G->modify_attrib_local<robot_local_linear_velocity_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
-            G->modify_attrib_local<robot_local_angular_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
-            G->insert_or_assign_edge(edge);
-            last_state = bState;
+            if (auto parent = G->get_parent_node(robot.value()); parent.has_value())
+            {
+                auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
+                G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0, bState.alpha});
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{bState.x, bState.z, 0.0});
+                G->modify_attrib_local<robot_local_linear_velocity_att>(edge, std::vector<float>{bState.advVx, 0, bState.advVz});
+                G->modify_attrib_local<robot_local_angular_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
+                G->insert_or_assign_edge(edge);
+                update_room_occupancy(bState.x, bState.z);
+            } else
+                qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
+        }
+        else
+            qWarning() << __FUNCTION__ << " No robot node found " << QString::fromStdString(robot_name);
+    }
+}
+void SpecificWorker::update_room_occupancy(float robot_x, float robot_y)
+{
+    auto rooms = G->get_nodes_by_type(room_type_name);
+    auto robot = G->get_node(robot_name).value();
+    for( const auto &room : rooms)
+    {
+        auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room);
+        auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room);
+        if (polygon_x.has_value() and polygon_y.has_value())
+        {
+            bool existing_edge = false;
+            QPolygonF pol;
+            for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get())) pol << QPointF(px, py);
+            if(pol.containsPoint(QPointF(robot_x, robot_y), Qt::OddEvenFill))
+            {   // robot inside room. check edge exists and delete existing ones pointing to other rooms
+                if( auto room_edges = G->get_node_edges_by_type(robot, "in"); not room_edges.empty())
+                {  // if there is at least one edge IN going out from robot
+                    for(const auto &r_edge : room_edges)
+                        if(r_edge.to() != room.id())   // if edge does not go to current room delete
+                            G->delete_edge(r_edge.from(), r_edge.to(), "in");
+                        else existing_edge = true;
+                }
+                // create
+                if(not existing_edge)
+                {
+                    DSR::Edge new_room_edge = DSR::Edge::create<in_edge_type>(G->get_node(robot_name).value().id(), room.id());
+                    if (G->insert_or_assign_edge(new_room_edge))
+                        std::cout << __FUNCTION__ << " Edge \"in_type\" inserted in G" << std::endl;
+                    else
+                        std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(robot_name).value().id() << "->"
+                                  << room.id()
+                                  << " type: is_in" << std::endl;
+                }
+            }
         }
     }
 }
@@ -315,7 +350,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 // Check de values are within robot's accepted range. Read them from config
                 //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
                 //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-                std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
+                //std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
                 try
                 { omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value()); }
                 catch (const RoboCompGenericBase::HardwareFailedException &re)
@@ -344,42 +379,46 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 
 void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
 {
-    if (type == RT_edge_type_str and to == G->get_node(robot_name).value().id())
-    {
-        auto edge = G->get_edge(from, to, "RT");
-        const auto x_values_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
-        auto rooms = G->get_nodes_by_type(room_type_name);
-        for( const auto &r : rooms)
-        {
-            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(r);
-            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(r);
-            if (polygon_x.has_value() and polygon_y.has_value())
-            {
-                QPolygonF pol;
-                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
-                    pol << QPointF(px, py);
-                if(pol.containsPoint(QPointF(x_values_o.value().get()[0], x_values_o.value().get()[1]), Qt::WindingFill))
-                {
-                    // modificar o crear arco entre robot y r
-                    if( auto room_edges = G->get_node_edges_by_type(G->get_node(robot_name).value(), "in"); not room_edges.empty())
-                    {  //
-                        for(const auto &r_edge : room_edges)
-                            if(r_edge.to() == r.id()) return;
-                            else G->delete_edge(r_edge.from(), r_edge.to(), "in");
-                    }
-
-                    // crear
-                    DSR::Edge new_room_edge = DSR::Edge::create<in_edge_type>(G->get_node(robot_name).value().id(), r.id());
-                    if (G->insert_or_assign_edge(new_room_edge))
-                        std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
-                    else
-                        std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(robot_name).value().id() << "->" << r.id()
-                                  << " type: is_in" << std::endl;
-
-                }
-            }
-        }
-    }
+//    if (type == RT_edge_type_str and to == G->get_node(robot_name).value().id())
+//    {
+//        auto edge = G->get_edge(from, to, "RT");
+//        const auto x_values_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
+//        auto rooms = G->get_nodes_by_type(room_type_name);
+//        auto robot = G->get_node(robot_name).value();
+//        for( const auto &room : rooms)
+//        {
+//            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room);
+//            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room);
+//            if (polygon_x.has_value() and polygon_y.has_value())
+//            {
+//                bool existing_edge = false;
+//                QPolygonF pol;
+//                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+//                    pol << QPointF(px, py);
+//                if(pol.containsPoint(QPointF(x_values_o.value().get()[0], x_values_o.value().get()[1]), Qt::OddEvenFill))
+//                {   // robot inside room. check edge exists and delete existing ones pointing to other rooms
+//                    if( auto room_edges = G->get_node_edges_by_type(robot, "in"); not room_edges.empty())
+//                    {  // if there is at least one edge IN going out from robot
+//                        for(const auto &r_edge : room_edges)
+//                            if(r_edge.to() != room.id())   // if edge does not go to current room delete
+//                                G->delete_edge(r_edge.from(), r_edge.to(), "in");
+//                            else existing_edge = true;
+//                    }
+//                    // create
+//                    if(not existing_edge)
+//                    {
+//                        DSR::Edge new_room_edge = DSR::Edge::create<in_edge_type>(G->get_node(robot_name).value().id(), room.id());
+//                        if (G->insert_or_assign_edge(new_room_edge))
+//                            std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
+//                        else
+//                            std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(robot_name).value().id() << "->"
+//                                      << room.id()
+//                                      << " type: is_in" << std::endl;
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 ///////////////////////////////////////////////////////////////////
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
@@ -416,6 +455,7 @@ void SpecificWorker::LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData)
 //SUBSCRIPTION to pushBaseState method from OmniRobotPub interface
 void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state)
 {
+    qInfo() << "now_o";
 	omnirobot_buffer.put(RoboCompGenericBase::TBaseState{state});
 }
 

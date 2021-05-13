@@ -107,6 +107,7 @@ private:
     void check_base_dummy();
 
 	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
+    void update_room_occupancy(float robot_x, float robot_y);
 
     void check_new_nose_referece_for_pan_tilt();
 
