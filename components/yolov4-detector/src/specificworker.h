@@ -107,6 +107,10 @@ class SpecificWorker : public GenericWorker
         };
         using Boxes = std::vector<Box>;
 
+        // KNOWN OBJECTS
+
+       std::map<std::string, std::vector<int>> known_object_types;
+
         // NODE NAMES
         std::string object_of_interest = "no_object";
         const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";

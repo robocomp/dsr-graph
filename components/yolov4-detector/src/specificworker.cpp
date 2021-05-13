@@ -165,7 +165,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
     for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
         //std::cout << __FUNCTION__ << " trying match between " << b_synth.name << " and " << b_real.name << std::endl;
-        if (b_synth.name.find(b_real.name, 0) == 0 or b_synth.name.find("glass", 0) == 0)
+        if (b_synth.name.find(b_real.name, 0) == 0) // or b_synth.name.find("glass", 0) == 0)
         {
 //            std::cout << __FUNCTION__ << " potential match " << std::endl;
 //            std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
@@ -184,10 +184,10 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
         }
     }
     // remove matched elements
-    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),
-                          [](Box const &p) { return p.match == true; }), real_objects.end());
-    synth_objects.erase(std::remove_if(synth_objects.begin(),synth_objects.end(),
-                                      [](Box const &p) { return p.match == true; }), synth_objects.end());
+    // real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),
+    //                       [](Box const &p) { return p.match == true; }), real_objects.end());
+    // synth_objects.erase(std::remove_if(synth_objects.begin(),synth_objects.end(),
+    //                                   [](Box const &p) { return p.match == true; }), synth_objects.end());
 
     return(std::make_tuple(real_objects, synth_objects));
 }
@@ -197,19 +197,14 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     auto world_node = G->get_node(world_name);
     auto [real_objects, synth_objects] = lists_after_match;
 
-    // PROTO SEMANTIC MEMORY. Standard size of objects in object's reference frame.
-    //          looking from the robot: center at roi center. x+ to the right, y+ upwards, z+ away from robot
-    static const std::map<std::string, std::vector<int>> known_object_types{{"glass",     {100, 100, 200}},
-                                                                            {"cup",       {100, 100, 200}},
-                                                                            {"microwave", {300, 250, 350}},
-                                                                            {"plant",     {350, 350, 600}}};
 
-    for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
+    //for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
+    for (auto&& b_real : real_objects)
     {
         for(const auto &[known_object, size] : known_object_types)
         {
             DSR::Node object_node;
-            if (b_real.name.find(known_object, 0) == 0)     // type name must be equal or part of YOLO yolo_names.
+            if (b_real.name.find(known_object, 0) == 0 and not b_real.match)     // type name must be equal or part of YOLO yolo_names.
             {
                 if(known_object == "glass")
                     object_node = DSR::Node::create<glass_node_type>(b_real.name);
@@ -219,6 +214,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                     object_node = DSR::Node::create<plant_node_type>(b_real.name);
                 else if (known_object == "microwave")
                     object_node = DSR::Node::create<microwave_node_type>(b_real.name);
+
+                qInfo()<<"known object";
 
                 // decide here who is going to be the parent
                 auto parent_node = G->get_node(world_name);
@@ -234,6 +231,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                 if (std::optional<int> id = G->insert_node(object_node); id.has_value())
                 {
                     std::cout << __FUNCTION__ << "object id " << object_node.id() << endl;
+                    std::cout << __FUNCTION__ << "T " << b_real.Tx <<" "<< b_real.Ty << " " << b_real.Tz << endl;
                     DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
                     G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
                     G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
@@ -249,7 +247,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         }
     }
     // remove marked objects
-    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
+    // real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
     return std::make_tuple(real_objects, synth_objects);
 }
 
@@ -300,6 +298,15 @@ Detector* SpecificWorker::init_detector()
     for(std::string line; getline(file, line);) yolo_names.push_back(line);
     // initialize YOLOv4 detector
     Detector* detector = new Detector(cfg_file, weights_file);
+
+    // PROTO SEMANTIC MEMORY. Standard size of objects in object's reference frame.
+    //          looking from the robot: center at roi center. x+ to the right, y+ upwards, z+ away from robot
+    
+    known_object_types.insert( std::pair<std::string, std::vector<int>> ("glass",     {80, 100, 80}));
+    known_object_types.insert( std::pair<std::string, std::vector<int>> ("cup",       {80, 100, 80}));
+    known_object_types.insert( std::pair<std::string, std::vector<int>> ("microwave", {300, 250, 350}));
+    known_object_types.insert( std::pair<std::string, std::vector<int>> ("plant",     {350, 350, 600}));
+
     return detector;
 }
 std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img, const std::vector<float> &depth_array)
@@ -309,6 +316,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, 0.2, false);
     // process detected bounding boxes
     std::vector<Box> bboxes; bboxes.reserve(detections.size());
+    int width = cam_api->get_width();
+    int height = cam_api->get_height();
+
     for(const auto &d : detections)
     {
         Box box;
@@ -322,23 +332,26 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         if (box.right > yolo_img.w/2 - 1) box.right = yolo_img.w/2 - 1;
         if (box.top < -yolo_img.h/2) box.top = -yolo_img.h/2;
         if (box.bot > yolo_img.h/2 - 1) box.bot = yolo_img.h/2 - 1;
+        box.left = (box.left*width)/YOLO_IMG_SIZE;
+        box.right = (box.right*width)/YOLO_IMG_SIZE;
+        box.top = (box.top*height)/YOLO_IMG_SIZE;
+        box.bot = (box.bot*height)/YOLO_IMG_SIZE;
         box.prob = d.prob*100;
         box.visible = true;
         box.match = false;
-        int wDepth = cam_api->get_width();
-        int hDepth = cam_api->get_height();
-        int BDleft = box.left+wDepth/2;
+        int BDleft = box.left+width/2;
         if (BDleft<0) BDleft = 0;
-        int BDright = box.right+wDepth/2;
-        if (BDright>=wDepth) BDright = wDepth-1;
-        int BDtop = box.top+hDepth/2;
+        int BDright = box.right+width/2;
+        if (BDright>=width) BDright = width-1;
+        int BDtop = box.top+height/2;
         if (BDtop<0) BDtop = 0;
-        int BDbot = box.bot+hDepth/2;
-        if (BDbot>=hDepth) BDbot = hDepth-1;
+        int BDbot = box.bot+height/2;
+        if (BDbot>=height) BDbot = height-1;
 
-
+        qInfo()<<BDleft<<BDright<<BDtop<<BDbot;
         auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(BDleft, BDbot),
                                                                                   Eigen::Vector2f(BDright, BDtop)));
+        
         if (tp.has_value())
         {
             auto[x, y, z] = tp.value();
@@ -356,7 +369,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
             }
         }
     }
-    //qInfo() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
+    // qInfo() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
     ynets[0]->free_image(yolo_img);
     return bboxes;
 }
@@ -423,9 +436,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_graph_with_yolosynth(co
 bool SpecificWorker::both_boxes_match(Box &real_box, Box &synth_box)
 {
     //A rectangle with the real object is created
-    QRect r(QPoint(real_box.top, real_box.left), QSize(real_box.width(), real_box.height()));
+    QRect r(QPoint(real_box.left, real_box.top), QSize(real_box.width(), real_box.height()));
     //A rectangle with the sythetic object is created
-    QRect rs(QPoint(synth_box.top, synth_box.left), QSize(synth_box.width(), synth_box.height()));
+    QRect rs(QPoint(synth_box.left, synth_box.top), QSize(synth_box.width(), synth_box.height()));
     //Compute intersection percentage between synthetic and real
     QRect i = rs.intersected(r);
     //The area is normalized between 0 and 1 dividing by the minimum between both areas of each object
@@ -567,9 +580,17 @@ void SpecificWorker::update_base_slider()
 void SpecificWorker::compute_visible_objects()
 {
     std::vector<Box> synth_box;
-    auto object_nodes = G->get_nodes_by_type(glass_type_name);
-    auto cup_nodes = G->get_nodes_by_type(cup_type_name);
-    object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
+
+    std::vector<DSR::Node> object_nodes;
+    for(const auto &[known_object, size] : known_object_types)
+    {
+        auto new_nodes = G->get_nodes_by_type(known_object); 
+        object_nodes.insert(object_nodes.end(), new_nodes.begin(), new_nodes.end());
+    }
+
+    // auto object_nodes = G->get_nodes_by_type(glass_type_name);
+    // auto cup_nodes = G->get_nodes_by_type(cup_type_name);
+    // object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
 
     // computer room's delimting polygon that contains the robot
     auto robot_node = G->get_node(robot_name);
@@ -588,27 +609,36 @@ void SpecificWorker::compute_visible_objects()
 
     // project object
     auto c = YOLO_IMG_SIZE/2;
+    int width = cam_api->get_width();
+    int height = cam_api->get_height();
     for(auto &object : object_nodes)
     {
         const std::string &object_name = object.name();
 
+        auto w_attr = G->get_attrib_by_name<obj_width_att>(object);
+        float w = w_attr.value();
+        auto h_attr = G->get_attrib_by_name<obj_height_att>(object);
+        float h = h_attr.value();
+        auto d_attr = G->get_attrib_by_name<obj_depth_att>(object);
+        float d = d_attr.value();
+
         // check if object is in the same room as the robot
         auto object_pos = inner_eigen->transform(world_name, object_name);
-        if(not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::WindingFill))
-                continue;
+        // if(not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::WindingFill))
+        //         continue;
 
         // project corners of object's bounding box in the camera image plane
         // get object's bounding box from object's node
         std::vector<Mat::Vector2d> bb_in_camera(8);
-        const float h = 150;
-        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(40,40,0), object_name).value(),0,0);
-        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40,0), object_name).value(),0,0);
-        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40,-40,0), object_name).value(),0,0);
-        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,-40,0), object_name).value(),0,0);
-        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, 40, h), object_name).value(),0,0);
-        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40,40, h), object_name).value(),0,0);
-        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(40, -40, h), object_name).value(),0,0);
-        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-40, -40,h), object_name).value(),0,0);
+        //const float h = 150;
+        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(w/2,d/2,0), object_name).value(),0,0);
+        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w/2,d/2,0), object_name).value(),0,0);
+        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w/2,-d/2,0), object_name).value(),0,0);
+        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w/2,-d/2,0), object_name).value(),0,0);
+        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w/2, d/2, h), object_name).value(),0,0);
+        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w/2,d/2, h), object_name).value(),0,0);
+        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w/2, -d/2, h), object_name).value(),0,0);
+        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w/2, -d/2,h), object_name).value(),0,0);
 
         // Compute a 2D projected bounding box
         auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -629,8 +659,26 @@ void SpecificWorker::compute_visible_objects()
         box.name = object_name;
         box.match = false;
 
+        auto bL = box.left;
+        if(box.left<-width/2) bL = -width/2;
+        if(box.left>width/2) bL = width/2;
+        auto bR = box.right;
+        if(box.right<-width/2) bR = -width/2;
+        if(box.right>width/2) bR = width/2;
+        auto bT = box.top;
+        if(box.top<-height/2) bT = -height/2;
+        if(box.top>height/2) bT = height/2;
+        auto bB = box.bot;
+        if(box.bot<-height/2) bB = -height/2;
+        if(box.bot>height/2) bB = height/2;
+
+        float areaV = (bR - bL) * (bB - bT);
+        float areaR = (box.right - box.left) * (box.bot - box.top);
+
+
         // check if is inside the image
-        if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
+        //if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
+        if(areaV / areaR > 0.5)
         {
             box.visible = true;
             if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
@@ -691,17 +739,20 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
 void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes)
 {
     // display RGB image with detections
+    int width = cam_api->get_width();
+    int height = cam_api->get_height();
+
     for(const auto &box : real_boxes)
     {
         if(box.prob > 40)
         {
-            auto left = box.left+YOLO_IMG_SIZE/2;
-            auto right = box.right+YOLO_IMG_SIZE/2;
-            auto top = box.top+YOLO_IMG_SIZE/2;
-            auto bot = box.bot+YOLO_IMG_SIZE/2;
-            auto p1 = cv::Point(left, top);
-            auto p2 = cv::Point(right, bot);
-            auto offset = int((bot - top) / 2);
+            auto left = box.left+width/2;
+            auto right = box.right+width/2;
+            auto top = box.top+height/2;
+            auto bot = box.bot+height/2;
+            auto p1 = cv::Point((left*YOLO_IMG_SIZE)/width, (top*YOLO_IMG_SIZE)/height);
+            auto p2 = cv::Point((right*YOLO_IMG_SIZE)/width, (bot*YOLO_IMG_SIZE)/height);
+            auto offset = int((((bot - top)*YOLO_IMG_SIZE)/height) / 2);
             auto pt = cv::Point(left + offset, top + offset);
             cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
             auto font = cv::FONT_HERSHEY_SIMPLEX;
@@ -710,13 +761,14 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     }
     for(const auto &box : synth_boxes)
     {
-        auto left = box.left+YOLO_IMG_SIZE/2;
-        auto right = box.right+YOLO_IMG_SIZE/2;
-        auto top = box.top+YOLO_IMG_SIZE/2;
-        auto bot = box.bot+YOLO_IMG_SIZE/2;
-        auto p1 = cv::Point(left, top);
-        auto p2 = cv::Point(right, bot);
-        auto offset = int((bot - top) / 2);
+
+        auto left = box.left+width/2;
+        auto right = box.right+width/2;
+        auto top = box.top+height/2;
+        auto bot = box.bot+height/2;
+        auto p1 = cv::Point((left*YOLO_IMG_SIZE)/width, (top*YOLO_IMG_SIZE)/height);
+        auto p2 = cv::Point((right*YOLO_IMG_SIZE)/width, (bot*YOLO_IMG_SIZE)/height);
+        auto offset = int((((bot - top)*YOLO_IMG_SIZE)/height) / 2);
         auto pt = cv::Point(left + offset, top + offset);
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;

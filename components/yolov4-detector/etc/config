@@ -15,7 +15,7 @@ graph_view = true
 # YOLOv4 configuration
 cfg_file = /home/robocomp/software/darknet/cfg/yolov4.cfg
 weight_file = /home/robocomp/software/darknet/yolov4.weights
-names_file = /home/robocomp/software/darknet/data/coco.yolo_names
+names_file = /home/robocomp/software/darknet/data/coco.names
 
 
 # Ice configuration
