@@ -503,6 +503,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                      const auto &[angles, dists] = in;
                                      laser_cart.reserve(angles.size());
                                      auto robot = widget_2d->get_robot_polygon();
+                                     auto inner = G->get_inner_eigen_api();
                                      for (const auto &[angle, dist] : iter::zip(angles, dists))
                                      {
                                          //convert laser polar coordinates to cartesian
@@ -510,11 +511,11 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                          float x = dist * sin(angle);
                                          float y = dist * cos(angle);
                                          // QPointF p = robot->mapToScene(x, y);
-                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name, Mat::Vector3d(x, y, 0), robot_name).value();
+                                         Mat::Vector3d laserWorld = inner->transform(world_name, Mat::Vector3d(x, y, 0), robot_name).value();
                                          laser_poly << QPointF(x, y);
                                          QPointF p = robot->mapToScene(x, y);
-                                         //laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
-                                         laser_cart.emplace_back(QPointF(p.x(), p.y()));
+                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+                                         //laser_cart.emplace_back(QPointF(p.x(), p.y()));
                                      }
                                      out = std::make_tuple(laser_poly, laser_cart);
                                  });

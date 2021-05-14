@@ -42,7 +42,8 @@ const std::string room_type_name = "room";
 const std::string person_type_name = "person";
 
 // EDGES TYPES
-const std::string think_type = "thinks";
-const std::string has_type = "has";
+const std::string think_type_name = "thinks";
+const std::string has_type_name = "has";
+const std::string in_type_name = "in";
 
 #endif

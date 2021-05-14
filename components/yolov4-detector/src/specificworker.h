@@ -102,6 +102,7 @@ class SpecificWorker : public GenericWorker
                 std::cout << "\t centre: " << cx() << " " << cy() << std::endl;
                 std::cout << "\t match error: " << match_error << std::endl;
                 std::cout << "\t area: " << area << std::endl;
+                std::cout << "\t marked_for_delete: " << marked_for_delete << std::endl;
                 std::cout << "---------------------" << std::endl;
             };
         };
@@ -190,8 +191,8 @@ class SpecificWorker : public GenericWorker
         void compute_visible_objects();
         std::vector<Box> get_visible_objects_from_graph();
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
-        std::tuple<Boxes, Boxes> add_new_objects(const std::tuple<Boxes, Boxes> &lists_after_match);
-        std::tuple<Boxes, Boxes> delete_unseen_objects(const std::tuple<Boxes, Boxes> &lists_after_add);
+        std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match);
+        std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
 
 
     // Tracker

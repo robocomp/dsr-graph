@@ -290,7 +290,7 @@ class SpecificWorker(GenericWorker):
                                                      isMoving=isMoving)
 
         try:        # parameters are adjusted for Coppelia sensibility
-            if not np.allclose([self.bState.x, self.bState.z], [self.bState_ant.x, self.bState_ant.z], rtol=1e-01, atol=1) \
+            if not np.allclose([self.bState.x, self.bState.z], [self.bState_ant.x, self.bState_ant.z], rtol=1e-03, atol=1) \
             or not np.isclose(self.bState.alpha, self.bState_ant.alpha, rtol=1e-03, atol=1e-02):
                 self.omnirobotpub_proxy.pushBaseState(self.bState)
                 self.bState_ant = self.bState

@@ -108,6 +108,15 @@ void SpecificWorker::initialize(int period)
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
+        // initialize room occupancy
+        try
+        {
+            RoboCompGenericBase::TBaseState bState;
+            omnirobot_proxy->getBaseState(bState);
+            update_room_occupancy(bState.x, bState.z);
+        }
+        catch(const Ice::Exception &e)
+        { std::cout << e.what() << std::endl; std::cout << " No connection to get robot state. Aborting " << std::endl; std::terminate();}
         timer.start(80);
     }
 }
@@ -329,8 +338,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                     qInfo() << __FUNCTION__ << " Dummy hand pose: " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
                     try
                     {
-                        coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::Hand, arm_tip_target,
-                                                              dummy_pose);
+                        coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::Hand, arm_tip_target, dummy_pose);
                     }
                     catch (const Ice::Exception &e)
                     { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
