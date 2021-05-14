@@ -236,7 +236,8 @@ class SpecificWorker(GenericWorker):
         for name, handle in self.people.items():
             pos = handle.get_position()
             rot = handle.get_orientation()
-            person = RoboCompHumanToDSRPub.Person(len(people), -pos[1] * 1000, pos[2] * 1000, pos[0] * 1000, -rot[2],
+            person = RoboCompHumanToDSRPub.Person(len(people), pos[0] * 1000, pos[1] * 1000, pos[2] * 1000,
+                                                  pi - rot[2] - pi/2,
                                                   {})
             people.append(person)
         try:

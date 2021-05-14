@@ -1,5 +1,5 @@
 # Endpoints for subscriptions interfaces
-HumanToDSRTopic.Endpoints=tcp -p 0
+HumanToDSRPubTopic.Endpoints=tcp -p 0
 
 
 
