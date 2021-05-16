@@ -632,7 +632,7 @@ void SpecificWorker::compute_visible_objects()
 
         // check if is inside the image
         //if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
-        if(areaV / areaR > CONSTANTS.percentage_of_visible_area_to_be_visible / 100.f)
+        if(areaV / areaR > CONSTANTS.percentage_of_visible_area_to_be_visible / 100.f) // ratio between clamped area and projected area
         {
             box.visible = true;
             if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
