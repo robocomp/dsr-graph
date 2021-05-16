@@ -161,9 +161,9 @@ Detector* SpecificWorker::init_detector()
     known_object_types.insert( {"glass",        {80, 100, 80}});
     known_object_types.insert( {"cup",          {80, 100, 80}});
     known_object_types.insert( {"microwave",    {450, 250, 350}});
-    known_object_types.insert( {"pottedplant",  {350, 350, 600}});
-    known_object_types.insert( {"person",       {350, 350, 1600}});
-    known_object_types.insert( {"vase",         {350, 350, 350}});
+    known_object_types.insert( {"plant",        {500, 900, 500}});
+    known_object_types.insert( {"person",       {350, 1700, 350}});
+    known_object_types.insert( {"vase",         {300, 300, 350}});
     known_object_types.insert( {"oven",         {400, 100, 400}});
     known_object_types.insert( {"refrigerator", {600, 1600, 600}});
 
@@ -240,7 +240,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         for(const auto &[known_object, size] : known_object_types)
         {
             DSR::Node object_node;
-            if (b_real.name.find(known_object, 0) == 0 /*and not b_real.match*/)     // YOLO name must contain one of the known types.
+            if (b_real.name.find(known_object, 0) != string::npos)     // YOLO name must contain one of the known types.
             {
                 // before actually creating the object, it has to be seen a minimun number of times at the same place
                 if(real_object_is_stable(b_real))  // insert
@@ -277,6 +277,9 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                     G->add_or_modify_attrib_local<obj_width_att>(object_node, size[0]);
                     G->add_or_modify_attrib_local<obj_height_att>(object_node, size[1]);
                     G->add_or_modify_attrib_local<obj_depth_att>(object_node, size[2]);
+                    const auto &[random_x, random_y] = get_random_position_to_draw_in_graph("object");
+                    G->add_or_modify_attrib_local<pos_x_att>(object_node, random_x);
+                    G->add_or_modify_attrib_local<pos_y_att>(object_node, random_y);
 
                     if (std::optional<int> id = G->insert_node(object_node); id.has_value())
                     {
@@ -336,6 +339,24 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     return lists_after_add;
 }
 ////////////////////////////////////////////////////////////////////////
+std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(const std::string &type)
+{
+    static std::random_device rd;
+    static std::mt19937 mt(rd());
+
+    float low_x_limit = -600, low_y_limit = -600, upper_x_limit = 600, upper_y_limit = 600;
+    if(type == "object")
+    {
+        low_x_limit = -300;
+        upper_x_limit = 0;
+        low_y_limit = 0;
+        upper_y_limit = 300;
+    }
+    std::uniform_real_distribution<double> dist_x(low_x_limit, upper_x_limit);
+    std::uniform_real_distribution<double> dist_y(low_y_limit, upper_y_limit);
+
+    return std::make_tuple(dist_x(mt), dist_y(mt));
+}
 bool SpecificWorker::real_object_is_stable(Box box)     // a copy
 {
     static std::vector<Box> candidates;
@@ -529,18 +550,12 @@ void SpecificWorker::move_base(DSR::Node &robot)
 void SpecificWorker::compute_visible_objects()
 {
     std::vector<Box> synth_box;
-
     std::vector<DSR::Node> object_nodes;
     for(const auto &[known_object, size] : known_object_types)
     {
         auto new_nodes = G->get_nodes_by_type(known_object); 
         object_nodes.insert(object_nodes.end(), new_nodes.begin(), new_nodes.end());
     }
-
-    // auto object_nodes = G->get_nodes_by_type(glass_type_name);
-    // auto cup_nodes = G->get_nodes_by_type(cup_type_name);
-    // object_nodes.insert(object_nodes.end(), cup_nodes.begin(), cup_nodes.end());
-
     // computer room's delimting polygon that contains the robot
     auto robot_node = G->get_node(robot_name);
     QPolygonF room_polygon;
@@ -612,12 +627,12 @@ void SpecificWorker::compute_visible_objects()
         auto bT = std::clamp(box.top, -height/2, height/2);
         auto bB = std::clamp(box.bot, -height/2, height/2);
 
-        float areaV = (bR - bL) * (bB - bT);
-        float areaR = (box.right - box.left) * (box.bot - box.top);
+        float areaV = (bR - bL) * (bB - bT); // clamped area
+        float areaR = (box.right - box.left) * (box.bot - box.top);  // projected area
 
         // check if is inside the image
         //if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
-        if(areaV / areaR > 0.5)
+        if(areaV / areaR > CONSTANTS.percentage_of_visible_area_to_be_visible / 100.f)
         {
             box.visible = true;
             if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())

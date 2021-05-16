@@ -74,6 +74,7 @@ class SpecificWorker : public GenericWorker
             int min_tick_existing_threshold = 5;
             int max_allowed_unseen_ticks = 20;
             int min_time_existing_threshold = 1000;  // milliseconds
+            float percentage_of_visible_area_to_be_visible = 50;
         };
         const CONSTANTS_DATA CONSTANTS;
 
@@ -204,6 +205,7 @@ class SpecificWorker : public GenericWorker
         std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
         std::tuple<float, float, float> estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real);
         bool real_object_is_stable(Box box);
+        std::tuple<float, float> get_random_position_to_draw_in_graph(const std::string &type);
 
 
     // Tracker
