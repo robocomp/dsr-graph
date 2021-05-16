@@ -155,10 +155,10 @@ void SpecificWorker::compute()
                     dist = dist + (path.value()[i] - path.value()[i + 1]).norm();
 
                 qInfo() << path.value().size();
-                qInfo() << "Inicio: " << path.value()[0].x() << "," << path.value()[0].y();
-                qInfo() << "Final: " << path.value()[path.value().size() - 1].x() << ","
+                qInfo() << __FUNCTION__ << "Inicio: " << path.value()[0].x() << "," << path.value()[0].y();
+                qInfo() << __FUNCTION__ << "Final: " << path.value()[path.value().size() - 1].x() << ","
                         << path.value()[path.value().size() - 1].y();
-                qInfo() << "Distancia: " << dist;
+                qInfo() << __FUNCTION__ << "Distancia: " << dist;
                 auto time = dist / vel_media;
             }
             auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
@@ -171,21 +171,22 @@ void SpecificWorker::compute()
                 primera_vez=false;
                 std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
                 auto d=std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-                qInfo() << "Tiempo: " << d << "s";
+                qInfo() << __FUNCTION__ << "Tiempo: " << d << "s";
                 if(custom_widget.checkBox_cyclic->isChecked())  // cycli
                 {
                     std::random_device rd; std::mt19937 mt(rd());
                     std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count()-1);
                     int new_index;
-                    do { new_index = random_index(mt);} while( new_index == last_selected_index);  //avoid repeating rooms
+                    do { new_index = random_index(mt);}
+                    while( new_index == last_selected_index);  //avoid repeating rooms
                     last_selected_index = new_index;
-                    qInfo() << "new index selected" << new_index;
+                    qInfo() << __FUNCTION__ << "new index selected" << new_index;
                     custom_widget.comboBox_select_target->setCurrentIndex(last_selected_index);
                     slot_start_mission();
                 }
             }
             else
-                qInfo() << "Path size: " << path.value().size();
+                qInfo() << __FUNCTION__ << "Path size: " << path.value().size();
         }
     }
     else
@@ -218,9 +219,10 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
         plan_buffer.put(std::move(plan));
     }
 
-    // Check if there is 'intention' node yet in G
+    // Check if there is 'mind' in G
     if(auto mind = G->get_node(robot_mind_name); mind.has_value())
     {
+        // Check if there is 'intention' node yet in G
         if (auto intention = G->get_node(current_intention_name); intention.has_value())
         {
             std::cout << __FUNCTION__ << " Adding plan to intention node " << plan_string << std::endl;
@@ -251,17 +253,17 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
             } else
                 std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
         }
-
-        bool exists = false;
+        // create ACTION edge to destination node (to be used instead of textual Plan)
+        bool exists_edge = false;
         if( auto target_room_edges = G->get_node_edges_by_type(G->get_node(current_intention_name).value(), "goto_action"); not target_room_edges.empty())
         {
             for (const auto &tr_edge : target_room_edges)
                 if (tr_edge.to() == target_node_id)    //  found goto edge to the target room
-                    exists = true;
+                    exists_edge = true;
                 else
                     G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");   // found got edge to other room. Deleted
         }
-        if(not exists)  // not found edge to target room
+        if(not exists_edge)  // not found edge to target room
         {
             // create edge from intention node to the target room node
             DSR::Edge target_room_edge = DSR::Edge::create<goto_action_edge_type>(G->get_node(current_intention_name).value().id(), target_node_id);

@@ -189,7 +189,6 @@ void SpecificWorker::update_omirobot()
 {
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
     {
-        qInfo() << "now";
         const auto bState = bState_o.value();
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
@@ -463,7 +462,6 @@ void SpecificWorker::LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData)
 //SUBSCRIPTION to pushBaseState method from OmniRobotPub interface
 void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state)
 {
-    qInfo() << "now_o";
 	omnirobot_buffer.put(RoboCompGenericBase::TBaseState{state});
 }
 

@@ -67,6 +67,16 @@ class SpecificWorker : public GenericWorker
         void change_object_slot(int);
 
     private:
+        struct CONSTANTS_DATA
+        {
+            float min_yolo_probability_threshold = 50;
+            float times_the_width_of_synth_box = 3;
+            int min_tick_existing_threshold = 5;
+            int max_allowed_unseen_ticks = 20;
+            int min_time_existing_threshold = 1000;  // milliseconds
+        };
+        const CONSTANTS_DATA CONSTANTS;
+
         // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
         struct Box
         {
@@ -80,14 +90,16 @@ class SpecificWorker : public GenericWorker
             bool visible;
             float Tx, Ty, Tz;  // world ref sys
             float Cx, Cy, Cz;  // camera ref sys
-            bool match;
-            float area;
-            float match_error;
+            bool match;        // true if matched to a synth one
+            float area;        // intersected area
+            float match_error; // % of full intersection
             int width() const { return right-left;};
             int height() const { return bot-top;};
             int cx() const { return left + width()/2;};
             int cy() const { return top + height()/2;};
-            bool marked_for_delete = false;
+            bool marked_for_delete = false;  // to be deleted after match or creation
+            int creation_ticks = 0;
+            std::chrono::steady_clock::time_point creation_time;
             void print(const std::string_view &s) const
             {
                 std::cout << "--- " << s << " -----" << std::endl;
@@ -175,10 +187,7 @@ class SpecificWorker : public GenericWorker
         Detector* init_detector();
         std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array);
         image_t createImage(const cv::Mat &src);
-        //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
-        std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
-        //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
         bool both_boxes_match(Box &real_box, Box &synth_box);
         void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
@@ -193,6 +202,8 @@ class SpecificWorker : public GenericWorker
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
         std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match);
         std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
+        std::tuple<float, float, float> estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real);
+        bool real_object_is_stable(Box box);
 
 
     // Tracker
