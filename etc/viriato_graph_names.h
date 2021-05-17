@@ -45,5 +45,7 @@ const std::string person_type_name = "person";
 const std::string think_type_name = "thinks";
 const std::string has_type_name = "has";
 const std::string in_type_name = "in";
+const std::string attention_action_type_name = "attention_action";
+const std::string goto_action_type_name = "goto_action";
 
 #endif

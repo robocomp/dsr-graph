@@ -64,16 +64,17 @@ class SpecificWorker : public GenericWorker
         int startup_check();
         void initialize(int period);
         void start_button_slot(bool);
-        void change_object_slot(int);
+        void change_attention_object_slot(int);
 
-    private:
+
+private:
         struct CONSTANTS_DATA
         {
             float min_yolo_probability_threshold = 50;
             float times_the_width_of_synth_box = 3;
-            int min_tick_existing_threshold = 5;
+            int min_ticks_to_add_object_threshold = 7;
             int max_allowed_unseen_ticks = 20;
-            int min_time_existing_threshold = 1000;  // milliseconds
+            int min_time_to_add_object_threshold = 2000;  // milliseconds
             float percentage_of_visible_area_to_be_visible = 50;
         };
         const CONSTANTS_DATA CONSTANTS;
@@ -190,14 +191,7 @@ class SpecificWorker : public GenericWorker
         image_t createImage(const cv::Mat &src);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         bool both_boxes_match(Box &real_box, Box &synth_box);
-        void track_object_of_interest(DSR::Node &robot);
-        void set_nose_target_to_default();
-        void change_to_new_target();
-        void add_edge(const std::tuple<float,float,float> &tp);
         void remove_edge();
-        void update_base_slider();
-        void move_base(DSR::Node &robot);
-        void stop_robot();
         void compute_visible_objects();
         std::vector<Box> get_visible_objects_from_graph();
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
@@ -207,15 +201,15 @@ class SpecificWorker : public GenericWorker
         bool real_object_is_stable(Box box);
         std::tuple<float, float> get_random_position_to_draw_in_graph(const std::string &type);
 
-
-    // Tracker
-        enum class TState {IDLE, TRACKING, CHANGING };
-        TState tracking_state = TState::IDLE;
-
         // objects
         bool time_to_change = true;
         bool tracking = false;
         RandomSelector<> random_selector{};
+
+        // attention
+        void initialize_combobox();
+        std::uint64_t last_object_of_attention;
+
 };
 
 #endif
