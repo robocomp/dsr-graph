@@ -1,16 +1,16 @@
-CommonBehavior.Endpoints=tcp -p 15000
+CommonBehavior.Endpoints=tcp -p 15002
 
 # Proxies for required interfaces
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 
 # Agent configuration
-agent_id = 19 # Change id
-agent_name = yolov4_tracker
+agent_id = 21 # Change id
+agent_name = pan_tilt_attention_control
 tree_view = false
 graph_view = true
-2d_view = false
-3d_view = true
+2d_view = true
+3d_view = false
 
 # YOLOv4 configuration
 cfg_file = /home/robocomp/software/darknet/cfg/yolov4.cfg

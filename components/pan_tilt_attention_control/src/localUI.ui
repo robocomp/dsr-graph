@@ -51,45 +51,6 @@
         </spacer>
        </item>
        <item>
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="minimumSize">
-          <size>
-           <width>512</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>-100</number>
-         </property>
-         <property name="maximum">
-          <number>100</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLCDNumber" name="pan">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <family>Ubuntu Condensed</family>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -125,13 +86,6 @@
             </property>
             <property name="checked">
              <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox">
-            <property name="currentText">
-             <string/>
             </property>
            </widget>
           </item>

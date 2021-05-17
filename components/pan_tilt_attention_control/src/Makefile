@@ -67,10 +67,10 @@ RM = /snap/clion/151/bin/cmake/linux/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker
+CMAKE_SOURCE_DIR = /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker
+CMAKE_BINARY_DIR = /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -121,17 +121,6 @@ list_install_components/fast: list_install_components
 
 .PHONY : list_install_components/fast
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/snap/clion/151/bin/cmake/linux/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -143,16 +132,27 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/snap/clion/151/bin/cmake/linux/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # The main all target
 all: cmake_check_build_system
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(CMAKE_COMMAND) -E cmake_progress_start /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker/CMakeFiles /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker/src//CMakeFiles/progress.marks
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker/CMakeFiles 0
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(CMAKE_COMMAND) -E cmake_progress_start /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control/CMakeFiles /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control/src//CMakeFiles/progress.marks
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -162,63 +162,63 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
-src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/rule:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/rule
-.PHONY : src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/rule
+src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/rule:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/rule
+.PHONY : src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/rule
 
 # Convenience name for target.
-ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src: src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/rule
+ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src: src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/rule
 
-.PHONY : ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src
+.PHONY : ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src
 
 # fast build rule for target.
-ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src/fast:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/build.make src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src.dir/build
-.PHONY : ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src/fast
+ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src/fast:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/build.make src/CMakeFiles/ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src.dir/build
+.PHONY : ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src/fast
 
 # Convenience name for target.
-src/CMakeFiles/yolov4_tracker.dir/rule:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/yolov4_tracker.dir/rule
-.PHONY : src/CMakeFiles/yolov4_tracker.dir/rule
+src/CMakeFiles/pan_tilt_attention_control.dir/rule:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/pan_tilt_attention_control.dir/rule
+.PHONY : src/CMakeFiles/pan_tilt_attention_control.dir/rule
 
 # Convenience name for target.
-yolov4_tracker: src/CMakeFiles/yolov4_tracker.dir/rule
+pan_tilt_attention_control: src/CMakeFiles/pan_tilt_attention_control.dir/rule
 
-.PHONY : yolov4_tracker
+.PHONY : pan_tilt_attention_control
 
 # fast build rule for target.
-yolov4_tracker/fast:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/build
-.PHONY : yolov4_tracker/fast
+pan_tilt_attention_control/fast:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/build
+.PHONY : pan_tilt_attention_control/fast
 
 # Convenience name for target.
-src/CMakeFiles/yolov4_tracker_autogen.dir/rule:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/yolov4_tracker_autogen.dir/rule
-.PHONY : src/CMakeFiles/yolov4_tracker_autogen.dir/rule
+src/CMakeFiles/pan_tilt_attention_control_autogen.dir/rule:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/pan_tilt_attention_control_autogen.dir/rule
+.PHONY : src/CMakeFiles/pan_tilt_attention_control_autogen.dir/rule
 
 # Convenience name for target.
-yolov4_tracker_autogen: src/CMakeFiles/yolov4_tracker_autogen.dir/rule
+pan_tilt_attention_control_autogen: src/CMakeFiles/pan_tilt_attention_control_autogen.dir/rule
 
-.PHONY : yolov4_tracker_autogen
+.PHONY : pan_tilt_attention_control_autogen
 
 # fast build rule for target.
-yolov4_tracker_autogen/fast:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker_autogen.dir/build.make src/CMakeFiles/yolov4_tracker_autogen.dir/build
-.PHONY : yolov4_tracker_autogen/fast
+pan_tilt_attention_control_autogen/fast:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control_autogen.dir/build.make src/CMakeFiles/pan_tilt_attention_control_autogen.dir/build
+.PHONY : pan_tilt_attention_control_autogen/fast
 
 CommonBehavior.o: CommonBehavior.cpp.o
 
@@ -226,7 +226,7 @@ CommonBehavior.o: CommonBehavior.cpp.o
 
 # target to build an object file
 CommonBehavior.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/CommonBehavior.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/CommonBehavior.cpp.o
 .PHONY : CommonBehavior.cpp.o
 
 CommonBehavior.i: CommonBehavior.cpp.i
@@ -235,7 +235,7 @@ CommonBehavior.i: CommonBehavior.cpp.i
 
 # target to preprocess a source file
 CommonBehavior.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/CommonBehavior.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/CommonBehavior.cpp.i
 .PHONY : CommonBehavior.cpp.i
 
 CommonBehavior.s: CommonBehavior.cpp.s
@@ -244,7 +244,7 @@ CommonBehavior.s: CommonBehavior.cpp.s
 
 # target to generate assembly for a file
 CommonBehavior.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/CommonBehavior.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/CommonBehavior.cpp.s
 .PHONY : CommonBehavior.cpp.s
 
 commonbehaviorI.o: commonbehaviorI.cpp.o
@@ -253,7 +253,7 @@ commonbehaviorI.o: commonbehaviorI.cpp.o
 
 # target to build an object file
 commonbehaviorI.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/commonbehaviorI.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/commonbehaviorI.cpp.o
 .PHONY : commonbehaviorI.cpp.o
 
 commonbehaviorI.i: commonbehaviorI.cpp.i
@@ -262,7 +262,7 @@ commonbehaviorI.i: commonbehaviorI.cpp.i
 
 # target to preprocess a source file
 commonbehaviorI.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/commonbehaviorI.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/commonbehaviorI.cpp.i
 .PHONY : commonbehaviorI.cpp.i
 
 commonbehaviorI.s: commonbehaviorI.cpp.s
@@ -271,7 +271,7 @@ commonbehaviorI.s: commonbehaviorI.cpp.s
 
 # target to generate assembly for a file
 commonbehaviorI.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/commonbehaviorI.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/commonbehaviorI.cpp.s
 .PHONY : commonbehaviorI.cpp.s
 
 genericmonitor.o: genericmonitor.cpp.o
@@ -280,7 +280,7 @@ genericmonitor.o: genericmonitor.cpp.o
 
 # target to build an object file
 genericmonitor.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericmonitor.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericmonitor.cpp.o
 .PHONY : genericmonitor.cpp.o
 
 genericmonitor.i: genericmonitor.cpp.i
@@ -289,7 +289,7 @@ genericmonitor.i: genericmonitor.cpp.i
 
 # target to preprocess a source file
 genericmonitor.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericmonitor.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericmonitor.cpp.i
 .PHONY : genericmonitor.cpp.i
 
 genericmonitor.s: genericmonitor.cpp.s
@@ -298,7 +298,7 @@ genericmonitor.s: genericmonitor.cpp.s
 
 # target to generate assembly for a file
 genericmonitor.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericmonitor.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericmonitor.cpp.s
 .PHONY : genericmonitor.cpp.s
 
 genericworker.o: genericworker.cpp.o
@@ -307,7 +307,7 @@ genericworker.o: genericworker.cpp.o
 
 # target to build an object file
 genericworker.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericworker.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericworker.cpp.o
 .PHONY : genericworker.cpp.o
 
 genericworker.i: genericworker.cpp.i
@@ -316,7 +316,7 @@ genericworker.i: genericworker.cpp.i
 
 # target to preprocess a source file
 genericworker.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericworker.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericworker.cpp.i
 .PHONY : genericworker.cpp.i
 
 genericworker.s: genericworker.cpp.s
@@ -325,8 +325,89 @@ genericworker.s: genericworker.cpp.s
 
 # target to generate assembly for a file
 genericworker.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/genericworker.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/genericworker.cpp.s
 .PHONY : genericworker.cpp.s
+
+home/robocomp/robocomp/classes/qlog/qlog.o: home/robocomp/robocomp/classes/qlog/qlog.cpp.o
+
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.o
+
+# target to build an object file
+home/robocomp/robocomp/classes/qlog/qlog.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/qlog/qlog.cpp.o
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.cpp.o
+
+home/robocomp/robocomp/classes/qlog/qlog.i: home/robocomp/robocomp/classes/qlog/qlog.cpp.i
+
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.i
+
+# target to preprocess a source file
+home/robocomp/robocomp/classes/qlog/qlog.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/qlog/qlog.cpp.i
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.cpp.i
+
+home/robocomp/robocomp/classes/qlog/qlog.s: home/robocomp/robocomp/classes/qlog/qlog.cpp.s
+
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.s
+
+# target to generate assembly for a file
+home/robocomp/robocomp/classes/qlog/qlog.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/qlog/qlog.cpp.s
+.PHONY : home/robocomp/robocomp/classes/qlog/qlog.cpp.s
+
+home/robocomp/robocomp/classes/rapplication/rapplication.o: home/robocomp/robocomp/classes/rapplication/rapplication.cpp.o
+
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.o
+
+# target to build an object file
+home/robocomp/robocomp/classes/rapplication/rapplication.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/rapplication/rapplication.cpp.o
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.cpp.o
+
+home/robocomp/robocomp/classes/rapplication/rapplication.i: home/robocomp/robocomp/classes/rapplication/rapplication.cpp.i
+
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.i
+
+# target to preprocess a source file
+home/robocomp/robocomp/classes/rapplication/rapplication.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/rapplication/rapplication.cpp.i
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.cpp.i
+
+home/robocomp/robocomp/classes/rapplication/rapplication.s: home/robocomp/robocomp/classes/rapplication/rapplication.cpp.s
+
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.s
+
+# target to generate assembly for a file
+home/robocomp/robocomp/classes/rapplication/rapplication.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/rapplication/rapplication.cpp.s
+.PHONY : home/robocomp/robocomp/classes/rapplication/rapplication.cpp.s
+
+home/robocomp/robocomp/classes/sigwatch/sigwatch.o: home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.o
+
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.o
+
+# target to build an object file
+home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.o
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.o
+
+home/robocomp/robocomp/classes/sigwatch/sigwatch.i: home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.i
+
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.i
+
+# target to preprocess a source file
+home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.i
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.i
+
+home/robocomp/robocomp/classes/sigwatch/sigwatch.s: home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.s
+
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.s
+
+# target to generate assembly for a file
+home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.s
+.PHONY : home/robocomp/robocomp/classes/sigwatch/sigwatch.cpp.s
 
 main.o: main.cpp.o
 
@@ -334,7 +415,7 @@ main.o: main.cpp.o
 
 # target to build an object file
 main.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/main.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -343,7 +424,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/main.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -352,89 +433,35 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/main.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-opt/robocomp/classes/qlog/qlog.o: opt/robocomp/classes/qlog/qlog.cpp.o
+pan_tilt_attention_control_autogen/mocs_compilation.o: pan_tilt_attention_control_autogen/mocs_compilation.cpp.o
 
-.PHONY : opt/robocomp/classes/qlog/qlog.o
-
-# target to build an object file
-opt/robocomp/classes/qlog/qlog.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/qlog/qlog.cpp.o
-.PHONY : opt/robocomp/classes/qlog/qlog.cpp.o
-
-opt/robocomp/classes/qlog/qlog.i: opt/robocomp/classes/qlog/qlog.cpp.i
-
-.PHONY : opt/robocomp/classes/qlog/qlog.i
-
-# target to preprocess a source file
-opt/robocomp/classes/qlog/qlog.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/qlog/qlog.cpp.i
-.PHONY : opt/robocomp/classes/qlog/qlog.cpp.i
-
-opt/robocomp/classes/qlog/qlog.s: opt/robocomp/classes/qlog/qlog.cpp.s
-
-.PHONY : opt/robocomp/classes/qlog/qlog.s
-
-# target to generate assembly for a file
-opt/robocomp/classes/qlog/qlog.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/qlog/qlog.cpp.s
-.PHONY : opt/robocomp/classes/qlog/qlog.cpp.s
-
-opt/robocomp/classes/rapplication/rapplication.o: opt/robocomp/classes/rapplication/rapplication.cpp.o
-
-.PHONY : opt/robocomp/classes/rapplication/rapplication.o
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.o
 
 # target to build an object file
-opt/robocomp/classes/rapplication/rapplication.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/rapplication/rapplication.cpp.o
-.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.o
+pan_tilt_attention_control_autogen/mocs_compilation.cpp.o:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/pan_tilt_attention_control_autogen/mocs_compilation.cpp.o
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.cpp.o
 
-opt/robocomp/classes/rapplication/rapplication.i: opt/robocomp/classes/rapplication/rapplication.cpp.i
+pan_tilt_attention_control_autogen/mocs_compilation.i: pan_tilt_attention_control_autogen/mocs_compilation.cpp.i
 
-.PHONY : opt/robocomp/classes/rapplication/rapplication.i
-
-# target to preprocess a source file
-opt/robocomp/classes/rapplication/rapplication.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/rapplication/rapplication.cpp.i
-.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.i
-
-opt/robocomp/classes/rapplication/rapplication.s: opt/robocomp/classes/rapplication/rapplication.cpp.s
-
-.PHONY : opt/robocomp/classes/rapplication/rapplication.s
-
-# target to generate assembly for a file
-opt/robocomp/classes/rapplication/rapplication.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/rapplication/rapplication.cpp.s
-.PHONY : opt/robocomp/classes/rapplication/rapplication.cpp.s
-
-opt/robocomp/classes/sigwatch/sigwatch.o: opt/robocomp/classes/sigwatch/sigwatch.cpp.o
-
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.o
-
-# target to build an object file
-opt/robocomp/classes/sigwatch/sigwatch.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.o
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.o
-
-opt/robocomp/classes/sigwatch/sigwatch.i: opt/robocomp/classes/sigwatch/sigwatch.cpp.i
-
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.i
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.i
 
 # target to preprocess a source file
-opt/robocomp/classes/sigwatch/sigwatch.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.i
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.i
+pan_tilt_attention_control_autogen/mocs_compilation.cpp.i:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/pan_tilt_attention_control_autogen/mocs_compilation.cpp.i
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.cpp.i
 
-opt/robocomp/classes/sigwatch/sigwatch.s: opt/robocomp/classes/sigwatch/sigwatch.cpp.s
+pan_tilt_attention_control_autogen/mocs_compilation.s: pan_tilt_attention_control_autogen/mocs_compilation.cpp.s
 
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.s
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.s
 
 # target to generate assembly for a file
-opt/robocomp/classes/sigwatch/sigwatch.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/opt/robocomp/classes/sigwatch/sigwatch.cpp.s
-.PHONY : opt/robocomp/classes/sigwatch/sigwatch.cpp.s
+pan_tilt_attention_control_autogen/mocs_compilation.cpp.s:
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/pan_tilt_attention_control_autogen/mocs_compilation.cpp.s
+.PHONY : pan_tilt_attention_control_autogen/mocs_compilation.cpp.s
 
 plan.o: plan.cpp.o
 
@@ -442,7 +469,7 @@ plan.o: plan.cpp.o
 
 # target to build an object file
 plan.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/plan.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/plan.cpp.o
 .PHONY : plan.cpp.o
 
 plan.i: plan.cpp.i
@@ -451,7 +478,7 @@ plan.i: plan.cpp.i
 
 # target to preprocess a source file
 plan.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/plan.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/plan.cpp.i
 .PHONY : plan.cpp.i
 
 plan.s: plan.cpp.s
@@ -460,7 +487,7 @@ plan.s: plan.cpp.s
 
 # target to generate assembly for a file
 plan.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/plan.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/plan.cpp.s
 .PHONY : plan.cpp.s
 
 specificmonitor.o: specificmonitor.cpp.o
@@ -469,7 +496,7 @@ specificmonitor.o: specificmonitor.cpp.o
 
 # target to build an object file
 specificmonitor.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificmonitor.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificmonitor.cpp.o
 .PHONY : specificmonitor.cpp.o
 
 specificmonitor.i: specificmonitor.cpp.i
@@ -478,7 +505,7 @@ specificmonitor.i: specificmonitor.cpp.i
 
 # target to preprocess a source file
 specificmonitor.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificmonitor.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificmonitor.cpp.i
 .PHONY : specificmonitor.cpp.i
 
 specificmonitor.s: specificmonitor.cpp.s
@@ -487,7 +514,7 @@ specificmonitor.s: specificmonitor.cpp.s
 
 # target to generate assembly for a file
 specificmonitor.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificmonitor.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificmonitor.cpp.s
 .PHONY : specificmonitor.cpp.s
 
 specificworker.o: specificworker.cpp.o
@@ -496,7 +523,7 @@ specificworker.o: specificworker.cpp.o
 
 # target to build an object file
 specificworker.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificworker.cpp.o
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificworker.cpp.o
 .PHONY : specificworker.cpp.o
 
 specificworker.i: specificworker.cpp.i
@@ -505,7 +532,7 @@ specificworker.i: specificworker.cpp.i
 
 # target to preprocess a source file
 specificworker.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificworker.cpp.i
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificworker.cpp.i
 .PHONY : specificworker.cpp.i
 
 specificworker.s: specificworker.cpp.s
@@ -514,35 +541,8 @@ specificworker.s: specificworker.cpp.s
 
 # target to generate assembly for a file
 specificworker.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/specificworker.cpp.s
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/pan_tilt_attention_control.dir/build.make src/CMakeFiles/pan_tilt_attention_control.dir/specificworker.cpp.s
 .PHONY : specificworker.cpp.s
-
-yolov4_tracker_autogen/mocs_compilation.o: yolov4_tracker_autogen/mocs_compilation.cpp.o
-
-.PHONY : yolov4_tracker_autogen/mocs_compilation.o
-
-# target to build an object file
-yolov4_tracker_autogen/mocs_compilation.cpp.o:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/yolov4_tracker_autogen/mocs_compilation.cpp.o
-.PHONY : yolov4_tracker_autogen/mocs_compilation.cpp.o
-
-yolov4_tracker_autogen/mocs_compilation.i: yolov4_tracker_autogen/mocs_compilation.cpp.i
-
-.PHONY : yolov4_tracker_autogen/mocs_compilation.i
-
-# target to preprocess a source file
-yolov4_tracker_autogen/mocs_compilation.cpp.i:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/yolov4_tracker_autogen/mocs_compilation.cpp.i
-.PHONY : yolov4_tracker_autogen/mocs_compilation.cpp.i
-
-yolov4_tracker_autogen/mocs_compilation.s: yolov4_tracker_autogen/mocs_compilation.cpp.s
-
-.PHONY : yolov4_tracker_autogen/mocs_compilation.s
-
-# target to generate assembly for a file
-yolov4_tracker_autogen/mocs_compilation.cpp.s:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/yolov4_tracker.dir/build.make src/CMakeFiles/yolov4_tracker.dir/yolov4_tracker_autogen/mocs_compilation.cpp.s
-.PHONY : yolov4_tracker_autogen/mocs_compilation.cpp.s
 
 # Help Target
 help:
@@ -556,9 +556,9 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... ICES__home_pbustos_robocomp_components_dsr-graph_components_yolov4-tracker_src"
-	@echo "... yolov4_tracker_autogen"
-	@echo "... yolov4_tracker"
+	@echo "... ICES__home_pbustos_robocomp_components_dsr-graph_components_pan_tilt_attention_control_src"
+	@echo "... pan_tilt_attention_control_autogen"
+	@echo "... pan_tilt_attention_control"
 	@echo "... CommonBehavior.o"
 	@echo "... CommonBehavior.i"
 	@echo "... CommonBehavior.s"
@@ -571,18 +571,21 @@ help:
 	@echo "... genericworker.o"
 	@echo "... genericworker.i"
 	@echo "... genericworker.s"
+	@echo "... home/robocomp/robocomp/classes/qlog/qlog.o"
+	@echo "... home/robocomp/robocomp/classes/qlog/qlog.i"
+	@echo "... home/robocomp/robocomp/classes/qlog/qlog.s"
+	@echo "... home/robocomp/robocomp/classes/rapplication/rapplication.o"
+	@echo "... home/robocomp/robocomp/classes/rapplication/rapplication.i"
+	@echo "... home/robocomp/robocomp/classes/rapplication/rapplication.s"
+	@echo "... home/robocomp/robocomp/classes/sigwatch/sigwatch.o"
+	@echo "... home/robocomp/robocomp/classes/sigwatch/sigwatch.i"
+	@echo "... home/robocomp/robocomp/classes/sigwatch/sigwatch.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... opt/robocomp/classes/qlog/qlog.o"
-	@echo "... opt/robocomp/classes/qlog/qlog.i"
-	@echo "... opt/robocomp/classes/qlog/qlog.s"
-	@echo "... opt/robocomp/classes/rapplication/rapplication.o"
-	@echo "... opt/robocomp/classes/rapplication/rapplication.i"
-	@echo "... opt/robocomp/classes/rapplication/rapplication.s"
-	@echo "... opt/robocomp/classes/sigwatch/sigwatch.o"
-	@echo "... opt/robocomp/classes/sigwatch/sigwatch.i"
-	@echo "... opt/robocomp/classes/sigwatch/sigwatch.s"
+	@echo "... pan_tilt_attention_control_autogen/mocs_compilation.o"
+	@echo "... pan_tilt_attention_control_autogen/mocs_compilation.i"
+	@echo "... pan_tilt_attention_control_autogen/mocs_compilation.s"
 	@echo "... plan.o"
 	@echo "... plan.i"
 	@echo "... plan.s"
@@ -592,9 +595,6 @@ help:
 	@echo "... specificworker.o"
 	@echo "... specificworker.i"
 	@echo "... specificworker.s"
-	@echo "... yolov4_tracker_autogen/mocs_compilation.o"
-	@echo "... yolov4_tracker_autogen/mocs_compilation.i"
-	@echo "... yolov4_tracker_autogen/mocs_compilation.s"
 .PHONY : help
 
 
@@ -606,6 +606,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/pbustos/robocomp/components/dsr-graph/components/yolov4-tracker && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/pbustos/robocomp/components/dsr-graph/components/pan_tilt_attention_control && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

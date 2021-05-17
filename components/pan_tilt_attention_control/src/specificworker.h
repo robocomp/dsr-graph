@@ -39,14 +39,12 @@
 #include <chrono>
 #include <algorithm>
 #include <iterator>
-#include <yolo_v2_class.hpp>
 #include <fps/fps.h>
 #include <doublebuffer/DoubleBuffer.h>
 #include <random/random_selector.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
-
-#define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
+#include <QImage>
 
 using myclock = std::chrono::system_clock;
 using msec = std::chrono::duration<float , std::milli>;
@@ -63,8 +61,6 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void start_button_slot(bool);
-        void change_object_slot(int);
 
     private:
         // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
@@ -116,7 +112,7 @@ class SpecificWorker : public GenericWorker
         QHBoxLayout mainLayout;
         void add_or_assign_node_slot(std::uint64_t, const std::string &type);
         void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
-        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type);
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
         void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
@@ -125,41 +121,15 @@ class SpecificWorker : public GenericWorker
         Custom_widget custom_widget;
 
         // Double buffer
-        //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
         DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
-        DoubleBuffer<std::string, Plan> plan_buffer;
-        std::vector<float> depth_array;
 
         //Plan
         Plan current_plan;
 
-        // YOLOv4 attributes
-        const std::size_t YOLO_INSTANCES = 1;
-        std::vector<Detector*> ynets;
-        std::vector<std::string> names;
-        bool SHOW_IMAGE = false;
-        bool READY_TO_GO = false;
-        FPSCounter fps;
-        bool already_in_default = false;
-
-        // YOLOv4 methods
-        Detector* init_detector();
-        std::vector<Box> process_image_with_yolo(const cv::Mat& img);
-        image_t createImage(const cv::Mat &src);
-        //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
-        void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
-        std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
-        //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
-        void compute_prediction_error(Box &real_box, const Box &synth_box);
         void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
         void change_to_new_target();
-        void add_edge(const std::tuple<float,float,float> &tp);
-        void remove_edge();
-        void update_base_slider();
-        void move_base(DSR::Node &robot);
-        void stop_robot();
 
         // Tracker
         enum class TState {IDLE, TRACKING, CHANGING };
@@ -169,6 +139,11 @@ class SpecificWorker : public GenericWorker
         bool time_to_change = true;
         bool tracking = false;
         RandomSelector<> random_selector{};
+        std::set<std::uint64_t> set_of_objects_to_attend_to;
+
+        // IMAGE
+        void show_image(cv::Mat image);
+
 };
 
 #endif

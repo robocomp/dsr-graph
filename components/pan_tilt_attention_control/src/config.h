@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "yolov4_tracker"
-#define SERVER_FULL_NAME   "RoboComp yolov4_tracker:: yolov4_tracker"
+#define PROGRAM_NAME    "pan_tilt_attention_control"
+#define SERVER_FULL_NAME   "RoboComp pan_tilt_attention_control:: pan_tilt_attention_control"
 
 #endif

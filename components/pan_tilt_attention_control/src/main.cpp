@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::yolov4_tracker
+/** \mainpage RoboComp::pan_tilt_attention_control
  *
  * \section intro_sec Introduction
  *
- * The yolov4_tracker component...
+ * The pan_tilt_attention_control component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd yolov4_tracker
+ * cd pan_tilt_attention_control
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/yolov4_tracker --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/pan_tilt_attention_control --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -85,10 +85,10 @@
 
 
 
-class yolov4_tracker : public RoboComp::Application
+class pan_tilt_attention_control : public RoboComp::Application
 {
 public:
-	yolov4_tracker (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
+	pan_tilt_attention_control (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
@@ -99,14 +99,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::yolov4_tracker::initialize()
+void ::pan_tilt_attention_control::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::yolov4_tracker::run(int argc, char* argv[])
+int ::pan_tilt_attention_control::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	::yolov4_tracker app(prefix, startup_check_flag);
+	::pan_tilt_attention_control app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }

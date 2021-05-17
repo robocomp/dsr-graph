@@ -1,4 +1,4 @@
-Component yolov4_tracker
+Component pan_tilt_attention_control
 {
 	Communications
 	{

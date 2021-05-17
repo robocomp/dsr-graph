@@ -18,7 +18,7 @@
 DOXYFILE_ENCODING      = UTF-8
 
 # ROBOCOMP
-PROJECT_NAME           = yolov4_tracker
+PROJECT_NAME           = pan_tilt_attention_control
 PROJECT_NUMBER         =
 
 
