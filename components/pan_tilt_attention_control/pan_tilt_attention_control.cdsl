@@ -1,0 +1,9 @@
+Component yolov4_tracker
+{
+	Communications
+	{
+	};
+	language Cpp11;
+    gui Qt(QMainWindow);
+	options dsr;
+};
