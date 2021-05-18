@@ -138,9 +138,20 @@ void SpecificWorker::compute()
     if (robot.has_value() and g_image.has_value() and g_depth.has_value())
     {
         show_image(g_image.value());
-        for( const auto &el : set_of_objects_to_attend_to)
-            std::cout << el << std::endl;
-        std::cout << "------------------------" << std::endl;
+        std::cout << "Current target: " << set_of_objects_to_attend_to.front() << std::endl;
+
+        if(auto target = G->get_node(set_of_objects_to_attend_to.front()); target.has_value())
+        {
+            const auto targat = target.value();
+
+            // if pan-til targer dummy far from object position in G
+                // saccade to G position
+            // else
+                // compute reference speed for pan-tilt
+
+            
+        }
+
 
 
 //        if( time_to_change )       // if finished with current object, pick a new object from G -> update
@@ -269,7 +280,7 @@ void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t t
         if(auto cam_node = G->get_node(from); cam_node.has_value() and cam_node.value().id() == cam_api->get_id())
         {
             if( auto object_node = G->get_node(to); object_node.has_value())
-            this->set_of_objects_to_attend_to.insert(object_node.value().id());
+            this->set_of_objects_to_attend_to.push_back(object_node.value().id());
         }
     }
 }

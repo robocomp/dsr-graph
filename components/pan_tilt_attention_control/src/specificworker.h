@@ -139,7 +139,7 @@ class SpecificWorker : public GenericWorker
         bool time_to_change = true;
         bool tracking = false;
         RandomSelector<> random_selector{};
-        std::set<std::uint64_t> set_of_objects_to_attend_to;
+        std::deque<std::uint64_t> set_of_objects_to_attend_to;
 
         // IMAGE
         void show_image(cv::Mat image);
