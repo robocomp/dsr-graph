@@ -63,7 +63,7 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void start_button_slot(bool);
+        void clear_button_slot();
         void change_attention_object_slot(int);
 
 
@@ -125,16 +125,6 @@ private:
         // KNOWN OBJECTS
 
        std::map<std::string, std::vector<int>> known_object_types;
-
-        // NODE NAMES
-        std::string object_of_interest = "no_object";
-        const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
-        const std::string camera_name = "viriato_head_camera_sensor";
-        const std::string world_node = "world";
-
-        // ATTRIBUTE NAMES
-        const std::string nose_target = "viriato_pan_tilt_nose_target";
-        const std::vector<float> nose_default_pose{0,500,0};
 
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
@@ -209,6 +199,7 @@ private:
         // attention
         void initialize_combobox();
         std::uint64_t last_object_of_attention;
+        void clear_all_attention_edges();
 
 };
 

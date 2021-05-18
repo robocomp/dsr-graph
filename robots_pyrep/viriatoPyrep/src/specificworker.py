@@ -579,7 +579,9 @@ class SpecificWorker(GenericWorker):
             if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
                 parent_frame_object = Dummy("viriato_head_camera_pan_tilt")
             #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
-            dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.], parent_frame_object)
+
+            # we change here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            dummy.set_position([pose.y / 1000., pose.x / 1000., -pose.z / 1000.], parent_frame_object)
             dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
 
         #

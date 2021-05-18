@@ -75,11 +75,9 @@ void SpecificWorker::initialize(int period)
         //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
         // Set pan-tilt target to nose
-        if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+        if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
         {
-            // camera coordinate system
-            //const auto nose = inner_eigen->transform(world_name, Mat::Vector3d(0,1000,0),viriato_head_camera_pan_tilt).value();
-            Eigen::Vector3f nose(1000, 0, 0);  // cam ref system is rotated
+            Eigen::Vector3f nose(0, 1000, 0);
             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(),
                                                                                  std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()),
                                                                                                     static_cast<float>(nose.z())});
@@ -117,7 +115,7 @@ void SpecificWorker::initialize(int period)
         }
         catch(const Ice::Exception &e)
         { std::cout << e.what() << std::endl; std::cout << " No connection to get robot state. Aborting " << std::endl; std::terminate();}
-        timer.start(80);
+        timer.start(60);
     }
 }
 void SpecificWorker::compute()
@@ -252,15 +250,15 @@ void SpecificWorker::update_pantilt_position()
 
     if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
     {
-        const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint).pos;
-        const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint).pos;
+        const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint_name).pos;
+        const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint_name).pos;
         const std::vector<float> current_state{pan, tilt};
         //qInfo() << pan << tilt;
         if( are_different(current_state, last_state, epsilon))
         {
-            auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt);
-            auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint);
-            auto pan_joint = G->get_node(viriato_head_camera_pan_joint);
+            auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name);
+            auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint_name);
+            auto pan_joint = G->get_node(viriato_head_camera_pan_joint_name);
             if(pan_tilt.has_value() and pan_joint.has_value())
             {
                 rt->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
@@ -306,7 +304,7 @@ void SpecificWorker::check_base_dummy()
 //// CHANGE THESE ONES BY SIGNAL SLOTS
 void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
-    if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+    if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
         if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
         {
@@ -369,7 +367,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
     else if(type == pan_tilt_type_name)
     {
-        if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+        if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
         {
             if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
             {

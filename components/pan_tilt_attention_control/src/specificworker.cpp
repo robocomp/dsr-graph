@@ -119,10 +119,22 @@ void SpecificWorker::initialize(int period)
 		// ignore attributes
         G->set_ignored_attributes<laser_angles_att, laser_dists_att>();
 
-        connect(custom_widget.startButton, SIGNAL(clicked(bool)), this, SLOT(start_button_slot(bool)));
+        // local UI
+        connect(custom_widget.stopButton, SIGNAL(clicked(bool)), this, SLOT(stop_button_slot(bool)));
+        connect(custom_widget.resetButton, SIGNAL(clicked()), this, SLOT(reset_button_slot()));
+
+        // set nose to default position
+        set_nose_target_to_default();
+
+        // check existing attention_action nodes
+        auto camera_node = G->get_node(cam_api->get_id());
+        for( const auto nodes = G->get_node_edges_by_type(camera_node.value(), attention_action_type_name); const auto &e : nodes)
+            if( auto to_node = G->get_node(e.to()); to_node.has_value())
+                //this->set_of_objects_to_attend_to.push_back(to_node.value().id());
+                target_buffer.put(to_node.value().id());
 
         this->Period = 100;
-        timer.start(Period);
+        timer.start(this->Period);
 	}
 }
 
@@ -131,90 +143,60 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     static auto before = myclock::now();
-    static bool first_time = true;
+    //static bool first_time = true;
+    static std::uint64_t current_target;
+
+    if(const auto current_target_o = target_buffer.try_get(); current_target_o.has_value())
+    {
+        current_target = current_target_o.value();
+        qInfo() << __FUNCTION__ << " New target arrived: " << current_target;
+    }
     const auto g_image = rgb_buffer.try_get();
     const auto g_depth = depth_buffer.try_get();
-    auto robot = G->get_node(robot_name);
-    if (robot.has_value() and g_image.has_value() and g_depth.has_value())
+    if (g_image.has_value() and g_depth.has_value())
     {
         show_image(g_image.value());
-        std::cout << "Current target: " << set_of_objects_to_attend_to.front() << std::endl;
-
-        if(auto target = G->get_node(set_of_objects_to_attend_to.front()); target.has_value())
+        if(this->active)
         {
-            const auto targat = target.value();
+            //std::cout << "Current target: " << current_target << std::endl;
 
-            // if pan-til targer dummy far from object position in G
-                // saccade to G position
-            // else
+            if (auto target_o = G->get_node(current_target); target_o.has_value())
+            {
+                const auto target = target_o.value();
+                if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
+                {
+                    // compute distance between pan-tilt target dummy and object in G
+                    if(auto target_in_camera_o = inner_eigen->transform(viriato_head_camera_name, target.name()); target_in_camera_o.has_value())
+                    {
+                        const Eigen::Vector3d &target_in_camera = target_in_camera_o.value();
+                        float dist = target_in_camera.norm();
+                        qInfo() << __FUNCTION__ << " Dist: " << dist;
+                        qInfo() << __FUNCTION__ << " Target Coor: " << target_in_camera.x() << target_in_camera.y() << target_in_camera.z();
+                        if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
+                        {
+                            // saccade to G position
+                            std::vector<float> target_v{target_in_camera.x(), target_in_camera.y(), target_in_camera.z()};
+                            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
+                            G->update_node(pan_tilt.value());
+                            usleep(100000);
+                            // wait for saccade to complete
+                        }
+                    }
+                }
+                // else
                 // compute reference speed for pan-tilt
-
-            
+            }
         }
-
-
-
-//        if( time_to_change )       // if finished with current object, pick a new object from G -> update
-//        {
-//            auto glass_nodes = G->get_nodes_by_type(glass_type_name);
-//            remove_edge();
-//            object_of_interest = random_selector(glass_nodes).name();
-//            auto index = custom_widget.comboBox->findText(QString::fromStdString(object_of_interest));
-//            custom_widget.comboBox->setCurrentIndex(index);
-//            time_to_change = false;
-//            std::cout << __FUNCTION__ << " " << object_of_interest << std::endl;
-//        }
-//        this->depth_array = g_depth.value();
-//        cv::Mat imgyolo = g_image.value();
-//        std::vector<Box> real_objects = process_image_with_yolo(imgyolo);
-//        std::vector<Box> synth_objects = process_graph_with_yolosynth({object_of_interest});
-//        show_image(imgyolo, real_objects, synth_objects);
-//        if( tracking )
-//        {
-//            track_object_of_interest(robot.value());
-//            if(auto res = std::ranges::find_if(real_objects, [](auto &a){return(a.name == "cup");}); res != real_objects.end())
-//                compute_prediction_error(*res, synth_objects.front());
-//
-//            // check end of object cycle
-//            const auto link = G->get_edge(camera_name, object_of_interest, "looking-at");
-//            const auto r_angle = inner_eigen->transform_axis(robot_name, viriato_head_camera_pan_joint).value();
-//            const auto dist = inner_eigen->transform_axis(camera_name, object_of_interest).value().norm();
-//
-//            //std::cout << __FUNCTION__ << " Tracking: " << link.has_value() << " " << fabs(r_angle[5]) << " " << elapsed.count() << std::endl;
-//            if( link.has_value() and (fabs(r_angle[5])<0.04 or dist < 1300))
-//            {
-//                stop_robot();
-//                if( first_time )
-//                {
-//                    before = myclock::now();
-//                    first_time = false;
-//                }
-//                msec duration = myclock::now() - before;
-//                if(duration.count() > 2000)
-//                {
-//                    time_to_change = true;
-//                    std::cout << __FUNCTION__ << " object completed" << std::endl;
-//                }
-//                else std::cout << __FUNCTION__ << " Watching" << std::endl;
-//            }
-//            else first_time = true;
-//        }
-//        else
-//            set_nose_target_to_default();
-
-//        qInfo() << real_objects.size() << synth_objects.size();
-//        for(auto s : synth_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right;
-//        for(auto s : real_objects)  qInfo() << QString::fromStdString(s.name) << s.bot << s.top << s.left << s.right << s.prob;
     }
 }
 void SpecificWorker::set_nose_target_to_default()
 {
+    qInfo() << __FUNCTION__;
     //if(this->already_in_default == true) return;
-    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt); pan_tilt.has_value())
+    if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
         G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), nose_default_pose);
         G->update_node(pan_tilt.value());
-        //this->already_in_default = true;
     }
 }
 void SpecificWorker::track_object_of_interest(DSR::Node &robot)
@@ -226,7 +208,7 @@ void SpecificWorker::track_object_of_interest(DSR::Node &robot)
     {
         // get object pose in world coordinate frame
         auto po = inner_eigen->transform(world_name, object_of_interest);
-        auto pose = inner_eigen->transform(viriato_head_camera_pan_tilt, object_of_interest);
+        auto pose = inner_eigen->transform(viriato_head_camera_pan_tilt_name, object_of_interest);
         // pan-tilt center
         if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
         {
@@ -280,11 +262,35 @@ void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t t
         if(auto cam_node = G->get_node(from); cam_node.has_value() and cam_node.value().id() == cam_api->get_id())
         {
             if( auto object_node = G->get_node(to); object_node.has_value())
-            this->set_of_objects_to_attend_to.push_back(object_node.value().id());
+            {
+                //this->set_of_objects_to_attend_to.push_back(object_node.value().id());
+                target_buffer.put(object_node.value().id());
+                //qInfo() << __FUNCTION__ << " Node id stored " << object_node.value().id();
+            }
         }
     }
 }
-//////////////////////////////////////////////////////77777
+///////////////////////////////////////////////////////////
+void SpecificWorker::stop_button_slot(bool state)
+{
+    qInfo() << __FUNCTION__ << "In slot " << state;
+    if(state)
+    {
+        this->active = false;
+        custom_widget.stopButton->setText("Start");
+    }
+    else
+    {
+        this->active = true;
+        custom_widget.stopButton->setText("Stop");
+    }
+}
+void SpecificWorker::reset_button_slot()
+{
+    qInfo() << __FUNCTION__;
+    set_nose_target_to_default();
+}
+///////////////////////////////////////////////////////////
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;

@@ -49,6 +49,12 @@
 using myclock = std::chrono::system_clock;
 using msec = std::chrono::duration<float , std::milli>;
 
+struct CONSTANTS_DATA
+{
+    float max_distance_between_target_and_pan_tilt = 300; //mm
+};
+const CONSTANTS_DATA CONSTANTS;
+
 class SpecificWorker : public GenericWorker
 {
     Q_OBJECT
@@ -61,6 +67,8 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
+        void stop_button_slot(bool);
+        void reset_button_slot();
 
     private:
         // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
@@ -87,7 +95,6 @@ class SpecificWorker : public GenericWorker
 
         // ATTRIBUTE NAMES
         const std::string nose_target = "viriato_pan_tilt_nose_target";
-        const std::vector<float> nose_default_pose{0,500,0};
 
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
@@ -123,23 +130,26 @@ class SpecificWorker : public GenericWorker
         // Double buffer
         DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
+        DoubleBuffer<std::uint64_t, std::uint64_t> target_buffer;
 
-        //Plan
+        // Plan
         Plan current_plan;
 
+        // Tracker
         void track_object_of_interest(DSR::Node &robot);
         void set_nose_target_to_default();
         void change_to_new_target();
-
-        // Tracker
+        const std::vector<float> nose_default_pose{0.f, 1000.f, 0.f};
         enum class TState {IDLE, TRACKING, CHANGING };
         TState tracking_state = TState::IDLE;
+        bool active = false;  //overall active switch
 
         // objects
         bool time_to_change = true;
         bool tracking = false;
         RandomSelector<> random_selector{};
         std::deque<std::uint64_t> set_of_objects_to_attend_to;
+
 
         // IMAGE
         void show_image(cv::Mat image);

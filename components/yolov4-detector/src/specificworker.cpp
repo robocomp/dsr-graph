@@ -106,7 +106,7 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
         // get camera_api
-        if (auto cam_node = G->get_node(camera_name); cam_node.has_value())
+        if (auto cam_node = G->get_node(viriato_head_camera_name); cam_node.has_value())
             cam_api = G->get_camera_api(cam_node.value());
         else
             qFatal("YoloV4_tracker terminate: could not find a camera node");
@@ -123,8 +123,11 @@ void SpecificWorker::initialize(int period)
 
         // Initialize combobox
         initialize_combobox();
-        connect(custom_widget.startButton, SIGNAL(clicked(bool)), this, SLOT(start_button_slot(bool)));
+        connect(custom_widget.clearButton, SIGNAL(clicked()), this, SLOT(clear_button_slot()));
         connect(custom_widget.comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(change_attention_object_slot(int)));
+
+        // clear al attention_action edges
+        clear_all_attention_edges();
 
         this->Period = 100;
         timer.start(Period);
@@ -417,7 +420,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
             box.visible = true;
             if(auto t_world = inner_eigen->transform(world_name, object.value().name()); t_world.has_value())
             {
-                if (auto t_camera = inner_eigen->transform(camera_name, object.value().name()); t_camera.has_value())
+                if (auto t_camera = inner_eigen->transform(viriato_head_camera_name, object.value().name()); t_camera.has_value())
                 {
                     box.depth = t_camera.value().norm();
                     box.Cx = t_camera.value().x();
@@ -478,7 +481,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         if (tp.has_value())
         {
             auto[x, y, z] = tp.value();
-            if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), camera_name); t_world.has_value())
+            if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), viriato_head_camera_name); t_world.has_value())
             {
                 //std::cout << "POS 3D "<<yolo_names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
                 box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
@@ -560,7 +563,7 @@ void SpecificWorker::compute_visible_objects()
         float d = d_attr.value();
 
         // check if object is in front of the robot. Its position relative to the camera must has positive Y value
-        if(auto pos_wrt_camera = inner_eigen->transform(camera_name, object_name); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
+        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
             auto object_pos = inner_eigen->transform(world_name, object_name);
@@ -570,14 +573,14 @@ void SpecificWorker::compute_visible_objects()
             // project corners of object's bounding box in the camera image plane
             // get object's bounding box from object's node
             std::vector<Mat::Vector2d> bb_in_camera(8);
-            bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w / 2, d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w / 2, d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
+            bb_in_camera[1] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
+            bb_in_camera[2] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
+            bb_in_camera[3] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
+            bb_in_camera[4] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, d / 2, h / 2), object_name).value(), 0, 0);
+            bb_in_camera[5] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, h / 2), object_name).value(), 0, 0);
+            bb_in_camera[6] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
+            bb_in_camera[7] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
 
             // Compute a 2D projected bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -642,6 +645,12 @@ void SpecificWorker::compute_visible_objects()
         }
         else qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
     }
+}
+void SpecificWorker::clear_all_attention_edges()
+{
+    if (const auto camera_node = G->get_node(viriato_head_camera_name); camera_node.has_value())
+        for (auto edges = G->get_node_edges_by_type(camera_node.value(), attention_action_type_name); auto e : edges)
+            G->delete_edge(e.from(), e.to(), attention_action_type_name);
 }
 ////////////////////////////////////////////////////////////////////
 /// Images
@@ -758,21 +767,9 @@ void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t t
             compute_visible_objects();
 }
 ///////////////////////////////////////////////////////////////////
-void SpecificWorker::start_button_slot(bool checked)
+void SpecificWorker::clear_button_slot()
 {
-    if(checked)  //track
-    {
-        custom_widget.startButton->setText("Stop");
-        this->already_in_default = false;
-        this->tracking = true;
-        this->time_to_change = true;
-    }
-    else //stop tracking
-    {
-        custom_widget.startButton->setText("Start");
-        this->tracking = false;
-        // stop_robot();
-    }
+   clear_all_attention_edges();
 }
 void SpecificWorker::initialize_combobox()
 {
