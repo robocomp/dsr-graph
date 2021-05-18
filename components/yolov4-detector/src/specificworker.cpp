@@ -229,8 +229,25 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     auto world_node = G->get_node(world_name);
     auto &[real_objects, synth_objects] = lists_after_match;
 
+    auto robot_node = G->get_node(robot_name);
+    QPolygonF room_polygon;
+    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
+        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
+        {
+            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
+            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
+            if (polygon_x.has_value() and polygon_y.has_value())
+                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+                    room_polygon << QPointF(px, py);
+        }
+        else { qWarning() << __FUNCTION__ << "No room node found for robot";  return lists_after_match;}
+    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room";  return lists_after_match;}
+
+
     for (auto&& b_real : real_objects)
     {
+        if (not room_polygon.containsPoint(QPointF(b_real.Tx, b_real.Ty), Qt::OddEvenFill))
+                continue;
         for(const auto &[known_object, size] : known_object_types)
         {
             DSR::Node object_node;

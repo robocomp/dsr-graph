@@ -75,7 +75,7 @@ private:
             int min_ticks_to_add_object_threshold = 7;
             int max_allowed_unseen_ticks = 20;
             int min_time_to_add_object_threshold = 2000;  // milliseconds
-            float percentage_of_visible_area_to_be_visible = 50;
+            float percentage_of_visible_area_to_be_visible = 25;
         };
         const CONSTANTS_DATA CONSTANTS;
 
