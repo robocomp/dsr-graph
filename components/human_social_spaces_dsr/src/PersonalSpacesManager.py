@@ -70,9 +70,9 @@ class PersonalSpacesManager:
     def __init__(self):
         self.__personal_spaces = ["intimate", "personal", "social"]
         # sigma_h, sigma_r, sigma_s,  h
-        self.__dict_space_param = {"intimate": [1.3, 1., 1.3, 0.8],
-                                   "personal": [1.3, 1., 1.3, 0.5],  # 0.4
-                                   "social": [3., 1., 1.3, 0.2],  # 0.1
+        self.__dict_space_param = {"intimate": [1.3, 1., 1.3, 0.9],
+                                   "personal": [1.3, 1., 1.3, 0.6],  # 0.5
+                                   "social": [3., 1., 1.3, 0.3],  # 0.2
                                    }
         ##Limites de la representacion
         self.lx_inf = -6

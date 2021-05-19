@@ -62,7 +62,7 @@ class SpecificWorker(GenericWorker):
 
     def __init__(self, proxy_map, startup_check=False):
         super(SpecificWorker, self).__init__(proxy_map)
-        self.Period = 1000
+        self.Period = 500
 
         self.agent_id = 121
         self.g = DSRGraph(0, "human_social_spaces_dsr", self.agent_id)
@@ -170,8 +170,6 @@ class SpecificWorker(GenericWorker):
             x_intimate, y_intimate = zip(* dict_ids_personal_spaces[person_id].intimate_polyline)
             x_personal, y_personal = zip(* dict_ids_personal_spaces[person_id].personal_polyline)
             x_social, y_social = zip(* dict_ids_personal_spaces[person_id].social_polyline)
-            print(type(x_intimate), x_intimate)
-            print(type(list(x_intimate)), list(x_intimate))
 
             personal_space_node = None
 
@@ -184,15 +182,14 @@ class SpecificWorker(GenericWorker):
 
             # Update personal_space node
             if personal_space_node is not None:
-                console.print('Updating personal space', style='red')
-                personal_space_node = self.g.get_node('personal_space_0')
+                # personal_space_node = self.g.get_node('personal_space_0')
 
-                personal_space_node.attrs['ps_social_x_pos'].value = list(x_social)
-                personal_space_node.attrs['ps_social_y_pos'].value = list(y_social)
-                personal_space_node.attrs['ps_personal_x_pos'].value = list(x_personal)
-                personal_space_node.attrs['ps_personal_y_pos'].value = list(y_personal)
-                personal_space_node.attrs['ps_intimate_x_pos'].value = list(x_intimate)
-                personal_space_node.attrs['ps_intimate_y_pos'].value = list(y_intimate)
+                personal_space_node.attrs['ps_social_x_pos'].value = x_social
+                personal_space_node.attrs['ps_social_y_pos'].value = y_social
+                personal_space_node.attrs['ps_personal_x_pos'].value = x_personal
+                personal_space_node.attrs['ps_personal_y_pos'].value = y_personal
+                personal_space_node.attrs['ps_intimate_x_pos'].value = x_intimate
+                personal_space_node.attrs['ps_intimate_y_pos'].value = y_intimate
 
                 try:
                     self.g.update_node(personal_space_node)
