@@ -1,8 +1,11 @@
 
 
-execute_process(COMMAND "git" "clone" "https://github.com/sthlm58/QtMaterialDesignIcons.git"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
-  RESULT_VARIABLE git_result)
+find_path(QTMATERIAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/QtMaterialDesignIcons)
+if((NOT QTMATERIAL_INCLUDE_DIR) OR (NOT EXISTS ${QTMATERIAL_INCLUDE_DIR}))
+    execute_process(COMMAND "git" "clone" "https://github.com/sthlm58/QtMaterialDesignIcons.git"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
+      RESULT_VARIABLE git_result)
+endif()
 
 #execute_process(COMMAND "git" "clone" "https://github.com/ArsMasiuk/qvge"
 #  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/ 

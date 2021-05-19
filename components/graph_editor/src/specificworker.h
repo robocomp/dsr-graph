@@ -61,6 +61,7 @@ private:
     GraphEditorView *editor_view{};
     QAttributeBrowser *attribute_browser{};
     QTemporaryFile new_graph_file;
+    QFile open_file;
 public:
     SpecificWorker(TuplePrx tprx, bool startup_check);
     ~SpecificWorker();
@@ -77,6 +78,7 @@ private:
     int qscene_2d_view{};
     int osg_3d_view{};
 
-
+    void create_new_dsr_file();
+    void open_dsr_file(const string& dsr_file);
 };
 #endif

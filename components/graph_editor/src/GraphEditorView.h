@@ -54,6 +54,7 @@ private:
     bool create_new_edge(uint64_t from, uint64_t to);
     bool _create_new_G_edge(const QString& type, uint64_t from_id, uint64_t to_id);
     void delete_temps();
+    void update_selected_nodes();
 //    void wheelEvent(QWheelEvent* event);
 //    void resizeEvent(QResizeEvent* e);
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -72,7 +73,7 @@ private slots:
     void delete_slot();
     void safe_delete_slot();
 
-
+    void update_selection(const QMouseEvent* event);
 };
 
 #endif //TESTCOMP_GRAPHEDITORVIEW_H
