@@ -117,7 +117,7 @@ void SpecificWorker::initialize(int period)
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
 		// ignore attributes
-        G->set_ignored_attributes<laser_angles_att, laser_dists_att>();
+        G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_rgb_att, cam_depth_att>();
 
         // local UI
         connect(custom_widget.stopButton, SIGNAL(clicked(bool)), this, SLOT(stop_button_slot(bool)));
@@ -142,7 +142,7 @@ void SpecificWorker::initialize(int period)
 // here the list is analyzed and a next_object is selected to change/keep current attention
 void SpecificWorker::compute()
 {
-    static auto before = myclock::now();
+    static auto before = my_clock::now();
     //static bool first_time = true;
     static std::uint64_t current_target;
 
@@ -155,11 +155,10 @@ void SpecificWorker::compute()
     const auto g_depth = depth_buffer.try_get();
     if (g_image.has_value() and g_depth.has_value())
     {
-        show_image(g_image.value());
+        //show_image(g_image.value());
         if(this->active)
         {
-            //std::cout << "Current target: " << current_target << std::endl;
-
+            if(this->wait_state.waiting()) return;
             if (auto target_o = G->get_node(current_target); target_o.has_value())
             {
                 const auto target = target_o.value();
@@ -178,8 +177,7 @@ void SpecificWorker::compute()
                             std::vector<float> target_v{target_in_camera.x(), target_in_camera.y(), target_in_camera.z()};
                             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
                             G->update_node(pan_tilt.value());
-                            usleep(100000);
-                            // wait for saccade to complete
+                            this->wait_state.init(3000); //ms
                         }
                     }
                 }
@@ -224,9 +222,11 @@ void SpecificWorker::track_object_of_interest(DSR::Node &robot)
 }
 void SpecificWorker::show_image(cv::Mat image)
 {
-    auto qimage = QImage(image.data, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
-    auto pix = QPixmap::fromImage(qimage);
+    auto pix = QPixmap::fromImage(QImage(image.data, image.cols, image.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
+    //auto qimage = QImage(image.data, cam_api->get_width(), cam_api->get_height(), QImage::Format_RGB888).scaled(custom_widget.width(), custom_widget.height(), Qt::KeepAspectRatioByExpanding);;
+    //auto pix = QPixmap::fromImage(qimage);
+    //custom_widget.rgb_image->setPixmap(pix);
 }
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
