@@ -31,6 +31,12 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include <cppitertools/zip.hpp>
+#include <cppitertools/chain.hpp>
+#include "grid.h"
+#include <QPolygonF>
+#include <QPointF>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -62,13 +68,31 @@ private:
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
-	void add_or_assign_node_slot(std::uint64_t, const std::string &type){};
+	void add_or_assign_node_slot(std::uint64_t, const std::string &type);
 	void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
 	void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
 
 	void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
+
+    //drawing
+    DSR::QScene2dViewer* widget_2d;
+
+    // Grid
+    Grid grid;
+    bool grid_initialized = false;
+    bool personal_spaces_changed = false;
+    std::shared_ptr<Collisions> collisions;
+
+    std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
+
+
+    std::vector<QPolygonF> intimate_seq, personal_seq, social_seq;
+
+    void get_polylines_from_dsr();
+    void insert_polylines_in_grid();
+    void inject_grid_in_G(const Grid &grid);
 
 };
 

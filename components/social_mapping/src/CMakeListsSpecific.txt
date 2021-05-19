@@ -3,17 +3,21 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  grid.cpp
+  collisions.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
+  collisions.h
+  grid.h
 )
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_definitions(-g  -fmax-errors=1 -std=c++20 )
-SET (LIBS ${LIBS}   dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)
+add_definitions(-g  -fmax-errors=1 -std=c++20 -fno-char8_t)
+SET (LIBS ${LIBS} tbb fcl dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)
 
 

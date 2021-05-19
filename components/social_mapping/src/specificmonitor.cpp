@@ -104,6 +104,10 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	params["2d_view"] = aux;
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
+    configGetString( "","tile_size", aux.value,"250");
+    params["tile_size"] = aux;
+    configGetString( "","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
+    params["ExcludedObjectsInCollisionCheck"] = aux;
 }
 
 //Check parameters and transform them to worker structure
