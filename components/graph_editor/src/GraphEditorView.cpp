@@ -114,7 +114,6 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
     QLineF distance(this->press_point, this->release_point);
     // Check the tool being used
     switch (this->current_tool) {
-        // If it's editing nodes
     case GraphTool::edit_tool: {
         QPoint position = event->pos();
         if (event->button()==Qt::LeftButton) {
@@ -136,7 +135,7 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
                         to_node = dynamic_cast<GraphNode*>(item);
                         // Convert source node from temp to real
                         if (to_node) {
-                            if (to_node != this->temp_to_node)
+                            if (to_node!=this->temp_to_node)
                                 break;
                             else
                                 to_node = nullptr;
@@ -148,23 +147,21 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
             if (from_node and to_node) {
                 this->create_new_edge(from_node->id_in_graph, to_node->id_in_graph);
             }
-            else if ((from_node and !to_node) or (!from_node and to_node))
-            {
+            else if ((from_node and !to_node) or (!from_node and to_node)) {
                 bool new_node_is_to = (to_node==nullptr);
-                auto new_node_pos = new_node_is_to?event->pos():this->drag_initial_position;
-                auto existing_node = new_node_is_to?from_node: to_node;
-                if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph, !new_node_is_to))
+                auto new_node_pos = new_node_is_to ? event->pos() : this->drag_initial_position;
+                auto existing_node = new_node_is_to ? from_node : to_node;
+                if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph,
+                        !new_node_is_to))
                     qDebug() << "Problem creating TO node";
             }
                 // No node taken but user is dragging
             else if (this->dragging) {
-                QLineF node_distance = QLine(event->pos(),this->drag_initial_position);
-                if (from_node == nullptr and to_node == nullptr and node_distance.length() > 30)
-                {
+                QLineF node_distance = QLine(event->pos(), this->drag_initial_position);
+                if (from_node==nullptr and to_node==nullptr and node_distance.length()>30) {
                     this->create_two_connected_nodes(mapToScene(this->drag_initial_position), mapToScene(event->pos()));
                 }
-                else
-                {
+                else {
                     if (from_node==nullptr) {
                         auto from_id_optional = this->create_new_node(mapToScene(this->drag_initial_position));
                         if (from_id_optional.has_value()) {
@@ -185,65 +182,49 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
         event->accept();
         break;
     }
-    case GraphTool::move_tool:
-        if(selecting)
-        {
-
-            for ( auto item : selection_box->collidingItems() ) {
-                if(dynamic_cast<GraphNode*>(item))
-                    item->setSelected(true);
-            }
-            this->scene.removeItem(selection_box);
-            this->selecting = false;
-        }
+    case GraphTool::move_tool: {
+        update_selected_nodes();
         if (event->button()==Qt::LeftButton) {
             if (distance.length()<20) {
                 // Look for TO node
                 auto items = this->scene.items(mapToScene(this->release_point));
                 if (!items.empty()) {
                     bool node_found, edge_found = false;
-                    foreach (auto item, items) {
-                        auto* one_node = dynamic_cast<GraphNode*>(item);
-                        if (one_node!=nullptr) {
-                            emit this->graph_node_clicked(one_node->id_in_graph);
-                            node_found = true;
+                            foreach (auto item, items) {
+                            auto* one_node = dynamic_cast<GraphNode*>(item);
+                            if (one_node!=nullptr) {
+                                emit this->graph_node_clicked(one_node->id_in_graph);
+                                node_found = true;
+                            }
+                            auto* one_edge = dynamic_cast<GraphEdge*>(item);
+                            if (one_edge!=nullptr) {
+                                emit this->graph_edge_clicked(one_edge->sourceNode()->id_in_graph,
+                                        one_edge->destNode()->id_in_graph, one_edge->type());
+                                edge_found = true;
+                            }
+                            if (node_found and edge_found)
+                                break;
                         }
-                        auto* one_edge = dynamic_cast<GraphEdge*>(item);
-                        if (one_edge!=nullptr) {
-                            emit this->graph_edge_clicked(one_edge->sourceNode()->id_in_graph, one_edge->destNode()->id_in_graph, one_edge->type());
-                            edge_found = true;
-                        }
-                        if (node_found and edge_found)
-                            break;
-                    }
                 }
             }
         }
         GraphViewer::mouseReleaseEvent(event);
+        break;
+    }
     case GraphTool::delete_tool: {
-        if(selecting)
-        {
+        update_selected_nodes();
+        this->safe_delete_slot();
+        break;
+    }
+    case GraphTool::selecction_tool:
+    default: { GraphViewer::mouseReleaseEvent(event); }
+    }
 
-            for ( auto item : selection_box->collidingItems() ) {
-                if(dynamic_cast<GraphNode*>(item))
-                    item->setSelected(true);
-            }
-            this->scene.removeItem(selection_box);
-            this->selecting = false;
-        }
-        this->delete_slot();
-    }
-    break;
-    default:
-        GraphViewer::mouseReleaseEvent(event);
-    }
     this->dragging = false;
     this->dragged_item = nullptr;
     this->delete_temps();
     press_point = QPoint();
 }
-
-
 
 void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
 {
@@ -279,14 +260,20 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
         event->accept();
         break;
     case GraphTool::delete_tool:
-    case GraphTool::move_tool:
-        if(this->selecting)
-            selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(event->pos())));
+        update_selection(event);
         event->accept();
+    case GraphTool::move_tool:
+        update_selection(event);
+        GraphViewer::mouseMoveEvent(event);
         break;
     default:
         GraphViewer::mouseMoveEvent(event);
     }
+}
+void GraphEditorView::update_selection(const QMouseEvent* event)
+{
+    if(selecting)
+        selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(event->pos())));
 }
 
 void GraphEditorView::delete_temps()
@@ -498,5 +485,17 @@ void GraphEditorView::delete_slot()
             if (not G->delete_node(node->id_in_graph))
                 qDebug() << "Node" << node->id_in_graph << "could not be deleted";
         }
+    }
+}
+void GraphEditorView::update_selected_nodes()
+{
+    if (this->selecting) {
+
+        for (auto item : this->selection_box->collidingItems()) {
+            if (dynamic_cast<GraphNode*>(item))
+                item->setSelected(true);
+        }
+        this->scene.removeItem(this->selection_box);
+        this->selecting = false;
     }
 }
