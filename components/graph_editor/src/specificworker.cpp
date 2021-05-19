@@ -74,19 +74,10 @@ void SpecificWorker::initialize(int period)
     if (QFileInfo::exists(QString::fromStdString(dsr_input_file)))
     {
         // create graph with input file
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, dsr_input_file);
+        open_dsr_file(dsr_input_file);
     }
     else {
-        // If not
-        // Ask if want to create new file or try to load from the network
-        // Create new tempfile
-        if (this->new_graph_file.open()) {
-            // file.fileName() returns the unique file name
-            QTextStream outStream(&this->new_graph_file);
-            outStream << "{}";
-            G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, this->new_graph_file.fileName().toStdString());
-        }
-        // Create empty json file in path
+        create_new_dsr_file();
     }
 
     // Graph viewer
@@ -110,9 +101,33 @@ void SpecificWorker::initialize(int period)
             attribute_browser, &QAttributeBrowser::update_node_combobox);
 
 
+
+
+}
+void SpecificWorker::open_dsr_file(const string& dsr_file)
+{
+    if (QFileInfo::exists(QString::fromStdString(dsr_file)))
+    {
+        if(G!=nullptr)
+            G->reset();
+        G = make_shared<DSRGraph>(0, agent_name, agent_id, dsr_file);
+    }
 }
 
-
+void SpecificWorker::create_new_dsr_file()
+{// If not
+// Ask if want to create new file or try to load from the network
+// Create new tempfile
+    if(G!=nullptr)
+        G->reset();
+    if (new_graph_file.open()) {
+        // file.fileName() returns the unique file name
+        QTextStream outStream(&new_graph_file);
+        outStream << "{}";
+        G = make_shared<DSRGraph>(0, agent_name, agent_id, new_graph_file.fileName().toStdString());
+    }
+    // Create empty json file in path
+}
 
 void SpecificWorker::compute()
 {
