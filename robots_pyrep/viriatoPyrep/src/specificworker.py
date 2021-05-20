@@ -40,6 +40,7 @@ import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
 from threading import Lock
+from math import *
 
 class TimeControl:
     def __init__(self, period_):
