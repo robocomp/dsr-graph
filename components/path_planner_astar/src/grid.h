@@ -137,7 +137,7 @@ class Grid
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;
-        std::optional<QPointF> closest_matching(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred);
+        std::optional<QPointF> closestMatching_spiralMove(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred);
 };
 
 #endif // GRID_H

@@ -89,7 +89,6 @@ void Grid::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
         auto duration = Myclock::now() - start_time;
         std::cout << __FUNCTION__ << " " << count << " elements inserted.  It took " << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "secs" << std::endl;
 
-        ////////////////
         if(not file_name.empty())
             saveToFile(file_name);
     }
@@ -490,43 +489,43 @@ void Grid::clear()
     fmap.clear();
 }
 
-std::optional<QPointF> Grid::closest_matching(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred)
+#include <unistd.h>
+std::optional<QPointF> Grid::closestMatching_spiralMove(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred)
 {
-    Key key = pointToGrid(p);
-    std::cout << __FUNCTION__ << " " << key << std::endl;
-    std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
-    std::vector<std::pair<Grid::Key, Grid::T>> L2;
-    QPointF match = p;
-    const auto &[success, v] = getCell(key);
-    bool end = false;
-    bool found = success and pred(std::make_pair(key, v));
-    while( not end and not found)
-    {
-        for(auto &&current_cell : L1)
-        {
-            if(pred(current_cell))
-            {
-                match = current_cell.first.toQPointF();
-                found = true;
-                break;
-            }
-            auto selected = neighboors_8(current_cell.first, true);
-            L2.insert(L2.end(), selected.begin(), selected.end());
+    size_t moveUnit = TILE_SIZE;
+    int vi = moveUnit, vj = 0, tamSegmento = 1, i = p.x(), j = p.y(), recorrido = 0;
+
+    QPointF retPoint;
+    while(true) {
+        i += vi; j += vj; ++recorrido;
+        retPoint.setX(i); retPoint.setY(j);
+        Key key = pointToGrid(retPoint);
+        const auto &[success, v] = getCell(key);
+        if(success and pred(std::make_pair(key, v)))
+            return std::optional<QPointF>(retPoint);
+        if (recorrido == tamSegmento) {
+            recorrido = 0;
+            int aux = vi; vi = -vj; vj = aux;
+            if (vj == 0)
+                ++tamSegmento;
         }
-        end = L2.empty();
-        L1.swap(L2);
-        L2.clear();
+//        usleep(5000);
     }
-    if(found) return match;
-    else return {};
 }
 
 std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
 {
-    return this->closest_matching(p, [](auto cell){ return not cell.second.free; });
+    return this->closestMatching_spiralMove(p, [](auto cell){ return not cell.second.free; });
 }
 
 std::optional<QPointF> Grid::closest_free(const QPointF &p)
 {
-    return this->closest_matching(p, [](const auto &cell){ return cell.second.free; });
+    static int iter = 0;
+    return this->closestMatching_spiralMove(p, [this, p](const auto &cell){
+        if (not cell.second.free)
+            return false;
+        Key key = pointToGrid(QPointF(cell.first.x, cell.first.z));
+        std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_16(key, false);
+        return (L1.size() == 16);
+    });
 }
