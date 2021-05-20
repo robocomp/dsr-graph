@@ -9,7 +9,7 @@ agent_id = 21 # Change id
 agent_name = pan_tilt_attention_control
 tree_view = false
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 
 # YOLOv4 configuration

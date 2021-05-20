@@ -46,8 +46,8 @@
 #include "plan.h"
 #include <QImage>
 
-using myclock = std::chrono::system_clock;
-using msec = std::chrono::duration<float , std::milli>;
+using my_clock = std::chrono::system_clock;
+using msec = std::chrono::duration<int , std::milli>;
 
 struct CONSTANTS_DATA
 {
@@ -71,8 +71,31 @@ class SpecificWorker : public GenericWorker
         void reset_button_slot();
 
     private:
-        // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
-        struct Box
+        struct WaitState
+        {
+            void init(int duration){ start = my_clock::now(); DURATION = duration; active = true;};
+            bool waiting()
+            {
+                if(active)
+                {
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - start).count() >= DURATION)
+                    {
+                        active = false;
+                        return false;
+                    }
+                    else
+                        return true;
+                }
+                else
+                    return false;
+            };
+            bool active = false;
+            int DURATION;
+            std::chrono::time_point<my_clock> start;
+        };
+        WaitState wait_state;
+
+        struct Box      // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
         {
             std::string name;
             int left;

@@ -124,12 +124,12 @@ void SpecificWorker::initialize(int period)
         // Initialize combobox
         initialize_combobox();
         connect(custom_widget.clearButton, SIGNAL(clicked()), this, SLOT(clear_button_slot()));
-        connect(custom_widget.comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(change_attention_object_slot(int)));
+        connect(custom_widget.comboBox, SIGNAL(activated(int)), this, SLOT(change_attention_object_slot(int)));
 
         // clear al attention_action edges
         clear_all_attention_edges();
 
-        this->Period = 100;
+        this->Period = 60;
         timer.start(Period);
         READY_TO_GO = true;
 	}
@@ -163,12 +163,13 @@ Detector* SpecificWorker::init_detector()
     known_object_types.insert( {"vase",         {300, 300, 350}});
     known_object_types.insert( {"oven",         {400, 100, 400}});
     known_object_types.insert( {"refrigerator", {600, 1600, 600}});
-
+    //known_object_types.insert( {"apple",        {80, 80, 80}});
     return detector;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute()
 {
+    auto begin = myclock::now();
     const auto g_depth = depth_buffer.try_get();
     const auto g_image = rgb_buffer.try_get();
     auto robot = G->get_node(robot_name);
@@ -184,8 +185,10 @@ void SpecificWorker::compute()
         auto lists_after_add = add_new_objects(lists_after_match);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
         auto &[a,b] = lists_after_delete;
-        qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
+        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
+    fps.print("FPS:");
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_lists(Boxes &real_objects,
@@ -204,14 +207,16 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
             //std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
             if (both_boxes_match(b_synth, b_real))
             {
-                std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
+                //std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
                 b_synth.match = true; b_real.match = true;
-                auto node = G->get_node(b_synth.name);
-                auto parent = G->get_parent_node(node.value());
-                auto edge = rt_api->get_edge_RT(parent.value(), node->id()).value();
+                auto synth_node = G->get_node(b_synth.name);
+                auto parent = G->get_parent_node(synth_node.value());
+                auto edge = rt_api->get_edge_RT(parent.value(), synth_node->id()).value();
+                G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0);  // reset unseen counter
                 G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
+                G->update_node(synth_node.value());
                 //b_real.print("Real Box");
                 //b_synth.print("Synth Box");
                 //qInfo() << __FUNCTION__ << " Matched objects:" << ++count;
@@ -754,8 +759,7 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
         auto node = G->get_node(id);
         if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {
-            std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
-            if (plan.has_value())
+            if( std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value()); plan.has_value())
                 plan_buffer.put(std::move(plan.value()),[](const std::string& plan_text, Plan &plan){ plan.json_to_plan(plan_text);});
         }
     }
