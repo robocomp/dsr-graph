@@ -49,7 +49,7 @@
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
 using myclock = std::chrono::system_clock;
-using msec = std::chrono::duration<float , std::milli>;
+using msec = std::chrono::duration<int , std::milli>;
 
 class SpecificWorker : public GenericWorker
 {
@@ -73,7 +73,7 @@ private:
             float min_yolo_probability_threshold = 50;
             float times_the_width_of_synth_box = 3;
             int min_ticks_to_add_object_threshold = 7;
-            int max_allowed_unseen_ticks = 20;
+            int max_allowed_unseen_ticks = 50;
             int min_time_to_add_object_threshold = 2000;  // milliseconds
             float percentage_of_visible_area_to_be_visible = 25;
         };
@@ -200,6 +200,7 @@ private:
         void initialize_combobox();
         std::uint64_t last_object_of_attention;
         void clear_all_attention_edges();
+
 
 };
 
