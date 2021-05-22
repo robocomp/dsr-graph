@@ -100,7 +100,7 @@ void SpecificWorker::initialize(int period)
 		widget_2d = qobject_cast<DSR::QScene2dViewer*> (graph_viewer->get_widget(opts::scene));
 
 		if(widget_2d != nullptr)
-            widget_2d->set_draw_laser(false);
+            widget_2d->set_draw_laser(true);
 
         //widget_2d->set_draw_axis(bool draw);
         connect(custom_widget.ke_slider, &QSlider::valueChanged, [this](auto v){ KE = v;});
@@ -152,6 +152,7 @@ void SpecificWorker::compute()
     {
         path.clear();
         path = path_o.value();
+        qInfo() << __FUNCTION__ << " New path detected";
     }
     else
     {
@@ -261,6 +262,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
                 //if p is MAX_LASER_RANGE distance should be INF
                 float dist = (QVector2D(p) - QVector2D(laser)).length() - (RL / 2);
+                dist = std::clamp(dist, 0.01f, RL*3);    // 3 times the robot's length
                 if (dist <= 0)
                     dist = 0.01;
                 return std::make_tuple(dist,  QVector2D(p)-QVector2D(laser), laser);

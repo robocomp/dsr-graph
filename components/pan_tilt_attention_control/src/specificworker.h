@@ -124,6 +124,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::CameraAPI> cam_api;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;

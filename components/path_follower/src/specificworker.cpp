@@ -197,12 +197,12 @@ void SpecificWorker::path_follower_initialize()
         std::cout << "CONTROLLER. Out of Range error reading parameters: " << oor.what() << '\n';
         std::terminate();
     }
-    //    robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
-    //    robotZLong = std::stof(conf_params->at("RobotZLong").value);
-    //    robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
-    //    robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
-    //    robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
-    //    robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
+        robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
+        robotZLong = std::stof(conf_params->at("RobotZLong").value);
+        robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
+        robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
+        robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
+        robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
 }
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
 {
@@ -315,8 +315,37 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     QVector2D bumperVel = total * KB;  // Parameter set in slidebar
     sideVel = std::clamp(bumperVel.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
 
+    // Compute bumper away speed for rectangular shape
+    auto rp = get_robot_polygon();
+    rp = rp.scale();
+    for (const auto &[angle, dist] : iter::zip(angles, dists))
+    {
+        if(rp.containsPoint(QPointF(dist*sin(angle), dist*cos(angle)))
+        {
+            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
+        }
+    }
+    // esxtend the robot polygon to delta_size
+    // check if a laser point is inside
+    // add force
+
+
     //qInfo() << advVelz << advVelx << rotVel;
     return std::make_tuple(advVel, sideVel, rotVel);
+}
+
+QPolygonF SpecificWorker::get_robot_polygon()
+{
+    QPolygonF robotP;
+    auto bLWorld = inner_eigen->transform(world_name, robotBottomLeft, robot_name);
+    auto bRWorld = inner_eigen->transform(world_name, robotBottomRight, robot_name);
+    auto tRWorld = inner_eigen->transform(world_name, robotTopRight, robot_name);
+    auto tLWorld = inner_eigen->transform(world_name, robotTopLeft, robot_name);
+    robotP << QPointF(bLWorld.value().x(),bLWorld.value().y());
+    robotP << QPointF(bRWorld.value().x(),bRWorld.value().y());
+    robotP << QPointF(tRWorld.value().x(),tRWorld.value().y());
+    robotP << QPointF(tLWorld.value().x(),tLWorld.value().y());
+    return robotP;
 }
 
 std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot

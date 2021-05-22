@@ -102,6 +102,9 @@ private:
             bool marked_for_delete = false;  // to be deleted after match or creation
             int creation_ticks = 0;
             std::chrono::steady_clock::time_point creation_time;
+            std::string type;
+            float distance_in_world_frame_to(const Box &b) const
+                    { return (Eigen::Vector3f(b.Tx,b.Ty,b.Tz)-Eigen::Vector3f(Tx,Ty,Tz)).norm();}
             void print(const std::string_view &s) const
             {
                 std::cout << "--- " << s << " -----" << std::endl;
@@ -181,6 +184,8 @@ private:
         image_t createImage(const cv::Mat &src);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         bool both_boxes_match(Box &real_box, Box &synth_box);
+        std::tuple<bool, std::string> contained_in_known_objects(const std::string &candidate);
+        DSR::Node create_node_with_type(const std::string &type, const std::string &name);
         void remove_edge();
         void compute_visible_objects();
         std::vector<Box> get_visible_objects_from_graph();
@@ -188,7 +193,7 @@ private:
         std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match);
         std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
         std::tuple<float, float, float> estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real);
-        bool real_object_is_stable(Box box);
+        bool real_object_is_stable(Box box, const QPolygonF &robot_room);
         std::tuple<float, float> get_random_position_to_draw_in_graph(const std::string &type);
 
         // objects

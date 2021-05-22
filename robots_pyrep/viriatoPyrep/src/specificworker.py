@@ -192,9 +192,9 @@ class SpecificWorker(GenericWorker):
             #self.read_people()
             self.read_laser()
             self.read_joystick()
+            self.read_robot_speed()
             self.read_robot_pose()
             #self.read_robot_arm_tip()
-            self.move_robot()
             self.read_pan_tilt()
 
             tc.wait()
@@ -262,13 +262,52 @@ class SpecificWorker(GenericWorker):
             print(e)
 
     ###########################################
+    ###  read and move the robot
+    ###########################################
+    def read_robot_speed(self):
+        if self.speed_robot:  # and (time.time() - self.joystick_newdata[1]) > 0.1:
+            self.robot.set_base_angular_velocites(self.speed_robot)
+            self.speed_robot = None
+
+    ###########################################
     ### JOYSITCK read and move the robot
     ###########################################
     def read_joystick(self):
         if self.joystick_newdata: #and (time.time() - self.joystick_newdata[1]) > 0.1:
-            self.update_joystick(self.joystick_newdata[0])
+            adv = 0.0
+            rot = 0.0
+            side = 0.0
+            pan = 0.0
+            tilt = 0.0
+            head_moves = False
+
+            for x in self.joystick_newdata[0].axes:
+                if x.name == "advance":
+                    adv = x.value if np.abs(x.value) > 1 else 0  # mm/sg
+                if x.name == "rotate":
+                    rot = x.value if np.abs(x.value) > 0.01 else 0  # rads/sg
+                if x.name == "side":
+                    side = x.value if np.abs(x.value) > 1 else 0
+                if x.name == "pan":
+                    pan = x.value if np.abs(x.value) > 0.01 else 0
+                    head_moves = True
+                if x.name == "tilt":
+                    tilt = x.value if np.abs(x.value) > 0.01 else 0
+                    head_moves = True
+
+            # print("Joystick ", adv, rot, side)
+            converted = self.convert_base_speed_to_radians(adv, side, rot)
+            # self.robot.set_base_angular_velocites([adv, side, rot])
+            self.robot.set_base_angular_velocites(converted)
+            #
+            if (head_moves):
+                dummy = Dummy("viriato_head_pan_tilt_nose_target")
+                pantilt = Dummy("viriato_head_camera_pan_tilt")
+                pose = dummy.get_position(pantilt)
+                dummy.set_position([pose[0], pose[1] - pan / 10, pose[2] + tilt / 10], pantilt)
+
             self.joystick_newdata = None
-            self.last_received_data_time = time.time()
+            #self.last_received_data_time = time.time()
         else:
             elapsed = time.time() - self.last_received_data_time
             if elapsed > 2 and elapsed < 3:
@@ -347,16 +386,6 @@ class SpecificWorker(GenericWorker):
             print(e)
 
     ###########################################
-    ### MOVE ROBOT from Omnirobot interface
-    ###########################################
-    def move_robot(self):
-
-        if self.speed_robot != self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
-            self.robot.set_base_angular_velocites(self.speed_robot)
-            print("Velocities sent to robot:", self.speed_robot)
-            self.speed_robot_ant = self.speed_robot
-
-    ###########################################
     ### Viriato head camera tilt motor. Command from JointMotor interface
     ############################################
     def read_pan_tilt(self):
@@ -411,40 +440,6 @@ class SpecificWorker(GenericWorker):
                 ldata[i].dist = ldata[i-1].dist
 
         return ldata
-    
-    def update_joystick(self, datos):
-        adv = 0.0
-        rot = 0.0
-        side = 0.0
-        pan = 0.0
-        tilt = 0.0
-        head_moves = False
-
-        for x in datos.axes:
-            if x.name == "advance":
-                adv = x.value if np.abs(x.value) > 1 else 0 #mm/sg
-            if x.name == "rotate":
-                rot = x.value if np.abs(x.value) > 0.01 else 0 #rads/sg
-            if x.name == "side":
-                side = x.value if np.abs(x.value) > 1 else 0
-            if x.name == "pan":
-                pan = x.value if np.abs(x.value) > 0.01 else 0
-                head_moves = True
-            if x.name == "tilt":
-                tilt = x.value if np.abs(x.value) > 0.01 else 0
-                head_moves = True
-
-        #print("Joystick ", adv, rot, side)
-        converted = self.convert_base_speed_to_radians(adv, side, rot)
-        #self.robot.set_base_angular_velocites([adv, side, rot])
-        self.robot.set_base_angular_velocites(converted)
-        #
-        if(head_moves):
-            dummy = Dummy("viriato_head_pan_tilt_nose_target")
-            pantilt = Dummy("viriato_head_camera_pan_tilt")
-            pose = dummy.get_position(pantilt)
-            dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
-
 
     def convert_base_speed_to_radians(self, adv, side, rot):
         # rot has to be neg so neg rot speeds go clock wise. It is probably a sign in Pyrep forward kinematics
@@ -550,9 +545,9 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        converted = self.convert_base_speed_to_radians(advz, advx, rot)
-        self.robot.set_base_angular_velocites(converted)
-        #self.speed_robot = [advz, advx, rot]
+        #converted = self.convert_base_speed_to_radians(advz, advx, rot)
+        self.speed_robot = self.convert_base_speed_to_radians(advz, advx, rot)
+        #self.robot.set_base_angular_velocites(converted)
 
     #
     # stopBase

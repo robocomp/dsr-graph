@@ -106,18 +106,15 @@ void SpecificWorker::initialize(int period)
         // RT APi
         rt_api = G->get_rt_api();
 
-        // get camera_api
-        if (auto cam_node = G->get_node(camera_name); cam_node.has_value())
-            cam_api = G->get_camera_api(cam_node.value());
-        else
-            qFatal("YoloV4_tracker terminate: could not find a camera node");
+        // own node api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
-		// custom_widget
+        // custom_widget
 		graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
 		// ignore attributes
-        G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_rgb_att, cam_depth_att>();
+        G->set_ignored_attributes<laser_angles_att, laser_dists_att, cam_depth_att>();
 
         // local UI
         connect(custom_widget.stopButton, SIGNAL(clicked(bool)), this, SLOT(stop_button_slot(bool)));
@@ -133,7 +130,7 @@ void SpecificWorker::initialize(int period)
                 //this->set_of_objects_to_attend_to.push_back(to_node.value().id());
                 target_buffer.put(to_node.value().id());
 
-        this->Period = 100;
+        this->Period = 60;
         timer.start(this->Period);
 	}
 }
@@ -145,15 +142,20 @@ void SpecificWorker::compute()
     static auto before = my_clock::now();
     //static bool first_time = true;
     static std::uint64_t current_target;
+    std::string target_name;
 
     if(const auto current_target_o = target_buffer.try_get(); current_target_o.has_value())
     {
         current_target = current_target_o.value();
-        qInfo() << __FUNCTION__ << " New target arrived: " << current_target;
+        if (auto target_o = G->get_node(current_target); target_o.has_value())
+        {
+            target_name = target_o.value().name();
+            qInfo() << __FUNCTION__ << " New target arrived: " << current_target << " - " << QString::fromStdString(target_name);
+        }
     }
     const auto g_image = rgb_buffer.try_get();
-    const auto g_depth = depth_buffer.try_get();
-    if (g_image.has_value() and g_depth.has_value())
+    //const auto g_depth = depth_buffer.try_get();
+    if (g_image.has_value() /*and g_depth.has_value()*/)
     {
         //show_image(g_image.value());
         if(this->active)
@@ -161,14 +163,17 @@ void SpecificWorker::compute()
             if(this->wait_state.waiting()) return;
             if (auto target_o = G->get_node(current_target); target_o.has_value())
             {
+                qInfo() << "hola";
                 const auto target = target_o.value();
                 if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
                 {
                     // compute distance between pan-tilt target dummy and object in G
+                    qInfo() << "hola2";
                     if(auto target_in_camera_o = inner_eigen->transform(viriato_head_camera_name, target.name()); target_in_camera_o.has_value())
                     {
                         const Eigen::Vector3d &target_in_camera = target_in_camera_o.value();
-                        float dist = target_in_camera.norm();
+                        const Eigen::Vector2d target_in_camera_2d{target_in_camera.x(), target_in_camera.z()};
+                        float dist = target_in_camera_2d.norm();
                         qInfo() << __FUNCTION__ << " Dist: " << dist;
                         qInfo() << __FUNCTION__ << " Target Coor: " << target_in_camera.x() << target_in_camera.y() << target_in_camera.z();
                         if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
@@ -177,15 +182,19 @@ void SpecificWorker::compute()
                             std::vector<float> target_v{target_in_camera.x(), target_in_camera.y(), target_in_camera.z()};
                             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
                             G->update_node(pan_tilt.value());
-                            this->wait_state.init(3000); //ms
+                            qInfo() << __FUNCTION__ << " Saccade";
+                            this->wait_state.init(1000); //ms
                         }
                     }
                 }
                 // else
                 // compute reference speed for pan-tilt
             }
+            else qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(target_name) << " found in G";
         }
+        else qWarning() << __FUNCTION__ << " No active ";
     }
+    else qWarning() << __FUNCTION__ << " No image ready";
 }
 void SpecificWorker::set_nose_target_to_default()
 {
@@ -245,12 +254,12 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
                                                    const_cast<std::vector<uint8_t> &>(in).data());
                                    });
                }
-            if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
-            {
-                float *depth_array = (float *) g_depth.value().get().data();
-                std::vector<float> res{depth_array, depth_array + g_depth.value().get().size() /sizeof(float) };
-                depth_buffer.put(std::move(res));
-            }
+//            if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
+//            {
+//                float *depth_array = (float *) g_depth.value().get().data();
+//                std::vector<float> res{depth_array, depth_array + g_depth.value().get().size() /sizeof(float) };
+//                depth_buffer.put(std::move(res));
+//            }
         }
         else  qWarning() << __FUNCTION__ << "No camera_node found in G";
     }
