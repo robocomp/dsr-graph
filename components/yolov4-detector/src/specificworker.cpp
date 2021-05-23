@@ -264,7 +264,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         {
             object_node = create_node_with_type(b_real.type, b_real.name);
             auto size = known_object_types.at(b_real.type);
-            
+
             // decide here who is going to be the parent
             auto parent_node = G->get_node(world_name);
             if (not parent_node.has_value())
