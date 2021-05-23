@@ -316,15 +316,15 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     sideVel = std::clamp(bumperVel.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
 
     // Compute bumper away speed for rectangular shape
-    auto rp = get_robot_polygon();
-    rp = rp.scale();
-    for (const auto &[angle, dist] : iter::zip(angles, dists))
-    {
-        if(rp.containsPoint(QPointF(dist*sin(angle), dist*cos(angle)))
-        {
-            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
-        }
-    }
+//    auto rp = get_robot_polygon();
+//    rp = rp.scale();
+//    for (const auto &[angle, dist] : iter::zip(angles, dists))
+//    {
+//        if(rp.containsPoint(QPointF(dist*sin(angle), dist*cos(angle)))
+//        {
+//            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
+//        }
+//    }
     // esxtend the robot polygon to delta_size
     // check if a laser point is inside
     // add force
