@@ -206,7 +206,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
             //std::cout << __FUNCTION__ << " potential match " << std::endl;
             //std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
             //std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
-            if (both_boxes_match(b_synth, b_real))
+            if (not b_synth.match and not b_real.match and both_boxes_match(b_synth, b_real))
             {
                 //std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
                 b_synth.match = true; b_real.match = true;
