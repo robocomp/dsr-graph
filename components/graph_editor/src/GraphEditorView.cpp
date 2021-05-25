@@ -380,7 +380,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
                 return false;
             }
         }
-        else if(type == "interacting")
+        else
         {
             DSR::Edge edge;
             edge.type(type.toStdString());

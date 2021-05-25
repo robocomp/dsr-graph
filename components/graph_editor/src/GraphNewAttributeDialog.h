@@ -10,7 +10,7 @@
 #include <string>
 
 #include "ui_GraphNewAttributeDialog.h"
-
+#include "QdsrTypesCombobox.h"
 
 
 class GraphNewAttributeDialog : public QDialog, private Ui::NewAttributeDialog
@@ -18,12 +18,15 @@ class GraphNewAttributeDialog : public QDialog, private Ui::NewAttributeDialog
 Q_OBJECT
 private:
     std::map<std::string, std::string> name_to_type;
+    QDSRTypesCombobox<DSR::Attribute> *att_names_cmb;
     public:
         GraphNewAttributeDialog(QWidget *parent):QDialog(parent)
         {
 
             this->setupUi(this);
-            update_combo_box();
+            att_names_cmb = new QDSRTypesCombobox<DSR::Attribute>(node_group);
+            att_names_cmb->setObjectName(QString::fromUtf8("att_names_cmb"));
+            formLayout->setWidget(0, QFormLayout::FieldRole, att_names_cmb);
             connect(att_names_cmb, SIGNAL(currentIndexChanged(int)), this, SLOT(attr_combobox_changed(int)));
             connect(filter_types_checkbox, SIGNAL(stateChanged(int)), this, SLOT(set_filter(int)));
             attr_combobox_changed(0);
