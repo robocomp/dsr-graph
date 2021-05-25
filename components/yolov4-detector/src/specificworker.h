@@ -45,6 +45,7 @@
 #include <random/random_selector.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
+#include <Eigen/Core>
 
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
@@ -162,7 +163,7 @@ private:
 
         // Double buffer
         //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
-        DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, float>> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
 

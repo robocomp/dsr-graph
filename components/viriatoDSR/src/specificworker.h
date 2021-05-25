@@ -31,7 +31,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
-
+#include <chrono>
 
 class SpecificWorker : public GenericWorker
 {
@@ -101,7 +101,8 @@ private:
 
     void update_laser();
     void update_omirobot();
-	void update_rgbd();
+    void update_omirobot_timed();
+    void update_rgbd();
     void update_pantilt_position();
     void update_arm_state();
     void check_base_dummy();

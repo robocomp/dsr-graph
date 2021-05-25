@@ -21,6 +21,9 @@
 #include <algorithm>
 #include <cppitertools/product.hpp>
 #include <cppitertools/zip.hpp>
+#include <cppitertools/enumerate.hpp>
+#include <cppitertools/chunked.hpp>
+
 
 /**
 * \brief Default constructor
@@ -171,25 +174,59 @@ void SpecificWorker::compute()
 {
     auto begin = myclock::now();
     const auto g_depth = depth_buffer.try_get();
-    const auto g_image = rgb_buffer.try_get();
+    const auto g_image_o = rgb_buffer.try_get();
+    if(not g_image_o.has_value()) return;
+
+    auto &[g_image, img_timestamp] = g_image_o.value();
     auto robot = G->get_node(robot_name);
-    if( g_image.has_value() and g_depth.has_value())
+
+    if( auto rt_edge = rt_api->get_edge_RT(G->get_node_root().value(), robot.value().id()); rt_edge.has_value())
     {
-        compute_visible_objects();
-        //std::cout << "Visible objects = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
-        cv::Mat imgyolo = g_image.value();
-        std::vector<float> depth_array = g_depth.value();
-        std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
-        std::vector<Box> synth_objects = get_visible_objects_from_graph();
-        show_image(imgyolo, real_objects, synth_objects);
-        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
-        auto lists_after_add = add_new_objects(lists_after_match);
-        auto lists_after_delete = delete_unseen_objects(lists_after_add);
-        auto &[a,b] = lists_after_delete;
-        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
+        if (auto tr_o = rt_api->get_translation(G->get_parent_id(robot.value()).value(), robot.value().id(), img_timestamp); tr_o.has_value())
+        {
+            if (auto tr2 = G->get_attrib_by_name<rt_translation_att>(rt_edge.value()); tr2.has_value())
+            {
+               if (auto index = G->get_attrib_by_name<rt_head_index_att>(rt_edge.value()); index.has_value())
+                {
+                    auto tstamps = G->get_attrib_by_name<rt_timestamps_att>(rt_edge.value()).value().get();
+                    const auto trg = tr2.value().get();
+                    const auto idx = index.value();
+                    const auto tr = tr_o.value();
+                    for(auto &&[t, ts] : iter::zip(iter::chunked(trg, 3), tstamps))
+                        std::cout << " trg " << t[0] << " " << t[1] << " " << t[2] << " - " << ts << std::endl;
+                    //std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
+                    //auto res = (tr - Eigen::Vector3d(trg[3*idx], trg[3*idx+1], trg[3*idx+2]));
+                    //std::cout << __FUNCTION__ << " diff " << res.x() << " " << res.y() << " " << res.z() << std::endl;
+                    qInfo() << "----------";
+                    std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
+                    std::cout << __FUNCTION__ << " img_stamp " << img_timestamp << std::endl;
+                    qInfo() << "--------------------------";
+                }
+                else qWarning() << "NO index";
+            }
+            else qWarning() << "NO tr2";
+        }
+        else qWarning() << "NO tr";
     }
+    else qWarning() << "NO rt_edge";
+
+//    if( g_image.has_value() and g_depth.has_value())
+//    {
+//        compute_visible_objects();
+//
+//        cv::Mat imgyolo = g_image.value();
+//        std::vector<float> depth_array = g_depth.value();
+//        std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
+//        std::vector<Box> synth_objects = get_visible_objects_from_graph();
+//        show_image(imgyolo, real_objects, synth_objects);
+//        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
+//        auto lists_after_add = add_new_objects(lists_after_match);
+//        auto lists_after_delete = delete_unseen_objects(lists_after_add);
+//        auto &[a,b] = lists_after_delete;
+//        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
+//    }
     //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
-    fps.print("FPS:");
+    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_lists(Boxes &real_objects,
@@ -217,7 +254,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
-                G->update_node(synth_node.value());
+                G->update_node(synth_node.value());    // COMPROBAR SI SE PUEDE QUITAR ESTO
                 //b_real.print("Real Box");
                 //b_synth.print("Synth Box");
                 //qInfo() << __FUNCTION__ << " Matched objects:" << ++count;
@@ -599,7 +636,7 @@ void SpecificWorker::compute_visible_objects()
         auto d_attr = G->get_attrib_by_name<obj_depth_att>(object);
         float d = d_attr.value();
 
-        // check if object is in front of the robot. Its position relative to the camera must has positive Y value
+        // check if object is in front of the robot. Its position relative to the camera must have positive Y value
         if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
@@ -768,17 +805,20 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string &type)
 {
-    if (type == rgbd_type_name and id == cam_api->get_id())
+    if (/*type == rgbd_type_name and*/ id == cam_api->get_id())
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
         {
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
             {
                     rgb_buffer.put(std::vector<uint8_t>(g_image.value().get().begin(), g_image.value().get().end()),
-                               [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
+                               [this, cam_node](const std::vector<std::uint8_t> &in, std::tuple<cv::Mat, float> &out) {
                                    cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
                                                const_cast<std::vector<uint8_t> &>(in).data());
-                                   cv::resize(img, out, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
+                                   cv::Mat scaled;
+                                   cv::resize(img, scaled, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
+                                   auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()).value();
+                                   out = std::make_tuple(scaled, static_cast<float>(static_cast<double>(timestamp) / 1000000));
                                });
             }
             if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
@@ -857,3 +897,5 @@ int SpecificWorker::startup_check()
 /**************************************/
 // From the RoboCompDSRGetID you can call this methods:
 // this->dsrgetid1_proxy->getID(...)
+
+
