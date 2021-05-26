@@ -172,59 +172,25 @@ Detector* SpecificWorker::init_detector()
 ////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute()
 {
-    auto begin = myclock::now();
+    //auto begin = myclock::now();
     const auto g_depth = depth_buffer.try_get();
     const auto g_image_o = rgb_buffer.try_get();
-    if(not g_image_o.has_value()) return;
 
-    auto &[g_image, img_timestamp] = g_image_o.value();
-    auto robot = G->get_node(robot_name);
-
-    if( auto rt_edge = rt_api->get_edge_RT(G->get_node_root().value(), robot.value().id()); rt_edge.has_value())
+    if( g_image_o.has_value() and g_depth.has_value())
     {
-        if (auto tr_o = rt_api->get_translation(G->get_parent_id(robot.value()).value(), robot.value().id(), img_timestamp); tr_o.has_value())
-        {
-            if (auto tr2 = G->get_attrib_by_name<rt_translation_att>(rt_edge.value()); tr2.has_value())
-            {
-               if (auto index = G->get_attrib_by_name<rt_head_index_att>(rt_edge.value()); index.has_value())
-                {
-                    auto tstamps = G->get_attrib_by_name<rt_timestamps_att>(rt_edge.value()).value().get();
-                    const auto trg = tr2.value().get();
-                    const auto idx = index.value();
-                    const auto tr = tr_o.value();
-                    for(auto &&[t, ts] : iter::zip(iter::chunked(trg, 3), tstamps))
-                        std::cout << " trg " << t[0] << " " << t[1] << " " << t[2] << " - " << ts << std::endl;
-                    //std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
-                    //auto res = (tr - Eigen::Vector3d(trg[3*idx], trg[3*idx+1], trg[3*idx+2]));
-                    //std::cout << __FUNCTION__ << " diff " << res.x() << " " << res.y() << " " << res.z() << std::endl;
-                    qInfo() << "----------";
-                    std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
-                    std::cout << __FUNCTION__ << " img_stamp " << img_timestamp << std::endl;
-                    qInfo() << "--------------------------";
-                }
-                else qWarning() << "NO index";
-            }
-            else qWarning() << "NO tr2";
-        }
-        else qWarning() << "NO tr";
+        auto &[g_image, img_timestamp] = g_image_o.value();
+        compute_visible_objects(img_timestamp);
+        cv::Mat imgyolo = g_image;
+        std::vector<float> depth_array = g_depth.value();
+        std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array, img_timestamp);
+        std::vector<Box> synth_objects = get_visible_objects_from_graph(img_timestamp);
+        show_image(imgyolo, real_objects, synth_objects);
+        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
+        auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
+        auto lists_after_delete = delete_unseen_objects(lists_after_add);
+        //auto &[a,b] = lists_after_delete;
+        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
-    else qWarning() << "NO rt_edge";
-
-//    if( g_image.has_value() and g_depth.has_value())
-//    {
-//        compute_visible_objects();
-//
-//        cv::Mat imgyolo = g_image.value();
-//        std::vector<float> depth_array = g_depth.value();
-//        std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
-//        std::vector<Box> synth_objects = get_visible_objects_from_graph();
-//        show_image(imgyolo, real_objects, synth_objects);
-//        auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
-//        auto lists_after_add = add_new_objects(lists_after_match);
-//        auto lists_after_delete = delete_unseen_objects(lists_after_add);
-//        auto &[a,b] = lists_after_delete;
-//        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
-//    }
     //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
@@ -233,7 +199,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                                                                                      Boxes &synth_objects,
                                                                                      const std::vector<float> &depth_array)
 {
-    int count = 0;
+    //int count = 0;
     auto world_node = G->get_node(world_name);
     for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
@@ -269,7 +235,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
     return(std::make_tuple(real_objects, synth_objects));
 }
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
-        SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match)
+        SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match, std::uint64_t timestamp)
 {
     int count = 0;
     auto world_node = G->get_node(world_name);
@@ -297,7 +263,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 
         DSR::Node object_node;
         // before actually creating the object, it has to be seen a minimun number of times at the same place
-        if(real_object_is_stable(b_real, room_polygon))  // insert
+        if(real_object_is_stable(b_real, room_polygon, timestamp))  // insert
         {
             object_node = create_node_with_type(b_real.type, b_real.name);
             auto size = known_object_types.at(b_real.type);
@@ -396,7 +362,7 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
 
     return std::make_tuple(dist_x(mt), dist_y(mt));
 }
-bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room)     // a copy of Box
+bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp)     // a copy of Box
 {
     static std::vector<Box> candidates;
 
@@ -405,9 +371,9 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room)
             { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
 
     // remove those behind the camera
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[this](Box const &b)
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[this, timestamp](Box const &b)
             {
-                auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(b.Tx,b.Ty,b.Tz), world_name);
+                auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(b.Tx,b.Ty,b.Tz), world_name, timestamp);
                 return not (pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0);
             }), candidates.end());
 
@@ -439,7 +405,7 @@ std::tuple<float, float, float> SpecificWorker::estimate_object_size_through_pro
 {
     return std::make_tuple(0,0,0);
 }
-std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph()
+std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(std::uint64_t timestamp)
 {
     std::vector<Box> boxes;
     const auto visibles = G->get_edges_by_type("visible");  //Should taka a type instead of a string
@@ -456,9 +422,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
             box.match = false;
             box.visible = true;
             box.type = object.value().type();
-            if(auto t_world = inner_eigen->transform(world_name, object.value().name()); t_world.has_value())
+            if(auto t_world = inner_eigen->transform(world_name, object.value().name(), timestamp); t_world.has_value())
             {
-                if (auto t_camera = inner_eigen->transform(viriato_head_camera_name, object.value().name()); t_camera.has_value())
+                if (auto t_camera = inner_eigen->transform(viriato_head_camera_name, object.value().name(), timestamp); t_camera.has_value())
                 {
                     box.depth = t_camera.value().norm();
                     box.Cx = t_camera.value().x();
@@ -474,7 +440,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
     }
     return boxes;
 }
-std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img, const std::vector<float> &depth_array)
+std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const cv::Mat &img, const std::vector<float> &depth_array, std::uint64_t timestamp)
 {
     // get detections from RGB image
     image_t yolo_img = createImage(img);
@@ -521,7 +487,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
             if (tp.has_value())
             {
                 auto[x, y, z] = tp.value();
-                if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), viriato_head_camera_name); t_world.has_value())
+                if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), viriato_head_camera_name, timestamp); t_world.has_value())
                 {
                     //std::cout << "POS 3D "<<yolo_names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
                     box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
@@ -596,7 +562,7 @@ bool SpecificWorker::both_boxes_match(Box &real_box, Box &synth_box)
         return false;
 }
 // SHOULD BE LIMITED TO A MAXIMUM NUMBER OF OBJECTS
-void SpecificWorker::compute_visible_objects()
+void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
 {
     std::vector<Box> synth_box;
     std::vector<DSR::Node> object_nodes;
@@ -637,24 +603,24 @@ void SpecificWorker::compute_visible_objects()
         float d = d_attr.value();
 
         // check if object is in front of the robot. Its position relative to the camera must have positive Y value
-        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
+        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, 0); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
-            auto object_pos = inner_eigen->transform(world_name, object_name);
+            auto object_pos = inner_eigen->transform(world_name, object_name, 0);
             if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
                 continue;
 
             // project corners of object's bounding box in the camera image plane
             // get object's bounding box from object's node
             std::vector<Mat::Vector2d> bb_in_camera(8);
-            bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[1] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[2] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[3] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, -h / 2), object_name).value(), 0, 0);
-            bb_in_camera[4] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[5] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[6] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
-            bb_in_camera[7] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, h / 2), object_name).value(), 0, 0);
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[1] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[2] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[3] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[4] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, d / 2, h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[5] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[6] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[7] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, h / 2), object_name, timestamp).value(), 0, 0);
 
             // Compute a 2D projected bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -689,8 +655,9 @@ void SpecificWorker::compute_visible_objects()
             if (areaV / areaR > CONSTANTS.percentage_of_visible_area_to_be_visible / 100.f) // ratio between clamped area and projected area
             {
                 box.visible = true;
-                if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
-                    box.depth = d.value().norm();
+                //if (auto d = rt_api->get_translation(cam_api->get_id(), object.id(), timestamp); d.has_value())
+                if (auto d = inner_eigen->transform(viriato_head_camera_name, object.name(), timestamp); d.has_value())
+                        box.depth = d.value().norm();
                 else box.depth = 0;
                 synth_box.push_back(box);
 
@@ -812,13 +779,16 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
             {
                     rgb_buffer.put(std::vector<uint8_t>(g_image.value().get().begin(), g_image.value().get().end()),
-                               [this, cam_node](const std::vector<std::uint8_t> &in, std::tuple<cv::Mat, float> &out) {
+                               [this, cam_node](const std::vector<std::uint8_t> &in, std::tuple<cv::Mat, std::uint64_t> &out)
+                               {
                                    cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
                                                const_cast<std::vector<uint8_t> &>(in).data());
                                    cv::Mat scaled;
                                    cv::resize(img, scaled, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
-                                   auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()).value();
-                                   out = std::make_tuple(scaled, static_cast<float>(static_cast<double>(timestamp) / 1000000));
+                                   if( auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()); timestamp.has_value())
+                                       out = std::make_tuple(scaled, timestamp.value()/1000000);
+                                   else
+                                       out = std::make_tuple(scaled, 0);
                                });
             }
             if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
@@ -841,11 +811,11 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
     }
 }
 
-void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
-{
-    if(from == G->get_node(world_name).value().id() and to == G->get_node(robot_name).value().id() and type == "RT")
-            compute_visible_objects();
-}
+//void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
+//{
+//    if(from == G->get_node(world_name).value().id() and to == G->get_node(robot_name).value().id() and type == "RT")
+//            compute_visible_objects();
+//}
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::clear_button_slot()
 {
@@ -898,4 +868,35 @@ int SpecificWorker::startup_check()
 // From the RoboCompDSRGetID you can call this methods:
 // this->dsrgetid1_proxy->getID(...)
 
+//Test
 
+//if( auto rt_edge = rt_api->get_edge_RT(G->get_node_root().value(), robot.value().id()); rt_edge.has_value())
+//{
+//if (auto tr_o = rt_api->get_translation(G->get_parent_id(robot.value()).value(), robot.value().id(), img_timestamp); tr_o.has_value())
+//{
+//if (auto tr2 = G->get_attrib_by_name<rt_translation_att>(rt_edge.value()); tr2.has_value())
+//{
+//if (auto index = G->get_attrib_by_name<rt_head_index_att>(rt_edge.value()); index.has_value())
+//{
+//auto tstamps = G->get_attrib_by_name<rt_timestamps_att>(rt_edge.value()).value().get();
+//const auto trg = tr2.value().get();
+//const auto idx = index.value();
+//const auto tr = tr_o.value();
+//for(int i= 0; auto &&[t, ts] : iter::zip(iter::chunked(trg, 3), tstamps))
+//std::cout << " direct att " << i++ << " - " << t[0] << " " << t[1] << " " << t[2] << " - " << ts << std::endl;
+////std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
+////auto res = (tr - Eigen::Vector3d(trg[3*idx], trg[3*idx+1], trg[3*idx+2]));
+////std::cout << __FUNCTION__ << " diff " << res.x() << " " << res.y() << " " << res.z() << std::endl;
+//qInfo() << "----------";
+//std::cout << __FUNCTION__ << " api_aligned  "  << " " << tr.x() << " " << tr.y() << " " << tr.z()  << std::endl;
+//std::cout << __FUNCTION__ << " img_stamp " << img_timestamp << std::endl;
+//std::cout << __FUNCTION__ << " head " << (int)(idx/3) << std::endl;
+//qInfo() << "--------------------------";
+//}
+//else qWarning() << "NO index";
+//}
+//else qWarning() << "NO tr2";
+//}
+//else qWarning() << "NO tr";
+//}
+//else qWarning() << "NO rt_edge";

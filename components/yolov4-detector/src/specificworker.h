@@ -153,7 +153,7 @@ private:
         QHBoxLayout mainLayout;
         void add_or_assign_node_slot(std::uint64_t, const std::string &type);
         void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
-        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type);
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
         void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
@@ -163,7 +163,7 @@ private:
 
         // Double buffer
         //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
-        DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, float>> rgb_buffer;
+        DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, std::uint64_t>> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
 
@@ -181,20 +181,20 @@ private:
 
         // YOLOv4 methods
         Detector* init_detector();
-        std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array);
+        std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array, std::uint64_t timestamp);
         image_t createImage(const cv::Mat &src);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
         bool both_boxes_match(Box &real_box, Box &synth_box);
         std::tuple<bool, std::string> contained_in_known_objects(const std::string &candidate);
         DSR::Node create_node_with_type(const std::string &type, const std::string &name);
         void remove_edge();
-        void compute_visible_objects();
-        std::vector<Box> get_visible_objects_from_graph();
+        void compute_visible_objects(std::uint64_t timestamp);
+        std::vector<Box> get_visible_objects_from_graph(std::uint64_t timestamp);
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
-        std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match);
+        std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match, std::uint64_t timestamp);
         std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
         std::tuple<float, float, float> estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real);
-        bool real_object_is_stable(Box box, const QPolygonF &robot_room);
+        bool real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp);
         std::tuple<float, float> get_random_position_to_draw_in_graph(const std::string &type);
 
         // objects
