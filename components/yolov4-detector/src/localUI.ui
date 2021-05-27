@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>871</width>
+    <width>820</width>
     <height>660</height>
    </rect>
   </property>
@@ -51,45 +51,6 @@
         </spacer>
        </item>
        <item>
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="minimumSize">
-          <size>
-           <width>512</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>-100</number>
-         </property>
-         <property name="maximum">
-          <number>100</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLCDNumber" name="pan">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <family>Ubuntu Condensed</family>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -106,6 +67,12 @@
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -116,12 +83,12 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QPushButton" name="startButton">
+           <widget class="QPushButton" name="clearButton">
             <property name="text">
-             <string>Start</string>
+             <string>Clear</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="checked">
              <bool>false</bool>
@@ -132,6 +99,12 @@
            <widget class="QComboBox" name="comboBox">
             <property name="currentText">
              <string/>
+            </property>
+            <property name="currentIndex">
+             <number>-1</number>
+            </property>
+            <property name="maxVisibleItems">
+             <number>20</number>
             </property>
            </widget>
           </item>

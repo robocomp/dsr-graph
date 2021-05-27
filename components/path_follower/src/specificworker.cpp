@@ -20,6 +20,7 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/enumerate.hpp>
+#include <cppitertools/range.hpp>
 #include <algorithm>
 #include <QPointF>
 #include <ranges>
@@ -64,9 +65,7 @@ void SpecificWorker::initialize(int period)
 	std::cout << __FUNCTION__ << std::endl;
 	this->Period = period;
 	if(this->startup_check_flag)
-	{
 		this->startup_check();
-	}
 	else
 	{
 		// create graph
@@ -137,6 +136,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+
     static std::vector<Eigen::Vector2f> path;
 
     // Check for existing path_to_target_nodes
@@ -158,7 +158,7 @@ void SpecificWorker::compute()
             auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
             auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
             auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
-            auto speeds = update(path, LaserData{angles, dists}, robot_pose, robot_nose, current_target);
+            auto speeds = update(path, laser_poly, robot_pose, robot_nose, current_target);
             auto[adv, side, rot] =  send_command_to_robot(speeds);
             remove_trailing_path(path, robot_pose);
 
@@ -179,7 +179,7 @@ void SpecificWorker::compute()
         {} // check elapsed time since last reading. Stop the robot if too long
     }
     else
-        qWarning() << __FUNCTION__ << "No path_node found in G";
+        qDebug() << __FUNCTION__ << "No path_node found in G";
 }
 void SpecificWorker::path_follower_initialize()
 {
@@ -198,12 +198,12 @@ void SpecificWorker::path_follower_initialize()
         std::cout << "CONTROLLER. Out of Range error reading parameters: " << oor.what() << '\n';
         std::terminate();
     }
-    //    robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
-    //    robotZLong = std::stof(conf_params->at("RobotZLong").value);
-    //    robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
-    //    robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
-    //    robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
-    //    robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
+        robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
+        robotZLong = std::stof(conf_params->at("RobotZLong").value);
+        robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, -robotZLong / 2, 0);
+        robotBottomRight    = Mat::Vector3d ( robotXWidth / 2, -robotZLong / 2, 0);
+        robotTopRight       = Mat::Vector3d ( robotXWidth / 2, robotZLong / 2, 0);
+        robotTopLeft        = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
 }
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
 {
@@ -228,7 +228,7 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     else
         std::cout << __FUNCTION__ << "No path target " << std::endl;
 }
-std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::Vector2f> &path, const LaserData &laser_data, const Eigen::Vector2f &robot_pose,
+std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::Vector2f> &path, const QPolygonF &laser_poly, const Eigen::Vector2f &robot_pose,
                                                        const Eigen::Vector2f &robot_nose, const Eigen::Vector2f &target)
 {
     qDebug() << "Controller - "<< __FUNCTION__;
@@ -305,19 +305,67 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};
-    const auto &[angles, dists] = laser_data;
-    for (const auto &[angle, dist] : iter::zip(angles, dists))
-    {
-        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
-        float diff = limit - dist;
-        if (diff >= 0)
-            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
-    }
-    QVector2D bumperVel = total * KB;  // Parameter set in slidebar
-    sideVel = std::clamp(bumperVel.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
+//    const auto &[angles, dists] = laser_data;
+//    for (const auto &[angle, dist] : iter::zip(angles, dists))
+//    {
+//        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
+//        float diff = limit - dist;
+//        if (diff >= 0)
+//            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
+//    }
 
-    //qInfo() << advVelz << advVelx << rotVel;
+    /// Compute bumper away speed for rectangular shape
+    // get extendedrobot polygon in worlds's coordinate frame
+    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
+    for (const auto &p : rp)
+        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
+            total = total + QVector2D(p);
+    qInfo() << __FUNCTION__ << total;
+    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
     return std::make_tuple(advVel, sideVel, rotVel);
+}
+
+std::vector<QPointF> SpecificWorker::get_points_along_extended_robot_polygon(int offset, int chunck)
+{
+    static QGraphicsRectItem *poly_draw = nullptr;
+    std::vector<QPointF> poly;
+    QRectF rp(QPointF(robotTopLeft.x(),robotTopLeft.y()), QPointF(robotBottomRight.x(), robotBottomRight.y()));
+    rp.adjust(-offset, offset, offset, -offset);
+    QLineF bottom(rp.bottomLeft(), rp.bottomRight());
+    QLineF left(rp.topLeft(), rp.bottomLeft());
+    QLineF top(rp.topLeft(), rp.topRight());
+    QLineF right(rp.topRight(), rp.bottomRight());
+    for(auto i : iter::range(0.f, 1.f, (float)(1.f/(top.length()/chunck))))
+    {
+        poly.push_back(top.pointAt(i));
+        poly.push_back(bottom.pointAt(i));
+        //auto aux = inner_eigen->transform(world_name, Eigen::Vector3d{point.x(), point.y(), 0.f}, robot_name);
+        //poly << QPointF(aux.value().x(), aux.value().y());
+        //point =  bottom.pointAt(i);
+        //aux = inner_eigen->transform(world_name, Eigen::Vector3d{point.x(), point.y(), 0.f}, robot_name);
+        //poly << QPointF(aux.value().x(), aux.value().y());
+    }
+    for(auto i : iter::range(0.f, 1.f, (float)(1.f/(left.length()/chunck))))
+    {
+        poly.push_back(left.pointAt(i));
+        poly.push_back(right.pointAt(i));
+        //        auto point =  left.pointAt(i);
+        //        auto aux = inner_eigen->transform(world_name, Eigen::Vector3d{point.x(), point.y(), 0.f}, robot_name);
+        //        poly << QPointF(aux.value().x(), aux.value().y());
+        //        point =  right.pointAt(i);
+        //        aux = inner_eigen->transform(world_name, Eigen::Vector3d{point.x(), point.y(), 0.f}, robot_name);
+        //        poly << QPointF(aux.value().x(), aux.value().y());
+    }
+    if(poly_draw != nullptr)
+    {
+        widget_2d->scene.removeItem(poly_draw);
+        delete poly_draw;
+    }
+    poly_draw = widget_2d->scene.addRect(rp, QPen(QColor("blue"), 10));
+    auto robot_pos = inner_eigen->transform_axis(world_name, robot_name).value();
+    poly_draw->setRotation(qRadiansToDegrees(robot_pos[5]));
+    poly_draw->setPos(QPointF(robot_pos[0], robot_pos[1]));
+    return poly;
 }
 
 std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
@@ -424,8 +472,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                  {
                                      QPolygonF laser_poly;
                                      std::vector<QPointF> laser_cart;
-                                     const auto &[angles, dists] = in;
-                                     for (const auto &[angle, dist] : iter::zip(angles, dists))
+                                     auto &&[angles, dists] = in;
+                                     for (auto &&[angle, dist] : iter::zip(std::move(angles), std::move(dists)))
                                      {
                                          //convert laser polar coordinates to cartesian
                                          float x = dist * sin(angle);

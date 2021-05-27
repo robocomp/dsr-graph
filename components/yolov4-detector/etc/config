@@ -6,7 +6,7 @@ DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
 
 # Agent configuration
 agent_id = 19 # Change id
-agent_name = yolov4_tracker
+agent_name = yolov4_detector
 tree_view = false
 graph_view = true
 2d_view = false

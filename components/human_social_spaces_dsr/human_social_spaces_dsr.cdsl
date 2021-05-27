@@ -1,0 +1,15 @@
+import "HumanToDSRPub.idsl";
+
+Component human_social_spaces_dsr
+{
+    Communications
+    {
+        
+        subscribesTo HumanToDSRPub;
+       
+    };
+    language python;
+    options dsr;
+    
+};
+

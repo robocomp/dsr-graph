@@ -31,7 +31,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
-
+#include <chrono>
 
 class SpecificWorker : public GenericWorker
 {
@@ -101,12 +101,14 @@ private:
 
     void update_laser();
     void update_omirobot();
-	void update_rgbd();
+    void update_omirobot_timed();
+    void update_rgbd();
     void update_pantilt_position();
     void update_arm_state();
     void check_base_dummy();
 
 	bool are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon);
+    void update_room_occupancy(float robot_x, float robot_y);
 
     void check_new_nose_referece_for_pan_tilt();
 

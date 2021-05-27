@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NewElementDlg</class>
- <widget class="QDialog" name="NewElementDlg">
+ <class>NewAttributeDialog</class>
+ <widget class="QDialog" name="NewAttributeDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>416</width>
-    <height>313</height>
+    <width>492</width>
+    <height>179</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,76 +17,42 @@
    <item>
     <widget class="QGroupBox" name="node_group">
      <property name="title">
-      <string>Node</string>
+      <string>Attribute</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Nombre</string>
+         <string>Name</string>
         </property>
        </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="node_name_lbl"/>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Tipo</string>
+         <string>Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="filter_types_checkbox">
+        <property name="text">
+         <string>Filter not known types</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="node_type_cmb"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="node_group_2">
-     <property name="title">
-      <string>Node</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_4">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Nombre</string>
+       <widget class="QLineEdit" name="att_type">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Tipo</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="node_name_lbl_2"/>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="node_type_cmb_2"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="edge_group">
-     <property name="title">
-      <string>Edge</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Tipo</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="edge_type_cmb"/>
       </item>
      </layout>
     </widget>
@@ -108,7 +74,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>NewElementDlg</receiver>
+   <receiver>NewAttributeDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -124,7 +90,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>NewElementDlg</receiver>
+   <receiver>NewAttributeDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

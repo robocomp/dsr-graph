@@ -122,23 +122,26 @@ class SpecificWorker : public GenericWorker
         const float ROBOT_LENGTH = 500;  //GET FROM G
         float MAX_ADV_SPEED = 1000;
         float MAX_ROT_SPEED = 3;
-        float MAX_SIDE_SPEED = 200;
+        float MAX_SIDE_SPEED = 400;
         float MAX_LAG = 100; //ms
         float ROBOT_RADIUS_MM = 250; //mm
         const float FINAL_DISTANCE_TO_TARGET = 200; //mm
         float KB = 6.0;
+        QPolygonF get_robot_polygon();
 
         // controller
         void path_follower_initialize();
         std::tuple<float, float, float>
-        update(const std::vector<Eigen::Vector2f> &path, const LaserData &laser_data, const Eigen::Vector2f &robot_pose,
+        update(const std::vector<Eigen::Vector2f> &path, const QPolygonF &laser_poly, const Eigen::Vector2f &robot_pose,
                const Eigen::Vector2f &robot_nose, const Eigen::Vector2f &target);
         float robotXWidth, robotZLong; //robot dimensions read from config
-        Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
+        Eigen::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         float exponentialFunction(float value, float xValue, float yValue, float min);
         float rewrapAngleRestricted(const float angle);
+        std::vector<QPointF> get_points_along_extended_robot_polygon(int offset, int chunck);
 
-        // target
+
+    // target
         Eigen::Vector2f current_target;
         std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);
         bool robot_is_active = false;

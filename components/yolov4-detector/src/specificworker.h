@@ -45,11 +45,12 @@
 #include <random/random_selector.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include "plan.h"
+#include <Eigen/Core>
 
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
 using myclock = std::chrono::system_clock;
-using msec = std::chrono::duration<float , std::milli>;
+using msec = std::chrono::duration<int , std::milli>;
 
 class SpecificWorker : public GenericWorker
 {
@@ -63,10 +64,22 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
-        void start_button_slot(bool);
-        void change_object_slot(int);
+        void clear_button_slot();
+        void change_attention_object_slot(int);
 
-    private:
+
+private:
+        struct CONSTANTS_DATA
+        {
+            float min_yolo_probability_threshold = 50;
+            float times_the_width_of_synth_box = 3;
+            int min_ticks_to_add_object_threshold = 7;
+            int max_allowed_unseen_ticks = 50;
+            int min_time_to_add_object_threshold = 2000;  // milliseconds
+            float percentage_of_visible_area_to_be_visible = 25;
+        };
+        const CONSTANTS_DATA CONSTANTS;
+
         // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
         struct Box
         {
@@ -80,13 +93,19 @@ class SpecificWorker : public GenericWorker
             bool visible;
             float Tx, Ty, Tz;  // world ref sys
             float Cx, Cy, Cz;  // camera ref sys
-            bool match;
-            float area;
-            float match_error;
+            bool match;        // true if matched to a synth one
+            float area;        // intersected area
+            float match_error; // % of full intersection
             int width() const { return right-left;};
             int height() const { return bot-top;};
             int cx() const { return left + width()/2;};
             int cy() const { return top + height()/2;};
+            bool marked_for_delete = false;  // to be deleted after match or creation
+            int creation_ticks = 0;
+            std::chrono::steady_clock::time_point creation_time;
+            std::string type;
+            float distance_in_world_frame_to(const Box &b) const
+                    { return (Eigen::Vector3f(b.Tx,b.Ty,b.Tz)-Eigen::Vector3f(Tx,Ty,Tz)).norm();}
             void print(const std::string_view &s) const
             {
                 std::cout << "--- " << s << " -----" << std::endl;
@@ -101,20 +120,15 @@ class SpecificWorker : public GenericWorker
                 std::cout << "\t centre: " << cx() << " " << cy() << std::endl;
                 std::cout << "\t match error: " << match_error << std::endl;
                 std::cout << "\t area: " << area << std::endl;
+                std::cout << "\t marked_for_delete: " << marked_for_delete << std::endl;
                 std::cout << "---------------------" << std::endl;
             };
         };
         using Boxes = std::vector<Box>;
 
-        // NODE NAMES
-        std::string object_of_interest = "no_object";
-        const std::string viriato_pan_tilt = "viriato_head_camera_pan_tilt";
-        const std::string camera_name = "viriato_head_camera_sensor";
-        const std::string world_node = "world";
+        // KNOWN OBJECTS
 
-        // ATTRIBUTE NAMES
-        const std::string nose_target = "viriato_pan_tilt_nose_target";
-        const std::vector<float> nose_default_pose{0,500,0};
+       std::map<std::string, std::vector<int>> known_object_types;
 
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
@@ -139,7 +153,7 @@ class SpecificWorker : public GenericWorker
         QHBoxLayout mainLayout;
         void add_or_assign_node_slot(std::uint64_t, const std::string &type);
         void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
-        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type);
+        void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
         void del_node_slot(std::uint64_t from){};
         bool startup_check_flag;
@@ -149,7 +163,7 @@ class SpecificWorker : public GenericWorker
 
         // Double buffer
         //DoubleBuffer<std::vector<std::uint8_t>, std::vector<std::uint8_t>> rgb_buffer;
-        DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, std::uint64_t>> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::string, Plan> plan_buffer;
 
@@ -159,7 +173,7 @@ class SpecificWorker : public GenericWorker
         // YOLOv4 attributes
         const std::size_t YOLO_INSTANCES = 1;
         std::vector<Detector*> ynets;
-        std::vector<std::string> names;
+        std::vector<std::string> yolo_names;
         bool SHOW_IMAGE = false;
         bool READY_TO_GO = false;
         FPSCounter fps;
@@ -167,36 +181,33 @@ class SpecificWorker : public GenericWorker
 
         // YOLOv4 methods
         Detector* init_detector();
-        std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array);
+        std::vector<Box> process_image_with_yolo(const cv::Mat& img, const std::vector<float> &depth_array, std::uint64_t timestamp);
         image_t createImage(const cv::Mat &src);
-        //image_t createImage(const std::vector<uint8_t> &src, int width, int height, int depth);
         void show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, const std::vector<Box> synth_boxes);
-        std::vector<Box> process_graph_with_yolosynth(const std::vector<std::string> &object_names);
-        //void compute_prediction_error(const vector<Box> &real_boxes, const vector<Box> synth_boxes);
         bool both_boxes_match(Box &real_box, Box &synth_box);
-        void track_object_of_interest(DSR::Node &robot);
-        void set_nose_target_to_default();
-        void change_to_new_target();
-        void add_edge(const std::tuple<float,float,float> &tp);
+        std::tuple<bool, std::string> contained_in_known_objects(const std::string &candidate);
+        DSR::Node create_node_with_type(const std::string &type, const std::string &name);
         void remove_edge();
-        void update_base_slider();
-        void move_base(DSR::Node &robot);
-        void stop_robot();
-        void compute_visible_objects();
-        std::vector<Box> get_visible_objects_from_graph();
+        void compute_visible_objects(std::uint64_t timestamp);
+        std::vector<Box> get_visible_objects_from_graph(std::uint64_t timestamp);
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
-        std::tuple<Boxes, Boxes> add_new_objects(const std::tuple<Boxes, Boxes> &lists_after_match);
-        std::tuple<Boxes, Boxes> delete_unseen_objects(const std::tuple<Boxes, Boxes> &lists_after_add);
-
-
-    // Tracker
-        enum class TState {IDLE, TRACKING, CHANGING };
-        TState tracking_state = TState::IDLE;
+        std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match, std::uint64_t timestamp);
+        std::tuple<Boxes, Boxes> delete_unseen_objects(std::tuple<Boxes, Boxes> &lists_after_add);
+        std::tuple<float, float, float> estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real);
+        bool real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp);
+        std::tuple<float, float> get_random_position_to_draw_in_graph(const std::string &type);
 
         // objects
         bool time_to_change = true;
         bool tracking = false;
         RandomSelector<> random_selector{};
+
+        // attention
+        void initialize_combobox();
+        std::uint64_t last_object_of_attention;
+        void clear_all_attention_edges();
+
+
 };
 
 #endif

@@ -71,7 +71,7 @@ void SpecificWorker::initialize(int period)
 
 		//dsr update signals
 		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-		connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+//		connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
 //		connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
@@ -95,7 +95,7 @@ void SpecificWorker::initialize(int period)
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
         if(widget_2d != nullptr)
-            widget_2d->set_draw_laser(false);
+            widget_2d->set_draw_laser(true);
 
         connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
 
@@ -107,7 +107,7 @@ void SpecificWorker::initialize(int period)
         //connect(custom_widget.comboBox_select_target, SIGNAL(activated(int)), this, SLOT(slot_select_target_object(int)));
 
         // Ignore attributes
-        G->set_ignored_attributes<cam_depth_att, laser_angles_att, laser_dists_att>();
+        G->set_ignored_attributes<cam_depth_att>();
 
         // Inner Api
         inner_eigen = G->get_inner_eigen_api();
@@ -155,10 +155,10 @@ void SpecificWorker::compute()
                     dist = dist + (path.value()[i] - path.value()[i + 1]).norm();
 
                 qInfo() << path.value().size();
-                qInfo() << "Inicio: " << path.value()[0].x() << "," << path.value()[0].y();
-                qInfo() << "Final: " << path.value()[path.value().size() - 1].x() << ","
+                qInfo() << __FUNCTION__ << "Inicio: " << path.value()[0].x() << "," << path.value()[0].y();
+                qInfo() << __FUNCTION__ << "Final: " << path.value()[path.value().size() - 1].x() << ","
                         << path.value()[path.value().size() - 1].y();
-                qInfo() << "Distancia: " << dist;
+                qInfo() << __FUNCTION__ << "Distancia: " << dist;
                 auto time = dist / vel_media;
             }
             auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
@@ -171,21 +171,22 @@ void SpecificWorker::compute()
                 primera_vez=false;
                 std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
                 auto d=std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-                qInfo() << "Tiempo: " << d << "s";
+                qInfo() << __FUNCTION__ << "Tiempo: " << d << "s";
                 if(custom_widget.checkBox_cyclic->isChecked())  // cycli
                 {
                     std::random_device rd; std::mt19937 mt(rd());
                     std::uniform_int_distribution<int> random_index(0, custom_widget.comboBox_select_target->count()-1);
                     int new_index;
-                    do { new_index = random_index(mt);} while( new_index == last_selected_index);  //avoid repeating rooms
+                    do { new_index = random_index(mt);}
+                    while( new_index == last_selected_index);  //avoid repeating rooms
                     last_selected_index = new_index;
-                    qInfo() << "new index selected" << new_index;
+                    qInfo() << __FUNCTION__ << "new index selected" << new_index;
                     custom_widget.comboBox_select_target->setCurrentIndex(last_selected_index);
                     slot_start_mission();
                 }
             }
             else
-                qInfo() << "Path size: " << path.value().size();
+                qInfo() << __FUNCTION__ << "Path size: " << path.value().size();
         }
     }
     else
@@ -204,6 +205,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
 {
     qInfo() << __FUNCTION__ << " Creating GOTO mission to " << pos;
     Plan plan;
+    std::string plan_string;
     // we get the id of the object clicked from the 2D representation
     if (auto target_node = G->get_node(target_node_id); target_node.has_value())
     {
@@ -211,19 +213,20 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
         //location.imbue(std::locale("en_US.UTF8"));
         location << "[" << std::to_string(pos.x()) << "," << std::to_string(pos.y()) << "," << 0 << "]";
         std::cout << __FUNCTION__ << location.str();
-        const std::string plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node->name() + "\"}}]}";
+        plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node->name() + "\"}}]}";
         std::cout << __FUNCTION__ << " " << plan_string << std::endl;
         plan = Plan(plan_string);
-        plan_buffer.put(plan);
+        plan_buffer.put(std::move(plan));
     }
 
-    // Check if there is 'intention' node yet in G
+    // Check if there is 'mind' in G
     if(auto mind = G->get_node(robot_mind_name); mind.has_value())
     {
+        // Check if there is 'intention' node yet in G
         if (auto intention = G->get_node(current_intention_name); intention.has_value())
         {
-            std::cout << __FUNCTION__ << " Adding plan to intention node " << plan.to_string() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_string());
+            std::cout << __FUNCTION__ << " Adding plan to intention node " << plan_string << std::endl;
+            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
             if (G->update_node(intention.value()))
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully updated in G" << std::endl;
             else
@@ -236,7 +239,7 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
             G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
             G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -466);
             G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 42);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
+            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
             if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
             {
                 std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
@@ -249,6 +252,26 @@ void SpecificWorker::create_mission(const QPointF &pos, std::uint64_t target_nod
                               << " type: has" << std::endl;
             } else
                 std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
+        }
+        // create ACTION edge to destination node (to be used instead of textual Plan)
+        bool exists_edge = false;
+        if( auto target_room_edges = G->get_node_edges_by_type(G->get_node(current_intention_name).value(), "goto_action"); not target_room_edges.empty())
+        {
+            for (const auto &tr_edge : target_room_edges)
+                if (tr_edge.to() == target_node_id)    //  found goto edge to the target room
+                    exists_edge = true;
+                else
+                    G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");   // found got edge to other room. Deleted
+        }
+        if(not exists_edge)  // not found edge to target room
+        {
+            // create edge from intention node to the target room node
+            DSR::Edge target_room_edge = DSR::Edge::create<goto_action_edge_type>(G->get_node(current_intention_name).value().id(), target_node_id);
+            if (G->insert_or_assign_edge(target_room_edge))
+                std::cout << __FUNCTION__ << " Edge \"goto_action_type\" inserted in G" << std::endl;
+            else
+                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << G->get_node(current_intention_name).value().id() << "->" << target_node_id
+                  << " type: goto_action" << std::endl;
         }
     }
     else
@@ -284,8 +307,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<Eigen::Vector3d> path; path.reserve(x_values.size());
                 for(auto &&[p, q] : iter::zip(x_values,y_values))
                     path.emplace_back(Eigen::Vector3d(p, q, 0.f));
-                path_buffer.put(path);
                 draw_path(path, &widget_2d->scene);
+                path_buffer.put(std::move(path));
             }
         }
     }
@@ -375,7 +398,7 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
     /// Draw all points
     QGraphicsLineItem *line1, *line2;
     std::string color;
-    for(auto &&p_pair : iter::sliding_window(path, 2))
+    for(auto &p_pair : iter::sliding_window(path, 2))
     {
         if(p_pair.size() < 2)
             continue;
@@ -457,6 +480,13 @@ void SpecificWorker::slot_stop_mission()
             else
                 qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_path_name);
         }
+
+        if( auto target_room_edges = G->get_node_edges_by_type(intention.value(), "goto_action"); not target_room_edges.empty())
+        {
+            for (const auto &tr_edge : target_room_edges)
+               G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");
+        }
+
         if (G->delete_node(intention.value().id()))
             qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_intention_name) << " deleted ";
         else

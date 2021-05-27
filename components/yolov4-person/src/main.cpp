@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::yolov4_detector
+/** \mainpage RoboComp::yolov4_person
  *
  * \section intro_sec Introduction
  *
- * The yolov4_detector component...
+ * The yolov4_person component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd yolov4_detector
+ * cd yolov4_person
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/yolov4_detector --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/yolov4_person --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -85,10 +85,10 @@
 
 
 
-class yolov4_detector : public RoboComp::Application
+class yolov4_person : public RoboComp::Application
 {
 public:
-	yolov4_detector (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
+	yolov4_person (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
@@ -99,14 +99,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::yolov4_detector::initialize()
+void ::yolov4_person::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::yolov4_detector::run(int argc, char* argv[])
+int ::yolov4_person::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	::yolov4_detector app(prefix, startup_check_flag);
+	::yolov4_person app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }

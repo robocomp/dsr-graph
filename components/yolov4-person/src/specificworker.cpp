@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by Mohamed Shawky
+ *    Copyright (C) 2021 by YOUR NAME HERE
  *
  *    This file is part of RoboComp
  *
@@ -144,6 +144,7 @@ void SpecificWorker::compute()
     auto robot = G->get_node(robot_name);
     if( g_image.has_value() and g_depth.has_value())
     {
+        compute_visible_objects();
         cv::Mat imgyolo = g_image.value();
         std::vector<float> depth_array = g_depth.value();
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array);
@@ -285,19 +286,31 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
         Box box;
         int cls = d.obj_id;
         box.name = names.at(cls);
-        box.left = d.x;
-        box.right = d.x + d.w;
-        box.top = d.y;
-        box.bot = d.y + d.h;
-        if (box.left < 0) box.left = 0;
-        if (box.right > yolo_img.w - 1) box.right = yolo_img.w - 1;
-        if (box.top < 0) box.top = 0;
-        if (box.bot > yolo_img.h - 1) box.bot = yolo_img.h - 1;
+        box.left = d.x-yolo_img.w/2;
+        box.right = d.x + d.w-yolo_img.w/2;
+        box.top = d.y-yolo_img.h/2;
+        box.bot = d.y + d.h-yolo_img.h/2;
+        if (box.left < -yolo_img.w/2) box.left = -yolo_img.w/2;
+        if (box.right > yolo_img.w/2 - 1) box.right = yolo_img.w/2 - 1;
+        if (box.top < -yolo_img.h/2) box.top = -yolo_img.h/2;
+        if (box.bot > yolo_img.h/2 - 1) box.bot = yolo_img.h/2 - 1;
         box.prob = d.prob*100;
         box.visible = true;
         box.match = false;
-        auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(box.left, box.bot),
-                                                                                  Eigen::Vector2f(box.right, box.top)));
+        int wDepth = cam_api->get_width();
+        int hDepth = cam_api->get_height();
+        int BDleft = box.left+wDepth/2;
+        if (BDleft<0) BDleft = 0;
+        int BDright = box.right+wDepth/2;
+        if (BDright>=wDepth) BDright = wDepth-1;
+        int BDtop = box.top+hDepth/2;
+        if (BDtop<0) BDtop = 0;
+        int BDbot = box.bot+hDepth/2;
+        if (BDbot>=hDepth) BDbot = hDepth-1;
+
+
+        auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(BDleft, BDbot),
+                                                                                  Eigen::Vector2f(BDright, BDtop)));
         if (tp.has_value())
         {
             auto[x, y, z] = tp.value();
@@ -525,10 +538,16 @@ void SpecificWorker::update_base_slider()
 }
 void SpecificWorker::compute_visible_objects()
 {
+    std::cout << __FUNCTION__ << std::endl;
+
     std::vector<Box> synth_box;
     auto person_nodes = G->get_nodes_by_type(person_type_name);
 
+    std::cout<<"Number of persons in graph =  "<<person_nodes.size()<<std::endl;
+
+
     auto c = YOLO_IMG_SIZE/2;
+
     for(auto &object : person_nodes)
     {
         const std::string object_name = object.name();
@@ -536,16 +555,18 @@ void SpecificWorker::compute_visible_objects()
 
         // project corners of PERSON's bounding box in the camera image plane. CHANGE to real person dimensions
         std::vector<Mat::Vector2d> bb_in_camera(8);
-        const float height = 1700;
-        const float width = 600;
-        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(width,width,0), object_name).value(),c,c);
-        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width,0), object_name).value(),c,c);
-        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width,-width,0), object_name).value(),c,c);
-        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,-width,0), object_name).value(),c,c);
-        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, width, height), object_name).value(),c,c);
-        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width, height), object_name).value(),c,c);
-        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, -width, height), object_name).value(),c,c);
-        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width, -width,height), object_name).value(),c,c);
+        const float height = 1800;
+        const float width = 125;
+        bb_in_camera[0] = cam_api->project(inner_eigen->transform(camera_name, Mat::Vector3d(width,width,0), object_name).value(),0,0);
+        bb_in_camera[1] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width,0), object_name).value(),0,0);
+        bb_in_camera[2] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width,-width,0), object_name).value(),0,0);
+        bb_in_camera[3] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,-width,0), object_name).value(),0,0);
+        bb_in_camera[4] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, width, height), object_name).value(),0,0);
+        bb_in_camera[5] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width,width, height), object_name).value(),0,0);
+        bb_in_camera[6] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(width, -width, height), object_name).value(),0,0);
+        bb_in_camera[7] = cam_api->project(inner_eigen->transform(camera_name, Eigen::Vector3d(-width, -width,height), object_name).value(),0,0);
+
+
 
         // Compute a 2D bounding box
         auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
@@ -565,8 +586,17 @@ void SpecificWorker::compute_visible_objects()
         box.prob = 100;
         box.name = object_name;
         box.match = false;
-        if( box.left>=0 and box.right<YOLO_IMG_SIZE and box.top>=0 and box.bot<YOLO_IMG_SIZE)
+
+        std::cout <<"left: "<< box.left <<" top: " << box.top<<" right: " << box.right<<" bottom: " << box.bot << endl;
+        std::cout << "box.left >=0 "<< (box.left >= 0)<< std::endl;
+        std::cout << "box.right<YOLO_IMG_SIZE  "<< (box.right<YOLO_IMG_SIZE) << std::endl;
+        std::cout << "box.top >=0 "<< (box.top >= 0)<< std::endl;
+        std::cout << "box.bot<YOLO_IMG_SIZE  "<< (box.bot<YOLO_IMG_SIZE) << std::endl;
+
+//        if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
+        if( box.left>=-c and box.right<c and box.top>=-c)
         {
+            std::cout <<"BOX VISIBLE "<< std::endl;
             box.visible = true;
             if (auto d = rt_api->get_translation(cam_api->get_id(), object.id()); d.has_value())
                 box.depth = d.value().norm();
@@ -592,6 +622,8 @@ void SpecificWorker::compute_visible_objects()
         }
         else  // remove edge
         {
+            std::cout <<"box NOT visible "<< std::endl;
+
             G->delete_edge(cam_api->get_id(), object.id(), "visible");
         }
     }
@@ -630,10 +662,14 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     {
         if(box.prob > 40)
         {
-            auto p1 = cv::Point(box.left, box.top);
-            auto p2 = cv::Point(box.right, box.bot);
-            auto offset = int((box.bot - box.top) / 2);
-            auto pt = cv::Point(box.left + offset, box.top + offset);
+            auto left = box.left+YOLO_IMG_SIZE/2;
+            auto right = box.right+YOLO_IMG_SIZE/2;
+            auto top = box.top+YOLO_IMG_SIZE/2;
+            auto bot = box.bot+YOLO_IMG_SIZE/2;
+            auto p1 = cv::Point(left, top);
+            auto p2 = cv::Point(right, bot);
+            auto offset = int((bot - top) / 2);
+            auto pt = cv::Point(left + offset, top + offset);
             cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
             auto font = cv::FONT_HERSHEY_SIMPLEX;
             cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 255), 2);
@@ -641,10 +677,14 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     }
     for(const auto &box : synth_boxes)
     {
-        auto p1 = cv::Point(box.left, box.top);
-        auto p2 = cv::Point(box.right, box.bot);
-        auto offset = int((box.bot - box.top) / 2);
-        auto pt = cv::Point(box.left + offset, box.top + offset);
+        auto left = box.left+YOLO_IMG_SIZE/2;
+        auto right = box.right+YOLO_IMG_SIZE/2;
+        auto top = box.top+YOLO_IMG_SIZE/2;
+        auto bot = box.bot+YOLO_IMG_SIZE/2;
+        auto p1 = cv::Point(left, top);
+        auto p2 = cv::Point(right, bot);
+        auto offset = int((bot - top) / 2);
+        auto pt = cv::Point(left + offset, top + offset);
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
@@ -659,6 +699,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string &type)
 {
+//    std::cout << __FUNCTION__ << std::endl;
     if (type == rgbd_type_name and id == cam_api->get_id())
     {
         if(auto cam_node = G->get_node(id); cam_node.has_value())
@@ -685,8 +726,11 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
 
 void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
 {
+//    std::cout << __FUNCTION__ << std::endl;
     if(from == G->get_node(world_name).value().id() and to == G->get_node(robot_name).value().id() and type == "RT")
-            compute_visible_objects();
+        compute_visible_objects();
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

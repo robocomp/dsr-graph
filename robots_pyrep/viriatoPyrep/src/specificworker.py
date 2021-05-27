@@ -40,6 +40,7 @@ import numpy_indexed as npi
 from itertools import zip_longest
 import cv2
 from threading import Lock
+from math import *
 
 class TimeControl:
     def __init__(self, period_):
@@ -86,6 +87,7 @@ class SpecificWorker(GenericWorker):
         self.ViriatoBase_DistAxes = 380.
         self.ViriatoBase_AxesLength = 422.
         self.ViriatoBase_Rotation_Factor = 8.1  # it should be (DistAxes + AxesLength) / 2
+        self.bState_ant = RoboCompGenericBase.TBaseState()
 
         self.cameras = {}
         # cam = VisionSensor("wall_camera_1")
@@ -190,9 +192,9 @@ class SpecificWorker(GenericWorker):
             #self.read_people()
             self.read_laser()
             self.read_joystick()
+            self.read_robot_speed()
             self.read_robot_pose()
             #self.read_robot_arm_tip()
-            self.move_robot()
             self.read_pan_tilt()
 
             tc.wait()
@@ -235,7 +237,8 @@ class SpecificWorker(GenericWorker):
         for name, handle in self.people.items():
             pos = handle.get_position()
             rot = handle.get_orientation()
-            person = RoboCompHumanToDSRPub.Person(len(people), -pos[1] * 1000, pos[2] * 1000, pos[0] * 1000, -rot[2],
+            person = RoboCompHumanToDSRPub.Person(len(people), pos[0] * 1000, pos[1] * 1000, pos[2] * 1000,
+                                                  pi - rot[2] - pi/2,
                                                   {})
             people.append(person)
         try:
@@ -259,13 +262,52 @@ class SpecificWorker(GenericWorker):
             print(e)
 
     ###########################################
+    ###  read and move the robot
+    ###########################################
+    def read_robot_speed(self):
+        if self.speed_robot:  # and (time.time() - self.joystick_newdata[1]) > 0.1:
+            self.robot.set_base_angular_velocites(self.speed_robot)
+            self.speed_robot = None
+
+    ###########################################
     ### JOYSITCK read and move the robot
     ###########################################
     def read_joystick(self):
         if self.joystick_newdata: #and (time.time() - self.joystick_newdata[1]) > 0.1:
-            self.update_joystick(self.joystick_newdata[0])
+            adv = 0.0
+            rot = 0.0
+            side = 0.0
+            pan = 0.0
+            tilt = 0.0
+            head_moves = False
+
+            for x in self.joystick_newdata[0].axes:
+                if x.name == "advance":
+                    adv = x.value if np.abs(x.value) > 1 else 0  # mm/sg
+                if x.name == "rotate":
+                    rot = x.value if np.abs(x.value) > 0.01 else 0  # rads/sg
+                if x.name == "side":
+                    side = x.value if np.abs(x.value) > 1 else 0
+                if x.name == "pan":
+                    pan = x.value if np.abs(x.value) > 0.01 else 0
+                    head_moves = True
+                if x.name == "tilt":
+                    tilt = x.value if np.abs(x.value) > 0.01 else 0
+                    head_moves = True
+
+            # print("Joystick ", adv, rot, side)
+            converted = self.convert_base_speed_to_radians(adv, side, rot)
+            # self.robot.set_base_angular_velocites([adv, side, rot])
+            self.robot.set_base_angular_velocites(converted)
+            #
+            if (head_moves):
+                dummy = Dummy("viriato_head_pan_tilt_nose_target")
+                pantilt = Dummy("viriato_head_camera_pan_tilt")
+                pose = dummy.get_position(pantilt)
+                dummy.set_position([pose[0], pose[1] - pan / 10, pose[2] + tilt / 10], pantilt)
+
             self.joystick_newdata = None
-            self.last_received_data_time = time.time()
+            #self.last_received_data_time = time.time()
         else:
             elapsed = time.time() - self.last_received_data_time
             if elapsed > 2 and elapsed < 3:
@@ -288,36 +330,41 @@ class SpecificWorker(GenericWorker):
                                                      rotV=ang_vel[2],
                                                      isMoving=isMoving)
 
-        try:
-            self.omnirobotpub_proxy.pushBaseState(self.bState)
+        try:        # parameters are adjusted for Coppelia sensibility
+            if not np.allclose([self.bState.x, self.bState.z], [self.bState_ant.x, self.bState_ant.z], rtol=1e-03, atol=1) \
+            or not np.isclose(self.bState.alpha, self.bState_ant.alpha, rtol=1e-03, atol=1e-02):
+                self.omnirobotpub_proxy.pushBaseState(self.bState)
+                self.bState_ant = self.bState
+                print("now")
+
         except Ice.Exception as e:
             print(e)
 
-        self.tm.add_transform("world", "robot", pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz
-                                                                    ([0.0, 0.0, pose[2] - np.pi]),
-                                                                    [pose[0] * 1000.0, pose[1] * 1000.0, 0.0]
-                                                                    ))
-
-        t = self.tm.get_transform("origin", "robot")
-        angles = pyrot.extrinsic_euler_xyz_from_active_matrix(t[0:3, 0:3])
-
-        self.robot_full_pose_write.x = t[0][3]
-        self.robot_full_pose_write.y = t[1][3]
-        self.robot_full_pose_write.z = t[2][3]
-        self.robot_full_pose_write.rx = angles[0]
-        self.robot_full_pose_write.ry = angles[1]
-        self.robot_full_pose_write.rz = angles[2]
-        self.robot_full_pose_write.vx = linear_vel[0] * 1000.0
-        self.robot_full_pose_write.vy = linear_vel[1] * 1000.0
-        self.robot_full_pose_write.vz = linear_vel[2] * 1000.0
-        self.robot_full_pose_write.vrx = ang_vel[0]
-        self.robot_full_pose_write.vry = ang_vel[1]
-        self.robot_full_pose_write.vrz = ang_vel[2]
-
-        # swap
-        self.mutex_pose.acquire()
-        self.robot_full_pose_write, self.robot_full_pose_read = self.robot_full_pose_read, self.robot_full_pose_write
-        self.mutex_pose.release()
+        # self.tm.add_transform("world", "robot", pytr.transform_from(pyrot.active_matrix_from_intrinsic_euler_xyz
+        #                                                             ([0.0, 0.0, pose[2] - np.pi]),
+        #                                                             [pose[0] * 1000.0, pose[1] * 1000.0, 0.0]
+        #                                                             ))
+        #
+        # t = self.tm.get_transform("origin", "robot")
+        # angles = pyrot.extrinsic_euler_xyz_from_active_matrix(t[0:3, 0:3])
+        #
+        # self.robot_full_pose_write.x = t[0][3]
+        # self.robot_full_pose_write.y = t[1][3]
+        # self.robot_full_pose_write.z = t[2][3]
+        # self.robot_full_pose_write.rx = angles[0]
+        # self.robot_full_pose_write.ry = angles[1]
+        # self.robot_full_pose_write.rz = angles[2]
+        # self.robot_full_pose_write.vx = linear_vel[0] * 1000.0
+        # self.robot_full_pose_write.vy = linear_vel[1] * 1000.0
+        # self.robot_full_pose_write.vz = linear_vel[2] * 1000.0
+        # self.robot_full_pose_write.vrx = ang_vel[0]
+        # self.robot_full_pose_write.vry = ang_vel[1]
+        # self.robot_full_pose_write.vrz = ang_vel[2]
+        #
+        # # swap
+        # self.mutex_pose.acquire()
+        # self.robot_full_pose_write, self.robot_full_pose_read = self.robot_full_pose_read, self.robot_full_pose_write
+        # self.mutex_pose.release()
 
     ###########################################
     ### ROBOT POSE get and publish robot position
@@ -337,16 +384,6 @@ class SpecificWorker(GenericWorker):
                 self.kinovaarmpub_proxy.newArmState(self.arm_state)
         except Ice.Exception as e:
             print(e)
-
-    ###########################################
-    ### MOVE ROBOT from Omnirobot interface
-    ###########################################
-    def move_robot(self):
-
-        if self.speed_robot != self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
-            self.robot.set_base_angular_velocites(self.speed_robot)
-            print("Velocities sent to robot:", self.speed_robot)
-            self.speed_robot_ant = self.speed_robot
 
     ###########################################
     ### Viriato head camera tilt motor. Command from JointMotor interface
@@ -403,40 +440,6 @@ class SpecificWorker(GenericWorker):
                 ldata[i].dist = ldata[i-1].dist
 
         return ldata
-    
-    def update_joystick(self, datos):
-        adv = 0.0
-        rot = 0.0
-        side = 0.0
-        pan = 0.0
-        tilt = 0.0
-        head_moves = False
-
-        for x in datos.axes:
-            if x.name == "advance":
-                adv = x.value if np.abs(x.value) > 1 else 0 #mm/sg
-            if x.name == "rotate":
-                rot = x.value if np.abs(x.value) > 0.01 else 0 #rads/sg
-            if x.name == "side":
-                side = x.value if np.abs(x.value) > 1 else 0
-            if x.name == "pan":
-                pan = x.value if np.abs(x.value) > 0.01 else 0
-                head_moves = True
-            if x.name == "tilt":
-                tilt = x.value if np.abs(x.value) > 0.01 else 0
-                head_moves = True
-
-        #print("Joystick ", adv, rot, side)
-        converted = self.convert_base_speed_to_radians(adv, side, rot)
-        #self.robot.set_base_angular_velocites([adv, side, rot])
-        self.robot.set_base_angular_velocites(converted)
-        #
-        if(head_moves):
-            dummy = Dummy("viriato_head_pan_tilt_nose_target")
-            pantilt = Dummy("viriato_head_camera_pan_tilt")
-            pose = dummy.get_position(pantilt)
-            dummy.set_position([pose[0], pose[1]-pan/10, pose[2]+tilt/10], pantilt)
-
 
     def convert_base_speed_to_radians(self, adv, side, rot):
         # rot has to be neg so neg rot speeds go clock wise. It is probably a sign in Pyrep forward kinematics
@@ -542,9 +545,9 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
-        converted = self.convert_base_speed_to_radians(advz, advx, rot)
-        self.robot.set_base_angular_velocites(converted)
-        #self.speed_robot = [advz, advx, rot]
+        #converted = self.convert_base_speed_to_radians(advz, advx, rot)
+        self.speed_robot = self.convert_base_speed_to_radians(advz, advx, rot)
+        #self.robot.set_base_angular_velocites(converted)
 
     #
     # stopBase
@@ -572,7 +575,9 @@ class SpecificWorker(GenericWorker):
             if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
                 parent_frame_object = Dummy("viriato_head_camera_pan_tilt")
             #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
-            dummy.set_position([pose.x / 1000., pose.y / 1000., pose.z / 1000.], parent_frame_object)
+
+            # we change here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            dummy.set_position([pose.y / 1000., pose.x / 1000., -pose.z / 1000.], parent_frame_object)
             dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
 
         #

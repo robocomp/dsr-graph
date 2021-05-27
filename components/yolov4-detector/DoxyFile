@@ -90,8 +90,8 @@ STRIP_FROM_PATH        =
 STRIP_FROM_INC_PATH    =
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter
-# (but less readable) file names. This can be useful is your file systems
-# doesn't support long names like on DOS, Mac, or CD-ROM.
+# (but less readable) file yolo_names. This can be useful is your file systems
+# doesn't support long yolo_names like on DOS, Mac, or CD-ROM.
 
 SHORT_NAMES            = NO
 
@@ -293,9 +293,9 @@ HIDE_IN_BODY_DOCS      = NO
 INTERNAL_DOCS          = NO
 
 # If the CASE_SENSE_NAMES tag is set to NO then Doxygen will only generate
-# file names in lower-case letters. If set to YES upper-case letters are also
-# allowed. This is useful if you have classes or files whose names only differ
-# in case and if your file system supports case sensitive file names. Windows
+# file yolo_names in lower-case letters. If set to YES upper-case letters are also
+# allowed. This is useful if you have classes or files whose yolo_names only differ
+# in case and if your file system supports case sensitive file yolo_names. Windows
 # and Mac users are advised to set this option to NO.
 
 CASE_SENSE_NAMES       = YES
@@ -336,13 +336,13 @@ SORT_BRIEF_DOCS        = NO
 SORT_MEMBERS_CTORS_1ST = NO
 
 # If the SORT_GROUP_NAMES tag is set to YES then doxygen will sort the
-# hierarchy of group names into alphabetical order. If set to NO (the default)
-# the group names will appear in their defined order.
+# hierarchy of group yolo_names into alphabetical order. If set to NO (the default)
+# the group yolo_names will appear in their defined order.
 
 SORT_GROUP_NAMES       = NO
 
 # If the SORT_BY_SCOPE_NAME tag is set to YES, the class list will be
-# sorted by fully-qualified names, including namespaces. If set to
+# sorted by fully-qualified yolo_names, including namespaces. If set to
 # NO (the default), the class list will be sorted only by class name,
 # not including the namespace part.
 # Note: This option is not very useful if HIDE_SCOPE_NAMES is set to YES.
@@ -472,7 +472,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 
 # The INPUT tag can be used to specify the files and/or directories that contain
-# documented source files. You may enter file names like "myfile.cpp" or
+# documented source files. You may enter file yolo_names like "myfile.cpp" or
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
@@ -525,7 +525,7 @@ EXCLUDE_SYMLINKS       = NO
 # ROBOCOMP
 EXCLUDE_PATTERNS       = A* B* C* D* E* F* G* H* I* J* K* L* M* N* O* P* Q* R* S* T* U* V* W* X* Y* Z*
 
-# The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
+# The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol yolo_names
 # (namespaces, classes, functions, etc.) that should be excluded from the
 # output. The symbol name can be a fully qualified name, a word, or if the
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
@@ -923,7 +923,7 @@ COMPACT_LATEX          = NO
 
 PAPER_TYPE             = a4wide
 
-# The EXTRA_PACKAGES tag can be to specify one or more names of LaTeX
+# The EXTRA_PACKAGES tag can be to specify one or more yolo_names of LaTeX
 # packages that should be included in the LaTeX output.
 
 EXTRA_PACKAGES         =
@@ -1110,7 +1110,7 @@ PERLMOD_LATEX          = NO
 
 PERLMOD_PRETTY         = YES
 
-# The names of the make variables in the generated doxyrules.make file
+# The yolo_names of the make variables in the generated doxyrules.make file
 # are prefixed with the string contained in PERLMOD_MAKEVAR_PREFIX.
 # This is useful so different doxyrules.make files included by the same
 # Makefile don't overwrite each other's variables.
@@ -1128,7 +1128,7 @@ PERLMOD_MAKEVAR_PREFIX =
 ENABLE_PREPROCESSING   = YES
 
 # If the MACRO_EXPANSION tag is set to YES Doxygen will expand all macro
-# names in the source code. If set to NO (the default) only conditional
+# yolo_names in the source code. If set to NO (the default) only conditional
 # compilation will be performed. Macro expansion can be done in a controlled
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
@@ -1158,7 +1158,7 @@ INCLUDE_PATH           =
 
 INCLUDE_FILE_PATTERNS  =
 
-# The PREDEFINED tag can be used to specify one or more macro names that
+# The PREDEFINED tag can be used to specify one or more macro yolo_names that
 # are defined before the preprocessor is started (similar to the -D option of
 # gcc). The argument of the tag is a list of macros of the form: name
 # or name=definition (no spaces). If the definition and the = are
@@ -1169,7 +1169,7 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             =
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
-# this tag can be used to specify a list of macro names that should be expanded.
+# this tag can be used to specify a list of macro yolo_names that should be expanded.
 # The macro definition that is found in the sources will be used.
 # Use the PREDEFINED tag if you want to use a different macro definition.
 

@@ -5,41 +5,31 @@
 #ifndef TESTCOMP_GRAPHNEWELEMENTDIALOG_H
 #define TESTCOMP_GRAPHNEWELEMENTDIALOG_H
 
-#include "ui_NewGraphElementDlg.h"
+#include "QdsrTypesCombobox.h"
+#include "ui_GraphNewElementDialog.h"
 
 
 
-class NewGraphElementDlg2 : public QDialog, private Ui::NewElementDlg
+class GraphNewElementDialog : public QDialog, private Ui::NewElementDlg
 {
     public:
-        NewGraphElementDlg2(QWidget *parent): QDialog(parent)
+        explicit GraphNewElementDialog(QWidget *parent):QDialog(parent)
         {
             this->setupUi(this);
-            this->node_type_cmb->addItems(
-                    QStringList()<<
-                    tr("plane") <<
-                    tr("transform") <<
-                    tr("mesh") <<
-                    tr("person")<<
-                    tr("omnirobot")<<
-                    tr("rgbd"));
-            this->node_type_cmb_2->addItems(
-                    QStringList()<<
-                                 tr("plane") <<
-                                 tr("transform") <<
-                                 tr("mesh") <<
-                                 tr("person")<<
-                                 tr("omnirobot")<<
-                                 tr("rgbd"));
-            this->edge_type_cmb->addItems(
-                    QStringList()<<
-                    tr("RT") <<
-                    tr("interacting"));
+            node_type_cmb = new QDSRTypesCombobox<DSR::Node>(node_group_2);
+            node_type_cmb->setObjectName(QString::fromUtf8("node_type_cmb"));
+            formLayout->setWidget(1, QFormLayout::FieldRole, node_type_cmb);
+            node_type_cmb_2 = new QDSRTypesCombobox<DSR::Node>(node_group_2);
+            node_type_cmb_2->setObjectName(QString::fromUtf8("node_type_cmb_2"));
+            formLayout_4->setWidget(1, QFormLayout::FieldRole, node_type_cmb_2);
+            edge_type_cmb = new QDSRTypesCombobox<DSR::Edge>(edge_group);
+            edge_type_cmb->setObjectName(QString::fromUtf8("edge_type_cmb"));
+            formLayout_2->setWidget(0, QFormLayout::FieldRole, edge_type_cmb);
         }
 
         static QStringList getElementsParams(QWidget * parent, bool node1, bool node2, bool edge, bool &ok)
         {
-            NewGraphElementDlg2 dlg(parent);
+            GraphNewElementDialog dlg(parent);
             if (!node1)
                 dlg.node_group->setVisible(false);
             if (!node2)
@@ -91,7 +81,10 @@ class NewGraphElementDlg2 : public QDialog, private Ui::NewElementDlg
         return getElementsParams(parent, true, true, true, ok);
     }
 
-
+//private:
+    QDSRTypesCombobox<DSR::Edge>* edge_type_cmb;
+    QDSRTypesCombobox<DSR::Node>* node_type_cmb;
+    QDSRTypesCombobox<DSR::Node>* node_type_cmb_2;
 
 };
 
