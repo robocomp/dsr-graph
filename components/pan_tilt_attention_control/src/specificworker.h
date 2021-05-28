@@ -152,7 +152,7 @@ class SpecificWorker : public GenericWorker
         Custom_widget custom_widget;
 
         // Double buffer
-        DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> rgb_buffer;
+        DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, std::uint64_t>> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::uint64_t, std::uint64_t> target_buffer;
 

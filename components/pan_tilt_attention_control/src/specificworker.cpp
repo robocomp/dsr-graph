@@ -153,14 +153,16 @@ void SpecificWorker::compute()
             qInfo() << __FUNCTION__ << " New target arrived: " << current_target << " - " << QString::fromStdString(target_name);
         }
     }
-    const auto g_image = rgb_buffer.try_get();
+    const auto g_image_o = rgb_buffer.try_get();
     //const auto g_depth = depth_buffer.try_get();
-    if (g_image.has_value() /*and g_depth.has_value()*/)
+    if (g_image_o.has_value() /*and g_depth.has_value()*/)
     {
+        auto &[g_image, cam_timestamp] = g_image_o.value();
         //show_image(g_image.value());
         if(this->active)
         {
-            if(this->wait_state.waiting()) return;
+            if(this->wait_state.waiting())
+                return;
             if (auto target_o = G->get_node(current_target); target_o.has_value())
             {
                 qInfo() << "hola";
@@ -169,7 +171,7 @@ void SpecificWorker::compute()
                 {
                     // compute distance between pan-tilt target dummy and object in G
                     qInfo() << "hola2";
-                    if(auto target_in_camera_o = inner_eigen->transform(viriato_head_camera_name, target.name()); target_in_camera_o.has_value())
+                    if(auto target_in_camera_o = inner_eigen->transform(viriato_head_camera_name, target.name(), cam_timestamp); target_in_camera_o.has_value())
                     {
                         const Eigen::Vector3d &target_in_camera = target_in_camera_o.value();
                         const Eigen::Vector2d target_in_camera_2d{target_in_camera.x(), target_in_camera.z()};
@@ -183,7 +185,7 @@ void SpecificWorker::compute()
                             G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
                             G->update_node(pan_tilt.value());
                             qInfo() << __FUNCTION__ << " Saccade";
-                            this->wait_state.init(1000); //ms
+                            this->wait_state.init(600); //ms   learn this time dynamically
                         }
                     }
                 }
@@ -249,9 +251,13 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
                 {
                     rgb_buffer.put(std::vector<uint8_t>(g_image.value().get().begin(), g_image.value().get().end()),
-                                   [this](const std::vector<std::uint8_t> &in, cv::Mat &out) {
-                                       out = cv::Mat(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
-                                                   const_cast<std::vector<uint8_t> &>(in).data());
+                                   [this, cam_node](const std::vector<std::uint8_t> &in, std::tuple<cv::Mat, std::uint64_t> &out)
+                                   {
+                                        auto image = cv::Mat(cam_api->get_height(), cam_api->get_width(), CV_8UC3, const_cast<std::vector<uint8_t> &>(in).data());
+                                        if( auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()); timestamp.has_value())
+                                           out = std::make_tuple(image, timestamp.value()/1000000);  // cambiar cuando venga en millio !!!!!!!!!!
+                                        else
+                                           out = std::make_tuple(image, 0);
                                    });
                }
 //            if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())

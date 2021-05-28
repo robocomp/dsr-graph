@@ -307,7 +307,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 std::vector<Eigen::Vector3d> path; path.reserve(x_values.size());
                 for(auto &&[p, q] : iter::zip(x_values,y_values))
                     path.emplace_back(Eigen::Vector3d(p, q, 0.f));
-                draw_path(path, &widget_2d->scene);
+                draw_path(path, &widget_2d->scene);   //MOVE THIS to COMPUTE
                 path_buffer.put(std::move(path));
             }
         }

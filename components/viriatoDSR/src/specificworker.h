@@ -32,6 +32,8 @@
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
 #include <chrono>
+#include <fps/fps.h>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -104,6 +106,7 @@ private:
     void update_omirobot_timed();
     void update_rgbd();
     void update_pantilt_position();
+    void update_pantilt_position_timed();
     void update_arm_state();
     void check_base_dummy();
 
@@ -111,6 +114,8 @@ private:
     void update_room_occupancy(float robot_x, float robot_y);
 
     void check_new_nose_referece_for_pan_tilt();
+
+    FPSCounter fps;
 
 };
 

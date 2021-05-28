@@ -123,9 +123,11 @@ void SpecificWorker::compute()
     update_laser();
     update_omirobot_timed();
     update_rgbd();
+    //update_pantilt_position_timed();
     update_pantilt_position();
     update_arm_state();
 
+    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,10 +213,6 @@ void SpecificWorker::update_omirobot_timed()
 {
     static const int MAX_PACK_BLOCKS = 20;
     static const int BLOCK_SIZE = 3;
-    static std::vector<float> tr_pack(3 * MAX_PACK_BLOCKS, 0.f);
-    static std::vector<float> rot_pack(3 * MAX_PACK_BLOCKS, 0.f);
-    static std::vector<std::uint64_t> time_stamps(MAX_PACK_BLOCKS, 0);
-    //static int index = 0;
 
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
     {
@@ -223,34 +221,53 @@ void SpecificWorker::update_omirobot_timed()
         {
             if (auto parent = G->get_parent_node(robot.value()); parent.has_value())  // replace by get_parent_id(robot.value())
             {
-                int index = 0;
-                if( auto edge = rt->get_edge_RT(parent.value(), robot->id()); edge.has_value())
-                    if( auto head = G->get_attrib_by_name<rt_head_index_att>(edge.value()); head.has_value())
-                        index = head.value();
-
-                tr_pack[BLOCK_SIZE * index] = bState.x;
-                tr_pack[BLOCK_SIZE * index + 1] = bState.z;
-                tr_pack[BLOCK_SIZE * index + 2] = 0.f;
-                rot_pack[BLOCK_SIZE * index] = 0.f;
-                rot_pack[BLOCK_SIZE * index + 1] = 0.f;
-                rot_pack[BLOCK_SIZE * index + 2] = bState.alpha;
-                time_stamps[index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                //rt->insert_or_assign_edge_RT(parent.value(), robot.value().id(), std::vector<float>{bState.x, bState.z, 0.f}, std::vector<float>{0.f, 0.f, bState.alpha});
+                
+                // initialize packs in case a new egde is created
+                std::vector<float> tr_pack(BLOCK_SIZE * MAX_PACK_BLOCKS, 0.f);
+                std::vector<float> rot_pack(BLOCK_SIZE * MAX_PACK_BLOCKS, 0.f);
+                std::vector<std::uint64_t> time_stamps(MAX_PACK_BLOCKS, 0);
+                int index = 0;  //head
+                
+                rot_pack[2] = bState.alpha; tr_pack[0] = bState.x; tr_pack[1] = bState.z;
+                time_stamps[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::system_clock::now().time_since_epoch()).count());
+
+                // add contents if there exists a RT edge
+                if( auto edge = rt->get_edge_RT(parent.value(), robot->id()); edge.has_value())
+                {
+                    auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                    auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                    auto tr_pack_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
+                    auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                    if (head_o.has_value() and tstamps_o.has_value() and tr_pack_o.has_value() and rot_pack_o.has_value())
+                    {
+                        auto timestamp_index = (int)(head_o.has_value()/BLOCK_SIZE)+1 % MAX_PACK_BLOCKS;
+                        index = timestamp_index * BLOCK_SIZE;
+                        time_stamps = tstamps_o.value().get();
+                        tr_pack = tr_pack_o.value().get();
+                        rot_pack = rot_pack_o.value().get();
+                        tr_pack[index] = bState.x;
+                        tr_pack[index + 1] = bState.z;
+                        tr_pack[index + 2] = 0.f;
+                        rot_pack[index] = 0.f;
+                        rot_pack[index + 1] = 0.f;
+                        rot_pack[index + 2] = bState.alpha;
+                        time_stamps[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::system_clock::now().time_since_epoch()).count());
+                    }  // if there is an RT edge without timestamps, then add a new one starting time from now
+                }
 
                 DSR::Edge edge = DSR::Edge::create<RT_edge_type>(parent->id(), robot->id());
                 G->add_or_modify_attrib_local<rt_translation_att>(edge, tr_pack);
                 G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, rot_pack);
                 G->add_or_modify_attrib_local<rt_timestamps_att>(edge, time_stamps);
-                G->add_or_modify_attrib_local<rt_head_index_att>(edge, index * BLOCK_SIZE);
+                G->add_or_modify_attrib_local<rt_head_index_att>(edge, index);
                 G->add_or_modify_attrib_local<rt_translation_velocity_att>(edge, std::vector<float>{bState.advVx, bState.advVz, 0.f});
                 G->add_or_modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
                 G->insert_or_assign_edge(edge);
-                index = (index+1) % MAX_PACK_BLOCKS;
 
                 update_room_occupancy(bState.x, bState.z);
-                //}
-                //else
-                //    qWarning() << __FUNCTION__ << " No edge RT found from node " << QString::fromStdString(parent.value().name()) << " to " << QString::fromStdString(robot_name);
             } else
                 qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
         }
@@ -293,6 +310,97 @@ void SpecificWorker::update_room_occupancy(float robot_x, float robot_y)
                 }
             }
         }
+    }
+}
+void SpecificWorker::update_pantilt_position_timed()
+{
+    static const int MAX_PACK_BLOCKS = 20;
+    static const int BLOCK_SIZE = 3;
+
+    if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
+    {
+        const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint_name).pos;
+        const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint_name).pos;
+        const std::vector<float> current_state{pan, tilt};
+
+        auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name);
+        auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint_name);
+        auto pan_joint = G->get_node(viriato_head_camera_pan_joint_name);
+        if (pan_tilt.has_value() and pan_joint.has_value() and tilt_joint.has_value())
+        {
+            ///////////// PAN ///////////////////////////////////////////////////////////////////////////////////////////
+            //rt->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+            //                             std::vector<float>{0.0, 0.0, -pan});
+
+            std::vector<float> tr_pan_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<float> rot_pan_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<std::uint64_t> time_stamps_pan(MAX_PACK_BLOCKS, 0);
+            int index_pan = 0;  //head
+            
+            rot_pan_pack[2] = -pan;
+            time_stamps_pan[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count());
+            
+            // replace contents if there exists a RT edge
+            if( auto edge = rt->get_edge_RT(pan_tilt.value(), pan_joint->id()); edge.has_value())
+            {
+                auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
+                {
+                    index_pan = (head_o.value()+1) % MAX_PACK_BLOCKS;
+                    time_stamps_pan = tstamps_o.value().get();
+                    rot_pan_pack = rot_pack_o.value().get();
+                    rot_pan_pack[index_pan + 2] = -pan;
+                    time_stamps_pan[(int) (index_pan / BLOCK_SIZE)] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count());
+                }
+            }
+            DSR::Edge edge_pan = DSR::Edge::create<RT_edge_type>(pan_tilt.value().id(), pan_joint->id());
+            G->add_or_modify_attrib_local<rt_translation_att>(edge_pan, tr_pan_pack);
+            G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_pan, rot_pan_pack);
+            G->add_or_modify_attrib_local<rt_timestamps_att>(edge_pan, time_stamps_pan);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_pan, index_pan * BLOCK_SIZE);
+            G->insert_or_assign_edge(edge_pan);
+
+            ///////////// TILT ///////////////////////////////////////////////////////////////////////////////////////////
+            //rt->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+            //                             std::vector<float>{tilt, 0.0, 0.0});
+
+            std::vector<float> tr_tilt_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<float> rot_tilt_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<std::uint64_t> time_stamps_tilt(MAX_PACK_BLOCKS, 0);
+            int index_tilt = 0;  //head
+
+            rot_tilt_pack[0] = tilt;
+            time_stamps_tilt[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count());
+
+            // replace contents if there exists a RT edge
+            if( auto edge = rt->get_edge_RT(pan_tilt.value(), pan_joint->id()); edge.has_value())
+            {
+                auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
+                {
+                    index_tilt = (head_o.value()+1) % MAX_PACK_BLOCKS;
+                    time_stamps_tilt = tstamps_o.value().get();
+                    rot_tilt_pack = rot_pack_o.value().get();
+                    rot_tilt_pack[index_tilt] = tilt;
+                    time_stamps_tilt[(int) (index_tilt / BLOCK_SIZE)] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count());
+                }
+            }
+            DSR::Edge edge_tilt = DSR::Edge::create<RT_edge_type>(pan_tilt.value().id(), pan_joint->id());
+            G->add_or_modify_attrib_local<rt_translation_att>(edge_tilt, tr_tilt_pack);
+            G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_tilt, rot_tilt_pack);
+            G->add_or_modify_attrib_local<rt_timestamps_att>(edge_tilt, time_stamps_tilt);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_tilt, index_tilt * BLOCK_SIZE);
+            G->insert_or_assign_edge(edge_tilt);
+        } else
+            qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
     }
 }
 void SpecificWorker::update_pantilt_position()
