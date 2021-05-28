@@ -214,40 +214,43 @@ void SpecificWorker::update_omirobot_timed()
     static std::vector<float> tr_pack(3 * MAX_PACK_BLOCKS, 0.f);
     static std::vector<float> rot_pack(3 * MAX_PACK_BLOCKS, 0.f);
     static std::vector<std::uint64_t> time_stamps(MAX_PACK_BLOCKS, 0);
-    static int index = 0;
+    //static int index = 0;
 
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
     {
         const auto bState = bState_o.value();
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
-            if (auto parent = G->get_parent_node(robot.value()); parent.has_value())
+            if (auto parent = G->get_parent_node(robot.value()); parent.has_value())  // replace by get_parent_id(robot.value())
             {
+                int index = 0;
+                if( auto edge = rt->get_edge_RT(parent.value(), robot->id()); edge.has_value())
+                    if( auto head = G->get_attrib_by_name<rt_head_index_att>(edge.value()); head.has_value())
+                        index = head.value();
+
                 tr_pack[BLOCK_SIZE * index] = bState.x;
                 tr_pack[BLOCK_SIZE * index + 1] = bState.z;
                 tr_pack[BLOCK_SIZE * index + 2] = 0.f;
                 rot_pack[BLOCK_SIZE * index] = 0.f;
                 rot_pack[BLOCK_SIZE * index + 1] = 0.f;
                 rot_pack[BLOCK_SIZE * index + 2] = bState.alpha;
-                time_stamps[index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+                time_stamps[index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count());
 
-                if( auto edge = rt->get_edge_RT(parent.value(), robot->id()); edge.has_value())
-                {
-                    G->add_or_modify_attrib_local<rt_translation_att>(edge.value(), tr_pack);
-                    G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge.value(), rot_pack);
-                    G->add_or_modify_attrib_local<rt_timestamps_att>(edge.value(), time_stamps);
-                    G->add_or_modify_attrib_local<rt_head_index_att>(edge.value(), index * BLOCK_SIZE);
+                DSR::Edge edge = DSR::Edge::create<RT_edge_type>(parent->id(), robot->id());
+                G->add_or_modify_attrib_local<rt_translation_att>(edge, tr_pack);
+                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, rot_pack);
+                G->add_or_modify_attrib_local<rt_timestamps_att>(edge, time_stamps);
+                G->add_or_modify_attrib_local<rt_head_index_att>(edge, index * BLOCK_SIZE);
+                G->add_or_modify_attrib_local<rt_translation_velocity_att>(edge, std::vector<float>{bState.advVx, bState.advVz, 0.f});
+                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
+                G->insert_or_assign_edge(edge);
+                index = (index+1) % MAX_PACK_BLOCKS;
 
-                    G->add_or_modify_attrib_local<rt_translation_velocity_att>(edge.value(), std::vector<float>{bState.advVx, bState.advVz, 0.f});
-                    G->add_or_modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge.value(), std::vector<float>{0, 0, bState.rotV});
-                    G->insert_or_assign_edge(edge.value());
-                    index = (index+1) % MAX_PACK_BLOCKS;
-                    //G->update_node(parent.value());
-
-                    update_room_occupancy(bState.x, bState.z);
-                }
-                else
-                    qWarning() << __FUNCTION__ << " No edge RT found from node " << QString::fromStdString(parent.value().name()) << " to " << QString::fromStdString(robot_name);
+                update_room_occupancy(bState.x, bState.z);
+                //}
+                //else
+                //    qWarning() << __FUNCTION__ << " No edge RT found from node " << QString::fromStdString(parent.value().name()) << " to " << QString::fromStdString(robot_name);
             } else
                 qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
         }

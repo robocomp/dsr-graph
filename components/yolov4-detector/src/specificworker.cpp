@@ -178,7 +178,8 @@ void SpecificWorker::compute()
 
     if( g_image_o.has_value() and g_depth.has_value())
     {
-        auto &[g_image, img_timestamp] = g_image_o.value();
+        auto &[g_image, timestamp] = g_image_o.value();
+        auto img_timestamp = timestamp;
         compute_visible_objects(img_timestamp);
         cv::Mat imgyolo = g_image;
         std::vector<float> depth_array = g_depth.value();
@@ -398,7 +399,7 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
         box.creation_time = std::chrono::steady_clock::now();
         candidates.push_back(box);
     }
-    qInfo() << __FUNCTION__ << " Candidates:" << candidates.size();
+    //qInfo() << __FUNCTION__ << " Candidates:" << candidates.size();
     return false;
 }
 std::tuple<float, float, float> SpecificWorker::estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real)
@@ -686,9 +687,10 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                 G->delete_edge(cam_api->get_id(), object.id(), "visible");
             }
         }
-        else qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
+        else ;
+            //qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
     }
-    qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
+    //qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
 }
 void SpecificWorker::clear_all_attention_edges()
 {
