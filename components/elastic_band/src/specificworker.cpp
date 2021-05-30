@@ -181,6 +181,7 @@ void SpecificWorker::compute()
         else
             qDebug() << __FUNCTION__ << "No path node";
     }
+    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 
 void SpecificWorker::elastic_band_initialize()

@@ -51,7 +51,7 @@ using msec = std::chrono::duration<int , std::milli>;
 
 struct CONSTANTS_DATA
 {
-    float max_distance_between_target_and_pan_tilt = 300; //mm
+    float max_distance_between_target_and_pan_tilt = 200; //mm
 };
 const CONSTANTS_DATA CONSTANTS;
 
@@ -69,31 +69,45 @@ class SpecificWorker : public GenericWorker
         void initialize(int period);
         void stop_button_slot(bool);
         void reset_button_slot();
+        void clear_button_slot();
+        void change_attention_object_slot(int);
+        void pan_slot(double);
+        void tilt_slot(double);
 
-    private:
+private:
         struct WaitState
         {
             void init(int duration){ start = my_clock::now(); DURATION = duration; active = true;};
             bool waiting()
             {
-                if(active)
+                if(not active) return false;
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - start).count() >= DURATION)
                 {
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - start).count() >= DURATION)
-                    {
-                        active = false;
-                        return false;
-                    }
-                    else
-                        return true;
+                    active = false;
+                    return false;
                 }
                 else
-                    return false;
+                    return true;
             };
             bool active = false;
             int DURATION;
             std::chrono::time_point<my_clock> start;
         };
         WaitState wait_state;
+
+        // PROTO SEMANTIC MEMORY
+        std::map<std::string, std::vector<int>> known_object_types
+            {
+                    {glass_type_name,        {80, 100, 80}},
+                    {cup_type_name,          {80, 100, 80}},
+                    {microwave_type_name,    {450, 250, 350}},
+                    {plant_type_name,        {500, 900, 500}},
+                    {person_type_name,       {350, 1700, 350}},
+                    {vase_type_name,         {300, 300, 350}},
+                    {oven_type_name,         {400, 100, 400}},
+                    {refrigerator_type_name, {600, 1600, 600}},
+                    {apple_type_name,        {80, 80, 80}}
+            };
 
         struct Box      // Bounding boxes struct. Y axis goes down from 0 to HEIGHT
         {
@@ -150,8 +164,14 @@ class SpecificWorker : public GenericWorker
 
         //local widget
         Custom_widget custom_widget;
+        void initialize_combobox();
+        FPSCounter fps;
+        void print_data(const DSR::Node &target, int error, const Eigen::Vector3d &target_in_camera,
+                        std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, bool saccade);
 
-        // Double buffer
+
+
+    // Double buffer
         DoubleBuffer<std::vector<std::uint8_t>, std::tuple<cv::Mat, std::uint64_t>> rgb_buffer;
         DoubleBuffer<std::vector<float>, std::vector<float>> depth_buffer;
         DoubleBuffer<std::uint64_t, std::uint64_t> target_buffer;
@@ -173,10 +193,12 @@ class SpecificWorker : public GenericWorker
         bool tracking = false;
         RandomSelector<> random_selector{};
         std::deque<std::uint64_t> set_of_objects_to_attend_to;
-
+        std::uint64_t last_object_of_attention;
 
         // IMAGE
-        void show_image(cv::Mat image);
+        void show_image(cv::Mat image,  const std::string &target_name, std::uint64_t timestamp);
+        std::tuple<int, int, int, int> project_target_on_image(const DSR::Node &target, std::uint64_t timestamp);
+
 
 };
 

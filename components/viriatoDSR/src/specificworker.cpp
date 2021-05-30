@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <utility>
 #include <cppitertools/zip.hpp>
+#include <cppitertools/chunked.hpp>
+
 
 /**
 * \brief Default constructor
@@ -113,6 +115,7 @@ void SpecificWorker::initialize(int period)
             omnirobot_proxy->getBaseState(bState);
             update_room_occupancy(bState.x, bState.z);
         }
+
         catch(const Ice::Exception &e)
         { std::cout << e.what() << std::endl; std::cout << " No connection to get robot state. Aborting " << std::endl; std::terminate();}
         timer.start(60);
@@ -123,9 +126,11 @@ void SpecificWorker::compute()
     update_laser();
     update_omirobot_timed();
     update_rgbd();
-    //update_pantilt_position_timed();
-    update_pantilt_position();
-    update_arm_state();
+    update_pantilt_position_timed();
+    //update_pantilt_position();
+    //update_arm_state();
+
+    check_new_nose_referece_for_pan_tilt();
 
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
@@ -242,7 +247,7 @@ void SpecificWorker::update_omirobot_timed()
                     auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
                     if (head_o.has_value() and tstamps_o.has_value() and tr_pack_o.has_value() and rot_pack_o.has_value())
                     {
-                        auto timestamp_index = (int)(head_o.has_value()/BLOCK_SIZE)+1 % MAX_PACK_BLOCKS;
+                        auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
                         index = timestamp_index * BLOCK_SIZE;
                         time_stamps = tstamps_o.value().get();
                         tr_pack = tr_pack_o.value().get();
@@ -255,6 +260,15 @@ void SpecificWorker::update_omirobot_timed()
                         rot_pack[index + 2] = bState.alpha;
                         time_stamps[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                                 std::chrono::system_clock::now().time_since_epoch()).count());
+
+//                        for(int i = 0; auto &&v : iter::chunked(tr_pack,3))
+//                        {
+//                            qInfo() << " head " << index << " - pan(" << i << "): " << v[0] << v[1] << v[2];
+//                            qInfo() << " time " << time_stamps[i];
+//                            i++;
+//                        }
+//                        qInfo() << "-------------------------";
+
                     }  // if there is an RT edge without timestamps, then add a new one starting time from now
                 }
 
@@ -322,7 +336,6 @@ void SpecificWorker::update_pantilt_position_timed()
         const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint_name).pos;
         const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint_name).pos;
         const std::vector<float> current_state{pan, tilt};
-
         auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name);
         auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint_name);
         auto pan_joint = G->get_node(viriato_head_camera_pan_joint_name);
@@ -349,19 +362,28 @@ void SpecificWorker::update_pantilt_position_timed()
                 auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
                 if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
                 {
-                    index_pan = (head_o.value()+1) % MAX_PACK_BLOCKS;
+                    auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
+                    index_pan = timestamp_index * BLOCK_SIZE;
                     time_stamps_pan = tstamps_o.value().get();
                     rot_pan_pack = rot_pack_o.value().get();
-                    rot_pan_pack[index_pan + 2] = -pan;
-                    time_stamps_pan[(int) (index_pan / BLOCK_SIZE)] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    rot_pan_pack[index_pan + 2] = -pan; // -rotation in Z
+                    time_stamps_pan[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch()).count());
+
+//                    for(int i = 0; auto &&v : iter::chunked(rot_pan_pack,3))
+//                    {
+//                        qInfo() << " head " << index_pan << " - pan(" << i << "): " << v[0] << v[1] << v[2];
+//                        qInfo() << " time " << time_stamps_pan[i];
+//                        i++;
+//                    }
+//                    qInfo() << "-------------------------";
                 }
             }
             DSR::Edge edge_pan = DSR::Edge::create<RT_edge_type>(pan_tilt.value().id(), pan_joint->id());
             G->add_or_modify_attrib_local<rt_translation_att>(edge_pan, tr_pan_pack);
             G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_pan, rot_pan_pack);
             G->add_or_modify_attrib_local<rt_timestamps_att>(edge_pan, time_stamps_pan);
-            G->add_or_modify_attrib_local<rt_head_index_att>(edge_pan, index_pan * BLOCK_SIZE);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_pan, index_pan);
             G->insert_or_assign_edge(edge_pan);
 
             ///////////// TILT ///////////////////////////////////////////////////////////////////////////////////////////
@@ -378,26 +400,27 @@ void SpecificWorker::update_pantilt_position_timed()
                     std::chrono::system_clock::now().time_since_epoch()).count());
 
             // replace contents if there exists a RT edge
-            if( auto edge = rt->get_edge_RT(pan_tilt.value(), pan_joint->id()); edge.has_value())
+            if( auto edge = rt->get_edge_RT(pan_joint.value(), tilt_joint->id()); edge.has_value())
             {
                 auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
                 auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
                 auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
                 if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
                 {
-                    index_tilt = (head_o.value()+1) % MAX_PACK_BLOCKS;
+                    auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
+                    index_tilt = timestamp_index * BLOCK_SIZE;
                     time_stamps_tilt = tstamps_o.value().get();
                     rot_tilt_pack = rot_pack_o.value().get();
-                    rot_tilt_pack[index_tilt] = tilt;
-                    time_stamps_tilt[(int) (index_tilt / BLOCK_SIZE)] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    rot_tilt_pack[index_tilt] = tilt;  // rotation in X
+                    time_stamps_tilt[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch()).count());
-                }
+                 }
             }
-            DSR::Edge edge_tilt = DSR::Edge::create<RT_edge_type>(pan_tilt.value().id(), pan_joint->id());
+            DSR::Edge edge_tilt = DSR::Edge::create<RT_edge_type>(pan_joint.value().id(), tilt_joint->id());
             G->add_or_modify_attrib_local<rt_translation_att>(edge_tilt, tr_tilt_pack);
             G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_tilt, rot_tilt_pack);
             G->add_or_modify_attrib_local<rt_timestamps_att>(edge_tilt, time_stamps_tilt);
-            G->add_or_modify_attrib_local<rt_head_index_att>(edge_tilt, index_tilt * BLOCK_SIZE);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_tilt, index_tilt);
             G->insert_or_assign_edge(edge_tilt);
         } else
             qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
@@ -482,6 +505,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
+    //qInfo() << __FUNCTION__  << id << QString::fromStdString(type);
     if (type == left_hand_type_name)
     {
         if (auto node = G->get_node(id); node.has_value() and node.value().name() == viriato_left_arm_tip_name)
@@ -504,6 +528,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
     else if (type == omnirobot_type_name)
     {
+        //qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
             // speed
@@ -527,12 +552,13 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
     else if(type == pan_tilt_type_name)
     {
+        qInfo() << __FUNCTION__;
         if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
         {
             if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
             {
                 RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
-                //qInfo() << __FUNCTION__ << "PAN_TILT " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
+                qInfo() << __FUNCTION__ << "PAN_TILT " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
                 try
                 { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
                 catch (const Ice::Exception &e)

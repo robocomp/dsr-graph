@@ -604,15 +604,14 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
         float d = d_attr.value();
 
         // check if object is in front of the robot. Its position relative to the camera must have positive Y value
-        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, 0); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
+        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, timestamp); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
-            auto object_pos = inner_eigen->transform(world_name, object_name, 0);
+            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
             if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
                 continue;
 
             // project corners of object's bounding box in the camera image plane
-            // get object's bounding box from object's node
             std::vector<Mat::Vector2d> bb_in_camera(8);
             bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
             bb_in_camera[1] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
