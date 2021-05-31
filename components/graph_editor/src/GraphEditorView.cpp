@@ -79,6 +79,11 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
             this->dragged_item = item;
             this->dragging = true;
             this->drag_initial_position = event->pos();
+            auto* one_node = dynamic_cast<GraphNode*>(item);
+            if (one_node!=nullptr) {
+                emit this->graph_node_clicked(one_node->id_in_graph);
+
+            }
         }
     }
     event->accept();
