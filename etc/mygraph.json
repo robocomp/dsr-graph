@@ -1,0 +1,246 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "18944287098011668": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -185.903076
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -106.607933
+                    }
+                },
+                "id": 18944287098011668,
+                "links": [
+                    {
+                        "dst": -1895821292,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": -1895825388
+                    }
+                ],
+                "name": "plane_00434dba8f-000-014",
+                "type": "plane"
+            },
+            "18944287098015764": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 18944287098011668
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -48.01762
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 4.845815
+                    }
+                },
+                "id": 18944287098015764,
+                "links": [
+                    {
+                        "dst": 1140850708,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": -1895821292
+                    }
+                ],
+                "name": "plane_00434dba8f-001-014",
+                "type": "plane"
+            },
+            "18944290134687764": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 18944287098015764
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 100
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 56.387665
+                    }
+                },
+                "id": 18944290134687764,
+                "links": [
+                    {
+                        "dst": 587202580,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 1140850708
+                    }
+                ],
+                "name": "plane_00434dbb44-000-014",
+                "type": "plane"
+            },
+            "18944293876006932": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 18944290134687764
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 277.973572
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -84.581497
+                    }
+                },
+                "id": 18944293876006932,
+                "links": [
+                    {
+                        "dst": -184549356,
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": 587202580
+                    }
+                ],
+                "name": "plane_00434dbc23-000-014",
+                "type": "plane"
+            },
+            "18944297399222292": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 4
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": 18944293876006932
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 80.176208
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -101.762115
+                    }
+                },
+                "id": 18944297399222292,
+                "links": [
+                    {
+                        "dst": -1895821292,
+                        "label": "interacting",
+                        "linkAttribute": {
+                        },
+                        "src": -184549356
+                    }
+                ],
+                "name": "plane_00434dbcf5-000-014",
+                "type": "plane"
+            }
+        }
+    }
+}

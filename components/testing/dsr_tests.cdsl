@@ -1,0 +1,10 @@
+Component crdt_rtps_dsr_tests
+{
+	Communications
+    {
+	};
+	language Cpp11;
+	gui Qt(QMainWindow);
+	options dsr;
+};
+

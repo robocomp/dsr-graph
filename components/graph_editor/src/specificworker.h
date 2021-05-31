@@ -37,7 +37,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include "GraphEditorView.h"
 #include "QAttributeBrowser.h"
-
+#include <fps/fps.h>
 
 
 class SpecificWorker : public GenericWorker
@@ -62,6 +62,8 @@ private:
     QAttributeBrowser *attribute_browser{};
     QTemporaryFile new_graph_file;
     QFile open_file;
+
+    FPSCounter fps_counter;
 public:
     SpecificWorker(TuplePrx tprx, bool startup_check);
     ~SpecificWorker();

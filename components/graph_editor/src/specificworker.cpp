@@ -147,5 +147,6 @@ int SpecificWorker::create_new_dsr_file()
 
 void SpecificWorker::compute()
 {
-
+    auto hzs = fps_counter.print("");
+    dsr_viewer->set_external_hz(hzs);
 }
