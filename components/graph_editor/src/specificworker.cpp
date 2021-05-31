@@ -69,7 +69,7 @@ void SpecificWorker::initialize(int period)
     qRegisterMetaType<std::uint64_t>("std::uint64_t");
     qRegisterMetaType<std::string>("std::string");
     std::cout << "Initialize worker" << std::endl;
-
+    std::optional<uint64_t>  new_world_node_id = std::nullopt;
     // check if path given in config for dsr_input_file
     if (QFileInfo::exists(QString::fromStdString(dsr_input_file)))
     {
@@ -77,7 +77,7 @@ void SpecificWorker::initialize(int period)
         open_dsr_file(dsr_input_file);
     }
     else {
-        create_new_dsr_file();
+       new_world_node_id = create_new_dsr_file();
     }
 
     // Graph viewer
@@ -97,10 +97,12 @@ void SpecificWorker::initialize(int period)
     this->Period = 200;
     attribute_browser = new QAttributeBrowser(G, this);
     dsr_viewer->add_custom_widget_to_dock("Browser", attribute_browser );
+    timer.start();
     connect(editor_view, &GraphEditorView::graph_node_clicked,
             attribute_browser, &QAttributeBrowser::update_node_combobox);
 
-
+    if(new_world_node_id.has_value())
+        attribute_browser->add_node_to_combobox(new_world_node_id.value());
 
 
 }
@@ -114,7 +116,7 @@ void SpecificWorker::open_dsr_file(const string& dsr_file)
     }
 }
 
-int SpecificWorker::create_new_dsr_file()
+std::optional<uint64_t> SpecificWorker::create_new_dsr_file()
 {// If not
 // Ask if want to create new file or try to load from the network
 // Create new tempfile
@@ -134,12 +136,12 @@ int SpecificWorker::create_new_dsr_file()
         G->add_or_modify_attrib_local<level_att>(node, 0);
         try
         {
-            return int(this->G->insert_node(node)!=0);
+            return this->G->insert_node(node);
         }
         catch(const std::exception& e)
         {
             std::cout << __FUNCTION__ <<  e.what() << std::endl;
-            return -1;
+            return std::nullopt;
         }
     }
     // Create empty json file in path

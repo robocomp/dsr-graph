@@ -80,7 +80,7 @@ private:
     int qscene_2d_view{};
     int osg_3d_view{};
 
-    int create_new_dsr_file();
+    std::optional<uint64_t> create_new_dsr_file();
     void open_dsr_file(const string& dsr_file);
 };
 #endif
