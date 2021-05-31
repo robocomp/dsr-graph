@@ -140,7 +140,7 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
                         to_node = dynamic_cast<GraphNode*>(item);
                         // Convert source node from temp to real
                         if (to_node) {
-                            if (to_node!=this->temp_to_node)
+                            if (to_node!=this->temp_to_node and to_node!=this->temp_from_node)
                                 break;
                             else
                                 to_node = nullptr;
