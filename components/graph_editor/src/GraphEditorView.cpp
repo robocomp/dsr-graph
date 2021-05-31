@@ -191,7 +191,6 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
         update_selected_nodes();
         if (event->button()==Qt::LeftButton) {
             if (distance.length()<20) {
-                // Look for TO node
                 auto items = this->scene.items(mapToScene(this->release_point));
                 if (!items.empty()) {
                     bool node_found, edge_found = false;
@@ -361,6 +360,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
                     rt->insert_or_assign_edge_RT(real_node, to_id, trans, rot);
                 }
                 catch (const std::exception& e) {
+                    QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__,e.what());
                     std::cout << __FUNCTION__ << e.what() << std::endl;
                 }
             }
@@ -372,16 +372,19 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
                     return true;
                 }
                 catch (const std::exception& e) {
+                    QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__,e.what());
                     std::cout << __FUNCTION__ << e.what() << std::endl;
                 }
             }
             else if(!from_node_level.has_value() and !to_node_level.has_value())
             {
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "Can't create RT edge.\nNONE of the nodes have LEVEL!");
                 qDebug()<< __FUNCTION__ <<" NONE of the nodes have LEVEL!";
                 return false;
             }
             else
             {
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "NONE of the nodes have LEVEL!");
                 qDebug()<< __FUNCTION__ <<" BOTH of the nodes have LEVEL!";
                 return false;
             }

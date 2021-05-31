@@ -57,7 +57,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
         test_output_file = params["test_output_file"].value;
         dsr_input_file = params["dsr_input_file"].value;
     }
-    catch(const std::exception &e) { qFatal("Error reading config params"); }
+    catch(const std::exception &e) {
+        QMessageBox::critical(this,QString("Error in ")+ __FUNCTION__,e.what());
+        qFatal("Error reading config params");
+    }
     return true;
 
     //dsr_input_file = params["dsr_input_file"].value;
@@ -104,7 +107,6 @@ void SpecificWorker::initialize(int period)
     if(new_world_node_id.has_value())
         attribute_browser->add_node_to_combobox(new_world_node_id.value());
 
-
 }
 void SpecificWorker::open_dsr_file(const string& dsr_file)
 {
@@ -140,6 +142,7 @@ std::optional<uint64_t> SpecificWorker::create_new_dsr_file()
         }
         catch(const std::exception& e)
         {
+            QMessageBox::critical(this,QString("Error in ")+ __FUNCTION__, e.what());
             std::cout << __FUNCTION__ <<  e.what() << std::endl;
             return std::nullopt;
         }
