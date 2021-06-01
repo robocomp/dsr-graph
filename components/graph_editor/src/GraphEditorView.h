@@ -39,6 +39,7 @@ private:
 
     bool dragging;
     bool selecting;
+    QPoint last_dragged_pos;
     GraphNode* temp_from_node;
     GraphNode* temp_to_node;
     GraphEdge* temp_edge;

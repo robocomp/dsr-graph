@@ -70,6 +70,7 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
 {
     press_point = event->pos();
     release_point = QPoint();
+    distance_dragged = 0;
     // Check the tool being used
     if (event->button() == Qt::LeftButton) {
         QPointF position = mapToScene(event->pos());
@@ -237,6 +238,9 @@ void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
     case GraphTool::edit_tool:
         // If dragging
         if (this->dragging) {
+            double new_distance = QLineF(mapToScene(last_dragged_pos), mapToScene(event->pos())).length();
+            distance_dragged+=new_distance;
+            last_dragged_pos = event->pos();
             // update the position of the temp TO node
             if (this->temp_to_node) {
                 this->temp_to_node->setPos(mapToScene(event->pos()));
