@@ -118,72 +118,83 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
 {
     release_point = event->pos();
     QLineF distance(this->press_point, this->release_point);
-    // Check the tool being used
+    GraphNode* from_node = nullptr;
+    GraphNode* to_node = nullptr;
+    // Look for FROM node
+    if (this->dragging and this->dragged_item) {
+        from_node = dynamic_cast<GraphNode*>(this->dragged_item);
+    }
+    auto items = this->scene.items(mapToScene(release_point));
+    if (!items.empty()) {
+                foreach (auto item, items) {
+                to_node = dynamic_cast<GraphNode*>(item);
+                if (to_node) {
+                    if (to_node==this->temp_from_node)
+                    {
+                        to_node = nullptr;
+                        continue;
+                    }
+                    else if (to_node!=this->temp_to_node and to_node!=this->temp_from_node) {
+
+                        break;
+                    }
+                    else {
+                        to_node = nullptr;
+                    }
+                }
+            }
+    }
+
     switch (this->current_tool) {
     case GraphTool::edit_tool: {
-        QPoint position = event->pos();
-        if (event->button()==Qt::LeftButton) {
-            GraphNode* from_node = nullptr;
-            GraphNode* to_node = nullptr;
-            uint64_t from_id;
-            // Look for FROM node
-            if (this->dragging and this->dragged_item) {
-                from_node = dynamic_cast<GraphNode*>(this->dragged_item);
-                if (from_node) {
-                    from_id = from_node->id_in_graph;
-                }
+        auto a = EditAction(calculate_action(from_node, to_node));
+        switch (a)
+        {
+        case EditAction::self_edge:
+        {
+            qDebug()<<__FUNCTION__ << "EditActions::self_edge";
+            QMessageBox::warning(this,QString("WARNING in ")+ __FUNCTION__, "Self edges not implemented yet.");
+            break;
+        }
+        case EditAction::two_node_one_edge:
+        {
+            qDebug()<<__FUNCTION__ << "EditActions::two_node_one_edge";
+            this->create_two_connected_nodes(mapToScene(this->drag_initial_position), mapToScene(event->pos()));
+            break;
+        };
+        case EditAction::one_node_to_to:
+        case EditAction::one_node_to_from:
+        {
+            qDebug()<<__FUNCTION__ << "EditActions::one_node_(one_edge)";
+            bool new_node_is_to = (to_node==nullptr);
+            auto new_node_pos = new_node_is_to ? event->pos() : this->drag_initial_position;
+            auto existing_node = new_node_is_to ? from_node : to_node;
+            if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph,
+                    !new_node_is_to)) {
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "Could not create node and edge.");
             }
-
-            // Look for TO node
-            auto items = this->scene.items(mapToScene(position));
-            if (!items.empty()) {
-                        foreach (auto item, items) {
-                        to_node = dynamic_cast<GraphNode*>(item);
-                        // Convert source node from temp to real
-                        if (to_node) {
-                            if (to_node!=this->temp_to_node and to_node!=this->temp_from_node)
-                                break;
-                            else
-                                to_node = nullptr;
-                        }
-                    }
+            break;
+        };
+        case EditAction::one_node:
+        {
+            qDebug()<<__FUNCTION__ << "EditActions::one_node";
+            auto from_id_optional = this->create_new_node(mapToScene(this->drag_initial_position));
+            if (!from_id_optional.has_value()){
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "Problem creating from node");
+                qDebug() << "Problem creating node";
             }
-
-            // Both exists, Dragged one node into other
-            if (from_node and to_node) {
-                this->create_new_edge(from_node->id_in_graph, to_node->id_in_graph);
-            }
-            else if ((from_node and !to_node) or (!from_node and to_node)) {
-                bool new_node_is_to = (to_node==nullptr);
-                auto new_node_pos = new_node_is_to ? event->pos() : this->drag_initial_position;
-                auto existing_node = new_node_is_to ? from_node : to_node;
-                if (!this->create_new_connected_node(mapToScene(new_node_pos), existing_node->id_in_graph,
-                        !new_node_is_to))
-                    qDebug() << "Problem creating TO node";
-            }
-                // No node taken but user is dragging
-            else if (this->dragging) {
-                QLineF node_distance = QLine(event->pos(), this->drag_initial_position);
-                if (from_node==nullptr and to_node==nullptr and node_distance.length()>30) {
-                    this->create_two_connected_nodes(mapToScene(this->drag_initial_position), mapToScene(event->pos()));
-                }
-                else {
-                    if (from_node==nullptr) {
-                        auto from_id_optional = this->create_new_node(mapToScene(this->drag_initial_position));
-                        if (from_id_optional.has_value()) {
-                            from_id = from_id_optional.value();
-                        }
-                        else {
-                            qDebug() << "Problem creating from node";
-                        }
-                    }
-
-                    if (to_node==nullptr and node_distance.length()>30) {
-                        this->create_new_connected_node(mapToScene(event->pos()), from_id);
-                    }
-                }
-
-            }
+            break;
+        };
+        case EditAction::one_edge:
+        {
+            qDebug()<<__FUNCTION__ << "EditActions::one_edge";
+            this->create_new_edge(from_node->id_in_graph, to_node->id_in_graph);
+            break;
+        };
+        default:
+            qDebug()<<__FUNCTION__ << "OTRA:"<<QString::number(int(a),2);
+            QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, QString("Unknown mouse action: ")+QString::number(int(a),2));
+            break;
         }
         event->accept();
         break;
@@ -192,10 +203,10 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
         update_selected_nodes();
         if (event->button()==Qt::LeftButton) {
             if (distance.length()<20) {
-                auto items = this->scene.items(mapToScene(this->release_point));
-                if (!items.empty()) {
+                auto all_items = this->scene.items(mapToScene(this->release_point));
+                if (!all_items.empty()) {
                     bool node_found, edge_found = false;
-                            foreach (auto item, items) {
+                            foreach (auto item, all_items) {
                             auto* one_node = dynamic_cast<GraphNode*>(item);
                             if (one_node!=nullptr) {
                                 emit this->graph_node_clicked(one_node->id_in_graph);
@@ -229,6 +240,36 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
     this->dragged_item = nullptr;
     this->delete_temps();
     press_point = QPoint();
+}
+
+/* Translates some checks to a number to be able to switch mouse actions
++--------------------+-------------------+---------+-----------+------+------------+--------------+
+| ACTION/CONDITIONS  | distance > radius | temp to | temp from | same | dragged to | dragged from |
++--------------------+-------------------+---------+-----------+------+------------+--------------+
+| self_edge          |                 0 |       0 |         0 |    1 |          1 |            1 |
+| two_node_one_edge  |                 1 |       1 |         1 |    0 |          0 |            0 |
+| one_node_to_to     |                 1 |       1 |         1 |    0 |          1 |            0 |
+| one_node_to_from   |                 1 |       1 |         0 |    0 |          0 |            1 |
+| one_node           |                 0 |       0 |         1 |    0 |          0 |            0 |
+| one_edge           |                 1 |       1 |         0 |    0 |          1 |            1 |
++--------------------+-------------------+---------+-----------+------+------------+--------------+
+ */
+int GraphEditorView::calculate_action(GraphNode* from_node,GraphNode* to_node)
+{
+    int result = 0;
+    if(from_node)
+        result |= (1u);
+    if(to_node)
+        result |= (1u << 1);
+    if(from_node==to_node and from_node)
+        result |= (1u << 2);
+    if(temp_from_node)
+        result |= (1u << 3);
+    if(temp_to_node)
+        result |= (1u << 4);
+    if(distance_dragged > 20)
+        result |= (1u << 5);
+    return result;
 }
 
 void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
@@ -363,6 +404,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
                 try {
                     DSR::Node real_node = from_node.value();
                     rt->insert_or_assign_edge_RT(real_node, to_id, trans, rot);
+                    return true;
                 }
                 catch (const std::exception& e) {
                     QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__,e.what());
