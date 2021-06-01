@@ -183,11 +183,17 @@ void SpecificWorker::compute()
                         if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
                         {
                             // saccade to G position
-                            std::vector<float> target_v{(float)target_in_camera.x(), (float)target_in_camera.y(), (float)target_in_camera.z()};
-                            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
-                            G->update_node(pan_tilt.value());
-                            print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), true);
-                            this->wait_state.init(1000); //ms   learn this time dynamically
+                            if(auto target_in_pan_tilt_o = inner_eigen->transform(viriato_head_camera_pan_tilt_name, target.name(), cam_timestamp); target_in_pan_tilt_o.has_value())
+                            {
+                                const Eigen::Vector3d &target_in_pan_tilt = target_in_pan_tilt_o.value();
+
+                                std::vector<float> target_v{(float)target_in_pan_tilt.x(), (float)target_in_pan_tilt.y(), (float)target_in_pan_tilt.z()};
+
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
+                                G->update_node(pan_tilt.value());
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), true);
+                                this->wait_state.init(1000); //ms   learn this time dynamically
+                            }
                         }
                         else
                             print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), false);

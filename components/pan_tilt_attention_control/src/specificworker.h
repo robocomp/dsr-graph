@@ -51,7 +51,7 @@ using msec = std::chrono::duration<int , std::milli>;
 
 struct CONSTANTS_DATA
 {
-    float max_distance_between_target_and_pan_tilt = 200; //mm
+    float max_distance_between_target_and_pan_tilt = 100; //mm
 };
 const CONSTANTS_DATA CONSTANTS;
 
