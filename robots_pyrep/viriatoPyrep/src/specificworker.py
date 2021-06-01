@@ -561,24 +561,33 @@ class SpecificWorker(GenericWorker):
     def CoppeliaUtils_addOrModifyDummy(self, type, name, pose):
         if not Dummy.exists(name):
             dummy = Dummy.create(0.1)
-            # one color for each type of dummy
-            if type==RoboCompCoppeliaUtils.TargetTypes.Info:
-                pass
-            if type == RoboCompCoppeliaUtils.TargetTypes.Hand:
-                pass
-            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-                pass
             dummy.set_name(name)
         else:
             dummy = Dummy(name)
             parent_frame_object = None
             if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")
-            #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
+                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")          # target in parent's reference system
 
-            # we change here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
             #print("Coppelia sent", name, pose.y/1000, pose.z/1000, -pose.z/1000)
             dummy.set_position([pose.y / 1000., pose.x / 1000., -pose.z / 1000.], parent_frame_object)
+            dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
+
+    def CoppeliaUtils_setDummySpeed(self, type, name, pose):
+        if not Dummy.exists(name):
+            print("Warning. Attempt to set speed to a non existent dummy", name)
+            return
+        else:
+            dummy = Dummy(name)
+            parent_frame_object = None
+            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
+                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")  # target in parent's reference system
+
+            #self.pr.script_call("close@RG2", 1)
+
+            # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            # print("Coppelia sent", name, pose.y/1000, pose.z/1000, -pose.z/1000)
+            dummy.set_([pose.y / 1000., pose.x / 1000., -pose.z / 1000.], parent_frame_object)
             dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
 
         #

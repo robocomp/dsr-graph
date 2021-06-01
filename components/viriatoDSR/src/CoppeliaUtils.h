@@ -78,6 +78,25 @@ struct PoseType
     }
 };
 
+struct SpeedType
+{
+    float vx;
+    float vy;
+    float vz;
+    float vrx;
+    float vry;
+    float vrz;
+
+    /**
+     * Obtains a tuple containing all of the struct's data members.
+     * @return The data members in a tuple.
+     */
+    std::tuple<const float&, const float&, const float&, const float&, const float&, const float&> ice_tuple() const
+    {
+        return std::tie(vx, vy, vz, vrx, vry, vrz);
+    }
+};
+
 enum class TargetTypes : unsigned char
 {
     Info,
@@ -136,6 +155,11 @@ public:
     bool _iceD_addOrModifyDummy(::IceInternal::Incoming&, const ::Ice::Current&);
     /// \endcond
 
+    virtual void setDummySpeed(TargetTypes type, ::std::string name, SpeedType speed, const ::Ice::Current& current) = 0;
+    /// \cond INTERNAL
+    bool _iceD_setDummySpeed(::IceInternal::Incoming&, const ::Ice::Current&);
+    /// \endcond
+
     /// \cond INTERNAL
     virtual bool _iceDispatch(::IceInternal::Incoming&, const ::Ice::Current&) override;
     /// \endcond
@@ -176,6 +200,32 @@ public:
     void _iceI_addOrModifyDummy(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>&, TargetTypes, const ::std::string&, const PoseType&, const ::Ice::Context&);
     /// \endcond
 
+    void setDummySpeed(TargetTypes type, const ::std::string& name, const SpeedType& speed, const ::Ice::Context& context = ::Ice::noExplicitContext)
+    {
+        _makePromiseOutgoing<void>(true, this, &CoppeliaUtilsPrx::_iceI_setDummySpeed, type, name, speed, context).get();
+    }
+
+    template<template<typename> class P = ::std::promise>
+    auto setDummySpeedAsync(TargetTypes type, const ::std::string& name, const SpeedType& speed, const ::Ice::Context& context = ::Ice::noExplicitContext)
+        -> decltype(::std::declval<P<void>>().get_future())
+    {
+        return _makePromiseOutgoing<void, P>(false, this, &CoppeliaUtilsPrx::_iceI_setDummySpeed, type, name, speed, context);
+    }
+
+    ::std::function<void()>
+    setDummySpeedAsync(TargetTypes type, const ::std::string& name, const SpeedType& speed,
+                       ::std::function<void()> response,
+                       ::std::function<void(::std::exception_ptr)> ex = nullptr,
+                       ::std::function<void(bool)> sent = nullptr,
+                       const ::Ice::Context& context = ::Ice::noExplicitContext)
+    {
+        return _makeLamdaOutgoing<void>(response, ex, sent, this, &RoboCompCoppeliaUtils::CoppeliaUtilsPrx::_iceI_setDummySpeed, type, name, speed, context);
+    }
+
+    /// \cond INTERNAL
+    void _iceI_setDummySpeed(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>&, TargetTypes, const ::std::string&, const SpeedType&, const ::Ice::Context&);
+    /// \endcond
+
     /**
      * Obtains the Slice type ID of this interface.
      * @return The fully-scoped type ID.
@@ -212,6 +262,23 @@ struct StreamReader<::RoboCompCoppeliaUtils::PoseType, S>
     static void read(S* istr, ::RoboCompCoppeliaUtils::PoseType& v)
     {
         istr->readAll(v.x, v.y, v.z, v.rx, v.ry, v.rz);
+    }
+};
+
+template<>
+struct StreamableTraits<::RoboCompCoppeliaUtils::SpeedType>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 24;
+    static const bool fixedLength = true;
+};
+
+template<typename S>
+struct StreamReader<::RoboCompCoppeliaUtils::SpeedType, S>
+{
+    static void read(S* istr, ::RoboCompCoppeliaUtils::SpeedType& v)
+    {
+        istr->readAll(v.vx, v.vy, v.vz, v.vrx, v.vry, v.vrz);
     }
 };
 
@@ -285,6 +352,16 @@ struct PoseType
     ::Ice::Float rz;
 };
 
+struct SpeedType
+{
+    ::Ice::Float vx;
+    ::Ice::Float vy;
+    ::Ice::Float vz;
+    ::Ice::Float vrx;
+    ::Ice::Float vry;
+    ::Ice::Float vrz;
+};
+
 enum TargetTypes
 {
     Info,
@@ -304,6 +381,14 @@ namespace RoboCompCoppeliaUtils
  */
 class Callback_CoppeliaUtils_addOrModifyDummy_Base : public virtual ::IceInternal::CallbackBase { };
 typedef ::IceUtil::Handle< Callback_CoppeliaUtils_addOrModifyDummy_Base> Callback_CoppeliaUtils_addOrModifyDummyPtr;
+
+/**
+ * Base class for asynchronous callback wrapper classes used for calls to
+ * IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ * Create a wrapper instance by calling ::RoboCompCoppeliaUtils::newCallback_CoppeliaUtils_setDummySpeed.
+ */
+class Callback_CoppeliaUtils_setDummySpeed_Base : public virtual ::IceInternal::CallbackBase { };
+typedef ::IceUtil::Handle< Callback_CoppeliaUtils_setDummySpeed_Base> Callback_CoppeliaUtils_setDummySpeedPtr;
 
 }
 
@@ -352,6 +437,44 @@ public:
 private:
 
     ::Ice::AsyncResultPtr _iceI_begin_addOrModifyDummy(::RoboCompCoppeliaUtils::TargetTypes, const ::std::string&, const ::RoboCompCoppeliaUtils::PoseType&, const ::Ice::Context&, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& cookie = 0, bool sync = false);
+
+public:
+
+    void setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::Ice::Context& context = ::Ice::noExplicitContext)
+    {
+        end_setDummySpeed(_iceI_begin_setDummySpeed(type, name, speed, context, ::IceInternal::dummyCallback, 0, true));
+    }
+
+    ::Ice::AsyncResultPtr begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::Ice::Context& context = ::Ice::noExplicitContext)
+    {
+        return _iceI_begin_setDummySpeed(type, name, speed, context, ::IceInternal::dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::Ice::CallbackPtr& cb, const ::Ice::LocalObjectPtr& cookie = 0)
+    {
+        return _iceI_begin_setDummySpeed(type, name, speed, ::Ice::noExplicitContext, cb, cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::Ice::Context& context, const ::Ice::CallbackPtr& cb, const ::Ice::LocalObjectPtr& cookie = 0)
+    {
+        return _iceI_begin_setDummySpeed(type, name, speed, context, cb, cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::RoboCompCoppeliaUtils::Callback_CoppeliaUtils_setDummySpeedPtr& cb, const ::Ice::LocalObjectPtr& cookie = 0)
+    {
+        return _iceI_begin_setDummySpeed(type, name, speed, ::Ice::noExplicitContext, cb, cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes type, const ::std::string& name, const ::RoboCompCoppeliaUtils::SpeedType& speed, const ::Ice::Context& context, const ::RoboCompCoppeliaUtils::Callback_CoppeliaUtils_setDummySpeedPtr& cb, const ::Ice::LocalObjectPtr& cookie = 0)
+    {
+        return _iceI_begin_setDummySpeed(type, name, speed, context, cb, cookie);
+    }
+
+    void end_setDummySpeed(const ::Ice::AsyncResultPtr& result);
+
+private:
+
+    ::Ice::AsyncResultPtr _iceI_begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes, const ::std::string&, const ::RoboCompCoppeliaUtils::SpeedType&, const ::Ice::Context&, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& cookie = 0, bool sync = false);
 
 public:
 
@@ -417,6 +540,11 @@ public:
     bool _iceD_addOrModifyDummy(::IceInternal::Incoming&, const ::Ice::Current&);
     /// \endcond
 
+    virtual void setDummySpeed(TargetTypes type, const ::std::string& name, const SpeedType& speed, const ::Ice::Current& current = ::Ice::emptyCurrent) = 0;
+    /// \cond INTERNAL
+    bool _iceD_setDummySpeed(::IceInternal::Incoming&, const ::Ice::Current&);
+    /// \endcond
+
     /// \cond INTERNAL
     virtual bool _iceDispatch(::IceInternal::Incoming&, const ::Ice::Current&);
     /// \endcond
@@ -480,6 +608,42 @@ struct StreamReader< ::RoboCompCoppeliaUtils::PoseType, S>
         istr->read(v.rx);
         istr->read(v.ry);
         istr->read(v.rz);
+    }
+};
+
+template<>
+struct StreamableTraits< ::RoboCompCoppeliaUtils::SpeedType>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryStruct;
+    static const int minWireSize = 24;
+    static const bool fixedLength = true;
+};
+
+template<typename S>
+struct StreamWriter< ::RoboCompCoppeliaUtils::SpeedType, S>
+{
+    static void write(S* ostr, const ::RoboCompCoppeliaUtils::SpeedType& v)
+    {
+        ostr->write(v.vx);
+        ostr->write(v.vy);
+        ostr->write(v.vz);
+        ostr->write(v.vrx);
+        ostr->write(v.vry);
+        ostr->write(v.vrz);
+    }
+};
+
+template<typename S>
+struct StreamReader< ::RoboCompCoppeliaUtils::SpeedType, S>
+{
+    static void read(S* istr, ::RoboCompCoppeliaUtils::SpeedType& v)
+    {
+        istr->read(v.vx);
+        istr->read(v.vy);
+        istr->read(v.vz);
+        istr->read(v.vrx);
+        istr->read(v.vry);
+        istr->read(v.vrz);
     }
 };
 
@@ -653,6 +817,162 @@ template<class T, typename CT> Callback_CoppeliaUtils_addOrModifyDummyPtr
 newCallback_CoppeliaUtils_addOrModifyDummy(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
     return new Callback_CoppeliaUtils_addOrModifyDummy<T, CT>(instance, 0, excb, sentcb);
+}
+
+/**
+ * Type-safe asynchronous callback wrapper class used for calls to
+ * IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ * Create a wrapper instance by calling ::RoboCompCoppeliaUtils::newCallback_CoppeliaUtils_setDummySpeed.
+ */
+template<class T>
+class CallbackNC_CoppeliaUtils_setDummySpeed : public Callback_CoppeliaUtils_setDummySpeed_Base, public ::IceInternal::OnewayCallbackNC<T>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception&);
+    typedef void (T::*Sent)(bool);
+    typedef void (T::*Response)();
+
+    CallbackNC_CoppeliaUtils_setDummySpeed(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+    {
+    }
+};
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * @param instance The callback object.
+ * @param cb The success method of the callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(const IceUtil::Handle<T>& instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_CoppeliaUtils_setDummySpeed<T>(instance, cb, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * @param instance The callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_CoppeliaUtils_setDummySpeed<T>(instance, 0, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * @param instance The callback object.
+ * @param cb The success method of the callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(T* instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_CoppeliaUtils_setDummySpeed<T>(instance, cb, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * @param instance The callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(T* instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_CoppeliaUtils_setDummySpeed<T>(instance, 0, excb, sentcb);
+}
+
+/**
+ * Type-safe asynchronous callback wrapper class with cookie support used for calls to
+ * IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ * Create a wrapper instance by calling ::RoboCompCoppeliaUtils::newCallback_CoppeliaUtils_setDummySpeed.
+ */
+template<class T, typename CT>
+class Callback_CoppeliaUtils_setDummySpeed : public Callback_CoppeliaUtils_setDummySpeed_Base, public ::IceInternal::OnewayCallback<T, CT>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception& , const CT&);
+    typedef void (T::*Sent)(bool , const CT&);
+    typedef void (T::*Response)(const CT&);
+
+    Callback_CoppeliaUtils_setDummySpeed(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+    {
+    }
+};
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * Use this overload when your callback methods receive a cookie value.
+ * @param instance The callback object.
+ * @param cb The success method of the callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T, typename CT> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(const IceUtil::Handle<T>& instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_CoppeliaUtils_setDummySpeed<T, CT>(instance, cb, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * Use this overload when your callback methods receive a cookie value.
+ * @param instance The callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T, typename CT> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_CoppeliaUtils_setDummySpeed<T, CT>(instance, 0, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * Use this overload when your callback methods receive a cookie value.
+ * @param instance The callback object.
+ * @param cb The success method of the callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T, typename CT> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(T* instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_CoppeliaUtils_setDummySpeed<T, CT>(instance, cb, excb, sentcb);
+}
+
+/**
+ * Creates a callback wrapper instance that delegates to your object.
+ * Use this overload when your callback methods receive a cookie value.
+ * @param instance The callback object.
+ * @param excb The exception method of the callback object.
+ * @param sentcb The sent method of the callback object.
+ * @return An object that can be passed to an asynchronous invocation of IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::begin_setDummySpeed.
+ */
+template<class T, typename CT> Callback_CoppeliaUtils_setDummySpeedPtr
+newCallback_CoppeliaUtils_setDummySpeed(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_CoppeliaUtils_setDummySpeed<T, CT>(instance, 0, excb, sentcb);
 }
 
 }

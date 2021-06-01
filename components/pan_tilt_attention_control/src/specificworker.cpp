@@ -180,27 +180,31 @@ void SpecificWorker::compute()
                         const Eigen::Vector3d &target_in_camera = target_in_camera_o.value();
                         const Eigen::Vector2d target_in_camera_2d{target_in_camera.x(), target_in_camera.z()};  // Z points upwards as -Y in image plane
                         float dist = target_in_camera_2d.norm();
-                        if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
+                        if(auto target_in_pan_tilt_o = inner_eigen->transform(viriato_head_camera_pan_tilt_name, target.name(), cam_timestamp); target_in_pan_tilt_o.has_value())
                         {
-                            // saccade to G position
-                            if(auto target_in_pan_tilt_o = inner_eigen->transform(viriato_head_camera_pan_tilt_name, target.name(), cam_timestamp); target_in_pan_tilt_o.has_value())
+                            const Eigen::Vector3d &target_in_pan_tilt = target_in_pan_tilt_o.value();
+                            if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
                             {
-                                const Eigen::Vector3d &target_in_pan_tilt = target_in_pan_tilt_o.value();
-
+                                // saccade to G position commputed in pan_tilt's reference system
                                 std::vector<float> target_v{(float)target_in_pan_tilt.x(), (float)target_in_pan_tilt.y(), (float)target_in_pan_tilt.z()};
-
-                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), target_v);
-                                G->update_node(pan_tilt.value());
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), target_v);
                                 print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), true);
                                 this->wait_state.init(1000); //ms   learn this time dynamically
                             }
+                            else // compute reference speed for pan-tilt
+                            {
+                                const auto vels = target_in_pan_tilt.normalized() * -10;
+                                std::vector<float> target_v{(float)vels.x(), (float)vels.y(), (float)vels.z()};
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), false);
+                            }
+                            G->update_node(pan_tilt.value());
                         }
-                        else
-                            print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), false);
+                        else  qWarning() << __FUNCTION__ << "No transform to pan-tilt RS could be computed";
                     }
+                    else qWarning() << __FUNCTION__ << "No transform to camera RS could be computed";
                 }
-                // else
-                // compute reference speed for pan-tilt
+                else qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(viriato_head_camera_pan_tilt_name) << " found in G";
             }
             else qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(target_name) << " found in G";
         }
@@ -214,7 +218,7 @@ void SpecificWorker::print_data(const DSR::Node &target, int error, const Eigen:
 {
     custom_widget.text_pane->clear();
     auto target_w = inner_eigen->transform(world_name, target.name(), cam_timestamp).value();
-    auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt).value().get();
+    auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt).value().get();
     auto camera_tip_w = inner_eigen->transform(world_name, Eigen::Vector3d{camera_tip[0],camera_tip[1],camera_tip[2]}, viriato_head_camera_pan_tilt_name , cam_timestamp).value();
     QString output;
     auto w_error = (target_w - camera_tip_w).norm();
@@ -238,7 +242,7 @@ void SpecificWorker::set_nose_target_to_default()
     //if(this->already_in_default == true) return;
     if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
-        G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), nose_default_pose);
+        G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), nose_default_pose);
         G->update_node(pan_tilt.value());
     }
 }
@@ -256,7 +260,7 @@ void SpecificWorker::track_object_of_interest(DSR::Node &robot)
         if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
         {
 //            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
             G->update_node(pan_tilt.value());
             //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
         }

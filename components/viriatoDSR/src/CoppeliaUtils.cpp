@@ -58,9 +58,11 @@ const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_ops[] =
     "ice_id",
     "ice_ids",
     "ice_isA",
-    "ice_ping"
+    "ice_ping",
+    "setDummySpeed"
 };
 const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_addOrModifyDummy_name = "addOrModifyDummy";
+const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name = "setDummySpeed";
 
 }
 
@@ -108,9 +110,26 @@ RoboCompCoppeliaUtils::CoppeliaUtils::_iceD_addOrModifyDummy(::IceInternal::Inco
 
 /// \cond INTERNAL
 bool
+RoboCompCoppeliaUtils::CoppeliaUtils::_iceD_setDummySpeed(::IceInternal::Incoming& inS, const ::Ice::Current& current)
+{
+    _iceCheckMode(::Ice::OperationMode::Normal, current.mode);
+    auto istr = inS.startReadParams();
+    TargetTypes iceP_type;
+    ::std::string iceP_name;
+    SpeedType iceP_speed;
+    istr->readAll(iceP_type, iceP_name, iceP_speed);
+    inS.endReadParams();
+    this->setDummySpeed(iceP_type, ::std::move(iceP_name), ::std::move(iceP_speed), current);
+    inS.writeEmptyParams();
+    return true;
+}
+/// \endcond
+
+/// \cond INTERNAL
+bool
 RoboCompCoppeliaUtils::CoppeliaUtils::_iceDispatch(::IceInternal::Incoming& in, const ::Ice::Current& current)
 {
-    ::std::pair<const ::std::string*, const ::std::string*> r = ::std::equal_range(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_ops, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_ops + 5, current.operation);
+    ::std::pair<const ::std::string*, const ::std::string*> r = ::std::equal_range(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_ops, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_ops + 6, current.operation);
     if(r.first == r.second)
     {
         throw ::Ice::OperationNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
@@ -138,6 +157,10 @@ RoboCompCoppeliaUtils::CoppeliaUtils::_iceDispatch(::IceInternal::Incoming& in, 
         {
             return _iceD_ice_ping(in, current);
         }
+        case 5:
+        {
+            return _iceD_setDummySpeed(in, current);
+        }
         default:
         {
             assert(false);
@@ -155,6 +178,19 @@ RoboCompCoppeliaUtils::CoppeliaUtilsPrx::_iceI_addOrModifyDummy(const ::std::sha
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_type, iceP_name, iceP_pose);
+        },
+        nullptr);
+}
+/// \endcond
+
+/// \cond INTERNAL
+void
+RoboCompCoppeliaUtils::CoppeliaUtilsPrx::_iceI_setDummySpeed(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, TargetTypes iceP_type, const ::std::string& iceP_name, const SpeedType& iceP_speed, const ::Ice::Context& context)
+{
+    outAsync->invoke(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
+        [&](::Ice::OutputStream* ostr)
+        {
+            ostr->writeAll(iceP_type, iceP_name, iceP_speed);
         },
         nullptr);
 }
@@ -184,6 +220,8 @@ namespace
 {
 
 const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_addOrModifyDummy_name = "addOrModifyDummy";
+
+const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name = "setDummySpeed";
 
 }
 
@@ -232,6 +270,33 @@ void
 IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::end_addOrModifyDummy(const ::Ice::AsyncResultPtr& result)
 {
     _end(result, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_addOrModifyDummy_name);
+}
+
+::Ice::AsyncResultPtr
+IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::_iceI_begin_setDummySpeed(::RoboCompCoppeliaUtils::TargetTypes iceP_type, const ::std::string& iceP_name, const ::RoboCompCoppeliaUtils::SpeedType& iceP_speed, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
+{
+    ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name, del, cookie, sync);
+    try
+    {
+        result->prepare(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name, ::Ice::Normal, context);
+        ::Ice::OutputStream* ostr = result->startWriteParams(::Ice::DefaultFormat);
+        ostr->write(iceP_type);
+        ostr->write(iceP_name);
+        ostr->write(iceP_speed);
+        result->endWriteParams();
+        result->invoke(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name);
+    }
+    catch(const ::Ice::Exception& ex)
+    {
+        result->abort(ex);
+    }
+    return result;
+}
+
+void
+IceProxy::RoboCompCoppeliaUtils::CoppeliaUtils::end_setDummySpeed(const ::Ice::AsyncResultPtr& result)
+{
+    _end(result, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_setDummySpeed_name);
 }
 
 /// \cond INTERNAL
@@ -315,6 +380,25 @@ RoboCompCoppeliaUtils::CoppeliaUtils::_iceD_addOrModifyDummy(::IceInternal::Inco
 }
 /// \endcond
 
+/// \cond INTERNAL
+bool
+RoboCompCoppeliaUtils::CoppeliaUtils::_iceD_setDummySpeed(::IceInternal::Incoming& inS, const ::Ice::Current& current)
+{
+    _iceCheckMode(::Ice::Normal, current.mode);
+    ::Ice::InputStream* istr = inS.startReadParams();
+    TargetTypes iceP_type;
+    ::std::string iceP_name;
+    SpeedType iceP_speed;
+    istr->read(iceP_type);
+    istr->read(iceP_name);
+    istr->read(iceP_speed);
+    inS.endReadParams();
+    this->setDummySpeed(iceP_type, iceP_name, iceP_speed, current);
+    inS.writeEmptyParams();
+    return true;
+}
+/// \endcond
+
 namespace
 {
 const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all[] =
@@ -323,7 +407,8 @@ const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all[] =
     "ice_id",
     "ice_ids",
     "ice_isA",
-    "ice_ping"
+    "ice_ping",
+    "setDummySpeed"
 };
 
 }
@@ -332,7 +417,7 @@ const ::std::string iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all[] =
 bool
 RoboCompCoppeliaUtils::CoppeliaUtils::_iceDispatch(::IceInternal::Incoming& in, const ::Ice::Current& current)
 {
-    ::std::pair<const ::std::string*, const ::std::string*> r = ::std::equal_range(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all + 5, current.operation);
+    ::std::pair<const ::std::string*, const ::std::string*> r = ::std::equal_range(iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all, iceC_RoboCompCoppeliaUtils_CoppeliaUtils_all + 6, current.operation);
     if(r.first == r.second)
     {
         throw ::Ice::OperationNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
@@ -359,6 +444,10 @@ RoboCompCoppeliaUtils::CoppeliaUtils::_iceDispatch(::IceInternal::Incoming& in, 
         case 4:
         {
             return _iceD_ice_ping(in, current);
+        }
+        case 5:
+        {
+            return _iceD_setDummySpeed(in, current);
         }
         default:
         {
