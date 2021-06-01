@@ -41,15 +41,26 @@ console = Console(highlight=False)
 # import librobocomp_innermodel
 
 class PersonType:
-    def __init__(self, id=None, tx=0, ty=0, tz=0, rx=0, ry=0, rz=0):
+    def __init__(self, id=None, tx=0, ty=0, ry=0):
         self.id = id
         self.tx = tx
         self.ty = ty
-        self.tz = tz
-        self.rx = rx
         self.ry = ry
-        self.rz = rz
 
+
+class ObjectType:
+    def __init__(self, id=None, tx=0, ty=0, ry=0,
+                 shape=None, inter_angle=0, inter_space=0, depth=0, width=0, height=0):
+        self.id = id
+        self.tx = tx
+        self.ty = ty
+        self.ry = ry
+        self.shape = shape
+        self.inter_angle = inter_angle
+        self.inter_space = inter_space
+        self.depth = depth
+        self.width = width
+        self.height = height
 
 class PersonalSpaceType:
     def __init__(self):
@@ -96,9 +107,11 @@ class SpecificWorker(GenericWorker):
     @QtCore.Slot()
     def compute(self):
         people_list = self.get_people_from_dsr()
-        spaces = self.personal_spaces_manager.get_personal_spaces(people_list, True)
+        spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
         dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
         self.update_personal_spaces(dict_ids_personal_spaces)
+        objects_list = self.get_interactive_objects_from_drs()
+
         return True
 
     def startup_check(self):
@@ -113,7 +126,7 @@ class SpecificWorker(GenericWorker):
             edge_rt = self.rt_api.get_edge_RT(self.g.get_node("world"), person_node.id)
             tx, ty, tz = edge_rt.attrs['rt_translation'].value
             rx, ry, rz = edge_rt.attrs['rt_rotation_euler_xyz'].value
-            person_type = PersonType(person_id, tx, ty, tz, rx, ry, rz)
+            person_type = PersonType(person_id, tx, ty, ry)
             people_list.append(person_type)
 
         return people_list
@@ -182,8 +195,6 @@ class SpecificWorker(GenericWorker):
 
             # Update personal_space node
             if personal_space_node is not None:
-                # personal_space_node = self.g.get_node('personal_space_0')
-
                 personal_space_node.attrs['ps_social_x_pos'].value = x_social
                 personal_space_node.attrs['ps_social_y_pos'].value = y_social
                 personal_space_node.attrs['ps_personal_x_pos'].value = x_personal
@@ -223,6 +234,32 @@ class SpecificWorker(GenericWorker):
                 except:
                     traceback.print_exc()
                     print('cant insert node or add edge RT')
+
+    def get_interactive_objects_from_drs(self):
+        interactive_edges = self.g.get_edges_by_type('interactive')
+
+        objects_list = []
+        for edge in interactive_edges:
+            object_node = self.g.get_node(edge.destination)
+            obj_id = object_node.attrs['obj_id'].value
+            width = object_node.attrs['obj_width'].value
+            height = object_node.attrs['obj_height'].value
+            depth = object_node.attrs['obj_depth'].value
+            shape = object_node.attrs['obj_interaction_shape'].value
+            inter_space = object_node.attrs['obj_interaction_space'].value
+            inter_angle = object_node.attrs['obj_interaction_angle'].value
+
+            object_edges = self.g.get_edges_to_id(object_node.id)
+            for ed in object_edges:
+                if ed.type == 'RT':
+                    tx, ty, tz = ed.attrs['rt_translation'].value
+                    rx, ry, rz = ed.attrs['rt_rotation_euler_xyz'].value
+            object_type = ObjectType(obj_id, tx, ty, ry, shape, inter_angle, inter_space, depth, width, height)
+            objects_list.append(object_type)
+
+        print(f'Objects found {len(objects_list)}')
+
+        return objects_list
 
     # =============== Methods for Component SubscribesTo ================
     # ===================================================================

@@ -1,6 +1,7 @@
 from math import *
 
 import matplotlib.pyplot as plt
+plt.plasma()
 import numpy as np
 import GaussianMix as GM
 import checkboundaries as ck
@@ -8,8 +9,9 @@ from normal import Normal
 from scipy.spatial import ConvexHull
 from rich.console import Console
 console = Console(highlight=False)
+from mpl_toolkits.mplot3d import Axes3D
 plt.figure()
-plt.ion()
+# plt.ion()
 
 
 class Person:
@@ -31,7 +33,7 @@ class Person:
         if draw_personal_space:
             plt.clf()
             plt.contour(X, Y, Z, 10)
-
+            plt.axis('equal')
             # Body
             body = plt.Circle((self.x, self.y), radius=self._radius, fill=False)
             plt.gca().add_patch(body)
@@ -44,7 +46,14 @@ class Person:
             heading = plt.Line2D((self.x, x_aux), (self.y, y_aux), lw=1, color='k')
             plt.gca().add_line(heading)
 
-            plt.axis('equal')
+            fig = plt.figure()
+
+            ax = fig.add_subplot(111, projection='3d')
+            # ax = fig.gca(projection='3d')
+            ax.plot_surface(X, Y, Z, cmap='plasma')
+            plt.pause(0.00001)
+
+            # plt.axis('equal')
 
         return Z
 
@@ -70,9 +79,10 @@ class PersonalSpacesManager:
     def __init__(self):
         self.__personal_spaces = ["intimate", "personal", "social"]
         # sigma_h, sigma_r, sigma_s,  h
-        self.__dict_space_param = {"intimate": [1.3, 1., 1.3, 0.9],
-                                   "personal": [1.3, 1., 1.3, 0.6],  # 0.5
-                                   "social": [3., 1., 1.3, 0.3],  # 0.2
+        self.__dict_space_param = {"intimate": [2, 1., 1.3, 0.9],
+                                   "personal": [2, 1., 1.3, 0.6],  # 0.5
+                                   # "social": [3., 1., 1.3, 0.3],  # 0.2
+                                   "social": [2, 1., 1.3, 0.3],  # 0.2
                                    }
         ##Limites de la representacion
         self.lx_inf = -6
@@ -146,23 +156,23 @@ class PersonalSpacesManager:
                     dict_spaces_mm[space].append(polyline_mm)
 
         if represent:
-            for soc in dict_spaces["social"]:
-                x, y = zip(*soc)
-                plt.plot(x, y, color='c', linestyle='None', marker='.')
-                plt.pause(0.00001)
-            for per in dict_spaces["personal"]:
-                x, y = zip(*per)
-                plt.plot(x, y, color='m', linestyle='None', marker='.')
-                plt.pause(0.00001)
-
-            for inti in dict_spaces["intimate"]:
-                x, y = zip(*inti)
-                plt.plot(x, y, color='r', linestyle='None', marker='.')
-                plt.pause(0.00001)
-
-            plt.axis('equal')
-            plt.xlabel('X')
-            plt.ylabel('Y')
+            # for soc in dict_spaces["social"]:
+            #     x, y = zip(*soc)
+            #     plt.plot(x, y, color='c', linestyle='None', marker='.')
+            #     plt.pause(0.00001)
+            # for per in dict_spaces["personal"]:
+            #     x, y = zip(*per)
+            #     plt.plot(x, y, color='m', linestyle='None', marker='.')
+            #     plt.pause(0.00001)
+            #
+            # for inti in dict_spaces["intimate"]:
+            #     x, y = zip(*inti)
+            #     plt.plot(x, y, color='r', linestyle='None', marker='.')
+            #     plt.pause(0.00001)
+            #
+            # plt.axis('equal')
+            # plt.xlabel('X')
+            # plt.ylabel('Y')
             plt.show()
 
         return dict_spaces_mm['intimate'], dict_spaces_mm['personal'], dict_spaces_mm['social']
