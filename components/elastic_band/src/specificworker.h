@@ -35,6 +35,7 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include "grid.h"
+#include <fps/fps.h>
 #include <doublebuffer/DoubleBuffer.h>
 
 class Plan
@@ -103,6 +104,7 @@ private:
 
         //local widget
         Custom_widget custom_widget;
+        FPSCounter fps;
 
         //drawing
         DSR::QScene2dViewer* widget_2d;

@@ -320,6 +320,7 @@ std::optional<uint64_t> GraphEditorView::_create_new_G_node(const QString& name,
     catch(const std::exception& e)
     {
         std::cout << __FUNCTION__ <<  e.what() << std::endl;
+        QMessageBox::critical(this,QString("Error in ")+ __FUNCTION__,e.what());
     }
     return {};
 }
@@ -380,7 +381,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
                 return false;
             }
         }
-        else if(type == "interacting")
+        else
         {
             DSR::Edge edge;
             edge.type(type.toStdString());
@@ -429,16 +430,25 @@ bool GraphEditorView::create_new_connected_node(QPointF position, uint64_t node_
         return ok;
 
     // Create node
-    std::optional<uint64_t> new_node_id = this->_create_new_G_node(results[0], results[1], position);
-    if (new_node_id.has_value())
-    {
-        if(reverse)
-            return this->_create_new_G_edge(results[2], new_node_id.value(), node_id);
+    try {
+        std::optional<uint64_t> new_node_id = this->_create_new_G_node(results[0], results[1], position);
+        if (new_node_id.has_value())
+        {
+            if(reverse)
+                return this->_create_new_G_edge(results[2], new_node_id.value(), node_id);
+            else
+                return this->_create_new_G_edge(results[2],  node_id, new_node_id.value());
+        }
         else
-            return this->_create_new_G_edge(results[2],  node_id, new_node_id.value());
+            return false;
     }
-    else
+    catch (const std::exception& e) {
+        std::cout << __FUNCTION__ <<  e.what() << std::endl;
+        QMessageBox::critical(this,QString("Error in ")+ __FUNCTION__,e.what());
         return false;
+    }
+
+
 
 }
 void GraphEditorView::enableMoveMode()

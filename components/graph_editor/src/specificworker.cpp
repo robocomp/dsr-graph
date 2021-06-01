@@ -114,7 +114,7 @@ void SpecificWorker::open_dsr_file(const string& dsr_file)
     }
 }
 
-void SpecificWorker::create_new_dsr_file()
+int SpecificWorker::create_new_dsr_file()
 {// If not
 // Ask if want to create new file or try to load from the network
 // Create new tempfile
@@ -125,6 +125,22 @@ void SpecificWorker::create_new_dsr_file()
         QTextStream outStream(&new_graph_file);
         outStream << "{}";
         G = make_shared<DSRGraph>(0, agent_name, agent_id, new_graph_file.fileName().toStdString());
+        DSR::Node node;
+        node.type("world");
+        node.name("World");
+        this->G->add_or_modify_attrib_local<pos_x_att>(node, float(0));
+        this->G->add_or_modify_attrib_local<pos_y_att>(node, float(0));
+        this->G->add_or_modify_attrib_local<color_att>(node, std::string("GoldenRod"));
+        G->add_or_modify_attrib_local<level_att>(node, 0);
+        try
+        {
+            return int(this->G->insert_node(node)!=0);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << __FUNCTION__ <<  e.what() << std::endl;
+            return -1;
+        }
     }
     // Create empty json file in path
 }

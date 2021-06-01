@@ -78,7 +78,7 @@ private:
     int qscene_2d_view{};
     int osg_3d_view{};
 
-    void create_new_dsr_file();
+    int create_new_dsr_file();
     void open_dsr_file(const string& dsr_file);
 };
 #endif

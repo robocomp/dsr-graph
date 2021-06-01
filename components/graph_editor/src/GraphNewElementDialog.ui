@@ -37,9 +37,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="node_type_cmb"/>
-      </item>
      </layout>
     </widget>
    </item>
@@ -66,9 +63,6 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="node_name_lbl_2"/>
       </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="node_type_cmb_2"/>
-      </item>
      </layout>
     </widget>
    </item>
@@ -84,9 +78,6 @@
          <string>Type</string>
         </property>
        </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="edge_type_cmb"/>
       </item>
      </layout>
     </widget>
