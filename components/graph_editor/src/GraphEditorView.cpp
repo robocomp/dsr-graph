@@ -42,10 +42,10 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
     modeMoveAction->setCheckable(true);
     modeActionsGroup->addAction(modeMoveAction);
 
-    modeCreatetAction = editMenu->addAction(material::pixmap("plus", QSize(32,32)), tr("Create Nodes"));
-    modeCreatetAction->setCheckable(true);
-    modeCreatetAction->setChecked(true);
-    modeActionsGroup->addAction(modeCreatetAction);
+    modeCreateAction = editMenu->addAction(material::pixmap("plus", QSize(32,32)), tr("Create Nodes"));
+    modeCreateAction->setCheckable(true);
+    modeCreateAction->setChecked(true);
+    modeActionsGroup->addAction(modeCreateAction);
 
     modeDeleteAction = editMenu->addAction(material::pixmap("eraser", QSize(32,32)), tr("Delete Nodes"));
     modeDeleteAction->setCheckable(true);
@@ -54,10 +54,10 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
 
 
     GraphEditorView::connect(modeMoveAction, &QAction::triggered, this, &GraphEditorView::enableMoveMode);
-    GraphEditorView::connect(modeCreatetAction, &QAction::triggered, this, &GraphEditorView::enableEditMode);
+    GraphEditorView::connect(modeCreateAction, &QAction::triggered, this, &GraphEditorView::enableEditMode);
     GraphEditorView::connect(modeDeleteAction, &QAction::triggered, this, &GraphEditorView::enableDeleteMode);
 
-    this->edit_modes_toolbar->addAction(modeCreatetAction);
+    this->edit_modes_toolbar->addAction(modeCreateAction);
     this->edit_modes_toolbar->addAction(modeDeleteAction);
     this->edit_modes_toolbar->addAction(modeMoveAction);
 //    this->edit_modes_toolbar->addAction(modeNodesAction);
@@ -82,8 +82,8 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
             auto* one_node = dynamic_cast<GraphNode*>(item);
             if (one_node!=nullptr) {
                 emit this->graph_node_clicked(one_node->id_in_graph);
-
             }
+
         }
     }
     event->accept();
@@ -91,7 +91,7 @@ void GraphEditorView::mousePressEvent(QMouseEvent *event)
 
     case GraphTool::delete_tool:
     case GraphTool::move_tool:
-    case GraphTool::selecction_tool:
+    case GraphTool::selection_tool:
         selection_box->setRect(QRectF(mapToScene(press_point), mapToScene(press_point)));
         if(!dragging) {
             this->scene.clearSelection();
@@ -220,7 +220,7 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
         this->safe_delete_slot();
         break;
     }
-    case GraphTool::selecction_tool:
+    case GraphTool::selection_tool:
     default: { GraphViewer::mouseReleaseEvent(event); }
     }
 
@@ -233,10 +233,11 @@ void GraphEditorView::mouseReleaseEvent(QMouseEvent* event)
 void GraphEditorView::mouseMoveEvent(QMouseEvent* event)
 {
     switch (this->current_tool) {
-        // If it's editing nodes
+        // If we are editing nodes
     case GraphTool::edit_tool:
         // If dragging
         if (this->dragging) {
+            // update the position of the temp TO node
             if (this->temp_to_node) {
                 this->temp_to_node->setPos(mapToScene(event->pos()));
             }
@@ -378,13 +379,13 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
             }
             else if(!from_node_level.has_value() and !to_node_level.has_value())
             {
-                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "Can't create RT edge.\nNONE of the nodes have LEVEL!");
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "No RT edge can be created.\nNONE of the nodes have LEVEL!");
                 qDebug()<< __FUNCTION__ <<" NONE of the nodes have LEVEL!";
                 return false;
             }
             else
             {
-                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "NONE of the nodes have LEVEL!");
+                QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "No RT edge can be created.\nBOTH of the nodes already had LEVEL attribute!");
                 qDebug()<< __FUNCTION__ <<" BOTH of the nodes have LEVEL!";
                 return false;
             }
@@ -405,6 +406,7 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
         }
     }
     else{
+        QMessageBox::warning(this,QString("WARNING in ")+ __FUNCTION__, QString("Selected node from or to does not exist ")+from_id+"("+from_node.has_value()+")->"+to_id+"("+to_node.has_value()+") type: "+type);
         qDebug()<<__FUNCTION__ <<">> Selected node from or to does not exist "<<from_id<<"("<<from_node.has_value()<<")->"<<to_id<<"("<<to_node.has_value()<<") type: "<<type;
     }
     return false;
@@ -495,13 +497,14 @@ void GraphEditorView::safe_delete_slot(){
 
 void GraphEditorView::delete_slot()
 {
-    qDebug()<<"To remove "<<this->scene.selectedItems().count();
     for(auto item : this->scene.selectedItems()) {
         auto node = dynamic_cast<GraphNode*>(item);
         if(node!=nullptr)
         {
-            if (not G->delete_node(node->id_in_graph))
+            if (not G->delete_node(node->id_in_graph)) {
                 qDebug() << "Node" << node->id_in_graph << "could not be deleted";
+                QMessageBox::critical(this,QString("Error in ")+ __FUNCTION__,  QString("Node")+node->id_in_graph+"could not be deleted");
+            }
         }
     }
 }

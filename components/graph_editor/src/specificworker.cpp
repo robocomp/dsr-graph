@@ -108,6 +108,7 @@ void SpecificWorker::initialize(int period)
         attribute_browser->add_node_to_combobox(new_world_node_id.value());
 
 }
+
 void SpecificWorker::open_dsr_file(const string& dsr_file)
 {
     if (QFileInfo::exists(QString::fromStdString(dsr_file)))

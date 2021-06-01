@@ -13,7 +13,7 @@
 
 enum class GraphTool{
     edit_tool,
-    selecction_tool,
+    selection_tool,
     move_tool,
     delete_tool
 };
@@ -32,7 +32,7 @@ private:
 //    QAction *modeDefaultAction;
     QActionGroup* modeActionsGroup;
     QAction *modeMoveAction;
-    QAction *modeCreatetAction;
+    QAction *modeCreateAction;
     QAction *modeDeleteAction;
     QShortcut* delete_shortcut;
     QShortcut* safe_delete_shortcut;
@@ -42,7 +42,7 @@ private:
     GraphNode* temp_from_node;
     GraphNode* temp_to_node;
     GraphEdge* temp_edge;
-    int distance_moved{};
+    double distance_dragged = 0;
     QPoint press_point = QPoint();
     QPoint release_point = QPoint();
 
@@ -74,6 +74,7 @@ private slots:
     void safe_delete_slot();
 
     void update_selection(const QMouseEvent* event);
+
 };
 
 #endif //TESTCOMP_GRAPHEDITORVIEW_H
