@@ -142,8 +142,10 @@ void SpecificWorker::compute()
     if(personal_spaces_changed)
     {
         get_polylines_from_dsr();
-        insert_polylines_in_grid();
-        inject_grid_in_G(grid);
+        if(grid_initialized) {
+            insert_polylines_in_grid();
+            inject_grid_in_G(grid);
+        }
         personal_spaces_changed = false;
     }
 }
@@ -191,11 +193,6 @@ void SpecificWorker::get_polylines_from_dsr(){
 }
 void SpecificWorker::insert_polylines_in_grid() {
 
-    if(!grid_initialized){
-        cout<<"Grid not initialized - Cant insert polylines"<<endl;
-        return;
-    }
-
     grid.resetGrid();
 
     //To set occupied
@@ -217,7 +214,7 @@ void SpecificWorker::insert_polylines_in_grid() {
 void SpecificWorker::inject_grid_in_G(const Grid &grid)
 {
     std::string grid_as_string = grid.saveToString();
-    if (auto current_grid_node_o = G->get_node(current_grid_name); current_grid_node_o.has_value())
+    if (auto current_grid_node_o = G->get_node("social_grid"); current_grid_node_o.has_value())
     {
         G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
         G->update_node(current_grid_node_o.value());
@@ -226,8 +223,8 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
     {
         if (auto mind = G->get_node(robot_mind_name); mind.has_value())
         {
-            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>(current_grid_name);
-            G->add_or_modify_attrib_local<name_att>(current_grid_node, current_grid_name);
+            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>("social_grid");
+//            G->add_or_modify_attrib_local<name_att>(current_grid_node, "social_grid");
             G->add_or_modify_attrib_local<parent_att>(current_grid_node, mind.value().id());
             G->add_or_modify_attrib_local<level_att>(current_grid_node, G->get_node_level(mind.value()).value() + 1);
             G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
