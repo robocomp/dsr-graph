@@ -150,6 +150,8 @@ void SpecificWorker::compute()
     //static bool first_time = true;
     static std::uint64_t current_target;
     static std::string target_name;
+    static bool saccade = true;
+    static bool smooth = false;
 
     if(const auto current_target_o = target_buffer.try_get(); current_target_o.has_value())
     {
@@ -169,6 +171,7 @@ void SpecificWorker::compute()
         if(this->active)
         {
             if(this->wait_state.waiting())  return;
+
             if (auto target_o = G->get_node(current_target); target_o.has_value())
             {
                 const auto target = target_o.value();
@@ -188,15 +191,16 @@ void SpecificWorker::compute()
                                 // saccade to G position commputed in pan_tilt's reference system
                                 std::vector<float> target_v{(float)target_in_pan_tilt.x(), (float)target_in_pan_tilt.y(), (float)target_in_pan_tilt.z()};
                                 G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), target_v);
-                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), true);
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), Eigen::Vector3d(), saccade);
                                 this->wait_state.init(1000); //ms   learn this time dynamically
                             }
                             else // compute reference speed for pan-tilt
                             {
-                                const auto vels = target_in_pan_tilt.normalized() * -10;
+                                auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()).value().get();
+                                const auto &vels = Eigen::Vector3d(camera_tip[0],camera_tip[1], camera_tip[2]) - target_in_pan_tilt;
                                 std::vector<float> target_v{(float)vels.x(), (float)vels.y(), (float)vels.z()};
-                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
-                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), false);
+                                //G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), vels, smooth);
                             }
                             G->update_node(pan_tilt.value());
                         }
@@ -214,7 +218,7 @@ void SpecificWorker::compute()
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 void SpecificWorker::print_data(const DSR::Node &target, int error, const Eigen::Vector3d &target_in_camera,
-                                std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, bool saccade)
+                                std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, const Eigen::Vector3d &vel, bool saccade)
 {
     custom_widget.text_pane->clear();
     auto target_w = inner_eigen->transform(world_name, target.name(), cam_timestamp).value();
@@ -225,7 +229,7 @@ void SpecificWorker::print_data(const DSR::Node &target, int error, const Eigen:
     if(saccade)
         output = " Saccade to target: ";
     else
-        output = " Gaze at target: ";
+        output = " Smooth pursuit: ";
     output +=        QString::fromStdString(target.name())
                      + "\n  Error in camera: " + QString::number(error) + " mm. Threshold: " + QString::number(CONSTANTS.max_distance_between_target_and_pan_tilt)
                      + "\n  Error in world: " +  QString::number(w_error) + " mm" +
@@ -233,6 +237,8 @@ void SpecificWorker::print_data(const DSR::Node &target, int error, const Eigen:
                      + "\n  Target in world: \n    [" + QString::number(target_w.x()) + "   " + QString::number(target_w.y()) + "    " + QString::number(target_w.z()) + "]"
                      + "\n  Tip in world: \n    [" + QString::number(camera_tip_w.x()) + "  " + QString::number(camera_tip_w.y()) + "   " + QString::number(camera_tip_w.z()) + "]";
 
+    if(not saccade)
+        output += "\n Velocity vector: " + QString::number(vel.x()) + "   " + QString::number(vel.y()) + "    " + QString::number(vel.z()) + "]";
     custom_widget.text_pane->setPlainText(output);
     //qInfo() << __FUNCTION__ << " " << output;
 }
