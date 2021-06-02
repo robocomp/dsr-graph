@@ -1,6 +1,7 @@
 from math import *
 
 import matplotlib.pyplot as plt
+
 plt.plasma()
 import numpy as np
 import GaussianMix as GM
@@ -8,9 +9,14 @@ import checkboundaries as ck
 from normal import Normal
 from scipy.spatial import ConvexHull
 from rich.console import Console
+from math import *
+
 console = Console(highlight=False)
 from mpl_toolkits.mplot3d import Axes3D
+
 plt.figure()
+
+
 # plt.ion()
 
 
@@ -149,30 +155,77 @@ class PersonalSpacesManager:
                 polyline_mm = []
                 for pnt in pol:
                     polyline.append([pnt[0], pnt[1]])
-                    polyline_mm.append([round(pnt[0]*1000), round(pnt[1]*1000)])
+                    polyline_mm.append([round(pnt[0] * 1000), round(pnt[1] * 1000)])
 
                 if len(polyline) != 0:
                     dict_spaces[space].append(polyline)
                     dict_spaces_mm[space].append(polyline_mm)
 
         if represent:
-            # for soc in dict_spaces["social"]:
-            #     x, y = zip(*soc)
-            #     plt.plot(x, y, color='c', linestyle='None', marker='.')
-            #     plt.pause(0.00001)
-            # for per in dict_spaces["personal"]:
-            #     x, y = zip(*per)
-            #     plt.plot(x, y, color='m', linestyle='None', marker='.')
-            #     plt.pause(0.00001)
-            #
-            # for inti in dict_spaces["intimate"]:
-            #     x, y = zip(*inti)
-            #     plt.plot(x, y, color='r', linestyle='None', marker='.')
-            #     plt.pause(0.00001)
-            #
-            # plt.axis('equal')
-            # plt.xlabel('X')
-            # plt.ylabel('Y')
+            for soc in dict_spaces["social"]:
+                x, y = zip(*soc)
+                plt.plot(x, y, color='c', linestyle='None', marker='.')
+                plt.pause(0.00001)
+            for per in dict_spaces["personal"]:
+                x, y = zip(*per)
+                plt.plot(x, y, color='m', linestyle='None', marker='.')
+                plt.pause(0.00001)
+
+            for inti in dict_spaces["intimate"]:
+                x, y = zip(*inti)
+                plt.plot(x, y, color='r', linestyle='None', marker='.')
+                plt.pause(0.00001)
+
+            plt.axis('equal')
+            plt.xlabel('X')
+            plt.ylabel('Y')
             plt.show()
 
         return dict_spaces_mm['intimate'], dict_spaces_mm['personal'], dict_spaces_mm['social']
+
+    ##objects
+    def calculate_affordance(self, object):
+        shape = object.shape
+        if shape == 'trapezoid':
+            affordance = self.calculate_affordance_trapezoidal(object)
+        elif shape == 'circle':
+            affordance = self.calculate_affordance_circular(object)
+        elif shape == 'rectangle':
+            affordance = self.calculate_affordance_rectangular(object)
+
+        return affordance
+
+    def calculate_affordance_trapezoidal(self, obj):
+        left_angle = obj.ry + obj.inter_angle / 2
+        right_angle = obj.ry - obj.inter_angle / 2
+
+        polyline = [[(obj.tx + obj.width / 2), obj.ty],
+                    [(obj.tx - obj.width / 2), obj.ty],
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - left_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))],
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))]]
+
+        return polyline
+
+    def calculate_affordance_circular(self, obj):
+        polyline = []
+        points = 50
+        angle_shift = pi/2 / points
+        phi = 0
+
+        for i in range(len(points)):
+            phi += angle_shift
+            polyline.append([obj.tx + ((obj.width/2 + obj.inter_space)*sin(phi)),
+                             obj.ty + ((obj.depth/2 + obj.inter_space)*cos(phi))])
+
+
+        return polyline
+
+    def calculate_affordance_rectangular(self, obj):
+
+        polyline = [[obj.tx - obj.width / 2 - obj.inter_space, obj.ty - obj.depth / 2 - obj.inter_space],
+                    [obj.tx + obj.width / 2 + obj.inter_space, obj.ty - obj.depth / 2 - obj.inter_space],
+                    [obj.tx + obj.width / 2 + obj.inter_space, obj.ty + obj.depth / 2 + obj.inter_space],
+                    [obj.tx - obj.width / 2 - obj.inter_space, obj.ty + obj.depth / 2 + obj.inter_space]]
+        return polyline
