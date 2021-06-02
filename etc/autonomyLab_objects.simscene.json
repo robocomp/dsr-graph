@@ -2581,11 +2581,11 @@
           },
           "obj_interaction_angle":{
             "type":2,
-            "value": 1.57
+            "value": 0.785
           },
             "obj_interaction_space":{
             "type":2,
-            "value": 1000
+            "value": 1500
           },
            "obj_interaction_shape":{
             "type":0,

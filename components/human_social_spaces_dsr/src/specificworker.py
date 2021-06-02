@@ -94,6 +94,7 @@ class SpecificWorker(GenericWorker):
 
         self.personal_spaces_manager = PersonalSpacesManager()
 
+
         if startup_check:
             self.startup_check()
         else:
@@ -108,15 +109,15 @@ class SpecificWorker(GenericWorker):
 
     @QtCore.Slot()
     def compute(self):
+
         #PEOPLE
         people_list = self.get_people_from_dsr()
         spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
         dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
         self.update_personal_spaces(dict_ids_personal_spaces)
-        #OBJECTS
+        # OBJECTS
         objects_list = self.get_interactive_objects_from_drs()
         self.update_affordance_spaces(objects_list)
-
         return True
 
     def startup_check(self):
@@ -278,7 +279,6 @@ class SpecificWorker(GenericWorker):
 
             print(list(x_affordance))
             print(list(y_affordance))
-
 
             object_node = self.g.get_node(object.node_id)
 

@@ -88,7 +88,7 @@ private:
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
 
-    std::vector<QPolygonF> intimate_seq, personal_seq, social_seq;
+    std::vector<QPolygonF> intimate_seq, personal_seq, social_seq, affordances_seq;
 
     void get_polylines_from_dsr();
     void insert_polylines_in_grid();
