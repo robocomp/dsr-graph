@@ -178,7 +178,8 @@ void SpecificWorker::compute()
 
     if( g_image_o.has_value() and g_depth.has_value())
     {
-        auto &[g_image, img_timestamp] = g_image_o.value();
+        auto &[g_image, timestamp] = g_image_o.value();
+        auto img_timestamp = timestamp;
         compute_visible_objects(img_timestamp);
         cv::Mat imgyolo = g_image;
         std::vector<float> depth_array = g_depth.value();
@@ -258,8 +259,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 
     for (auto&& b_real : real_objects)
     {
-        if (not room_polygon.containsPoint(QPointF(b_real.Tx, b_real.Ty), Qt::OddEvenFill))
-                continue;
+        // if (not room_polygon.containsPoint(QPointF(b_real.Tx, b_real.Ty), Qt::OddEvenFill))
+        //         continue;
 
         DSR::Node object_node;
         // before actually creating the object, it has to be seen a minimun number of times at the same place
@@ -296,11 +297,11 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                 G->insert_or_assign_edge(edge);
                 G->update_node(world_node.value());
                 b_real.marked_for_delete = true;
-                qInfo() << __FUNCTION__ << "Created node " << QString::fromStdString(b_real.name);
+                // qInfo() << __FUNCTION__ << "Created node " << QString::fromStdString(b_real.name);
                 initialize_combobox();
             } else
                 qWarning() << "Object " << QString::fromStdString(b_real.name) << " could NOT be created";
-            qInfo() << __FUNCTION__ << " Added objects:" << ++count;
+            // qInfo() << __FUNCTION__ << " Added objects:" << ++count;
         }
     }
     // remove marked objects
@@ -366,6 +367,8 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
 {
     static std::vector<Box> candidates;
 
+    qInfo()<<candidates.size();
+
     // remove those  in other room
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
             { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
@@ -386,7 +389,7 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
             and std::chrono::duration_cast<std::chrono::milliseconds>(now - r->creation_time).count() > CONSTANTS.min_time_to_add_object_threshold)
         {
             candidates.erase(r);
-            qInfo() << __FUNCTION__ << "Candidate found. List size: " << candidates.size();
+            // qInfo() << __FUNCTION__ << "Candidate found. List size: " << candidates.size();
             return true;
         }
         else // increment
@@ -398,7 +401,7 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
         box.creation_time = std::chrono::steady_clock::now();
         candidates.push_back(box);
     }
-    qInfo() << __FUNCTION__ << " Candidates:" << candidates.size();
+    // qInfo() << __FUNCTION__ << " Candidates:" << candidates.size();
     return false;
 }
 std::tuple<float, float, float> SpecificWorker::estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real)
@@ -436,6 +439,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
                     boxes.emplace_back(box);  //move
                 }
             }
+            qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
         }
     }
     return boxes;
@@ -446,9 +450,23 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     image_t yolo_img = createImage(img);
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, CONSTANTS.min_yolo_probability_threshold / 100.f, false);
     // process detected bounding boxes
-    std::vector<Box> bboxes; bboxes.reserve(detections.size());
+    std::vector<Box> bboxes; //bboxes.reserve(detections.size());
     int width = cam_api->get_width();
     int height = cam_api->get_height();
+
+    auto robot_node = G->get_node(robot_name);
+    QPolygonF room_polygon;
+    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
+        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
+        {
+            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
+            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
+            if (polygon_x.has_value() and polygon_y.has_value())
+                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+                    room_polygon << QPointF(px, py);
+        }
+        else { qWarning() << __FUNCTION__ << "No room node found for robot";  return bboxes;}
+    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room";  return bboxes;}
 
     for(const auto &d : detections)
     {
@@ -497,7 +515,8 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                     box.Tx = t_world.value().x();
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
-                    bboxes.push_back(box);
+                    if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
+                        bboxes.push_back(box);
                 }
             }
         }
@@ -603,17 +622,19 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
         float d = d_attr.value();
 
         // check if object is in front of the robot. Its position relative to the camera must have positive Y value
-        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, 0); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
+        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, timestamp); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
-            auto object_pos = inner_eigen->transform(world_name, object_name, 0);
+            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
             if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
+            {
+                G->delete_edge(cam_api->get_id(), object.id(), "visible");
                 continue;
+            }
 
             // project corners of object's bounding box in the camera image plane
-            // get object's bounding box from object's node
             std::vector<Mat::Vector2d> bb_in_camera(8);
-            bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Mat::Vector3d(w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
+            bb_in_camera[0] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
             bb_in_camera[1] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
             bb_in_camera[2] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(w / 2, -d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
             bb_in_camera[3] = cam_api->project(inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(-w / 2, -d / 2, -h / 2), object_name, timestamp).value(), 0, 0);
@@ -661,6 +682,8 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                 else box.depth = 0;
                 synth_box.push_back(box);
 
+                qInfo()<<"updating"<<QString::fromStdString(object_name);
+
                 // update edges
                 auto edges = G->get_edges_to_id(object.id());
                 if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())  //not found
@@ -686,9 +709,14 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                 G->delete_edge(cam_api->get_id(), object.id(), "visible");
             }
         }
-        else qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
+        else  // remove edge
+        {
+            G->delete_edge(cam_api->get_id(), object.id(), "visible");
+        }
+
+        // else qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
     }
-    qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
+    // qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
 }
 void SpecificWorker::clear_all_attention_edges()
 {

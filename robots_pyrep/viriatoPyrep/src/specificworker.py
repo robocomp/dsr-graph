@@ -18,6 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
 #
+import sys
 
 from genericworker import *
 import os, time, queue
@@ -157,6 +158,8 @@ class SpecificWorker(GenericWorker):
         self.robot_full_pose_write = RoboCompFullPoseEstimation.FullPoseEuler()
         self.robot_full_pose_read = RoboCompFullPoseEstimation.FullPoseEuler()
         self.mutex_pose = Lock()
+        self.primera_vez = True
+
 
     def initialize_cameras(self):
         print("Initialize camera")
@@ -561,29 +564,30 @@ class SpecificWorker(GenericWorker):
     def CoppeliaUtils_addOrModifyDummy(self, type, name, pose):
         if not Dummy.exists(name):
             dummy = Dummy.create(0.1)
-            # one color for each type of dummy
-            if type==RoboCompCoppeliaUtils.TargetTypes.Info:
-                pass
-            if type == RoboCompCoppeliaUtils.TargetTypes.Hand:
-                pass
-            if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-                pass
             dummy.set_name(name)
         else:
             dummy = Dummy(name)
             parent_frame_object = None
             if type == RoboCompCoppeliaUtils.TargetTypes.HeadCamera:
-                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")
-            #print("Coppelia ", name, pose.x/1000, pose.y/1000, pose.z/1000)
+                parent_frame_object = Dummy("viriato_head_camera_pan_tilt")          # target in parent's reference system
 
-            # we change here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            #print("Coppelia sent", name, pose.y/1000, pose.z/1000, -pose.z/1000)
             dummy.set_position([pose.y / 1000., pose.x / 1000., -pose.z / 1000.], parent_frame_object)
             dummy.set_orientation([pose.rx, pose.ry, pose.rz], parent_frame_object)
+
+    def CoppeliaUtils_setDummySpeed(self, type, name, speed):
+        if not Dummy.exists(name):
+            print("Warning. Attempt to set speed to a non existent dummy", name)
+            return
+        else:
+            # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
+            print("Coppelia dummy script sent ", name, speed.y/1000, speed.x/1000, -speed.z/1000)
+            self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (), (speed.y/1000, speed.x/1000, -speed.z/1000), (), '')
 
         #
         # IMPLEMENTATION of getFullPoseEuler method from FullPoseEstimation interface
         #
-
     def FullPoseEstimation_getFullPoseEuler(self):
         self.mutex_pose.acquire()
         try:

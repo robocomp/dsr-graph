@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <utility>
 #include <cppitertools/zip.hpp>
+#include <cppitertools/chunked.hpp>
+
 
 /**
 * \brief Default constructor
@@ -69,8 +71,9 @@ void SpecificWorker::initialize(int period)
 
         // dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::change_attrs_slot);
         //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
         //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
@@ -78,7 +81,7 @@ void SpecificWorker::initialize(int period)
         if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
         {
             Eigen::Vector3f nose(0, 1000, 0);
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(),
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(),
                                                                                  std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()),
                                                                                                     static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
@@ -113,9 +116,10 @@ void SpecificWorker::initialize(int period)
             omnirobot_proxy->getBaseState(bState);
             update_room_occupancy(bState.x, bState.z);
         }
+
         catch(const Ice::Exception &e)
         { std::cout << e.what() << std::endl; std::cout << " No connection to get robot state. Aborting " << std::endl; std::terminate();}
-        timer.start(60);
+        timer.start(50);
     }
 }
 void SpecificWorker::compute()
@@ -123,9 +127,13 @@ void SpecificWorker::compute()
     update_laser();
     update_omirobot_timed();
     update_rgbd();
-    update_pantilt_position();
-    update_arm_state();
+    update_pantilt_position_timed();
+    //update_pantilt_position();
+    //update_arm_state();
 
+    //check_new_nose_referece_for_pan_tilt();
+
+    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,43 +219,70 @@ void SpecificWorker::update_omirobot_timed()
 {
     static const int MAX_PACK_BLOCKS = 20;
     static const int BLOCK_SIZE = 3;
-    static std::vector<float> tr_pack(3 * MAX_PACK_BLOCKS, 0.f);
-    static std::vector<float> rot_pack(3 * MAX_PACK_BLOCKS, 0.f);
-    static std::vector<std::uint64_t> time_stamps(MAX_PACK_BLOCKS, 0);
-    static int index = 0;
 
     if (auto bState_o = omnirobot_buffer.try_get(); bState_o.has_value())
     {
         const auto bState = bState_o.value();
         if(auto robot = G->get_node(robot_name); robot.has_value())
         {
-            if (auto parent = G->get_parent_node(robot.value()); parent.has_value())
+            if (auto parent = G->get_parent_node(robot.value()); parent.has_value())  // replace by get_parent_id(robot.value())
             {
-                tr_pack[BLOCK_SIZE * index] = bState.x;
-                tr_pack[BLOCK_SIZE * index + 1] = bState.z;
-                tr_pack[BLOCK_SIZE * index + 2] = 0.f;
-                rot_pack[BLOCK_SIZE * index] = 0.f;
-                rot_pack[BLOCK_SIZE * index + 1] = 0.f;
-                rot_pack[BLOCK_SIZE * index + 2] = bState.alpha;
-                time_stamps[index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+                //rt->insert_or_assign_edge_RT(parent.value(), robot.value().id(), std::vector<float>{bState.x, bState.z, 0.f}, std::vector<float>{0.f, 0.f, bState.alpha});
+                
+                // initialize packs in case a new egde is created
+                std::vector<float> tr_pack(BLOCK_SIZE * MAX_PACK_BLOCKS, 0.f);
+                std::vector<float> rot_pack(BLOCK_SIZE * MAX_PACK_BLOCKS, 0.f);
+                std::vector<std::uint64_t> time_stamps(MAX_PACK_BLOCKS, 0);
+                int index = 0;  //head
+                
+                rot_pack[2] = bState.alpha; tr_pack[0] = bState.x; tr_pack[1] = bState.z;
+                time_stamps[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count());
 
+                // add contents if there exists a RT edge
                 if( auto edge = rt->get_edge_RT(parent.value(), robot->id()); edge.has_value())
                 {
-                    G->add_or_modify_attrib_local<rt_translation_att>(edge.value(), tr_pack);
-                    G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge.value(), rot_pack);
-                    G->add_or_modify_attrib_local<rt_timestamps_att>(edge.value(), time_stamps);
-                    G->add_or_modify_attrib_local<rt_head_index_att>(edge.value(), index * BLOCK_SIZE);
+                    auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                    auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                    auto tr_pack_o = G->get_attrib_by_name<rt_translation_att>(edge.value());
+                    auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                    if (head_o.has_value() and tstamps_o.has_value() and tr_pack_o.has_value() and rot_pack_o.has_value())
+                    {
+                        auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
+                        index = timestamp_index * BLOCK_SIZE;
+                        time_stamps = tstamps_o.value().get();
+                        tr_pack = tr_pack_o.value().get();
+                        rot_pack = rot_pack_o.value().get();
+                        tr_pack[index] = bState.x;
+                        tr_pack[index + 1] = bState.z;
+                        tr_pack[index + 2] = 0.f;
+                        rot_pack[index] = 0.f;
+                        rot_pack[index + 1] = 0.f;
+                        rot_pack[index + 2] = bState.alpha;
+                        time_stamps[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::system_clock::now().time_since_epoch()).count());
 
-                    G->add_or_modify_attrib_local<rt_translation_velocity_att>(edge.value(), std::vector<float>{bState.advVx, bState.advVz, 0.f});
-                    G->add_or_modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge.value(), std::vector<float>{0, 0, bState.rotV});
-                    G->insert_or_assign_edge(edge.value());
-                    index = (index+1) % MAX_PACK_BLOCKS;
-                    //G->update_node(parent.value());
+//                        for(int i = 0; auto &&v : iter::chunked(tr_pack,3))
+//                        {
+//                            qInfo() << " head " << index << " - pan(" << i << "): " << v[0] << v[1] << v[2];
+//                            qInfo() << " time " << time_stamps[i];
+//                            i++;
+//                        }
+//                        qInfo() << "-------------------------";
 
-                    update_room_occupancy(bState.x, bState.z);
+                    }  // if there is an RT edge without timestamps, then add a new one starting time from now
                 }
-                else
-                    qWarning() << __FUNCTION__ << " No edge RT found from node " << QString::fromStdString(parent.value().name()) << " to " << QString::fromStdString(robot_name);
+
+                DSR::Edge edge = DSR::Edge::create<RT_edge_type>(parent->id(), robot->id());
+                G->add_or_modify_attrib_local<rt_translation_att>(edge, tr_pack);
+                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, rot_pack);
+                G->add_or_modify_attrib_local<rt_timestamps_att>(edge, time_stamps);
+                G->add_or_modify_attrib_local<rt_head_index_att>(edge, index);
+                G->add_or_modify_attrib_local<rt_translation_velocity_att>(edge, std::vector<float>{bState.advVx, bState.advVz, 0.f});
+                G->add_or_modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge, std::vector<float>{0, 0, bState.rotV});
+                G->insert_or_assign_edge(edge);
+
+                update_room_occupancy(bState.x, bState.z);
             } else
                 qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
         }
@@ -290,6 +325,106 @@ void SpecificWorker::update_room_occupancy(float robot_x, float robot_y)
                 }
             }
         }
+    }
+}
+void SpecificWorker::update_pantilt_position_timed()
+{
+    static const int MAX_PACK_BLOCKS = 20;
+    static const int BLOCK_SIZE = 3;
+
+    if (auto jointmotors_o = jointmotor_buffer.try_get(); jointmotors_o.has_value())
+    {
+        const float pan = jointmotors_o.value().at(viriato_head_camera_pan_joint_name).pos;
+        const float tilt = jointmotors_o.value().at(viriato_head_camera_tilt_joint_name).pos;
+        const std::vector<float> current_state{pan, tilt};
+        auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name);
+        auto tilt_joint = G->get_node(viriato_head_camera_tilt_joint_name);
+        auto pan_joint = G->get_node(viriato_head_camera_pan_joint_name);
+        if (pan_tilt.has_value() and pan_joint.has_value() and tilt_joint.has_value())
+        {
+            ///////////// PAN ///////////////////////////////////////////////////////////////////////////////////////////
+            //rt->insert_or_assign_edge_RT(pan_tilt.value(), pan_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+            //                             std::vector<float>{0.0, 0.0, -pan});
+
+            std::vector<float> tr_pan_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<float> rot_pan_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<std::uint64_t> time_stamps_pan(MAX_PACK_BLOCKS, 0);
+            int index_pan = 0;  //head
+            
+            rot_pan_pack[2] = -pan;
+            time_stamps_pan[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count());
+            
+            // replace contents if there exists a RT edge
+            if( auto edge = rt->get_edge_RT(pan_tilt.value(), pan_joint->id()); edge.has_value())
+            {
+                auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
+                {
+                    auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
+                    index_pan = timestamp_index * BLOCK_SIZE;
+                    time_stamps_pan = tstamps_o.value().get();
+                    rot_pan_pack = rot_pack_o.value().get();
+                    rot_pan_pack[index_pan + 2] = -pan; // -rotation in Z
+                    time_stamps_pan[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count());
+
+//                    for(int i = 0; auto &&v : iter::chunked(rot_pan_pack,3))
+//                    {
+//                        qInfo() << " head " << index_pan << " - pan(" << i << "): " << v[0] << v[1] << v[2];
+//                        qInfo() << " time " << time_stamps_pan[i];
+//                        i++;
+//                    }
+//                    qInfo() << "-------------------------";
+                }
+            }
+            DSR::Edge edge_pan = DSR::Edge::create<RT_edge_type>(pan_tilt.value().id(), pan_joint->id());
+            G->add_or_modify_attrib_local<rt_translation_att>(edge_pan, tr_pan_pack);
+            G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_pan, rot_pan_pack);
+            G->add_or_modify_attrib_local<rt_timestamps_att>(edge_pan, time_stamps_pan);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_pan, index_pan);
+            G->insert_or_assign_edge(edge_pan);
+
+            ///////////// TILT ///////////////////////////////////////////////////////////////////////////////////////////
+            //rt->insert_or_assign_edge_RT(pan_joint.value(), tilt_joint->id(), std::vector<float>{0.0, 0.0, 0.0},
+            //                             std::vector<float>{tilt, 0.0, 0.0});
+
+            std::vector<float> tr_tilt_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<float> rot_tilt_pack(3 * MAX_PACK_BLOCKS, 0.f);
+            std::vector<std::uint64_t> time_stamps_tilt(MAX_PACK_BLOCKS, 0);
+            int index_tilt = 0;  //head
+
+            rot_tilt_pack[0] = tilt;
+            time_stamps_tilt[0] =  static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count());
+
+            // replace contents if there exists a RT edge
+            if( auto edge = rt->get_edge_RT(pan_joint.value(), tilt_joint->id()); edge.has_value())
+            {
+                auto head_o = G->get_attrib_by_name<rt_head_index_att>(edge.value());
+                auto tstamps_o = G->get_attrib_by_name<rt_timestamps_att>(edge.value());
+                auto rot_pack_o = G->get_attrib_by_name<rt_rotation_euler_xyz_att>(edge.value());
+                if (head_o.has_value() and tstamps_o.has_value() and rot_pack_o.has_value())
+                {
+                    auto timestamp_index = (int)(head_o.value()/BLOCK_SIZE+1) % MAX_PACK_BLOCKS;
+                    index_tilt = timestamp_index * BLOCK_SIZE;
+                    time_stamps_tilt = tstamps_o.value().get();
+                    rot_tilt_pack = rot_pack_o.value().get();
+                    rot_tilt_pack[index_tilt] = tilt;  // rotation in X
+                    time_stamps_tilt[timestamp_index] = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count());
+                 }
+            }
+            DSR::Edge edge_tilt = DSR::Edge::create<RT_edge_type>(pan_joint.value().id(), tilt_joint->id());
+            G->add_or_modify_attrib_local<rt_translation_att>(edge_tilt, tr_tilt_pack);
+            G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge_tilt, rot_tilt_pack);
+            G->add_or_modify_attrib_local<rt_timestamps_att>(edge_tilt, time_stamps_tilt);
+            G->add_or_modify_attrib_local<rt_head_index_att>(edge_tilt, index_tilt);
+            G->insert_or_assign_edge(edge_tilt);
+        } else
+            qWarning() << __FILE__ << __FUNCTION__ << "No nodes pan_joint or tilt_joint found";
     }
 }
 void SpecificWorker::update_pantilt_position()
@@ -355,7 +490,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
-        if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
+        if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()); target.has_value())
         {
             RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
             try
@@ -371,6 +506,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
+    //qInfo() << __FUNCTION__  << id << QString::fromStdString(type);
     if (type == left_hand_type_name)
     {
         if (auto node = G->get_node(id); node.has_value() and node.value().name() == viriato_left_arm_tip_name)
@@ -393,6 +529,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
     else if (type == omnirobot_type_name)
     {
+        //qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
             // speed
@@ -414,21 +551,22 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
-    else if(type == pan_tilt_type_name)
-    {
-        if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
-        {
-            if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value()); target.has_value())
-            {
-                RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
-                //qInfo() << __FUNCTION__ << "PAN_TILT " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
-                try
-                { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
-                catch (const Ice::Exception &e)
-                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
-            }
-        }
-    }
+//    else if(type == pan_tilt_type_name)
+//    {
+//        qInfo() << __FUNCTION__;
+//        if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
+//        {
+//            if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()); target.has_value())
+//            {
+//                RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
+//                qInfo() << __FUNCTION__ << "PAN_TILT " << dummy_pose.x << dummy_pose.y << dummy_pose.z;
+//                try
+//                { coppeliautils_proxy->addOrModifyDummy( RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
+//                catch (const Ice::Exception &e)
+//                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+//            }
+//        }
+//    }
 }
 
 void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
@@ -473,6 +611,65 @@ void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t t
 //            }
 //        }
 //    }
+}
+void SpecificWorker::add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs)
+{
+    if (id == 206)
+        if(const auto node = G->get_node(206); node.has_value())
+        {
+            if (attribs.contains("viriato_head_pan_tilt_nose_pos_ref"))
+            {
+                qInfo() << __FUNCTION__ << "pose " << id;
+                const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
+                std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                RoboCompCoppeliaUtils::PoseType dummy_pose{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            } else  if (attribs.contains("viriato_head_pan_tilt_nose_speed_ref"))
+            {
+                qInfo() << __FUNCTION__ << id;
+                const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
+                std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                RoboCompCoppeliaUtils::SpeedType dummy_speed{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->setDummySpeed(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_speed); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            }
+        }
+}
+void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names)
+{
+
+    if (id == 206)
+        if(const auto node = G->get_node(206); node.has_value())
+        {
+            qInfo() << __FUNCTION__  << id;
+            if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_pos_ref"); att_name != std::end(att_names))
+            {
+                //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
+                //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                std::vector<float> target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(node.value()).value().get();
+                RoboCompCoppeliaUtils::PoseType dummy_pose{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            }
+            else if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_speed_ref"); att_name != std::end(att_names))
+            {
+                //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
+                //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                std::vector<float> target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_speed_ref_att>(node.value()).value().get();
+                RoboCompCoppeliaUtils::SpeedType dummy_speed{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->setDummySpeed(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_speed); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            }
+        }
 }
 ///////////////////////////////////////////////////////////////////
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)

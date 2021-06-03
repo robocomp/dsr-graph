@@ -31,6 +31,7 @@
 #include <dsr/gui/dsr_gui.h>
 #include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include <localPerson.h>
+#include <fps/fps.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
@@ -104,6 +105,7 @@ class SpecificWorker : public GenericWorker
 
         //local widget
         Custom_widget custom_widget;
+        FPSCounter fps;
 
         //drawing
         DSR::QScene2dViewer *widget_2d;

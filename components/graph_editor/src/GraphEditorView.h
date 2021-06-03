@@ -13,9 +13,31 @@
 
 enum class GraphTool{
     edit_tool,
-    selecction_tool,
+    selection_tool,
     move_tool,
     delete_tool
+};
+
+enum class EditAction{
+    /*
+     * 0b00 | distance_dragged > 20 | temp_to_node | temp_from_node | from_node==to_node and from_node and to_node | to_node | from_node
+        +--------------------+-------------------+---------+-----------+------+------------+--------------+
+        | ACTION/CONDITIONS  | distance > radius | temp to | temp from | same | dragged to | dragged from |
+        +--------------------+-------------------+---------+-----------+------+------------+--------------+
+        | self_edge          |                 - |       0 |         0 |    1 |          1 |            1 |
+        | two_node_one_edge  |                 1 |       1 |         1 |    0 |          0 |            0 |
+        | one_node_to_to     |                 1 |       1 |         1 |    0 |          1 |            0 |
+        | one_node_to_from   |                 1 |       1 |         0 |    0 |          0 |            1 |
+        | one_node           |                 0 |       0 |         1 |    0 |          0 |            0 |
+        | one_edge           |                 1 |       1 |         0 |    0 |          1 |            1 |
+        +--------------------+-------------------+---------+-----------+------+------------+--------------+
+     */
+    self_edge = 0b00100111,
+    two_node_one_edge = 0b00111000,
+    one_node_to_to = 0b00111010,
+    one_node_to_from = 0b00110001,
+    one_node = 0b00001000,
+    one_edge = 0b00110011
 };
 
 class GraphEditorView : public DSR::GraphViewer{
@@ -32,17 +54,18 @@ private:
 //    QAction *modeDefaultAction;
     QActionGroup* modeActionsGroup;
     QAction *modeMoveAction;
-    QAction *modeCreatetAction;
+    QAction *modeCreateAction;
     QAction *modeDeleteAction;
-    QShortcut* delete_shortcut;
-    QShortcut* safe_delete_shortcut;
+    QShortcut* delete_shortcut{};
+    QShortcut* safe_delete_shortcut{};
 
     bool dragging;
     bool selecting;
+    QPoint last_dragged_pos;
     GraphNode* temp_from_node;
     GraphNode* temp_to_node;
     GraphEdge* temp_edge;
-    int distance_moved{};
+    double distance_dragged = 0;
     QPoint press_point = QPoint();
     QPoint release_point = QPoint();
 
@@ -65,6 +88,7 @@ private:
     void enableMoveMode();
     void enableEditMode();
     void enableDeleteMode();
+    int calculate_action(GraphNode* from_node, GraphNode* to_node);
 
 signals:
     void graph_node_clicked(uint64_t node_id);
@@ -74,6 +98,7 @@ private slots:
     void safe_delete_slot();
 
     void update_selection(const QMouseEvent* event);
+
 };
 
 #endif //TESTCOMP_GRAPHEDITORVIEW_H

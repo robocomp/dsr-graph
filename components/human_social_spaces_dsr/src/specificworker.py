@@ -21,6 +21,7 @@
 import itertools
 import traceback
 
+import numpy as np
 from PySide2.QtCore import QTimer, Signal, QPoint, QPointF
 from PySide2.QtGui import QPolygon, Qt
 from PySide2.QtWidgets import QApplication
@@ -33,6 +34,7 @@ from PersonalSpacesManager import PersonalSpacesManager
 from pydsr import *
 
 from rich.console import Console
+
 console = Console(highlight=False)
 
 
@@ -41,14 +43,27 @@ console = Console(highlight=False)
 # import librobocomp_innermodel
 
 class PersonType:
-    def __init__(self, id=None, tx=0, ty=0, tz=0, rx=0, ry=0, rz=0):
+    def __init__(self, id=None, tx=0, ty=0, ry=0):
         self.id = id
         self.tx = tx
         self.ty = ty
-        self.tz = tz
-        self.rx = rx
         self.ry = ry
-        self.rz = rz
+
+
+class ObjectType:
+    def __init__(self, id=None, node_id=None, tx=0, ty=0, ry=0,
+                 shape=None, inter_angle=0, inter_space=0, depth=0, width=0, height=0):
+        self.id = id
+        self.node_id = node_id
+        self.tx = tx
+        self.ty = ty
+        self.ry = ry
+        self.shape = shape
+        self.inter_angle = inter_angle
+        self.inter_space = inter_space
+        self.depth = depth
+        self.width = width
+        self.height = height
 
 
 class PersonalSpaceType:
@@ -95,10 +110,18 @@ class SpecificWorker(GenericWorker):
 
     @QtCore.Slot()
     def compute(self):
+
+        # PEOPLE
         people_list = self.get_people_from_dsr()
-        spaces = self.personal_spaces_manager.get_personal_spaces(people_list, True)
-        dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
-        self.update_personal_spaces(dict_ids_personal_spaces)
+        if len(people_list) != 0:
+            spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
+            dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
+            self.update_personal_spaces(dict_ids_personal_spaces)
+        else:
+            console.print('No humans found in dsr', style='red')
+        # OBJECTS
+        objects_list = self.get_interactive_objects_from_drs()
+        self.update_affordance_spaces(objects_list)
         return True
 
     def startup_check(self):
@@ -113,7 +136,7 @@ class SpecificWorker(GenericWorker):
             edge_rt = self.rt_api.get_edge_RT(self.g.get_node("world"), person_node.id)
             tx, ty, tz = edge_rt.attrs['rt_translation'].value
             rx, ry, rz = edge_rt.attrs['rt_rotation_euler_xyz'].value
-            person_type = PersonType(person_id, tx, ty, tz, rx, ry, rz)
+            person_type = PersonType(person_id, tx, ty, ry)
             people_list.append(person_type)
 
         return people_list
@@ -167,9 +190,9 @@ class SpecificWorker(GenericWorker):
         for person_node in people_nodes:
             person_id = person_node.attrs['person_id'].value
 
-            x_intimate, y_intimate = zip(* dict_ids_personal_spaces[person_id].intimate_polyline)
-            x_personal, y_personal = zip(* dict_ids_personal_spaces[person_id].personal_polyline)
-            x_social, y_social = zip(* dict_ids_personal_spaces[person_id].social_polyline)
+            x_intimate, y_intimate = zip(*dict_ids_personal_spaces[person_id].intimate_polyline)
+            x_personal, y_personal = zip(*dict_ids_personal_spaces[person_id].personal_polyline)
+            x_social, y_social = zip(*dict_ids_personal_spaces[person_id].social_polyline)
 
             personal_space_node = None
 
@@ -182,8 +205,6 @@ class SpecificWorker(GenericWorker):
 
             # Update personal_space node
             if personal_space_node is not None:
-                # personal_space_node = self.g.get_node('personal_space_0')
-
                 personal_space_node.attrs['ps_social_x_pos'].value = x_social
                 personal_space_node.attrs['ps_social_y_pos'].value = y_social
                 personal_space_node.attrs['ps_personal_x_pos'].value = x_personal
@@ -216,6 +237,93 @@ class SpecificWorker(GenericWorker):
                     id_result = self.g.insert_node(new_node)
                     console.print('Personal space node created -- ', id_result, style='red')
                     has_edge = Edge(id_result, person_node.id, 'has', self.agent_id)
+                    self.g.insert_or_assign_edge(has_edge)
+
+                    print(' inserted new node  ', id_result)
+
+                except:
+                    traceback.print_exc()
+                    print('cant insert node or add edge RT')
+
+    def get_interactive_objects_from_drs(self):
+        interactive_edges = self.g.get_edges_by_type('interactive')
+
+        objects_list = []
+        for edge in interactive_edges:
+            object_node = self.g.get_node(edge.destination)
+            obj_id = object_node.attrs['obj_id'].value
+            width = object_node.attrs['obj_width'].value
+            height = object_node.attrs['obj_height'].value
+            depth = object_node.attrs['obj_depth'].value
+            shape = object_node.attrs['obj_interaction_shape'].value
+            inter_space = object_node.attrs['obj_interaction_space'].value
+            inter_angle = object_node.attrs['obj_interaction_angle'].value
+
+            object_edges = self.g.get_edges_to_id(object_node.id)
+            for ed in object_edges:
+                if ed.type == 'RT':
+                    tx, ty, tz = ed.attrs['rt_translation'].value
+                    rx, ry, rz = ed.attrs['rt_rotation_euler_xyz'].value
+
+            object_type = ObjectType(obj_id, object_node.id, tx, ty, ry, shape, inter_angle, inter_space, depth, width,
+                                     height)
+            objects_list.append(object_type)
+
+        print(f'Objects found {len(objects_list)}')
+
+        return objects_list
+
+    def update_affordance_spaces(self, objects):
+        console.print(' ----- update_affordance_spaces -----', style='blue')
+
+        for object in objects:
+            affordance = self.personal_spaces_manager.calculate_affordance(object)
+            print(affordance)
+            x_affordance, y_affordance = zip(*affordance)
+            print(type(x_affordance), type(y_affordance))
+
+            print(list(x_affordance))
+            print(list(y_affordance))
+
+            object_node = self.g.get_node(object.node_id)
+
+            affordance_space_node = None
+            for destination, type_edge in object_node.edges:
+                print(destination, type_edge)
+                dest_node = self.g.get_node(destination)
+                if type_edge == 'has' and dest_node.type == 'affordance_space':
+                    affordance_space_node = dest_node
+                    break
+
+            # Update affordance_space node
+            if affordance_space_node is not None:
+                affordance_space_node.attrs['aff_x_pos'].value = np.array(x_affordance, dtype=np.float32)
+                affordance_space_node.attrs['aff_y_pos'].value = np.array(y_affordance, dtype=np.float32)
+                affordance_space_node.attrs['aff_interacting'].value = False
+
+                try:
+                    self.g.update_node(affordance_space_node)
+                except:
+                    traceback.print_exc()
+                    print('cant update node')
+
+            # Create affordance_space node
+            else:
+                print('Create affordance_space node')
+                node_name = 'affordance_space_' + str(object.id)
+                print(node_name)
+                new_node = Node(agent_id=self.agent_id, type='affordance_space', name=node_name)
+
+                print(type(list(y_affordance)))
+
+                new_node.attrs['aff_x_pos'] = Attribute(np.array(x_affordance, dtype=np.float32), self.agent_id)
+                new_node.attrs['aff_y_pos'] = Attribute(np.array(y_affordance, dtype=np.float32), self.agent_id)
+                new_node.attrs['aff_interacting'] = Attribute(False, self.agent_id)
+
+                try:
+                    id_result = self.g.insert_node(new_node)
+                    console.print('Personal space node created -- ', id_result, style='red')
+                    has_edge = Edge(id_result, object_node.id, 'has', self.agent_id)
                     self.g.insert_or_assign_edge(has_edge)
 
                     print(' inserted new node  ', id_result)

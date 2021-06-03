@@ -6,7 +6,6 @@
 #include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QMainWindow>
-#include <QInputDialog>
 
 Q_DECLARE_METATYPE(DSR::Node)
 Q_DECLARE_METATYPE(DSR::Edge)

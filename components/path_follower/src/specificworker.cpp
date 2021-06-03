@@ -180,6 +180,7 @@ void SpecificWorker::compute()
     }
     else
         qDebug() << __FUNCTION__ << "No path_node found in G";
+    fps.print("FPS: ", [this](auto x){ dsr_viewer->set_external_hz(x);});
 }
 void SpecificWorker::path_follower_initialize()
 {

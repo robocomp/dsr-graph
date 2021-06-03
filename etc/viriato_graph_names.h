@@ -2,8 +2,8 @@
 // Node and edges names for Viriato world
 //////////////////////////////////////////
 
-#ifndef DSR_NAMES_H
-#define DSR_NAMES_H
+#ifndef DSR_VIRIATO_NAMES_H
+#define DSR_VIRIATO_NAMES_H
 
 // NODES
 const std::string robot_name = "viriato";
@@ -16,14 +16,14 @@ const std::string viriato_head_camera_pan_joint_name = "viriato_head_camera_pan_
 const std::string viriato_head_camera_tilt_joint_name = "viriato_head_camera_tilt_joint";
 const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
 const std::string laser_name = "laser";
-const std::string glass_1_name= "glass_1";
-const std::string collision_box_name= "collision_box";
-const std::string viriato_left_arm_tip_name = "viriato_left_arm_tip";
-
 const std::string current_grid_name = "current_grid";
 const std::string current_intention_name = "current_intention";
 const std::string current_path_name = "current_path";
+const std::string viriato_left_arm_tip_name = "viriato_left_arm_tip";
 
+// NODES for OBJECT
+const std::string glass_1_name= "glass_1";
+const std::string collision_box_name= "collision_box";
 
 //NODE TYPES
 const std::string path_to_target_type_name = "path_to_target";
@@ -40,6 +40,11 @@ const std::string microwave_type_name = "microwave";
 const std::string grid_type_name = "grid";
 const std::string room_type_name = "room";
 const std::string person_type_name = "person";
+const std::string vase_type_name = "vase";
+const std::string refrigerator_type_name = "refrigerator";
+const std::string oven_type_name = "oven";
+const std::string apple_type_name = "apple";
+
 
 // EDGES TYPES
 const std::string think_type_name = "thinks";
@@ -47,5 +52,7 @@ const std::string has_type_name = "has";
 const std::string in_type_name = "in";
 const std::string attention_action_type_name = "attention_action";
 const std::string goto_action_type_name = "goto_action";
+
+
 
 #endif

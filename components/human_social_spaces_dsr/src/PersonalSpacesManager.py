@@ -1,15 +1,23 @@
 from math import *
 
 import matplotlib.pyplot as plt
+
+plt.plasma()
 import numpy as np
 import GaussianMix as GM
 import checkboundaries as ck
 from normal import Normal
 from scipy.spatial import ConvexHull
 from rich.console import Console
+from math import *
+
 console = Console(highlight=False)
+from mpl_toolkits.mplot3d import Axes3D
+
 plt.figure()
-plt.ion()
+
+
+# plt.ion()
 
 
 class Person:
@@ -31,7 +39,7 @@ class Person:
         if draw_personal_space:
             plt.clf()
             plt.contour(X, Y, Z, 10)
-
+            plt.axis('equal')
             # Body
             body = plt.Circle((self.x, self.y), radius=self._radius, fill=False)
             plt.gca().add_patch(body)
@@ -44,7 +52,14 @@ class Person:
             heading = plt.Line2D((self.x, x_aux), (self.y, y_aux), lw=1, color='k')
             plt.gca().add_line(heading)
 
-            plt.axis('equal')
+            fig = plt.figure()
+
+            ax = fig.add_subplot(111, projection='3d')
+            # ax = fig.gca(projection='3d')
+            ax.plot_surface(X, Y, Z, cmap='plasma')
+            plt.pause(0.00001)
+
+            # plt.axis('equal')
 
         return Z
 
@@ -70,9 +85,10 @@ class PersonalSpacesManager:
     def __init__(self):
         self.__personal_spaces = ["intimate", "personal", "social"]
         # sigma_h, sigma_r, sigma_s,  h
-        self.__dict_space_param = {"intimate": [1.3, 1., 1.3, 0.9],
-                                   "personal": [1.3, 1., 1.3, 0.6],  # 0.5
-                                   "social": [3., 1., 1.3, 0.3],  # 0.2
+        self.__dict_space_param = {"intimate": [2, 1., 1.3, 0.9],
+                                   "personal": [2, 1., 1.3, 0.6],  # 0.5
+                                   # "social": [3., 1., 1.3, 0.3],  # 0.2
+                                   "social": [2, 1., 1.3, 0.3],  # 0.2
                                    }
         ##Limites de la representacion
         self.lx_inf = -6
@@ -139,7 +155,7 @@ class PersonalSpacesManager:
                 polyline_mm = []
                 for pnt in pol:
                     polyline.append([pnt[0], pnt[1]])
-                    polyline_mm.append([round(pnt[0]*1000), round(pnt[1]*1000)])
+                    polyline_mm.append([round(pnt[0] * 1000), round(pnt[1] * 1000)])
 
                 if len(polyline) != 0:
                     dict_spaces[space].append(polyline)
@@ -166,3 +182,50 @@ class PersonalSpacesManager:
             plt.show()
 
         return dict_spaces_mm['intimate'], dict_spaces_mm['personal'], dict_spaces_mm['social']
+
+    ##objects
+    def calculate_affordance(self, object):
+        shape = object.shape
+        if shape == 'trapezoid':
+            affordance = self.calculate_affordance_trapezoidal(object)
+        elif shape == 'circle':
+            affordance = self.calculate_affordance_circular(object)
+        elif shape == 'rectangle':
+            affordance = self.calculate_affordance_rectangular(object)
+
+        return affordance
+
+    def calculate_affordance_trapezoidal(self, obj):
+        left_angle = obj.ry + obj.inter_angle / 2
+        right_angle = obj.ry - obj.inter_angle / 2
+
+        polyline = [[(obj.tx + obj.width / 2), obj.ty],
+                    [(obj.tx - obj.width / 2), obj.ty],
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - left_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))],
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))]]
+
+        return polyline
+
+    def calculate_affordance_circular(self, obj):
+        polyline = []
+        points = 50
+        angle_shift = pi/2 / points
+        phi = 0
+
+        for i in range(len(points)):
+            phi += angle_shift
+            polyline.append([obj.tx + ((obj.width/2 + obj.inter_space)*sin(phi)),
+                             obj.ty + ((obj.depth/2 + obj.inter_space)*cos(phi))])
+
+
+        return polyline
+
+    def calculate_affordance_rectangular(self, obj):
+
+        polyline = [[obj.tx - obj.width / 2 - obj.inter_space, obj.ty - obj.depth / 2 - obj.inter_space],
+                    [obj.tx + obj.width / 2 + obj.inter_space, obj.ty - obj.depth / 2 - obj.inter_space],
+                    [obj.tx + obj.width / 2 + obj.inter_space, obj.ty + obj.depth / 2 + obj.inter_space],
+                    [obj.tx - obj.width / 2 - obj.inter_space, obj.ty + obj.depth / 2 + obj.inter_space]]
+        return polyline

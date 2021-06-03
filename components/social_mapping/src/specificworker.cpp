@@ -101,7 +101,7 @@ void SpecificWorker::initialize(int period)
         if (widget_2d != nullptr)
         {
             widget_2d->set_draw_laser(false);
-            connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
+//            connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
         }
 		//grid
         QRectF outerRegion;
@@ -142,8 +142,11 @@ void SpecificWorker::compute()
     if(personal_spaces_changed)
     {
         get_polylines_from_dsr();
-        insert_polylines_in_grid();
-        inject_grid_in_G(grid);
+
+        if(grid_initialized) {
+            insert_polylines_in_grid();
+            inject_grid_in_G(grid);
+        }
         personal_spaces_changed = false;
     }
 }
@@ -159,10 +162,11 @@ int SpecificWorker::startup_check()
 
 void SpecificWorker::get_polylines_from_dsr(){
     auto personal_spaces_nodes = G->get_nodes_by_type("personal_space");
+    auto affordance_spaces_nodes = G->get_nodes_by_type("affordance_space");
     intimate_seq.clear();
     personal_seq.clear();
     social_seq.clear();
-
+    affordances_seq.clear();
 
     for (auto node: personal_spaces_nodes)
     {
@@ -188,13 +192,19 @@ void SpecificWorker::get_polylines_from_dsr(){
         personal_seq.push_back(personal_pol);
         social_seq.push_back(social_pol);
     }
+
+    for(auto node: affordance_spaces_nodes){
+        QPolygonF affordance_pol;
+        auto aff_x = G->get_attrib_by_name<aff_x_pos_att>(node).value().get();
+        auto aff_y = G->get_attrib_by_name<aff_y_pos_att>(node).value().get();
+        for(auto &&[point_x,point_y] : iter::zip(aff_x, aff_y)){
+            affordance_pol.push_back(QPointF(point_x,point_y));
+        }
+        affordances_seq.push_back(affordance_pol);
+    }
+
 }
 void SpecificWorker::insert_polylines_in_grid() {
-
-    if(!grid_initialized){
-        cout<<"Grid not initialized - Cant insert polylines"<<endl;
-        return;
-    }
 
     grid.resetGrid();
 
@@ -208,6 +218,8 @@ void SpecificWorker::insert_polylines_in_grid() {
     for (auto &&poly_soc : personal_seq)
         grid.modifyCostInGrid(poly_soc, 8.0);
 
+    for (auto &&poly_soc : affordances_seq)
+        grid.modifyCostInGrid(poly_soc, 2.0);
 
 
     if (widget_2d != nullptr)
@@ -217,7 +229,7 @@ void SpecificWorker::insert_polylines_in_grid() {
 void SpecificWorker::inject_grid_in_G(const Grid &grid)
 {
     std::string grid_as_string = grid.saveToString();
-    if (auto current_grid_node_o = G->get_node(current_grid_name); current_grid_node_o.has_value())
+    if (auto current_grid_node_o = G->get_node("social_grid"); current_grid_node_o.has_value())
     {
         G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
         G->update_node(current_grid_node_o.value());
@@ -226,8 +238,8 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
     {
         if (auto mind = G->get_node(robot_mind_name); mind.has_value())
         {
-            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>(current_grid_name);
-            G->add_or_modify_attrib_local<name_att>(current_grid_node, current_grid_name);
+            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>("social_grid");
+//            G->add_or_modify_attrib_local<name_att>(current_grid_node, "social_grid");
             G->add_or_modify_attrib_local<parent_att>(current_grid_node, mind.value().id());
             G->add_or_modify_attrib_local<level_att>(current_grid_node, G->get_node_level(mind.value()).value() + 1);
             G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);

@@ -18,11 +18,11 @@ public:
         std::unordered_set<std::string_view>  types_set;
         if constexpr(std::is_same_v<Ta, DSR::Node>)
         {
-            types_set = edge_types::get_all();
+            types_set = node_types::get_all();
         }
         else if constexpr(std::is_same_v<Ta, DSR::Edge>)
         {
-            types_set = node_types::get_all();
+            types_set = edge_types::get_all();
         }
         else if constexpr(std::is_same_v<Ta, DSR::Attribute>)
         {
@@ -33,6 +33,7 @@ public:
         for(auto const& type_t: types_set) {
             types.append(QString::fromStdString(type_t.data()));
         }
+        types.sort();
         this->addItems(types);
         qDebug()<<types;
     };
