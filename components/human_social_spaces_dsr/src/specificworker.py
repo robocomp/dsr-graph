@@ -34,6 +34,7 @@ from PersonalSpacesManager import PersonalSpacesManager
 from pydsr import *
 
 from rich.console import Console
+
 console = Console(highlight=False)
 
 
@@ -63,6 +64,7 @@ class ObjectType:
         self.depth = depth
         self.width = width
         self.height = height
+
 
 class PersonalSpaceType:
     def __init__(self):
@@ -94,7 +96,6 @@ class SpecificWorker(GenericWorker):
 
         self.personal_spaces_manager = PersonalSpacesManager()
 
-
         if startup_check:
             self.startup_check()
         else:
@@ -110,11 +111,14 @@ class SpecificWorker(GenericWorker):
     @QtCore.Slot()
     def compute(self):
 
-        #PEOPLE
+        # PEOPLE
         people_list = self.get_people_from_dsr()
-        spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
-        dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
-        self.update_personal_spaces(dict_ids_personal_spaces)
+        if len(people_list) != 0:
+            spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
+            dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
+            self.update_personal_spaces(dict_ids_personal_spaces)
+        else:
+            console.print('No humans found in dsr', style='red')
         # OBJECTS
         objects_list = self.get_interactive_objects_from_drs()
         self.update_affordance_spaces(objects_list)
@@ -186,9 +190,9 @@ class SpecificWorker(GenericWorker):
         for person_node in people_nodes:
             person_id = person_node.attrs['person_id'].value
 
-            x_intimate, y_intimate = zip(* dict_ids_personal_spaces[person_id].intimate_polyline)
-            x_personal, y_personal = zip(* dict_ids_personal_spaces[person_id].personal_polyline)
-            x_social, y_social = zip(* dict_ids_personal_spaces[person_id].social_polyline)
+            x_intimate, y_intimate = zip(*dict_ids_personal_spaces[person_id].intimate_polyline)
+            x_personal, y_personal = zip(*dict_ids_personal_spaces[person_id].personal_polyline)
+            x_social, y_social = zip(*dict_ids_personal_spaces[person_id].social_polyline)
 
             personal_space_node = None
 
@@ -261,7 +265,8 @@ class SpecificWorker(GenericWorker):
                     tx, ty, tz = ed.attrs['rt_translation'].value
                     rx, ry, rz = ed.attrs['rt_rotation_euler_xyz'].value
 
-            object_type = ObjectType(obj_id, object_node.id, tx, ty, ry, shape, inter_angle, inter_space, depth, width, height)
+            object_type = ObjectType(obj_id, object_node.id, tx, ty, ry, shape, inter_angle, inter_space, depth, width,
+                                     height)
             objects_list.append(object_type)
 
         print(f'Objects found {len(objects_list)}')
@@ -314,7 +319,6 @@ class SpecificWorker(GenericWorker):
                 new_node.attrs['aff_x_pos'] = Attribute(np.array(x_affordance, dtype=np.float32), self.agent_id)
                 new_node.attrs['aff_y_pos'] = Attribute(np.array(y_affordance, dtype=np.float32), self.agent_id)
                 new_node.attrs['aff_interacting'] = Attribute(False, self.agent_id)
-
 
                 try:
                     id_result = self.g.insert_node(new_node)
