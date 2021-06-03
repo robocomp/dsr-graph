@@ -14,7 +14,7 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
         :GraphViewer(std::move(G_), parent)
 {
     this->setInteractive(true);
-    this->current_tool = GraphTool::edit_tool;
+    this->current_tool = GraphTool::move_tool;
     this->dragging = false;
     this->drag_initial_position = QPoint(0,0);
     this->dragged_item = nullptr;
@@ -38,28 +38,38 @@ GraphEditorView::GraphEditorView(std::shared_ptr<DSR::DSRGraph> G_, QMainWindow*
 
     modeActionsGroup = new QActionGroup(this);
     modeActionsGroup->setExclusive(true);
-    modeMoveAction = editMenu->addAction(material::pixmap("cursor-move", QSize(32,32)), tr("Move"));
-    modeMoveAction->setCheckable(true);
-    modeActionsGroup->addAction(modeMoveAction);
 
-    modeCreateAction = editMenu->addAction(material::pixmap("plus", QSize(32,32)), tr("Create Nodes"));
-    modeCreateAction->setCheckable(true);
-    modeCreateAction->setChecked(true);
-    modeActionsGroup->addAction(modeCreateAction);
+    mode_move_action = editMenu->addAction(material::pixmap("cursor-move", QSize(32,32)), tr("Move"));
+    mode_move_action->setCheckable(true);
+    mode_move_action->setChecked(true);
+    modeActionsGroup->addAction(mode_move_action);
 
-    modeDeleteAction = editMenu->addAction(material::pixmap("eraser", QSize(32,32)), tr("Delete Nodes"));
-    modeDeleteAction->setCheckable(true);
-    modeActionsGroup->addAction(modeDeleteAction);
+    mode_create_action = editMenu->addAction(material::pixmap("plus", QSize(32,32)), tr("Create Nodes"));
+    mode_create_action->setCheckable(true);
+    modeActionsGroup->addAction(mode_create_action);
+
+    mode_delete_action = editMenu->addAction(material::pixmap("eraser", QSize(32,32)), tr("Delete Nodes"));
+    mode_delete_action->setCheckable(true);
+    modeActionsGroup->addAction(mode_delete_action);
 
 
 
-    GraphEditorView::connect(modeMoveAction, &QAction::triggered, this, &GraphEditorView::enableMoveMode);
-    GraphEditorView::connect(modeCreateAction, &QAction::triggered, this, &GraphEditorView::enableEditMode);
-    GraphEditorView::connect(modeDeleteAction, &QAction::triggered, this, &GraphEditorView::enableDeleteMode);
+    GraphEditorView::connect(mode_move_action, &QAction::triggered, this, &GraphEditorView::enableMoveMode);
+    GraphEditorView::connect(mode_create_action, &QAction::triggered, this, &GraphEditorView::enableEditMode);
+    GraphEditorView::connect(mode_delete_action, &QAction::triggered, this, &GraphEditorView::enableDeleteMode);
 
-    this->edit_modes_toolbar->addAction(modeCreateAction);
-    this->edit_modes_toolbar->addAction(modeDeleteAction);
-    this->edit_modes_toolbar->addAction(modeMoveAction);
+    mode_move_shortcut = new QShortcut(QKeySequence(Qt::Key_M), this);
+    connect(mode_move_shortcut, SIGNAL(activated()), mode_move_action, SLOT(trigger()));
+
+    mode_create_shortcut = new QShortcut(QKeySequence(Qt::Key_C), this);
+    connect(mode_create_shortcut, SIGNAL(activated()), mode_create_action, SLOT(trigger()));
+
+    mode_delete_shortcut = new QShortcut(QKeySequence(Qt::Key_D), this);
+    connect(mode_delete_shortcut, SIGNAL(activated()), mode_delete_action, SLOT(trigger()));
+
+    this->edit_modes_toolbar->addAction(mode_move_action);
+    this->edit_modes_toolbar->addAction(mode_create_action);
+    this->edit_modes_toolbar->addAction(mode_delete_action);
 //    this->edit_modes_toolbar->addAction(modeNodesAction);
 //    this->edit_modes_toolbar->addAction(modeTransformAction);
 //    this->edit_modes_toolbar->addAction(modeFactorAction);
@@ -392,6 +402,11 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
     std::optional<DSR::Node> from_node = G->get_node(from_id);
     std::optional<DSR::Node> to_node = G->get_node(to_id);
     if (from_node.has_value() and to_node.has_value()) {
+        if(G->get_edge(from_id, to_id, type.toStdString()))
+        {
+            QMessageBox::warning(this,QString("Error in ")+ __FUNCTION__, "Same Edge already exists.\nCan't be created.");
+            return false;
+        }
         if(type == "RT")
         {
             // Check levels
@@ -452,7 +467,13 @@ bool GraphEditorView::_create_new_G_edge(const QString& type, uint64_t from_id, 
         }
     }
     else{
-        QMessageBox::warning(this,QString("WARNING in ")+ __FUNCTION__, QString("Selected node from or to does not exist ")+from_id+"("+from_node.has_value()+")->"+to_id+"("+to_node.has_value()+") type: "+type);
+        QMessageBox::warning(this,QString("WARNING in ")+ __FUNCTION__,
+                QString("Selected node from or to does not exist ")+
+                QString::number(from_id)+"("+
+                QString::number(from_node.has_value())+")->"+
+                QString::number(to_id)+"("+
+                QString::number(to_node.has_value())+") type: "+
+                type);
         qDebug()<<__FUNCTION__ <<">> Selected node from or to does not exist "<<from_id<<"("<<from_node.has_value()<<")->"<<to_id<<"("<<to_node.has_value()<<") type: "<<type;
     }
     return false;
@@ -512,11 +533,14 @@ void GraphEditorView::enableMoveMode()
     this->current_tool = GraphTool::move_tool;
     selection_box->setRect(0,0,0,0);
     this->scene.removeItem(selection_box);
+    setCursor(QCursor(material::pixmap("cursor-move", QSize(16,16)), 8, 8));
 }
 
 void GraphEditorView::enableEditMode()
 {
+    qDebug()<<"Edit tool selected.";
     this->current_tool = GraphTool::edit_tool;
+    setCursor(QCursor(material::pixmap("plus", QSize(16,16)), 8, 8));
 }
 
 void GraphEditorView::enableDeleteMode()
@@ -528,8 +552,7 @@ void GraphEditorView::enableDeleteMode()
     safe_delete_shortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
     connect(safe_delete_shortcut, SIGNAL(activated()), this, SLOT(safe_delete_slot()));
 
-
-    setCursor(QCursor(material::pixmap("eraser", QSize(32,32)), 0, 0));
+    setCursor(QCursor(material::pixmap("eraser", QSize(16,16)), 8, 8));
 }
 
 void GraphEditorView::safe_delete_slot(){
