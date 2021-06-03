@@ -1474,50 +1474,7 @@
         ],
         "name": "camera_pose",
         "type": "transform"
-      },
-      "21": {
-        "attribute": {
-          "color": {
-            "type": 0,
-            "value": "Khaki"
-          },
-          "depth": {
-            "type": 1,
-            "value": 2400
-          },
-          "height": {
-            "type": 1,
-            "value": 2490
-          },
-          "level": {
-            "type": 1,
-            "value": 1
-          },
-          "parent": {
-            "type": 7,
-            "value": "1"
-          },
-          "pos_x": {
-            "type": 2,
-            "value": 573.941772
-          },
-          "pos_y": {
-            "type": 2,
-            "value": 50.031208
-          },
-          "texture": {
-            "type": 0,
-            "value": "#ddf7e3"
-          },
-          "width": {
-            "type": 1,
-            "value": 120
-          }
-        },
-        "id": "21",
-        "links": [],
-        "name": "Wall3",
-        "type": "plane"
+
       },
       "210": {
         "attribute": {
@@ -2059,6 +2016,75 @@
               }
             },
             "src": "60"
+          },
+          {
+            "dst": "72",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  3.14,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  -100,
+                  1970,
+                  925
+                ]
+              }
+            },
+            "src": "60"
+          },
+          {
+            "dst": "73",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  -1600,
+                  650,
+                  0
+                ]
+              }
+            },
+            "src": "60"
+          },
+          {
+            "dst": "74",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+               "rt_translation": {
+                "type": 3,
+                "value": [
+                  -1600,
+                  650,
+                  0
+                ]
+              }
+            },
+            "src": "60"
           }
         ],
         "name": "kitchen",
@@ -2539,7 +2565,7 @@
         "type": "mesh"
       },
         
-        "72": {
+ "72": {
         "attribute": {
           "color": {
             "type": 0,
@@ -2607,7 +2633,132 @@
         "name": "fridge",
         "type": "object"
       }, 
-
+        
+        "73": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "LightBlue"
+          },
+          "depth": {
+            "type": 1,
+            "value": 770
+          },
+          "height": {
+            "type": 1,
+            "value": 1200
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 7,
+            "value": "60"
+          },
+          "path": {
+            "type": 0,
+            "value": "/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 365.332428
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -240.895782
+          },
+          "scalex": {
+            "type": 1,
+            "value": 1
+          },
+          "scaley": {
+            "type": 1,
+            "value": 1
+          },
+          "scalez": {
+            "type": 1,
+            "value": 1
+          },
+          "width": {
+            "type": 1,
+            "value": 1200
+          }
+        },
+        "id": "73",
+        "links": [],
+        "name": "table_mesh",
+        "type": "mesh"
+      },
+        
+        "74": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "GreenYellow"
+          },
+           "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 7,
+            "value": "60"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": 156
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -150
+          },
+          
+           "obj_id": {
+            "type": 1,
+            "value": 0
+          },
+          
+          "obj_depth": {
+            "type": 1,
+            "value": 1200
+          },
+          "obj_height": {
+            "type": 1,
+            "value": 770
+          },
+          "obj_width": {
+            "type": 1,
+            "value": 1200
+          },
+          "obj_interaction_angle":{
+            "type":2,
+            "value": 0
+          },
+            "obj_interaction_space":{
+            "type":2,
+            "value": 500
+          },
+           "obj_interaction_shape":{
+            "type":0,
+            "value": "circle"
+          }
+        },
+        
+        "id": "74",
+        "links": [         
+        {
+            "dst": "74",
+            "label": "interactive",
+            "linkAttribute": {
+            },
+            "src": "74"
+          }
+        ],
+          
+        "name": "table",
+        "type": "object"
+      }, 
       
       "80": {
         "attribute": {

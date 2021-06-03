@@ -201,8 +201,10 @@ class PersonalSpacesManager:
 
         polyline = [[(obj.tx + obj.width / 2), obj.ty],
                     [(obj.tx - obj.width / 2), obj.ty],
+
                     [(obj.tx + obj.inter_space * (cos(pi/2 - left_angle))),
                      (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))],
+
                     [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
                      (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))]]
 
@@ -211,10 +213,10 @@ class PersonalSpacesManager:
     def calculate_affordance_circular(self, obj):
         polyline = []
         points = 50
-        angle_shift = pi/2 / points
+        angle_shift = pi*2 / points
         phi = 0
 
-        for i in range(len(points)):
+        for i in range(points):
             phi += angle_shift
             polyline.append([obj.tx + ((obj.width/2 + obj.inter_space)*sin(phi)),
                              obj.ty + ((obj.depth/2 + obj.inter_space)*cos(phi))])
