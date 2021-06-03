@@ -167,7 +167,7 @@ private:
         void initialize_combobox();
         FPSCounter fps;
         void print_data(const DSR::Node &target, int error, const Eigen::Vector3d &target_in_camera,
-                        std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, bool saccade);
+                        std::uint64_t cam_timestamp, const DSR::Node &pan_tilt,  const Eigen::Vector3d &vel, bool saccade);
 
 
 

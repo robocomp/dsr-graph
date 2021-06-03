@@ -72,8 +72,8 @@ void SpecificWorker::initialize(int period)
         // dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
         //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-        connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::change_attrs_slot);
+        connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::change_attrs_slot);
         //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
         //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
@@ -612,14 +612,41 @@ void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t t
 //        }
 //    }
 }
-//void SpecificWorker::add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs)
-void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names)
+void SpecificWorker::add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs)
 {
     if (id == 206)
         if(const auto node = G->get_node(206); node.has_value())
         {
+            if (attribs.contains("viriato_head_pan_tilt_nose_pos_ref"))
+            {
+                const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
+                std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                RoboCompCoppeliaUtils::PoseType dummy_pose{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->addOrModifyDummy(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_pose); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            } else  if (attribs.contains("viriato_head_pan_tilt_nose_speed_ref"))
+            {
+                qInfo() << __FUNCTION__ << id;
+                const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
+                std::vector<float> target = std::get<std::vector<float>>(t_att.value());
+                RoboCompCoppeliaUtils::SpeedType dummy_speed{target[0], target[1], target[2], 0.0, 0.0, 0.0};
+                try
+                { coppeliautils_proxy->setDummySpeed(RoboCompCoppeliaUtils::TargetTypes::HeadCamera, nose_target, dummy_speed); }
+                catch (const Ice::Exception &e)
+                { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
+            }
+        }
+}
+void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names)
+{
+
+    if (id == 206)
+        if(const auto node = G->get_node(206); node.has_value())
+        {
+            qInfo() << __FUNCTION__  << id;
             if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_pos_ref"); att_name != std::end(att_names))
-            //if (attribs.contains("viriato_head_pan_tilt_nose_pos_ref"))
             {
                 //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
                 //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
@@ -631,7 +658,6 @@ void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
             }
             else if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_speed_ref"); att_name != std::end(att_names))
-                    //else if (attribs.contains("viriato_head_pan_tilt_nose_speed_ref"))
             {
                 //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
                 //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
