@@ -411,18 +411,40 @@ void SpecificWorker::clear_button_slot()
     this->active = false;
     // NEED A buffer->clear() method here
 }
+// void SpecificWorker::change_attention_object_slot(int index)
+// {
+//     std::string node_name = custom_widget.comboBox->itemText(index).toStdString();
+//     if( auto node = G->get_node(node_name); node.has_value())
+//     {
+//         qInfo() << __FUNCTION__ << " " << index << " " << QString::fromStdString(node_name);
+//         target_buffer.put(node.value().id());
+//     }
+//     else
+//         qWarning() << __FUNCTION__ << "No node " << QString::fromStdString(node_name) << "found";
+// }
+
 void SpecificWorker::change_attention_object_slot(int index)
 {
+    static uint64_t last_object_of_attention = 0;
+
     std::string node_name = custom_widget.comboBox->itemText(index).toStdString();
-    if( auto node = G->get_node(node_name); node.has_value())
+    qInfo() << __FUNCTION__ << " " << index << " " << QString::fromStdString(node_name);
+    if (auto object = G->get_node(node_name); object.has_value())
     {
-        qInfo() << __FUNCTION__ << " " << index << " " << QString::fromStdString(node_name);
-        target_buffer.put(node.value().id());
+        // remove current edge
+        G->delete_edge(cam_api->get_id(), last_object_of_attention, attention_action_type_name);
+        auto edge = DSR::Edge::create<attention_action_edge_type>(cam_api->get_id(), object.value().id());
+        if (G->insert_or_assign_edge(edge))
+                last_object_of_attention = object.value().id();
     }
     else
-        qWarning() << __FUNCTION__ << "No node " << QString::fromStdString(node_name) << "found";
+        std::cout << __FUNCTION__ << " WARNING: Error inserting new edge from camera: " << cam_api->get_id() << "->"
+                  << node_name << std::endl;
 
 }
+
+
+
 void SpecificWorker::initialize_combobox()
 {
     custom_widget.comboBox->clear();

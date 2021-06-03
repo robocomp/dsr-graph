@@ -582,8 +582,8 @@ class SpecificWorker(GenericWorker):
             return
         else:
             # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
-            print("Coppelia dummy script sent ", name, speed.y/1000, speed.x/1000, -speed.z/1000)
-            self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (), (speed.y/1000, speed.x/1000, -speed.z/1000), (), '')
+            print("Coppelia dummy script sent ", name, speed.vy/1000, speed.vx/1000, -speed.vz/1000)
+            self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (), (speed.vy/1000, speed.vx/1000, -speed.vz/1000), (), '')
 
         #
         # IMPLEMENTATION of getFullPoseEuler method from FullPoseEstimation interface
