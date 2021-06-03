@@ -619,6 +619,7 @@ void SpecificWorker::add_or_assign_attrs_slot(std::uint64_t id, const std::map<s
         {
             if (attribs.contains("viriato_head_pan_tilt_nose_pos_ref"))
             {
+                qInfo() << __FUNCTION__ << "pose " << id;
                 const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
                 std::vector<float> target = std::get<std::vector<float>>(t_att.value());
                 RoboCompCoppeliaUtils::PoseType dummy_pose{target[0], target[1], target[2], 0.0, 0.0, 0.0};

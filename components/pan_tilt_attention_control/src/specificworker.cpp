@@ -193,14 +193,18 @@ void SpecificWorker::compute()
                                 G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), target_v);
                                 print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), Eigen::Vector3d(), saccade);
                                 this->wait_state.init(1000); //ms   learn this time dynamically
+                                qInfo()<<"Saccadic";
                             }
                             else // compute reference speed for pan-tilt
                             {
-                                auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()).value().get();
-                                const auto &vels = Eigen::Vector3d(camera_tip[0],camera_tip[1], camera_tip[2]) - target_in_pan_tilt;
-                                std::vector<float> target_v{(float)vels.x(), (float)vels.y(), (float)vels.z()};
-                                //G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
-                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), vels, smooth);
+                                // auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()).value().get();
+                                // const auto &vels = Eigen::Vector3d(camera_tip[0],camera_tip[1], camera_tip[2]) - target_in_pan_tilt;
+                                // std::vector<float> target_v{(float)vels.x(), (float)vels.y(), (float)vels.z()};
+                                std::vector<float> target_v{(float)target_in_camera.x(), (float) 0. , (float)target_in_camera.z()};
+
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
+                                qInfo()<<"Smooth pursuit"<<target_in_camera.x()<<target_in_camera.z();
+                                // print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), vels, smooth);
                             }
                             G->update_node(pan_tilt.value());
                         }
