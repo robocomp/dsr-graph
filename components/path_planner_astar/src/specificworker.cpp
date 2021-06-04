@@ -200,6 +200,24 @@ void SpecificWorker::compute()
     }
     else //do whatever you do without a plan
     {}
+
+    //Social Grid
+//    if(grid_updated)
+//    {
+//        cout<<"Updating grid ---------------------------------------"<<endl;
+//        if (auto node = G->get_node("social_grid"); node.has_value())
+//        {
+//            if (auto social_grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); social_grid_as_string.has_value()){
+//                grid.readFromString(social_grid_as_string.value());
+//                grid.saveToFile("grid.txt");
+//            }
+//        }
+//        if (widget_2d != nullptr){
+//            cout<<"drawing grid"<<endl;
+//            grid.draw(&widget_2d->scene);
+//        }
+//        grid_updated = false;
+//    }
 }
 
 void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, bool read_from_file, const std::string file_name)
@@ -253,6 +271,8 @@ std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &curr
         // ad to GRID, closest free cell in the direction of the robot.
 }
 
+
+/////////////////////////////////////////////////////
 void SpecificWorker::inject_grid_in_G(const Grid &grid)
 {
   std::string grid_as_string = grid.saveToString();
@@ -291,7 +311,6 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
       }
   }
 }
-///////////////////////////////////////////////////////
 //// Check new target from mouse
 ///////////////////////////////////////////////////////
 
@@ -373,6 +392,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 plan_buffer.put(Plan(plan.value()));
             }
         }
+    }
+    else if (type == grid_type_name)
+    {
+        grid_updated = true;
     }
 }
 
