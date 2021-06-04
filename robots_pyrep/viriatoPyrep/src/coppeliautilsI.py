@@ -53,6 +53,6 @@ class CoppeliaUtilsI(CoppeliaUtils):
     def addOrModifyDummy(self, type, name, pose, c):
         return self.worker.CoppeliaUtils_addOrModifyDummy(type, name, pose)
     
-    def setDummySpeed(self, type, name, pose, c):
-        return self.worker.CoppeliaUtils_setDummySpeed(type, name, pose)
+    def setDummySpeed(self, type, name, speed, c):
+        return self.worker.CoppeliaUtils_setDummySpeed(type, name, speed)
 

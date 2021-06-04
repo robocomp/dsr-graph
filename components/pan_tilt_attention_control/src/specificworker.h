@@ -51,7 +51,7 @@ using msec = std::chrono::duration<int , std::milli>;
 
 struct CONSTANTS_DATA
 {
-    float max_distance_between_target_and_pan_tilt = 100; //mm
+    float max_distance_between_target_and_pan_tilt = 150; //mm
 };
 const CONSTANTS_DATA CONSTANTS;
 
@@ -167,7 +167,7 @@ private:
         void initialize_combobox();
         FPSCounter fps;
         void print_data(const DSR::Node &target, int error, const Eigen::Vector3d &target_in_camera,
-                        std::uint64_t cam_timestamp, const DSR::Node &pan_tilt,  const Eigen::Vector3d &vel, bool saccade);
+                        std::uint64_t cam_timestamp, const DSR::Node &pan_tilt,  const Eigen::Vector3f &vel, bool saccade);
 
 
 
@@ -199,7 +199,15 @@ private:
         void show_image(cv::Mat image,  const std::string &target_name, std::uint64_t timestamp);
         std::tuple<int, int, int, int> project_target_on_image(const DSR::Node &target, std::uint64_t timestamp);
 
-
+        // clamp for vectors with zero zone
+        inline Eigen::Vector3f inner_clip(const Eigen::Vector3d& vec, float inner, float outer)
+        {
+            return vec.unaryExpr( [inner, outer](auto &x)
+                {
+                    if(fabs(x) < inner) return 0.f;
+                    else return std::clamp((float)x, -outer, outer);
+                });
+        }
 };
 
 #endif

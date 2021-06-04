@@ -69,8 +69,8 @@ void SpecificWorker::initialize(int period)
         std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
 
         //dsr update signals
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);
+        connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot, Qt::QueuedConnection);
         //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
         //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
         //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
@@ -191,20 +191,20 @@ void SpecificWorker::compute()
                                 // saccade to G position commputed in pan_tilt's reference system
                                 std::vector<float> target_v{(float)target_in_pan_tilt.x(), (float)target_in_pan_tilt.y(), (float)target_in_pan_tilt.z()};
                                 G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), target_v);
-                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), Eigen::Vector3d(), saccade);
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), std::vector{0.f,0.f,0.f});
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), Eigen::Vector3f(), saccade);
                                 this->wait_state.init(1000); //ms   learn this time dynamically
                                 qInfo()<<"Saccadic";
                             }
                             else // compute reference speed for pan-tilt
                             {
-                                // auto camera_tip = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()).value().get();
-                                // const auto &vels = Eigen::Vector3d(camera_tip[0],camera_tip[1], camera_tip[2]) - target_in_pan_tilt;
-                                // std::vector<float> target_v{(float)vels.x(), (float)vels.y(), (float)vels.z()};
-                                std::vector<float> target_v{(float)target_in_camera.x(), (float) 0. , (float)target_in_camera.z()};
-
+                                auto reference_vel = inner_clip(target_in_camera, 9, 20);
+                                std::vector<float> target_v{static_cast<float>(reference_vel.x()/3), 0.f , static_cast<float>(reference_vel.z()/3)};
                                 G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
-                                qInfo()<<"Smooth pursuit"<<target_in_camera.x()<<target_in_camera.z();
-                                // print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), vels, smooth);
+                                qInfo() << " Smooth pursuit " << target_in_camera.x() << target_in_camera.z();
+                                qInfo() << " Smooth pursuit clipped" << target_v[0] << target_v[1] << target_v[2];
+
+                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), reference_vel, smooth);
                             }
                             G->update_node(pan_tilt.value());
                         }
@@ -222,7 +222,7 @@ void SpecificWorker::compute()
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 void SpecificWorker::print_data(const DSR::Node &target, int error, const Eigen::Vector3d &target_in_camera,
-                                std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, const Eigen::Vector3d &vel, bool saccade)
+                                std::uint64_t cam_timestamp, const DSR::Node &pan_tilt, const Eigen::Vector3f &vel, bool saccade)
 {
     custom_widget.text_pane->clear();
     auto target_w = inner_eigen->transform(world_name, target.name(), cam_timestamp).value();
@@ -252,6 +252,7 @@ void SpecificWorker::set_nose_target_to_default()
     //if(this->already_in_default == true) return;
     if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
+        G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), std::vector{0.f,0.f,0.f});
         G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), nose_default_pose);
         G->update_node(pan_tilt.value());
     }
@@ -392,6 +393,11 @@ void SpecificWorker::stop_button_slot(bool state)
     {
         this->active = false;
         custom_widget.stopButton->setText("Start");
+        if(auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
+        {
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), std::vector{0.f,0.f,0.f});
+            G->update_node(pan_tilt.value());
+        }
     }
     else
     {
@@ -442,9 +448,6 @@ void SpecificWorker::change_attention_object_slot(int index)
                   << node_name << std::endl;
 
 }
-
-
-
 void SpecificWorker::initialize_combobox()
 {
     custom_widget.comboBox->clear();
