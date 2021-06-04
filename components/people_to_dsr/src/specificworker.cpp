@@ -118,10 +118,10 @@ void SpecificWorker::process_people_data(RoboCompHumanToDSRPub::PeopleData peopl
         if (G_person_id.find(person.id) != G_person_id.end()) 
             G_id = G_person_id[person.id];
         std::string person_name = "person [" + std::to_string(person.id) + "]";
-        std::optional<Node> person_n = G->get_node(G_id);
+        std::optional<DSR::Node> person_n = G->get_node(G_id);
         if(person_n.has_value()) //update edges
         {
-            qInfo() << __FUNCTION__ << " update person:" << person_n->id();
+            qInfo() << __FUNCTION__ << " update person:" << person_n.value().id();
             std::vector<float> trans{person.x, person.y, person.z};
             std::vector<float> rot{0, person.ry, 0};
             rt->insert_or_assign_edge_RT(world_n.value(), person_n->id(), trans, rot);

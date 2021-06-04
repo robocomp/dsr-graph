@@ -360,14 +360,15 @@ void SpecificWorker::new_node_attrib_slot()
 
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
     if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0);
+        G->runtime_checked_add_or_modify_attrib_local(node, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),0.0f);
+        G->runtime_checked_add_or_modify_attrib_local(node, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),false);
+        G->runtime_checked_add_or_modify_attrib_local(node, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(node, attrib_name.toStdString(),std::string(""));
+        G->runtime_checked_add_or_modify_attrib_local(node, attrib_name.toStdString(),std::string(""));
 
+    G->update_node(node);
     fill_table(node_attrib_tw, std::map(node.attrs().begin(), node.attrs().end()));
 }
 
@@ -426,25 +427,27 @@ void SpecificWorker::new_edge_attrib_slot()
 
     Edge edge = edge_cb->itemData(edge_cb->currentIndex()).value<Edge>();
     if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0);
+        G->runtime_checked_add_or_modify_attrib_local(edge, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),0.0f);
+        G->runtime_checked_add_or_modify_attrib_local(edge, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),false);
+        G->runtime_checked_add_or_modify_attrib_local(edge, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(),std::string(""));
+        G->runtime_checked_add_or_modify_attrib_local(edge, attrib_name.toStdString(),std::string(""));
     else if(attrib_type == "vector") {
         std::vector<float> zeros{0.f,0.f,0.f};
-        G->runtime_checked_insert_or_assign_attrib_by_name(edge, attrib_name.toStdString(), zeros);
+        G->runtime_checked_add_or_modify_attrib_local(edge, attrib_name.toStdString(), zeros);
     }
+    G->insert_or_assign_edge(edge);
     fill_table(edge_attrib_tw, edge.attrs());
 }
 void SpecificWorker::del_node_attrib_slot() {
     Node node = node_cb->itemData(node_cb->currentIndex()).value<Node>();
     std::string attrib_name = node_attrib_tw->currentItem()->text().toStdString();
-    if(G->remove_attrib_by_name(node, attrib_name))
+    if(G->remove_attrib_local(node, attrib_name))
     {
         fill_table(node_attrib_tw, node.attrs());
+        G->update_node(node);
     }
     else
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";
@@ -453,9 +456,10 @@ void SpecificWorker::del_node_attrib_slot() {
 void SpecificWorker::del_edge_attrib_slot() {
     Edge edge = node_cb->itemData(edge_cb->currentIndex()).value<Edge>();
     std::string attrib_name = edge_attrib_tw->currentItem()->text().toStdString();
-    if(G->remove_attrib_by_name(edge, attrib_name))
+    if(G->remove_attrib_local(edge, attrib_name))
     {
         fill_table(edge_attrib_tw, edge.attrs());
+        G->insert_or_assign_edge(edge);
     }
     else
         qDebug()<<"Attribute"<<QString::fromStdString(attrib_name)<<"could not be deleted";

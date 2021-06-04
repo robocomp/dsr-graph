@@ -695,11 +695,14 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                     G->insert_or_assign_edge(new_edge);
                 } else    // already there. update projection bounding box
                 {
-                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value())
-                        G->insert_or_assign_attrib<projected_bounding_box_att>(old_edge.value(),
-                                                                               std::vector<float>{(float) box.left, (float) box.top, (float) box.right,
-                                                                                                  (float) box.bot});
-                    else
+                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value()) {
+                        G->add_or_modify_attrib_local<projected_bounding_box_att>(old_edge.value(),
+                                                                                  std::vector<float>{(float) box.left,
+                                                                                                     (float) box.top,
+                                                                                                     (float) box.right,
+                                                                                                     (float) box.bot});
+                        G->insert_or_assign_edge(old_edge.value());
+                    } else
                         qWarning() << __FUNCTION__ << "No VISIBLE edge going from camera to " << QString::fromStdString(object.name());
                 }
                final_counter++;

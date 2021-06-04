@@ -19,7 +19,7 @@ SET ( HEADERS
 )
 
 SET ( TEST_SOURCES
-  unittests/CRDT_G_api_test.cpp
+  unittests/G_api_test.cpp
 )
 
 # Headers set
