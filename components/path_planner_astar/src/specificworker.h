@@ -130,9 +130,12 @@ class SpecificWorker : public GenericWorker
 
         std::shared_ptr<Collisions> collisions;
         Grid grid;
+        bool grid_updated = false;
+
         float robotXWidth, robotZLong; //robot dimensions read from config
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         void draw_path( std::list<QPointF> &path, QGraphicsScene *viewer_2d);
+
         void inject_grid_in_G(const Grid &grid);
 };
 

@@ -90,9 +90,10 @@ void SpecificWorker::initialize(int period)
         //Set base speed reference to 0
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
-            G->insert_or_assign_attrib<robot_ref_adv_speed_att>(robot.value(), (float) 0);
-            G->insert_or_assign_attrib<robot_ref_rot_speed_att>(robot.value(), (float) 0);
-            G->insert_or_assign_attrib<robot_ref_side_speed_att>(robot.value(), (float) 0);
+            G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), (float) 0);
+            G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), (float) 0);
+            G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), (float) 0);
+            G->update_node(robot.value());
         }
 
         // Graph viewer

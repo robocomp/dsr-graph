@@ -91,7 +91,10 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
 
         else if (x == 2)
         {
-            auto keys = G->getKeys();
+            std::vector<uint64_t> keys;
+            for (auto &x : G->getCopy()){
+                keys.emplace_back(x.first);
+            }
             std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
             // request node
             auto nid = keys.at(rnd(mt));

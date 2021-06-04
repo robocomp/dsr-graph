@@ -13,8 +13,8 @@ SET ( HEADERS
   specificmonitor.h
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fmax-errors=5" )
-add_definitions(-Og  -fmax-errors=1 -std=c++2a )
+add_definitions(-Og  -fmax-errors=1 -std=c++20 -fno-char8_t )
 SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB)
