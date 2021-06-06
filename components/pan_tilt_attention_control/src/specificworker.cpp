@@ -183,32 +183,32 @@ void SpecificWorker::compute()
                         const Eigen::Vector3d &target_in_camera = target_in_camera_o.value();
                         const Eigen::Vector2d target_in_camera_2d{target_in_camera.x(), target_in_camera.z()};  // Z points upwards as -Y in image plane
                         float dist = target_in_camera_2d.norm();
-                        if(auto target_in_pan_tilt_o = inner_eigen->transform(viriato_head_camera_pan_tilt_name, target.name(), cam_timestamp); target_in_pan_tilt_o.has_value())
+                        if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
                         {
-                            const Eigen::Vector3d &target_in_pan_tilt = target_in_pan_tilt_o.value();
-                            if (dist > CONSTANTS.max_distance_between_target_and_pan_tilt)
+                            // saccade to G position commputed in pan_tilt's reference system
+                            if(auto target_in_pan_tilt_o = inner_eigen->transform(viriato_head_camera_pan_tilt_name, target.name(), cam_timestamp); target_in_pan_tilt_o.has_value())
                             {
-                                // saccade to G position commputed in pan_tilt's reference system
-                                std::vector<float> target_v{(float)target_in_pan_tilt.x(), (float)target_in_pan_tilt.y(), (float)target_in_pan_tilt.z()};
+                                const Eigen::Vector3d &target_in_pan_tilt = target_in_pan_tilt_o.value();
+                                std::vector<float> target_v{(float) target_in_pan_tilt.x(), (float) target_in_pan_tilt.y(), (float) target_in_pan_tilt.z()};
                                 G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(), target_v);
-                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), std::vector{0.f,0.f,0.f});
+                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), std::vector{0.f, 0.f, 0.f});
                                 print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), Eigen::Vector3f(), saccade);
-                                this->wait_state.init(1000); //ms   learn this time dynamically
-                                qInfo()<<"Saccadic";
+                                this->wait_state.init(500); //ms   learn this time dynamically
+                                qInfo() << "Saccadic";
                             }
-                            else // compute reference speed for pan-tilt
-                            {
-                                auto reference_vel = inner_clip(target_in_camera, 9, 20);
-                                std::vector<float> target_v{static_cast<float>(reference_vel.x()/3), 0.f , static_cast<float>(reference_vel.z()/3)};
-                                G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
-                                qInfo() << " Smooth pursuit " << target_in_camera.x() << target_in_camera.z();
-                                qInfo() << " Smooth pursuit clipped" << target_v[0] << target_v[1] << target_v[2];
-
-                                print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), reference_vel, smooth);
-                            }
-                            G->update_node(pan_tilt.value());
+                            else  qWarning() << __FUNCTION__ << "No transform to pan-tilt RS could be computed";
                         }
-                        else  qWarning() << __FUNCTION__ << "No transform to pan-tilt RS could be computed";
+                        else // compute reference speed for pan-tilt
+                        {
+                            const float GAIN = 3.f;
+                            auto reference_vel = inner_clip(target_in_camera, 9, 50) / GAIN;
+                            std::vector<float> target_v{static_cast<float>(reference_vel.x()), 0.f , static_cast<float>(reference_vel.z())};
+                            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_speed_ref_att>(pan_tilt.value(), target_v);
+                            qInfo() << " Smooth pursuit " << target_in_camera.x() << target_in_camera.z();
+                            qInfo() << " Smooth pursuit clipped" << target_v[0] << target_v[1] << target_v[2];
+                            print_data(target, dist, target_in_camera, cam_timestamp, pan_tilt.value(), reference_vel, smooth);
+                        }
+                        G->update_node(pan_tilt.value());
                     }
                     else qWarning() << __FUNCTION__ << "No transform to camera RS could be computed";
                 }

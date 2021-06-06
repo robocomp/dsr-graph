@@ -615,7 +615,7 @@ void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::
                 catch (const Ice::Exception &e)
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
             }
-            else if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_speed_ref"); att_name != std::end(att_names))
+            if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_speed_ref"); att_name != std::end(att_names))
             {
                 //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
                 //std::vector<float> target = std::get<std::vector<float>>(t_att.value());

@@ -186,9 +186,12 @@ void SpecificWorker::compute()
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array, img_timestamp);
         std::vector<Box> synth_objects = get_visible_objects_from_graph(img_timestamp);
         show_image(imgyolo, real_objects, synth_objects);
+
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
+        auto l = compute_attention_list(std::get<1>(lists_after_match));
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
+        void compute_attention_list();
         //auto &[a,b] = lists_after_delete;
         //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
@@ -238,7 +241,6 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match, std::uint64_t timestamp)
 {
-    int count = 0;
     auto world_node = G->get_node(world_name);
     auto &[real_objects, synth_objects] = lists_after_match;
 
@@ -345,6 +347,35 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     return lists_after_add;
 }
 ////////////////////////////////////////////////////////////////////////
+std::vector<SpecificWorker::Box> SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
+{
+    // return if empty list
+    if(synth_objects.empty()) { qWarning() << __FUNCTION__ << "Empty list"; return std::vector<Box>{};};
+    // the first time select the closest to the robot center
+    static Box attending = *(std::ranges::min_element(synth_objects, [](auto &a, auto &b)
+    { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();}));
+
+    Box box = attending; // temporal to get in lambdas
+    // check if current one is still good to go
+    if(auto r = std::ranges::find_if(synth_objects, [this, box](auto &b)
+        { return box.type == b.type and
+                 box.distance_in_world_frame_to(b) < 300 and
+                 std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - box.attention_initial_time).count() < CONSTANTS.max_attention_time;
+        }); r != synth_objects.end())
+        return std::vector<Box>{attending};
+
+    // if not, find a new one different and close to robot center
+    if(auto matching = synth_objects | std::views::filter([box](auto &b) { return box.name != b.name and box.distance_in_world_frame_to(b) > 300; }); not matching.empty())
+    {
+        auto min = std::ranges::min_element(matching, [](auto &a, auto &b)
+        { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
+        attending = *min;
+        attending.attention_initial_time = myclock::now();
+        return std::vector<Box>{attending};
+    }
+    else // keep current one for now
+        return std::vector<Box>{attending};
+}
 std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(const std::string &type)
 {
     static std::random_device rd;
@@ -366,9 +397,6 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
 bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp)     // a copy of Box
 {
     static std::vector<Box> candidates;
-
-    qInfo()<<candidates.size();
-
     // remove those  in other room
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
             { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
@@ -438,8 +466,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
                     box.Tz = t_world.value().z();
                     boxes.emplace_back(box);  //move
                 }
+                if (auto t_pan_tilt = inner_eigen->transform(viriato_head_camera_pan_tilt_name, object.value().name(), timestamp); t_pan_tilt.has_value())
+                    box.pan_tilt = t_pan_tilt.value();
             }
-            qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
+            //qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
         }
     }
     return boxes;
@@ -681,8 +711,6 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                         box.depth = d.value().norm();
                 else box.depth = 0;
                 synth_box.push_back(box);
-
-                qInfo()<<"updating"<<QString::fromStdString(object_name);
 
                 // update edges
                 auto edges = G->get_edges_to_id(object.id());

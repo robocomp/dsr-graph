@@ -49,7 +49,7 @@
 
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
-using myclock = std::chrono::system_clock;
+using myclock = std::chrono::steady_clock;
 using msec = std::chrono::duration<int , std::milli>;
 
 class SpecificWorker : public GenericWorker
@@ -77,6 +77,7 @@ private:
             int max_allowed_unseen_ticks = 50;
             int min_time_to_add_object_threshold = 2000;  // milliseconds
             float percentage_of_visible_area_to_be_visible = 25;
+            int max_attention_time = 1500;
         };
         const CONSTANTS_DATA CONSTANTS;
 
@@ -93,6 +94,7 @@ private:
             bool visible;
             float Tx, Ty, Tz;  // world ref sys
             float Cx, Cy, Cz;  // camera ref sys
+            Eigen::Vector3d pan_tilt;  // pan_tilt ref system
             bool match;        // true if matched to a synth one
             float area;        // intersected area
             float match_error; // % of full intersection
@@ -103,6 +105,7 @@ private:
             bool marked_for_delete = false;  // to be deleted after match or creation
             int creation_ticks = 0;
             std::chrono::steady_clock::time_point creation_time;
+            std::chrono::steady_clock::time_point attention_initial_time;
             std::string type;
             float distance_in_world_frame_to(const Box &b) const
                     { return (Eigen::Vector3f(b.Tx,b.Ty,b.Tz)-Eigen::Vector3f(Tx,Ty,Tz)).norm();}
@@ -187,7 +190,6 @@ private:
         bool both_boxes_match(Box &real_box, Box &synth_box);
         std::tuple<bool, std::string> contained_in_known_objects(const std::string &candidate);
         DSR::Node create_node_with_type(const std::string &type, const std::string &name);
-        void remove_edge();
         void compute_visible_objects(std::uint64_t timestamp);
         std::vector<Box> get_visible_objects_from_graph(std::uint64_t timestamp);
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
@@ -206,7 +208,7 @@ private:
         void initialize_combobox();
         std::uint64_t last_object_of_attention;
         void clear_all_attention_edges();
-
+        std::vector<Box> compute_attention_list(const std::vector<Box> &synth_objects);
 
 };
 
