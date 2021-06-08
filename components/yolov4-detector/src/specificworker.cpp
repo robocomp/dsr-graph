@@ -187,11 +187,10 @@ void SpecificWorker::compute()
         std::vector<Box> synth_objects = get_visible_objects_from_graph(img_timestamp);
         show_image(imgyolo, real_objects, synth_objects);
 
+        compute_attention_list(synth_objects);
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
-        auto l = compute_attention_list(std::get<1>(lists_after_match));
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
-        void compute_attention_list();
         //auto &[a,b] = lists_after_delete;
         //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
@@ -199,6 +198,25 @@ void SpecificWorker::compute()
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
+{
+    if(synth_objects.empty()) { qWarning() << __FUNCTION__ << "Empty list"; return; }
+    // get the one closest to robot's centre
+    auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
+            { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
+    Box attending = *min;
+    if (auto object = G->get_node(attending.name); object.has_value())
+    {
+        // remove current edge
+        G->delete_edge(cam_api->get_id(), this->last_object_of_attention, attention_action_type_name);
+        auto edge = DSR::Edge::create<attention_action_edge_type>(cam_api->get_id(), object.value().id());
+        if (G->insert_or_assign_edge(edge))
+            this->last_object_of_attention = object.value().id();
+    }
+    else
+        std::cout << __FUNCTION__ << " WARNING: Error inserting new edge from camera: " << cam_api->get_id() << "->"
+                  << attending.name << std::endl;
+}
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_lists(Boxes &real_objects,
                                                                                      Boxes &synth_objects,
                                                                                      const std::vector<float> &depth_array)
@@ -347,35 +365,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     return lists_after_add;
 }
 ////////////////////////////////////////////////////////////////////////
-std::vector<SpecificWorker::Box> SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
-{
-    // return if empty list
-    if(synth_objects.empty()) { qWarning() << __FUNCTION__ << "Empty list"; return std::vector<Box>{};};
-    // the first time select the closest to the robot center
-    static Box attending = *(std::ranges::min_element(synth_objects, [](auto &a, auto &b)
-    { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();}));
 
-    Box box = attending; // temporal to get in lambdas
-    // check if current one is still good to go
-    if(auto r = std::ranges::find_if(synth_objects, [this, box](auto &b)
-        { return box.type == b.type and
-                 box.distance_in_world_frame_to(b) < 300 and
-                 std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - box.attention_initial_time).count() < CONSTANTS.max_attention_time;
-        }); r != synth_objects.end())
-        return std::vector<Box>{attending};
-
-    // if not, find a new one different and close to robot center
-    if(auto matching = synth_objects | std::views::filter([box](auto &b) { return box.name != b.name and box.distance_in_world_frame_to(b) > 300; }); not matching.empty())
-    {
-        auto min = std::ranges::min_element(matching, [](auto &a, auto &b)
-        { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
-        attending = *min;
-        attending.attention_initial_time = myclock::now();
-        return std::vector<Box>{attending};
-    }
-    else // keep current one for now
-        return std::vector<Box>{attending};
-}
 std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(const std::string &type)
 {
     static std::random_device rd;

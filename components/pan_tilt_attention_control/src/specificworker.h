@@ -52,6 +52,8 @@ using msec = std::chrono::duration<int , std::milli>;
 struct CONSTANTS_DATA
 {
     float max_distance_between_target_and_pan_tilt = 150; //mm
+    float max_pan_angle = 1; //rads
+    float max_tilt_angle = 1; //rads
 };
 const CONSTANTS_DATA CONSTANTS;
 
@@ -194,6 +196,9 @@ private:
         RandomSelector<> random_selector{};
         std::deque<std::uint64_t> set_of_objects_to_attend_to;
         std::uint64_t last_object_of_attention;
+        std::vector<Box> compute_attention_list(const std::vector<Box> &synth_objects);
+        void track_target_set( std::uint64_t target_id, std::uint64_t cam_timestamp);
+
 
         // IMAGE
         void show_image(cv::Mat image,  const std::string &target_name, std::uint64_t timestamp);
