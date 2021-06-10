@@ -4,7 +4,7 @@
 
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
-#include <Laser.h>
+//#include <Laser.h>
 #include <CommonBehavior.h>
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/range.hpp>

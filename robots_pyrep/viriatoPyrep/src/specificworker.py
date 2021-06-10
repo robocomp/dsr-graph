@@ -159,7 +159,7 @@ class SpecificWorker(GenericWorker):
         self.robot_full_pose_read = RoboCompFullPoseEstimation.FullPoseEuler()
         self.mutex_pose = Lock()
         self.primera_vez = True
-
+        self.new_coppelia_script_call_available = False
 
     def initialize_cameras(self):
         print("Initialize camera")
@@ -199,6 +199,16 @@ class SpecificWorker(GenericWorker):
             self.read_robot_pose()
             #self.read_robot_arm_tip()
             self.read_pan_tilt()
+
+            if self.new_coppelia_script_call_available:
+                print("Coppelia dummy script sent ", self.coppelia_nose_speed)
+                self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (), self.coppelia_nose_speed, (), '')
+                self.new_coppelia_script_call_available = False
+
+            # if self.primera_vez:
+            #     self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (),
+            #                         (-0.00064, -0.00024, 0.0), (), '')
+            #     self.primera_vez = False
 
             tc.wait()
 
@@ -582,12 +592,10 @@ class SpecificWorker(GenericWorker):
             return
         else:
             # We CHANGE here axis to comply with Coppelia configuration for pan-tilt axis: x -> y; y -> x; z -> -z
-            print("Coppelia dummy script sent ", name, speed.y/1000, speed.x/1000, -speed.z/1000)
-            self.pr.script_call("set_velocity@viriato_head_pan_tilt_nose_target", 1, (), (speed.y/1000, speed.x/1000, -speed.z/1000), (), '')
 
-        #
-        # IMPLEMENTATION of getFullPoseEuler method from FullPoseEstimation interface
-        #
+            self.new_coppelia_script_call_available = True
+            self.coppelia_nose_speed =  (speed.vy/1000, speed.vx/1000, -speed.vz/1000)
+
     def FullPoseEstimation_getFullPoseEuler(self):
         self.mutex_pose.acquire()
         try:

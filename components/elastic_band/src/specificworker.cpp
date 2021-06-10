@@ -67,7 +67,7 @@ void SpecificWorker::initialize(int period)
 		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
         //dsr update signals
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);
         //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
         //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
         //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
@@ -431,7 +431,7 @@ std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_l
             QPolygonF laser_poly;
             std::vector<QPointF> laser_cart;
             laser_cart.reserve(a.size());
-            auto robot = widget_2d->get_robot_polygon();
+            //auto robot = widget_2d->get_robot_polygon();
             //auto inner_eigen = G->get_inner_eigen_api();
             for (const auto &[angle, dist] : iter::zip(a, d))
             {
@@ -516,7 +516,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                                          // QPointF p = robot->mapToScene(x, y);
                                          Mat::Vector3d laserWorld = inner->transform(world_name, Mat::Vector3d(x, y, 0), robot_name).value();
                                          laser_poly << QPointF(x, y);
-                                         QPointF p = robot->mapToScene(x, y);
+                                         //QPointF p = robot->mapToScene(x, y);
                                          laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
                                          //laser_cart.emplace_back(QPointF(p.x(), p.y()));
                                      }

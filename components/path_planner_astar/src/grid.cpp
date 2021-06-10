@@ -140,13 +140,15 @@ std::string Grid::saveToString() const
 {
     std::ostringstream stream;
     for (const auto &[k, v] : fmap)
-        stream << k << v << std::endl;
+        stream << k << v << v.cost << std::endl;
 
     std::cout << "Grid::" << __FUNCTION__ << " " << fmap.size() << " elements written to osdtringstream";
     return stream.str();
 }
 void Grid::readFromString(const std::string &cadena)
 {
+    fmap.clear();
+
     std::istringstream stream(cadena);
     std::string line;
     std::uint32_t count = 0;
@@ -156,9 +158,10 @@ void Grid::readFromString(const std::string &cadena)
         std::stringstream ss(line);
         int x, z;
         bool free, visited;
+        float cost;
         std::string node_name;
-        ss >> x >> z >> free >> visited >> node_name;
-        fmap.emplace(pointToGrid(x, z), T{count++, free, false, 1.f, node_name});
+        ss >> x >> z >> free >> visited >> cost>> node_name;
+        fmap.emplace(pointToGrid(x, z), T{count++, free, false, cost, node_name});
     }
     std::cout << __FUNCTION__ << " " << fmap.size() << " elements read from "  << std::endl;
 }
@@ -466,9 +469,9 @@ void Grid::draw(QGraphicsScene* scene)
             else if (value.cost == 5.0) //highVisited spaces
                 color = "#FF4000";
             else if (value.cost == 8.0) //zona social
-                color = "#00BFFF";
-            else if (value.cost == 10.0) //zona personal
                 color = "#BF00FF";
+            else if (value.cost == 10.0) //zona personal
+                color = "#00BFFF";
             else
                 color = "LightGreen";
         }

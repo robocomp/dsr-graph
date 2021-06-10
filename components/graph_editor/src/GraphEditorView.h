@@ -18,20 +18,21 @@ enum class GraphTool{
     delete_tool
 };
 
+
+/*
+ * 0b00 | distance_dragged > 20 | temp_to_node | temp_from_node | from_node==to_node and from_node and to_node | to_node | from_node
+    +--------------------+-------------------+---------+-----------+------+------------+--------------+
+    | ACTION/CONDITIONS  | distance > radius | temp to | temp from | same | dragged to | dragged from |
+    +--------------------+-------------------+---------+-----------+------+------------+--------------+
+    | self_edge          |                 1 |       0 |         0 |    1 |          1 |            1 |
+    | two_node_one_edge  |                 1 |       1 |         1 |    0 |          0 |            0 |
+    | one_node_to_to     |                 1 |       1 |         1 |    0 |          1 |            0 |
+    | one_node_to_from   |                 1 |       1 |         0 |    0 |          0 |            1 |
+    | one_node           |                 0 |       0 |         1 |    0 |          0 |            0 |
+    | one_edge           |                 1 |       1 |         0 |    0 |          1 |            1 |
+    +--------------------+-------------------+---------+-----------+------+------------+--------------+
+ */
 enum class EditAction{
-    /*
-     * 0b00 | distance_dragged > 20 | temp_to_node | temp_from_node | from_node==to_node and from_node and to_node | to_node | from_node
-        +--------------------+-------------------+---------+-----------+------+------------+--------------+
-        | ACTION/CONDITIONS  | distance > radius | temp to | temp from | same | dragged to | dragged from |
-        +--------------------+-------------------+---------+-----------+------+------------+--------------+
-        | self_edge          |                 - |       0 |         0 |    1 |          1 |            1 |
-        | two_node_one_edge  |                 1 |       1 |         1 |    0 |          0 |            0 |
-        | one_node_to_to     |                 1 |       1 |         1 |    0 |          1 |            0 |
-        | one_node_to_from   |                 1 |       1 |         0 |    0 |          0 |            1 |
-        | one_node           |                 0 |       0 |         1 |    0 |          0 |            0 |
-        | one_edge           |                 1 |       1 |         0 |    0 |          1 |            1 |
-        +--------------------+-------------------+---------+-----------+------+------------+--------------+
-     */
     self_edge = 0b00100111,
     two_node_one_edge = 0b00111000,
     one_node_to_to = 0b00111010,
@@ -53,11 +54,14 @@ private:
     QToolBar *edit_modes_toolbar;
 //    QAction *modeDefaultAction;
     QActionGroup* modeActionsGroup;
-    QAction *modeMoveAction;
-    QAction *modeCreateAction;
-    QAction *modeDeleteAction;
+    QAction *mode_move_action;
+    QAction *mode_create_action;
+    QAction *mode_delete_action;
     QShortcut* delete_shortcut{};
     QShortcut* safe_delete_shortcut{};
+    QShortcut* mode_create_shortcut{};
+    QShortcut* mode_move_shortcut{};
+    QShortcut* mode_delete_shortcut{};
 
     bool dragging;
     bool selecting;
@@ -67,8 +71,8 @@ private:
     GraphEdge* temp_edge;
     double distance_dragged = 0;
     QPoint press_point = QPoint();
-    QPoint release_point = QPoint();
 
+    QPoint release_point = QPoint();
 private:
     std::optional<uint64_t> create_new_node(QPointF position);
     std::optional<uint64_t> _create_new_G_node(const QString& name, const QString& type, QPointF position);
@@ -83,22 +87,22 @@ private:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+
+
 //    void showEvent(QShowEvent *event);
 
-    void enableMoveMode();
-    void enableEditMode();
-    void enableDeleteMode();
     int calculate_action(GraphNode* from_node, GraphNode* to_node);
-
 signals:
     void graph_node_clicked(uint64_t node_id);
     void graph_edge_clicked(uint64_t source_id, uint64_t dest_id, int type);
 private slots:
     void delete_slot();
     void safe_delete_slot();
+    void enableMoveMode();
+    void enableEditMode();
+    void enableDeleteMode();
 
     void update_selection(const QMouseEvent* event);
-
 };
 
 #endif //TESTCOMP_GRAPHEDITORVIEW_H

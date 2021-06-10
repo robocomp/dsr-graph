@@ -19,7 +19,10 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const std::shared
     qDebug() << __FUNCTION__ << "Enter thread" << i;
     start = std::chrono::steady_clock::now();
 
-    auto keys = G->getKeys();
+    std::vector<uint64_t> keys;
+    for (auto &x : G->getCopy()){
+        keys.emplace_back(x.first);
+    }
     std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
 
     while (it++ < num_ops)

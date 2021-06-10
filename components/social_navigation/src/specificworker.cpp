@@ -240,8 +240,8 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, int id)
     if( auto target_node = G->get_node(id); target_node.has_value())
     {
         const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," +std::to_string(0) + "]";
-        const std::string plan = "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + target_node.value().name() + "\"}}]}";
-        plan_buffer.put(plan, std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
+        std::string plan = "{\"plan\":[{\"action\":\"goto\",\"params\":{\"location\":" + location + ",\"object\":\"" + target_node.value().name() + "\"}}]}";
+        plan_buffer.put(std::move(plan), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
     }
     else
         qWarning() << __FILE__ << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
@@ -261,7 +261,7 @@ void SpecificWorker::update_node_slot(const std::uint64_t id, const std::string 
         {
             std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value());
             if (plan.has_value())
-                  plan_buffer.put(plan.value(), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
+                  plan_buffer.put(std::move(plan.value()), std::bind(&SpecificWorker::json_to_plan, this,_1, _2));
         }
     }
 }

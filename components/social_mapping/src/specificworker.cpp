@@ -208,6 +208,9 @@ void SpecificWorker::insert_polylines_in_grid() {
 
     grid.resetGrid();
 
+    for (auto &&poly_soc : affordances_seq)
+        grid.modifyCostInGrid(poly_soc, 2.0);
+
     //To set occupied
     for (auto &&poly_intimate : iter::chain(intimate_seq)) {
         grid.markAreaInGridAs(poly_intimate, false);
@@ -218,8 +221,7 @@ void SpecificWorker::insert_polylines_in_grid() {
     for (auto &&poly_soc : personal_seq)
         grid.modifyCostInGrid(poly_soc, 8.0);
 
-    for (auto &&poly_soc : affordances_seq)
-        grid.modifyCostInGrid(poly_soc, 2.0);
+
 
 
     if (widget_2d != nullptr)

@@ -186,6 +186,8 @@ void SpecificWorker::compute()
         std::vector<Box> real_objects = process_image_with_yolo(imgyolo, depth_array, img_timestamp);
         std::vector<Box> synth_objects = get_visible_objects_from_graph(img_timestamp);
         show_image(imgyolo, real_objects, synth_objects);
+
+        compute_attention_list(synth_objects);
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
@@ -196,6 +198,25 @@ void SpecificWorker::compute()
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
+{
+    if(synth_objects.empty()) { qWarning() << __FUNCTION__ << "Empty list"; return; }
+    // get the one closest to robot's centre
+    auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
+            { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
+    Box attending = *min;
+    if (auto object = G->get_node(attending.name); object.has_value())
+    {
+        // remove current edge
+        G->delete_edge(cam_api->get_id(), this->last_object_of_attention, attention_action_type_name);
+        auto edge = DSR::Edge::create<attention_action_edge_type>(cam_api->get_id(), object.value().id());
+        if (G->insert_or_assign_edge(edge))
+            this->last_object_of_attention = object.value().id();
+    }
+    else
+        std::cout << __FUNCTION__ << " WARNING: Error inserting new edge from camera: " << cam_api->get_id() << "->"
+                  << attending.name << std::endl;
+}
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_lists(Boxes &real_objects,
                                                                                      Boxes &synth_objects,
                                                                                      const std::vector<float> &depth_array)
@@ -238,7 +259,6 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
         SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match, std::uint64_t timestamp)
 {
-    int count = 0;
     auto world_node = G->get_node(world_name);
     auto &[real_objects, synth_objects] = lists_after_match;
 
@@ -345,6 +365,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     return lists_after_add;
 }
 ////////////////////////////////////////////////////////////////////////
+
 std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(const std::string &type)
 {
     static std::random_device rd;
@@ -366,9 +387,6 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
 bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp)     // a copy of Box
 {
     static std::vector<Box> candidates;
-
-    qInfo()<<candidates.size();
-
     // remove those  in other room
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
             { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
@@ -438,8 +456,10 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
                     box.Tz = t_world.value().z();
                     boxes.emplace_back(box);  //move
                 }
+                if (auto t_pan_tilt = inner_eigen->transform(viriato_head_camera_pan_tilt_name, object.value().name(), timestamp); t_pan_tilt.has_value())
+                    box.pan_tilt = t_pan_tilt.value();
             }
-            qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
+            //qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
         }
     }
     return boxes;
@@ -682,8 +702,6 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                 else box.depth = 0;
                 synth_box.push_back(box);
 
-                qInfo()<<"updating"<<QString::fromStdString(object_name);
-
                 // update edges
                 auto edges = G->get_edges_to_id(object.id());
                 if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())  //not found
@@ -695,11 +713,14 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                     G->insert_or_assign_edge(new_edge);
                 } else    // already there. update projection bounding box
                 {
-                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value())
-                        G->insert_or_assign_attrib<projected_bounding_box_att>(old_edge.value(),
-                                                                               std::vector<float>{(float) box.left, (float) box.top, (float) box.right,
-                                                                                                  (float) box.bot});
-                    else
+                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value()) {
+                        G->add_or_modify_attrib_local<projected_bounding_box_att>(old_edge.value(),
+                                                                                  std::vector<float>{(float) box.left,
+                                                                                                     (float) box.top,
+                                                                                                     (float) box.right,
+                                                                                                     (float) box.bot});
+                        G->insert_or_assign_edge(old_edge.value());
+                    } else
                         qWarning() << __FUNCTION__ << "No VISIBLE edge going from camera to " << QString::fromStdString(object.name());
                 }
                final_counter++;

@@ -5,7 +5,7 @@
 #ifndef PROJECT_NAVIGATION_H
 #define PROJECT_NAVIGATION_H
 #include <math.h>
-#include <Laser.h>
+//#include <Laser.h>
 #include "collisions.h"
 #include <QPolygonF>
 #include <QGraphicsScene>
