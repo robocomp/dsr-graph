@@ -2057,7 +2057,7 @@
                 "value": [
                   -1600,
                   650,
-                  0
+                  385
                 ]
               }
             },
@@ -2080,7 +2080,7 @@
                 "value": [
                   -1600,
                   650,
-                  0
+                  385
                 ]
               }
             },
@@ -2542,18 +2542,6 @@
             "type": 2,
             "value": -240.895782
           },
-          "scalex": {
-            "type": 1,
-            "value": 1
-          },
-          "scaley": {
-            "type": 1,
-            "value": 1
-          },
-          "scalez": {
-            "type": 1,
-            "value": 1
-          },
           "width": {
             "type": 1,
             "value": 600
@@ -2646,7 +2634,7 @@
           },
           "height": {
             "type": 1,
-            "value": 1200
+            "value": 600
           },
           "level": {
             "type": 1,
@@ -2659,6 +2647,7 @@
           "path": {
             "type": 0,
             "value": "/home/robocomp/robocomp/files/osgModels/basics/cylinder.3ds"
+
           },
           "pos_x": {
             "type": 2,
@@ -2668,21 +2657,9 @@
             "type": 2,
             "value": -240.895782
           },
-          "scalex": {
-            "type": 1,
-            "value": 1
-          },
-          "scaley": {
-            "type": 1,
-            "value": 1
-          },
-          "scalez": {
-            "type": 1,
-            "value": 1
-          },
           "width": {
             "type": 1,
-            "value": 1200
+            "value": 700
           }
         },
         "id": "73",
