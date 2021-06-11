@@ -25,7 +25,9 @@ A CORTEX instance is a set of software components, called _agents_, that share a
 
 
 # Installation
-Check the [libs/dsr](https://github.com/robocomp/robocomp/tree/development/libs/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
+&#x1F534; Attention: these are not instructions to install DSR!  
+&#x1F534; Check the [libs/dsr](https://github.com/robocomp/robocomp/tree/development/libs/dsr) documentation for specific instructions on the installation of the needed infrastructure. 
+
 
 To install these components in this repository it's assumed that you have already installed [robocomp](https://github.com/robocomp/robocomp/blob/development/README.md#installation-from-source).
 You must clone this (dsr-graph) repository in ~/robocomp/components/
@@ -34,18 +36,6 @@ cd ~/robocomp/components/
 git clone https://github.com/robocomp/dsr-graph/
 cd dsr-graph/components/
 ```
-
-Note: To be able to build social_navigation component you need to install
-  ```sh
-  sudo apt install libfcl-dev
-  ```
-  And rebuild robocomp core with fcl support:
-  ```sh
-  cd ~/robocomp/build
-  cmake -D FCL_SUPPORT=1 ..
-  make
-  sudo make install
-  ```
   
   Note: In Ubuntu 20.04 you need to replace the file in 
    ```sh
