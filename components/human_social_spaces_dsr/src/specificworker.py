@@ -370,6 +370,8 @@ class SpecificWorker(GenericWorker):
                 node_name = 'person_' + str(person.id)
                 new_node = Node(agent_id=self.agent_id, type='person', name=node_name)
                 new_node.attrs['person_id'] = Attribute(person.id, self.agent_id)
+                new_node.attrs['pos_x'] = Attribute(25.0, self.agent_id)
+                new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
 
                 try:
                     id_result = self.g.insert_node(new_node)
@@ -399,7 +401,7 @@ class SpecificWorker(GenericWorker):
     def update_edge(self, fr: int, to: int, type: str):
         console.print(f"UPDATE EDGE: {fr} to {to} {type}", style='green')
 
-    def update_edge_att(self, fr: int, to: int, attribute_names: [str]):
+    def update_edge_att(self, fr: int, to: int, type: str, attribute_names: [str]):
         console.print(f"UPDATE EDGE ATT: {fr} to {to} {attribute_names}", style='green')
 
     def delete_edge(self, fr: int, to: int, type: str):

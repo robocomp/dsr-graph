@@ -1,0 +1,10 @@
+Component manage_laser
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+
