@@ -358,16 +358,16 @@ void QAttributeBrowser::new_attrib_clicked()
     }
     element = combo->itemData(combo->currentIndex()).value<Ta>();
     if(attrib_type == "int")
-        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),0);
+        G->runtime_checked_add_or_modify_attrib_local(element, attrib_name.toStdString(),0);
     else if(attrib_type == "float")
-        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),0.0f);
+        G->runtime_checked_add_or_modify_attrib_local(element, attrib_name.toStdString(),0.0f);
     else if(attrib_type == "bool")
-        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),false);
+        G->runtime_checked_add_or_modify_attrib_local(element, attrib_name.toStdString(),false);
     else if(attrib_type == "string")
-        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(),std::string(""));
+        G->runtime_checked_add_or_modify_attrib_local(element, attrib_name.toStdString(),std::string(""));
     else if(attrib_type == "vector") {
         std::vector<float> zeros{0.f,0.f,0.f};
-        G->runtime_checked_insert_or_assign_attrib_by_name(element, attrib_name.toStdString(), zeros);
+        G->runtime_checked_add_or_modify_attrib_local(element, attrib_name.toStdString(), zeros);
     }
     else {
         QMessageBox msgBox;
