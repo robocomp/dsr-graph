@@ -30,24 +30,20 @@ RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1
 RUN python3 -m pip install pyrep
 
 
-
-
-
 # ICE fix
-COPY Connection.h /usr/include/Ice/Connection.h
+# COPY Connection.h /usr/include/Ice/Connection.h
 ### Third party dependencies
-RUN curl -S https://raw.githubusercontent.com/robocomp/robocomp/main/classes/dsr/dependencies.sh | bash -x
+RUN curl -S https://raw.githubusercontent.com/robocomp/robocomp/development/libs/dsr/dependencies.sh | bash -x
 RUN git clone https://github.com/ryanhaining/cppitertools /usr/local/include/cppitertools ; cd /usr/local/include/cppitertools && cmake . && make install
 
 
 #Compilation of DSR libs in Robocomp
 USER robolab
-RUN cd ~/robocomp/ && git checkout -b main && sudo rm -r /opt/robocomp; sudo rm -r build; mkdir build; cd build; rm CMakeCache.txt ; cmake -DDSR=TRUE -DFCL_SUPPORT=TRUE .. ; make clean ; make -j10; sudo make install
+RUN cd ~/robocomp/ && git fetch && git checkout -b development && sudo rm -r /opt/robocomp; sudo rm -r build; mkdir build; cd build; rm CMakeCache.txt ; cmake -DDSR=TRUE -DFCL_SUPPORT=TRUE .. ; make clean ; make -j10; sudo make install
 ENV PATH $PATH:/opt/robocomp/bin/
 RUN export PATH=$PATH:/opt/robocomp/bin/
-RUN cd ~/robocomp/classes/dsr && mkdir build && cd build && cmake .. && make -j$(nproc)
 USER root
-RUN cd /home/robolab/robocomp/classes/dsr/build && make install
+
 RUN ldconfig
 
 #Compilation of DSR components
