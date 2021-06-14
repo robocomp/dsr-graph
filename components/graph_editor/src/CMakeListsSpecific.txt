@@ -1,7 +1,6 @@
 
 
-find_path(QTMATERIAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/QtMaterialDesignIcons)
-if((NOT QTMATERIAL_INCLUDE_DIR) OR (NOT EXISTS ${QTMATERIAL_INCLUDE_DIR}))
+if((NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/QtMaterialDesignIcons))
     execute_process(COMMAND "git" "clone" "https://github.com/sthlm58/QtMaterialDesignIcons.git"
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/
       RESULT_VARIABLE git_result)
