@@ -1970,6 +1970,29 @@
                 "id": "60",
                 "links": [
                     {
+                        "dst": "62",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    1825,
+                                    58,
+                                    450
+                                ]
+                            }
+                        },
+                        "src": "60"
+                    },
+                    {
                         "dst": "64",
                         "label": "RT",
                         "linkAttribute": {
@@ -2064,6 +2087,51 @@
                 ],
                 "name": "kitchen",
                 "type": "room"
+            },
+            "62": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "LightBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "60"
+                    },
+                    "path": {
+                        "type": 0,
+                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 233.05336
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -331.586212
+                    },
+                    "scalex": {
+                        "type": 1,
+                        "value": 1400
+                    },
+                    "scaley": {
+                        "type": 1,
+                        "value": 450
+                    },
+                    "scalez": {
+                        "type": 1,
+                        "value": 890
+                    }
+                },
+                "id": "62",
+                "links": [
+                ],
+                "name": "kitchen_side_table",
+                "type": "mesh"
             },
             "64": {
                 "attribute": {

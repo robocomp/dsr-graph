@@ -82,7 +82,6 @@ private:
     //void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
     void update_social_laser(const std::vector<float> &dist, const std::vector<float> &angles);
     void modify_laser(const std::vector<DSR::Node> &personal_spaces, const std::vector<float> &angles, const std::vector<float> &dist);
-    std::optional<float> compute_intersection_dist(const QVector<QLineF> &lines, const QPointF &robot, float dist, float angle);
 
 
 };
