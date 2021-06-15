@@ -82,6 +82,7 @@ private:
     void modificar_laser(Eigen::VectorXf all_gauss_x, Eigen::VectorXf all_gauss_y, auto angles, auto &dist) ;
     QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
     void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
+    void draw_laser(std::vector<float> angles, std::vector<float> dist, QGraphicsScene* viewer_2d);
 };
 
 #endif

@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <cppitertools/zip.hpp>
 
 /**
 * \brief Default constructor
@@ -133,7 +134,7 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     //Comprobar si hay nodos de tipo personas
-
+    qInfo()<<"Llegado";
     if(auto personal_space = G->get_nodes_by_type("personal_space"); not personal_space.empty()) {
         Eigen::VectorXf all_gauss_x(personal_space.size() * 9), all_gauss_y(personal_space.size() * 9);
 
@@ -142,7 +143,8 @@ void SpecificWorker::compute()
         auto dist = G->get_attrib_by_name<laser_dists_att>(laser_node).value().get();
         obtener_puntos_gausianas(personal_space, all_gauss_x, all_gauss_y);
         modificar_laser(all_gauss_x, all_gauss_y, angles, dist);
-
+        draw_laser(angles,dist,&widget_2d->scene);
+        qInfo()<<"Llegado";
         if (auto laser = G->get_node(laser_name); laser.has_value()) {
             if (auto laser_node = G->get_node(laser_social_name); laser_node.has_value()) {
                 std::cout << __FUNCTION__ << " Adding fake laser to laser_node node " << std::endl;
@@ -268,3 +270,58 @@ Eigen::Vector3d SpecificWorker::transform_robot_to_world(float dist, float angle
     auto robot_laser= inner->transform(world_name,Mat::Vector3d(x, y, 0),robot_name).value();
     return robot_laser;
 }
+
+void SpecificWorker::draw_laser(std::vector<float> angles, std::vector<float> dist, QGraphicsScene* viewer_2d)
+{
+    QPolygonF polig;
+    polig << QPointF(0,150);
+    for (const auto &[dist, angle] : iter::zip(dist, angles))
+    {
+        //std::cout << dist << "," << angle << std::endl;
+        polig << QPointF(dist * sin(angle), dist * cos(angle));
+    }
+    polig << QPointF(0,150);
+    viewer_2d->clear();
+    viewer_2d->addPolygon(polig, QPen(QColor("LightPink"), 8), QBrush(QColor("LightPink")));
+};
+
+/*void SpecificWorker::draw_laser(std::vector<float> angles, std::vector<float> dist,QGraphicsScene* viewer_2d)
+{
+    static std::vector<QGraphicsPolygonItem *> scene_laser;
+    QPolygonF polig;
+    for (QGraphicsPolygonItem* item : scene_laser)
+    {
+        viewer_2d->removeItem((QGraphicsItem *) item);
+        delete item;
+    }
+    scene_laser.clear();
+
+    /// Draw all points
+    QGraphicsPolygonItem *laser;
+    std::string color;
+    for (const auto &[dist, angle] : iter::zip(dist, angles))
+    {
+        polig << QPointF(dist * sin(angle), dist * cos(angle));
+
+        if(p_pair.size() < 2)
+            continue;
+        Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+        Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+        Mat::Vector2d dir = a_point - b_point;
+        Mat::Vector2d dir_perp = dir.unitOrthogonal();
+        Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+        Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+        auto left = segment_perp.pointAt(50);
+        auto right = segment_perp.pointAt(-50);
+        QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+        QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
+
+        polig = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+        line1->setZValue(2000);
+        line2->setZValue(2000);
+        scene_laser.push_back(line1);
+        scene_laser.push_back(line2);
+    }
+    scene_laser
+}*/
