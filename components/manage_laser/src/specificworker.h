@@ -76,7 +76,7 @@ private:
 	bool startup_check_flag;
 
 	// laser stuff
-	optional<Eigen::Vector3d> transform_robot_to_world(float dist, float angle);
+	//optional<Eigen::Vector3d> transform_robot_to_world(float dist, float angle);
     //void modificar_laser(Eigen::VectorXf all_gauss_x, Eigen::VectorXf all_gauss_y, auto angles, auto &dist) ;
     //QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
     //void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);

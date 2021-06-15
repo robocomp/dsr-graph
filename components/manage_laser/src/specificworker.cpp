@@ -197,6 +197,7 @@ void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
             }
             lines.append(QLineF(QPointF(gauss_x.front(), gauss_y.front()), QPointF(gauss_x.back(), gauss_y.back())));
         }
+        else  qWarning() << __FUNCTION__ << " No attributes gauss_x or gauss_y available in G";
     }
     // compute points of intersection of laser rays with gaussian polygons
     if(const auto robot_in_w = inner_eigen->transform(world_name, robot_name); robot_in_w.has_value())
@@ -207,33 +208,34 @@ void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
         for (auto &&[ang, dis] : iter::zip(angles, dist))
         {
             if (const auto laser_cart_world = inner_eigen->transform(world_name, Mat::Vector3d(dis*sin(ang), dis*cos(ang), 0.f), robot_name); laser_cart_world.has_value())
-                {
-                    QPointF laser_point(laser_cart_world.value()[0], laser_cart_world.value()[1]);
-                    QLineF laser_line(robot, laser_point);  //Should be laser_node instead of robot
-                    std::vector<float> distances;
-                    std::transform(std::execution::par, lines.begin(), lines.end(), distances.begin(), [laser_line, robot, dis](auto line)
-                            {
-                                QPointF point;
-                                if (laser_line.intersect(line, &point) == 1)
-                                    return QVector2D(point - robot).length();
-                                else
-                                    return dis;
-                            });
-                    if (not distances.empty())
-                        new_dist.emplace_back(std::ranges::min(distances));
-                }
+            {
+                QPointF laser_point(laser_cart_world.value()[0], laser_cart_world.value()[1]);
+                QLineF laser_line(robot, laser_point);  //Should be laser_node instead of robot
+                std::vector<float> distances;
+                std::transform(std::execution::par, lines.begin(), lines.end(), distances.begin(), [laser_line, robot, dis](auto line)
+                        {
+                            QPointF point;
+                            if (laser_line.intersect(line, &point) == 1)
+                                return QVector2D(point - robot).length();
+                            else
+                                return dis;
+                        });
+                if (not distances.empty())
+                    new_dist.emplace_back(std::ranges::min(distances));
+            }
+            qWarning() << __FUNCTION__ << " No transform between world and robot available for conversion of laser points";
         }
     }
     else
         qWarning() << __FUNCTION__ << " No transform between world and robot available";
 }
 
-std::optional<Eigen::Vector3d> SpecificWorker::transform_robot_to_world(float dist, float angle)
-{
-    float x= dist * cos(angle);
-    float y= dist * sin(angle);
-    return inner_eigen->transform(world_name, Mat::Vector3d(x, y, 0), robot_name);
-}
+//std::optional<Eigen::Vector3d> SpecificWorker::transform_robot_to_world(float dist, float angle)
+//{
+//    float x= dist * cos(angle);
+//    float y= dist * sin(angle);
+//    return inner_eigen->transform(world_name, Mat::Vector3d(x, y, 0), robot_name);
+//}
 
 //void SpecificWorker::obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y)
 //{
