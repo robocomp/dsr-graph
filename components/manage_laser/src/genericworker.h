@@ -52,11 +52,7 @@ public:
 	virtual bool setParams(RoboCompCommonBehavior::ParameterList params) = 0;
 	QMutex *mutex;
 
-
-
-
 protected:
-
 	QTimer timer;
 	int Period;
 

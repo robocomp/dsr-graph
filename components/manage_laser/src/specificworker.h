@@ -32,6 +32,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/viriato_graph_names.h"
+#include <fps/fps.h>
 
 class SpecificWorker : public GenericWorker
 {
@@ -63,6 +64,7 @@ private:
 	bool graph_view;
 	bool qscene_2d_view;
 	bool osg_3d_view;
+    FPSCounter fps;
 
     //drawing
     DSR::QScene2dViewer* widget_2d;
@@ -82,6 +84,8 @@ private:
     void modificar_laser(Eigen::VectorXf all_gauss_x, Eigen::VectorXf all_gauss_y, auto angles, auto &dist) ;
     QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
     void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
+    void update_social_laser(const std::vector<float> &dist, const std::vector<float> &angles);
+
 };
 
 #endif
