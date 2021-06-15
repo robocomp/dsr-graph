@@ -192,7 +192,7 @@ class SpecificWorker(GenericWorker):
         while True:
             self.pr.step()
             self.read_cameras()
-            #self.read_people()
+            self.read_people()
             self.read_laser()
             self.read_joystick()
             self.read_robot_speed()
