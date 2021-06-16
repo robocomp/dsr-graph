@@ -118,7 +118,6 @@ void SpecificWorker::compute()
     // Comprobar si hay nodos de tipo personas
     if(auto personal_spaces = G->get_nodes_by_type("personal_space"); not personal_spaces.empty())
     {
-        //Eigen::VectorXf all_gauss_x(personal_space.size() * 9), all_gauss_y(personal_space.size() * 9);
         auto laser_node= G->get_node(laser_name).value();
         if(const auto angles_o = G->get_attrib_by_name<laser_angles_att>(laser_node); angles_o.has_value())
         {
@@ -126,10 +125,8 @@ void SpecificWorker::compute()
             if( const auto dist_o = G->get_attrib_by_name<laser_dists_att>(laser_node); dist_o.has_value())
             {
                 const auto &dist = dist_o.value().get();
-                // obtener_puntos_gausianas(personal_space, all_gauss_x, all_gauss_y);
-                // modificar_laser(all_gauss_x, all_gauss_y, angles, dist);
-                modify_laser(personal_spaces, angles, dist);
-                update_social_laser(dist, angles);
+                auto new_dist = modify_laser(personal_spaces, angles, dist);
+                update_social_laser(new_dist, angles);
             }
         }
     }
@@ -175,7 +172,7 @@ void SpecificWorker::update_social_laser(const std::vector<float> &dist, const s
             }
         }
  }
-void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
+std::vector<float> SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
                                   const std::vector<float> &angles,
                                   const std::vector<float> &dist)
 {
@@ -200,29 +197,30 @@ void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
         else  qWarning() << __FUNCTION__ << " No attributes gauss_x or gauss_y available in G";
     }
     // compute points of intersection of laser rays with gaussian polygons
+    std::vector<float> new_dist;
     if(const auto robot_in_w = inner_eigen->transform(world_name, robot_name); robot_in_w.has_value())
     {
         QPointF robot(robot_in_w.value().x(), robot_in_w.value().y());
-        std::vector<float> new_dist;
         new_dist.reserve(dist.size());
         for (auto &&[ang, dis] : iter::zip(angles, dist))
         {
             if (const auto laser_cart_world = inner_eigen->transform(world_name, Mat::Vector3d(dis*sin(ang), dis*cos(ang), 0.f), robot_name); laser_cart_world.has_value())
             {
-                auto d = dis;
                 QPointF laser_point(laser_cart_world.value()[0], laser_cart_world.value()[1]);
                 QLineF laser_line(robot, laser_point);  //Should be laser_node instead of robot
                 std::vector<float> distances(lines.size());
-                std::transform(lines.begin(), lines.end(), distances.begin(), [laser_line, robot, d](auto line)
+                std::transform(lines.begin(), lines.end(), distances.begin(), [laser_line, robot, dis](auto line)
                         {
                             QPointF point;
                             if (laser_line.intersect(line, &point) == 1)
                                 return QVector2D(point - robot).length();
                             else
-                                return d;
+                                return dis;
                         });
                 if (not distances.empty())
                     new_dist.emplace_back(std::ranges::min(distances));
+                else
+                    qWarning() << __FUNCTION__ << " new_dist vector is empty after searching intersections. Should not happen";
             }
             else
                 qWarning() << __FUNCTION__ << " No transform between world and robot available for conversion of laser points";
@@ -230,6 +228,7 @@ void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
     }
     else
         qWarning() << __FUNCTION__ << " No transform between world and robot available";
+    return new_dist;
 }
 
 //std::optional<Eigen::Vector3d> SpecificWorker::transform_robot_to_world(float dist, float angle)
