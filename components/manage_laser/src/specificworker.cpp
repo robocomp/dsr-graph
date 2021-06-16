@@ -209,21 +209,23 @@ void SpecificWorker::modify_laser(const std::vector<DSR::Node> &personal_spaces,
         {
             if (const auto laser_cart_world = inner_eigen->transform(world_name, Mat::Vector3d(dis*sin(ang), dis*cos(ang), 0.f), robot_name); laser_cart_world.has_value())
             {
+                auto d = dis;
                 QPointF laser_point(laser_cart_world.value()[0], laser_cart_world.value()[1]);
                 QLineF laser_line(robot, laser_point);  //Should be laser_node instead of robot
-                std::vector<float> distances;
-                std::transform(std::execution::par, lines.begin(), lines.end(), distances.begin(), [laser_line, robot, dis](auto line)
+                std::vector<float> distances(lines.size());
+                std::transform(lines.begin(), lines.end(), distances.begin(), [laser_line, robot, d](auto line)
                         {
                             QPointF point;
                             if (laser_line.intersect(line, &point) == 1)
                                 return QVector2D(point - robot).length();
                             else
-                                return dis;
+                                return d;
                         });
                 if (not distances.empty())
                     new_dist.emplace_back(std::ranges::min(distances));
             }
-            qWarning() << __FUNCTION__ << " No transform between world and robot available for conversion of laser points";
+            else
+                qWarning() << __FUNCTION__ << " No transform between world and robot available for conversion of laser points";
         }
     }
     else
