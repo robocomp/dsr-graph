@@ -127,7 +127,7 @@ void SpecificWorker::initialize(int period)
         // Initialize combobox
         initialize_combobox();
         connect(custom_widget.clearButton, SIGNAL(clicked()), this, SLOT(clear_button_slot()));
-        connect(custom_widget.comboBox, SIGNAL(activated(int)), this, SLOT(change_attention_object_slot(int)));
+        //connect(custom_widget.comboBox, SIGNAL(activated(int)), this, SLOT(change_attention_object_slot(int)));
 
         // clear al attention_action edges
         clear_all_attention_edges();
@@ -166,7 +166,14 @@ Detector* SpecificWorker::init_detector()
     known_object_types.insert( {"vase",         {300, 300, 350}});
     known_object_types.insert( {"oven",         {400, 100, 400}});
     known_object_types.insert( {"refrigerator", {600, 1600, 600}});
-    //known_object_types.insert( {"apple",        {80, 80, 80}});
+    known_object_types.insert( {"book",         {100, 250, 200}});
+    known_object_types.insert( {"bottle",       {80, 250, 80}});
+    known_object_types.insert( {"fork",         {50, 50, 150}});
+    known_object_types.insert( {"knife",        {50, 50, 150}});
+    known_object_types.insert( {"spoon",        {50, 50, 150}});
+    known_object_types.insert( {"bowl",         {200, 200, 200}});
+    known_object_types.insert( {"diningtable",  {800, 600, 800}});
+    known_object_types.insert( {"apple",        {80, 80, 80}});
     return detector;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -200,10 +207,13 @@ void SpecificWorker::compute()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
 {
-    if(synth_objects.empty()) { qWarning() << __FUNCTION__ << "Empty list"; return; }
+    if(synth_objects.empty()) { /*qWarning() << __FUNCTION__ << "Empty list";*/ return; }
     // get the one closest to robot's centre
+    //auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
+    //        { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
+    // get the one closes to the center of the image
     auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
-            { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
+            { return Eigen::Vector2d(a.cx(), a.cy()).norm() < Eigen::Vector2d(b.cx(), b.cy()).norm();});
     Box attending = *min;
     if (auto object = G->get_node(attending.name); object.has_value())
     {
@@ -263,6 +273,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
     auto &[real_objects, synth_objects] = lists_after_match;
 
     auto robot_node = G->get_node(robot_name);
+
+    // replace by distance
     QPolygonF room_polygon;
     if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
         if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
@@ -371,7 +383,7 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
     static std::random_device rd;
     static std::mt19937 mt(rd());
 
-    float low_x_limit = -600, low_y_limit = -600, upper_x_limit = 600, upper_y_limit = 600;
+    float low_x_limit = -800, low_y_limit = -700, upper_x_limit = 800, upper_y_limit = 500;
     if(type == "object")
     {
         low_x_limit = -300;
@@ -388,8 +400,8 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
 {
     static std::vector<Box> candidates;
     // remove those  in other room
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
-            { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
+//    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
+//            { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
 
     // remove those behind the camera
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[this, timestamp](Box const &b)
@@ -535,7 +547,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                     box.Tx = t_world.value().x();
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
-                    if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
+                    //if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
                         bboxes.push_back(box);
                 }
             }
@@ -573,6 +585,18 @@ DSR::Node SpecificWorker::create_node_with_type(const std::string &type, const s
     object_node = DSR::Node::create<vase_node_type>(name);
     else if (type == "refrigerator")
     object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "bottle")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "book")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "fork")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "knife")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "bowl")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
+    else if (type == "diningtable")
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
 
     return object_node;
 }
@@ -645,12 +669,12 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
         if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, timestamp); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
-            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
-            if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
-            {
-                G->delete_edge(cam_api->get_id(), object.id(), "visible");
-                continue;
-            }
+//            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
+//            if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
+//            {
+//                G->delete_edge(cam_api->get_id(), object.id(), "visible");
+//                continue;
+//            }
 
             // project corners of object's bounding box in the camera image plane
             std::vector<Mat::Vector2d> bb_in_camera(8);
@@ -733,9 +757,8 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
         else  // remove edge
         {
             G->delete_edge(cam_api->get_id(), object.id(), "visible");
+            //qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera. Deleting edge";
         }
-
-        // else qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera";
     }
     // qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
 }
@@ -782,6 +805,7 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
 
     for(const auto &box : real_boxes)
     {
+        //qInfo() << __FUNCTION__ << QString::fromStdString(box.name) << box.prob;
         if(box.prob > CONSTANTS.min_yolo_probability_threshold)
         {
             auto left = box.left+width/2;

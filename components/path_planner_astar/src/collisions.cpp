@@ -67,6 +67,8 @@ std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::
             }
             if (collision)
             {
+                if(out == "table_mesh")
+                    qInfo() << "table_mesh check with " << QString::fromStdString(in)  << "----------------------------";
                 std::cout << "COLLISION: " << in << " to " << out << " pos: (" << targetPos[0] << "," << targetPos[1]
                           << "," << targetPos[2] << ")" << std::endl;
                 return std::make_tuple(false, out);
