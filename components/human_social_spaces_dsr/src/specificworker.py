@@ -142,7 +142,7 @@ class SpecificWorker(GenericWorker):
         return people_list
 
     def get_space_of_each_person(self, people_list, spaces):
-        console.print(' ----- get_space_of_each_person -----', style='blue')
+        #console.print(' ----- get_space_of_each_person -----', style='blue')
 
         intimate_spaces, personal_spaces, social_spaces = spaces
         dict_ids_personal_spaces = {}
@@ -183,7 +183,7 @@ class SpecificWorker(GenericWorker):
         return dict_ids_personal_spaces
 
     def update_personal_spaces(self, dict_ids_personal_spaces):
-        console.print(' ----- update_personal_space -----', style='blue')
+        #console.print(' ----- update_personal_space -----', style='blue')
 
         people_nodes = self.g.get_nodes_by_type('person')
 
@@ -197,7 +197,7 @@ class SpecificWorker(GenericWorker):
             personal_space_node = None
 
             for destination, type_edge in person_node.edges:
-                print(destination, type_edge)
+                #print(destination, type_edge)
                 dest_node = self.g.get_node(destination)
                 if type_edge == 'has' and dest_node.type == 'personal_space':
                     personal_space_node = dest_node
@@ -205,12 +205,12 @@ class SpecificWorker(GenericWorker):
 
             # Update personal_space node
             if personal_space_node is not None:
-                personal_space_node.attrs['ps_social_x_pos'].value = x_social
-                personal_space_node.attrs['ps_social_y_pos'].value = y_social
-                personal_space_node.attrs['ps_personal_x_pos'].value = x_personal
-                personal_space_node.attrs['ps_personal_y_pos'].value = y_personal
-                personal_space_node.attrs['ps_intimate_x_pos'].value = x_intimate
-                personal_space_node.attrs['ps_intimate_y_pos'].value = y_intimate
+                personal_space_node.attrs['ps_social_x_pos'].value = np.array(x_social, dtype=np.float32)
+                personal_space_node.attrs['ps_social_y_pos'].value = np.array(y_social, dtype=np.float32)
+                personal_space_node.attrs['ps_personal_x_pos'].value = np.array(x_personal, dtype=np.float32)
+                personal_space_node.attrs['ps_personal_y_pos'].value = np.array(y_personal, dtype=np.float32)
+                personal_space_node.attrs['ps_intimate_x_pos'].value = np.array(x_intimate, dtype=np.float32)
+                personal_space_node.attrs['ps_intimate_y_pos'].value = np.array(y_intimate, dtype=np.float32)
 
                 try:
                     self.g.update_node(personal_space_node)
@@ -220,26 +220,26 @@ class SpecificWorker(GenericWorker):
 
             # Create personal_space node
             else:
-                print('Create personal_space node')
+                #print('Create personal_space node')
                 node_name = 'personal_space_' + str(person_id)
 
                 new_node = Node(agent_id=self.agent_id, type='personal_space', name=node_name)
 
-                new_node.attrs['ps_social_x_pos'] = Attribute(list(x_social), self.agent_id)
-                new_node.attrs['ps_social_y_pos'] = Attribute(list(y_social), self.agent_id)
-                new_node.attrs['ps_personal_x_pos'] = Attribute(list(x_personal), self.agent_id)
-                new_node.attrs['ps_personal_y_pos'] = Attribute(list(y_personal), self.agent_id)
-                new_node.attrs['ps_intimate_x_pos'] = Attribute(list(x_intimate), self.agent_id)
-                new_node.attrs['ps_intimate_y_pos'] = Attribute(list(y_intimate), self.agent_id)
+                new_node.attrs['ps_social_x_pos'] = Attribute(np.array(x_social, dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_social_y_pos'] = Attribute(np.array(y_social, dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_personal_x_pos'] = Attribute(np.array(x_personal, dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_personal_y_pos'] = Attribute(np.array(y_personal, dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_intimate_x_pos'] = Attribute(np.array(x_intimate, dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_intimate_y_pos'] = Attribute(np.array(y_intimate, dtype=np.float32), self.agent_id)
                 # new_node.attrs['ps_shared_with'] = Attribute(list([],) self.agent_id)
 
                 try:
                     id_result = self.g.insert_node(new_node)
-                    console.print('Personal space node created -- ', id_result, style='red')
+                    #console.print('Personal space node created -- ', id_result, style='red')
                     has_edge = Edge(id_result, person_node.id, 'has', self.agent_id)
                     self.g.insert_or_assign_edge(has_edge)
 
-                    print(' inserted new node  ', id_result)
+                    #print(' inserted new node  ', id_result)
 
                 except:
                     traceback.print_exc()
@@ -269,27 +269,27 @@ class SpecificWorker(GenericWorker):
                                      height)
             objects_list.append(object_type)
 
-        print(f'Objects found {len(objects_list)}')
+        #print(f'Objects found {len(objects_list)}')
 
         return objects_list
 
     def update_affordance_spaces(self, objects):
-        console.print(' ----- update_affordance_spaces -----', style='blue')
+        #console.print(' ----- update_affordance_spaces -----', style='blue')
 
         for object in objects:
             affordance = self.personal_spaces_manager.calculate_affordance(object)
-            print(affordance)
+            #print(affordance)
             x_affordance, y_affordance = zip(*affordance)
-            print(type(x_affordance), type(y_affordance))
+            #print(type(x_affordance), type(y_affordance))
 
-            print(list(x_affordance))
-            print(list(y_affordance))
+            #print(list(x_affordance))
+            #print(list(y_affordance))
 
             object_node = self.g.get_node(object.node_id)
 
             affordance_space_node = None
             for destination, type_edge in object_node.edges:
-                print(destination, type_edge)
+                #print(destination, type_edge)
                 dest_node = self.g.get_node(destination)
                 if type_edge == 'has' and dest_node.type == 'affordance_space':
                     affordance_space_node = dest_node
@@ -309,12 +309,12 @@ class SpecificWorker(GenericWorker):
 
             # Create affordance_space node
             else:
-                print('Create affordance_space node')
+                #print('Create affordance_space node')
                 node_name = 'affordance_space_' + str(object.id)
-                print(node_name)
+                #print(node_name)
                 new_node = Node(agent_id=self.agent_id, type='affordance_space', name=node_name)
 
-                print(type(list(y_affordance)))
+                #print(type(list(y_affordance)))
 
                 new_node.attrs['aff_x_pos'] = Attribute(np.array(x_affordance, dtype=np.float32), self.agent_id)
                 new_node.attrs['aff_y_pos'] = Attribute(np.array(y_affordance, dtype=np.float32), self.agent_id)
@@ -322,11 +322,11 @@ class SpecificWorker(GenericWorker):
 
                 try:
                     id_result = self.g.insert_node(new_node)
-                    console.print('Personal space node created -- ', id_result, style='red')
+                    #console.print('Personal space node created -- ', id_result, style='red')
                     has_edge = Edge(id_result, object_node.id, 'has', self.agent_id)
                     self.g.insert_or_assign_edge(has_edge)
 
-                    print(' inserted new node  ', id_result)
+                    #print(' inserted new node  ', id_result)
 
                 except:
                     traceback.print_exc()
@@ -339,7 +339,7 @@ class SpecificWorker(GenericWorker):
     # SUBSCRIPTION to newPeopleData method from HumanToDSRPub interface
     #
     def HumanToDSRPub_newPeopleData(self, people):
-        print('HumanToDSRPub_newPeopleData ------')
+        #print('HumanToDSRPub_newPeopleData ------')
 
         people_list = people.peoplelist
         people_nodes = self.g.get_nodes_by_type('person')
@@ -370,12 +370,14 @@ class SpecificWorker(GenericWorker):
                 node_name = 'person_' + str(person.id)
                 new_node = Node(agent_id=self.agent_id, type='person', name=node_name)
                 new_node.attrs['person_id'] = Attribute(person.id, self.agent_id)
+                new_node.attrs['pos_x'] = Attribute(25.0, self.agent_id)
+                new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
 
                 try:
                     id_result = self.g.insert_node(new_node)
                     self.rt_api.insert_or_assign_edge_RT(self.g.get_node('world'), id_result,
                                                          [person.x, person.y, person.z], [.0, person.ry, .0])
-                    print(' inserted new node  ', id_result)
+                    #print(' inserted new node  ', id_result)
 
                 except:
                     traceback.print_exc()
@@ -388,22 +390,28 @@ class SpecificWorker(GenericWorker):
     # =============================================
 
     def update_node_att(self, id: int, attribute_names: [str]):
-        console.print(f"UPDATE NODE ATT: {id} {attribute_names}", style='green')
+        #console.print(f"UPDATE NODE ATT: {id} {attribute_names}", style='green')
+        pass
 
     def update_node(self, id: int, type: str):
-        console.print(f"UPDATE NODE: {id} {type}", style='green')
+        #console.print(f"UPDATE NODE: {id} {type}", style='green')
+        pass
 
     def delete_node(self, id: int):
-        console.print(f"DELETE NODE:: {id} ", style='green')
+        #console.print(f"DELETE NODE:: {id} ", style='green')
+        pass
 
     def update_edge(self, fr: int, to: int, type: str):
-        console.print(f"UPDATE EDGE: {fr} to {to} {type}", style='green')
+        #console.print(f"UPDATE EDGE: {fr} to {to} {type}", style='green')
+        pass
 
-    def update_edge_att(self, fr: int, to: int, attribute_names: [str]):
-        console.print(f"UPDATE EDGE ATT: {fr} to {to} {attribute_names}", style='green')
+    def update_edge_att(self, fr: int, to: int, type: str, attribute_names: [str]):
+        #console.print(f"UPDATE EDGE ATT: {fr} to {to} {attribute_names}", style='green')
+        pass
 
     def delete_edge(self, fr: int, to: int, type: str):
-        console.print(f"DELETE EDGE: {fr} to {to} {type}", style='green')
+        #console.print(f"DELETE EDGE: {fr} to {to} {type}", style='green')
+        pass
 
     ######################
     # From the RoboCompHumanToDSRPub you can use this types:

@@ -40,6 +40,9 @@ SET (EXECUTABLE_OUTPUT_PATH ${RC_COMPONENT_DEVEL_PATH}/bin)
 
 QT_WRAP_UI( UI_HEADERS mainUI.ui )
 
+# no-char8_t to avoid a problem with ICE Connection lib.
+add_definitions(-g  -fmax-errors=1 -fno-char8_t)
+
 # Specify construction and link process
 ADD_EXECUTABLE( graph_editor ${SOURCES} ${MOC_SOURCES} ${RC_SOURCES} ${UI_HEADERS} QAttributeBrowser.cpp QAttributeBrowser.h)
 TARGET_LINK_LIBRARIES( graph_editor ${LIBS} ${STATIC_LIBS} ${SPECIFIC_LIBS} ${QT_LIBRARIES} ${Ice_LIBRARIES})

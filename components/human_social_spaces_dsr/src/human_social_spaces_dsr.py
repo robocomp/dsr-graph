@@ -98,7 +98,14 @@ def sigint_handler(*args):
     QtCore.QCoreApplication.quit()
     
 if __name__ == '__main__':
-    app = QtCore.QCoreApplication(sys.argv)
+    #app = QtCore.QCoreApplication(sys.argv)
+    
+    if not QtCore.QCoreApplication.instance():
+    	app = QtCore.QCoreApplication(sys.argv)
+    else:
+    	app = QtCore.QCoreApplication.instance()
+    
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('iceconfigfile', nargs='?', type=str, default='etc/config')
     parser.add_argument('--startup-check', action='store_true')

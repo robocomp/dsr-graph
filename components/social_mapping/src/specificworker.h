@@ -36,7 +36,9 @@
 #include "grid.h"
 #include <QPolygonF>
 #include <QPointF>
-
+#include "../../../etc/viriato_graph_names.h"
+#include <gzip/compress.hpp>
+#include <gzip/decompress.hpp>
 
 class SpecificWorker : public GenericWorker
 {
@@ -45,8 +47,6 @@ public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
-
 
 public slots:
 	void compute();
@@ -81,18 +81,23 @@ private:
 
     // Grid
     Grid grid;
-    bool grid_initialized = false;
-    bool personal_spaces_changed = false;
+    //bool grid_initialized = false;
+    //bool personal_spaces_changed = false;
     std::shared_ptr<Collisions> collisions;
 
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
+    // double buffers
+    DoubleBuffer<std::string, std::string> grid_buffer;
+    DoubleBuffer<std::tuple<std::vector<DSR::Node>, std::vector<DSR::Node>>, std::tuple<std::vector<DSR::Node>, std::vector<DSR::Node>>> space_nodes_buffer;
 
-    std::vector<QPolygonF> intimate_seq, personal_seq, social_seq, affordances_seq;
-
-    void get_polylines_from_dsr();
-    void insert_polylines_in_grid();
-    void inject_grid_in_G(const Grid &grid);
+    // personal spaces
+    using Space = std::vector<QPolygonF>;
+    using Spaces = std::tuple<Space, Space, Space, Space>;
+    //std::vector<QPolygonF> intimate_seq, personal_seq, social_seq, affordances_seq;
+    Spaces get_polylines_from_dsr(const std::tuple<std::vector<DSR::Node>,std::vector<DSR::Node>> &spaces);
+    void insert_polylines_in_grid(const Spaces &spaces);
+    void inject_grid_in_G();
 
 };
 

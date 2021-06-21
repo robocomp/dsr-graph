@@ -19,7 +19,7 @@ agent_name = viriatoDSR
 tree_view = false
 graph_view = true
 2d_view = false
-3d_view = false
+3d_view = true
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
