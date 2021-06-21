@@ -94,6 +94,7 @@ std::string Grid::saveToString() const
     std::cout << "Grid::" << __FUNCTION__ << " " << fmap.size() << " elements written to osdtringstream";
     return stream.str();
 }
+
 void Grid::readFromString(const std::string &cadena)
 {
     fmap.clear();
