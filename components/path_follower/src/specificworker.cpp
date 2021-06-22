@@ -293,7 +293,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     angle += correction;
     // rot speed gain
     rotVel = 2*angle;  // pioneer
-    rotVel = 0.8*angle;  // viriato
+    rotVel = 1*angle;  // viriato
 
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
@@ -317,12 +317,12 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     /// Compute bumper away speed for rectangular shape
     // get extendedrobot polygon in worlds's coordinate frame
-    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
-    for (const auto &p : rp)
-        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
-            total = total + QVector2D(p);
-    qInfo() << __FUNCTION__ << total;
-    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
+//    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
+//    for (const auto &p : rp)
+//        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
+//            total = total + QVector2D(p);
+//    qInfo() << __FUNCTION__ << total;
+//    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
     return std::make_tuple(advVel, sideVel, rotVel);
 }
 

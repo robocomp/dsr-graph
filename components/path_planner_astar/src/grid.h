@@ -125,6 +125,7 @@ class Grid
         void modifyCostInGrid(const QPolygonF &poly, float cost);
         std::optional<QPointF> closest_obstacle(const QPointF &p);
         std::optional<QPointF> closest_free(const QPointF &p);
+        std::optional<QPointF> closest_free_4x4(const QPointF &p);
         std::tuple<bool, QVector2D> vectorToClosestObstacle(QPointF center);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);

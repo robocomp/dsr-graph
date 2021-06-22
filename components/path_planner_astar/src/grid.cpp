@@ -349,6 +349,14 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
 
     // OPEN List
     std::set<std::pair<std::uint32_t, Key>, decltype(comp)> active_vertices(comp);
+
+    //source in a non-free cell (red cell)
+    if(neighboors_8(source_).empty())
+    {
+        std::optional<QPointF> new_source = closest_free(source_);
+        source = pointToGrid(new_source->x(), new_source->y());
+        qInfo() << __FUNCTION__ << "SE INICIA EL A* EN UN ROJO: " << source.x << ", " << source.z;
+    }
     active_vertices.insert({0, source});
 
     while (not active_vertices.empty())
@@ -366,7 +374,6 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         }
         //qInfo() << "No where == target";
         active_vertices.erase(active_vertices.begin());
-
         for (auto ed : neighboors_8(where))
         {
             //qInfo() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
@@ -512,7 +519,6 @@ std::optional<QPointF> Grid::closestMatching_spiralMove(const QPointF &p, std::f
             if (vj == 0)
                 ++tamSegmento;
         }
-//        usleep(5000);
     }
 }
 
@@ -523,7 +529,11 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
 
 std::optional<QPointF> Grid::closest_free(const QPointF &p)
 {
-    static int iter = 0;
+    return this->closestMatching_spiralMove(p, [](auto cell){ return not cell.second.free; });
+}
+
+std::optional<QPointF> Grid::closest_free_4x4(const QPointF &p)
+{
     return this->closestMatching_spiralMove(p, [this, p](const auto &cell){
         if (not cell.second.free)
             return false;

@@ -1752,29 +1752,6 @@
                 "id": "50",
                 "links": [
                     {
-                        "dst": "73",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -1600,
-                                    295,
-                                    380
-                                ]
-                            }
-                        },
-                        "src": "50"
-                    },
-                    {
                         "dst": "74",
                         "label": "RT",
                         "linkAttribute": {
@@ -1789,9 +1766,9 @@
                             "rt_translation": {
                                 "type": 3,
                                 "value": [
-                                    -1600,
-                                    650,
-                                    0
+                                    -1750,
+                                    275,
+                                    385
                                 ]
                             }
                         },
@@ -2672,19 +2649,19 @@
                     },
                     "scaley": {
                         "type": 1,
-                        "value": 770
+                        "value": 600
                     },
                     "scalez": {
                         "type": 1,
-                        "value": 600
+                        "value": 770
                     },
                     "level": {
                         "type": 1,
-                        "value": 2
+                        "value": 3
                     },
                     "parent": {
                         "type": 7,
-                        "value": "50"
+                        "value": "74"
                     },
                     "path": {
                         "type": 0,
@@ -2768,6 +2745,29 @@
                         "linkAttribute": {
                         },
                         "src": "74"
+                    },
+                    {
+                        "dst": "73",
+                        "src": "74",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        }
                     }
                 ],
                 "name": "table",
