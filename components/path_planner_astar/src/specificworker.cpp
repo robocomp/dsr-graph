@@ -158,9 +158,8 @@ void SpecificWorker::compute()
                 {
                     if (widget_2d != nullptr)
                         draw_path(path, &widget_2d->scene);
-                    std::vector<float> x_values;
+                    std::vector<float> x_values, y_values;
                     x_values.reserve(path.size());
-                    std::vector<float> y_values;
                     y_values.reserve(path.size());
                     for (auto &&p : path)
                     {
@@ -265,7 +264,7 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
         auto target = current_plan.get_target();
-        auto new_target = grid.closest_free(target);
+        auto new_target = grid.closest_free_4x4(target);
         qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
         return new_target;
         // ad to GRID, closest free cell in the direction of the robot.
