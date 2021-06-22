@@ -112,7 +112,7 @@ private:
 
         //laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
-        std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data();
+        std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data(const DSR::Node &node);
 
             //Signal subscription
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;

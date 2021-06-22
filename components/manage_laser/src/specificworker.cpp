@@ -19,6 +19,7 @@
 #include "specificworker.h"
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
+#include <cppitertools/slice.hpp>
 #include <execution>
 
 /**
@@ -200,9 +201,10 @@ std::vector<float> SpecificWorker::modify_laser(const std::vector<DSR::Node> &pe
     std::vector<float> new_dist;
     if(const auto robot_in_w = inner_eigen->transform(world_name, robot_name); robot_in_w.has_value())
     {
+        const int step=2;
         QPointF robot(robot_in_w.value().x(), robot_in_w.value().y());
         new_dist.reserve(dist.size());
-        for (auto &&[ang, dis] : iter::zip(angles, dist))
+        for (auto &&[ang, dis] : iter::slice(iter::zip(angles, dist),0,(int)angles.size(),step))
         {
             if (const auto laser_cart_world = inner_eigen->transform(world_name, Mat::Vector3d(dis*sin(ang), dis*cos(ang), 0.f), robot_name); laser_cart_world.has_value())
             {
@@ -218,7 +220,8 @@ std::vector<float> SpecificWorker::modify_laser(const std::vector<DSR::Node> &pe
                                 return dis;
                         });
                 if (not distances.empty())
-                    new_dist.emplace_back(std::ranges::min(distances));
+                    for (int i=0; i<step; i++)
+                        new_dist.emplace_back(std::ranges::min(distances));
                 else
                     qWarning() << __FUNCTION__ << " new_dist vector is empty after searching intersections. Should not happen";
             }

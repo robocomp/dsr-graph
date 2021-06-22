@@ -156,25 +156,25 @@ void SpecificWorker::compute()
         } else
         {}
     }
-//    if( auto grid_string = grid_buffer.try_get(); grid_string.has_value())
-//    {
-//        auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
-//        auto affordance_spaces_nodes = G->get_nodes_by_type(affordance_space_type_name);
-//        const auto spaces = get_polylines_from_dsr(std::make_tuple(personal_spaces_nodes, affordance_spaces_nodes));
-//        if(not personal_spaces_nodes.empty() or not affordance_spaces_nodes.empty())
-//        {
-//            std::string compressed_data = gzip::compress(grid_string.value().data(), grid_string.value().size());
-//            qInfo() << compressed_data.size() << " " << grid_string.value().size();
-//            std::string decompressed_data = gzip::decompress(compressed_data.data(), compressed_data.size());
-//
-//            //grid.readFromString(grid_string.value());
-//            grid.readFromString(decompressed_data);
-//            insert_polylines_in_grid(spaces);
-//            inject_grid_in_G();
-//        }
-//        else
-//        {}  // grid has not changed. Use current one.
-//    }
+/*    if( auto grid_string = grid_buffer.try_get(); grid_string.has_value())
+    {
+        auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
+        auto affordance_spaces_nodes = G->get_nodes_by_type(affordance_space_type_name);
+        const auto spaces = get_polylines_from_dsr(std::make_tuple(personal_spaces_nodes, affordance_spaces_nodes));
+        if(not personal_spaces_nodes.empty() or not affordance_spaces_nodes.empty())
+        {
+            std::string compressed_data = gzip::compress(grid_string.value().data(), grid_string.value().size());
+            qInfo() << compressed_data.size() << " " << grid_string.value().size();
+            std::string decompressed_data = gzip::decompress(compressed_data.data(), compressed_data.size());
+
+            //grid.readFromString(grid_string.value());
+            grid.readFromString(decompressed_data);
+            insert_polylines_in_grid(spaces);
+            inject_grid_in_G();
+        }
+        else
+        {}  // grid has not changed. Use current one.
+    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -279,14 +279,14 @@ void SpecificWorker::inject_grid_in_G()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-//    if (type == grid_type_name)  // grid
-//    {
-//        if (auto node = G->get_node(id); node.has_value())
-//        {
-//            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
-//                grid_buffer.put(std::string{grid_as_string.value().get()});
-//        }
-//    }
+    if (type == grid_type_name)  // grid
+    {
+        if (auto node = G->get_node(id); node.has_value())
+        {
+            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
+                grid_buffer.put(std::string{grid_as_string.value().get()});
+        }
+    }
      if (type==personal_space_type_name)
      {
          auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);

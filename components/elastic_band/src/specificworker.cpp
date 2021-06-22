@@ -146,7 +146,7 @@ void SpecificWorker::compute()
 {
     static std::vector<QPointF> path;   // CHANGE TO LIST to reduce insertion times
     static std::tuple<QPolygonF, std::vector<QPointF>> laser_data;
-
+    DSR::Node node;
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value())
     {
@@ -159,12 +159,19 @@ void SpecificWorker::compute()
         // path_node has been deleted, stop processing
         if(auto node_path = G->get_node(current_path_name);node_path.has_value())
         {
-            //if( const auto ldata = get_laser_data(); ldata.has_value())
-            if( const auto ldata = laser_buffer.try_get(); ldata.has_value())
+            if( auto node_laser = G->get_node(laser_social_name); node_laser.has_value())
+                node=node_laser.value();
+            else
             {
-                std::get<1>(laser_data).clear(); std::get<0>(laser_data).clear();
-                laser_data = ldata.value();
+                if( auto node_laser = G->get_node(laser_name); node_laser.has_value())
+                    node=node_laser.value();
             }
+            if( const auto ldata = get_laser_data(node); ldata.has_value())
+            //if( const auto ldata = laser_buffer.try_get(); ldata.has_value())
+                {
+                    std::get<1>(laser_data).clear(); std::get<0>(laser_data).clear();
+                    laser_data = ldata.value();
+                }
             const auto &[laser_poly, laser_cart] = laser_data;
             if(laser_poly.isEmpty() or laser_cart.empty()) return;
 
@@ -417,7 +424,7 @@ void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)
 }
 
 /////////////////
-std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_laser_data()
+/*std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_laser_data()
 {
     if( auto node = G->get_node(laser_name); node.has_value())
     {
@@ -457,11 +464,52 @@ std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_l
         }
     }
     return {};
+}*/
+std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_laser_data(const DSR::Node &node)
+{
+        auto angles = G->get_attrib_by_name<laser_angles_att>(node);
+        auto dists = G->get_attrib_by_name<laser_dists_att>(node);
+        if (dists.has_value() and angles.has_value())
+        {
+            const auto &d = dists.value().get();
+            const auto &a = angles.value().get();
+            if (d.empty() or a.empty()) return {};
+            QPolygonF laser_poly;
+            std::vector<QPointF> laser_cart;
+            laser_cart.reserve(a.size());
+            //auto robot = widget_2d->get_robot_polygon();
+            //auto inner_eigen = G->get_inner_eigen_api();
+            for (const auto &[angle, dist] : iter::zip(a, d))
+            {
+                //convert laser polar coordinates to cartesian
+                if (dist == 0) continue;
+                float x = dist * sin(angle);
+                float y = dist * cos(angle);
+                //QPointF p = robot->mapToScene(x, y);
+                Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), robot_name).value();
+                //auto diff = Eigen::Vector3d(p.x(),p.y(),0) - laserWorld;
+                //qInfo() << p << " - [" << laserWorld.x() << "," << laserWorld.y() << "] = " << "[" << diff.x() << "," << diff.y() << "]";
+                //auto r = inner_eigen->transform_axis(world_name, robot_name);
+                //auto po = rt_api->get_translation(G->get_node(world_name).value(), G->get_node(robot_name).value().id());
+                // if (angle < 0.05 and angle > -0.05)
+                //  qInfo() << "q_robot:" << robot->pos() << " g_robot:" << r.value().x() << r.value().y() << r.value()[5];
+                //qInfo() << "q_robot:" << robot->pos() << " g_robot:" << po.value().x() << po.value().y() << " g2_robot:" << r.value().x() << r.value().y()  ;
+                laser_poly << QPointF(x, y);
+                laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+                //laser_cart.emplace_back(QPointF(p.x(), p.y()));
+                //laser_cart.emplace_back(p);
+            }
+            return std::make_tuple(laser_poly, laser_cart);
+        }
+    return {};
 }
-
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
+
+
+
+
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     // PATH_TO_TARGET
