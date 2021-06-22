@@ -37,8 +37,8 @@
 #include <QPolygonF>
 #include <QPointF>
 #include "../../../etc/viriato_graph_names.h"
-#include <gzip/compress.hpp>
-#include <gzip/decompress.hpp>
+//#include <gzip/compress.hpp>
+//#include <gzip/decompress.hpp>
 
 class SpecificWorker : public GenericWorker
 {
