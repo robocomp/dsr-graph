@@ -130,6 +130,7 @@ class Grid
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);
         void draw(QGraphicsScene* scene);
         void resetGrid();
+
     private:
         FMap fmap, fmap_aux;
         bool fmap_aux_initialized = false;
@@ -137,6 +138,8 @@ class Grid
         std::vector<QGraphicsRectItem *> scene_grid_points;
         std::list<QPointF> orderPath(const std::vector<std::pair<std::uint32_t, Key>> &previous, const Key &source, const Key &target);
         inline double heuristicL2(const Key &a, const Key &b) const;
+
+
 };
 
 #endif // GRID_H
