@@ -119,10 +119,20 @@ private:
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 
         //elastic band
+        struct CONSTANTS
+        {
+            int number_of_not_visible_points = 6;
+
+        };
+        CONSTANTS constants;
+
         const float ROBOT_LENGTH = 500;
+        const float ROBOT_RADIUS = ROBOT_LENGTH / 2;
         const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
-        float KE = 50;
-        float KI = 300;
+        float KE = 0.5;
+        //float KI = 300;
+        float KI = 100;
+
         std::uint64_t last_path_id;  // ID of last path node that came through the slot
         enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
         void elastic_band_initialize( );
