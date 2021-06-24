@@ -122,7 +122,7 @@ class PersonalSpacesManager:
         return ret
 
     def get_personal_spaces(self, people_list, represent=False):
-        console.print(' ----- get_personal_spaces -----', style='blue')
+        #console.print(' ----- get_personal_spaces -----', style='blue')
 
         plt.clf()
         dict_spaces = dict(intimate=[], personal=[], social=[])
@@ -141,7 +141,7 @@ class PersonalSpacesManager:
                                              self.__dict_space_param[space][1],
                                              self.__dict_space_param[space][2]], elliptical=True))
 
-            print("Number of gaussians ", len(normals))
+            #print("Number of gaussians ", len(normals))
 
             resolution = 0.1
             limits = [[self.lx_inf, self.lx_sup], [self.ly_inf, self.ly_sup]]
@@ -198,15 +198,18 @@ class PersonalSpacesManager:
     def calculate_affordance_trapezoidal(self, obj):
         left_angle = obj.ry + obj.inter_angle / 2
         right_angle = obj.ry - obj.inter_angle / 2
+        
 
         polyline = [[(obj.tx + obj.width / 2), obj.ty],
                     [(obj.tx - obj.width / 2), obj.ty],
+                    
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))],
 
                     [(obj.tx + obj.inter_space * (cos(pi/2 - left_angle))),
-                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))],
+                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))]
 
-                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
-                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))]]
+                    ]
 
         return polyline
 
