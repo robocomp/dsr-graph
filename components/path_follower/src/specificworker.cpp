@@ -259,7 +259,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
               << " dist < 200 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET);
 
-    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
+    if ( (path.size() < 2) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
     {
         qInfo() << __FUNCTION__ << "Target achieved";
         advVel = 0;  sideVel= 0; rotVel = 0;
@@ -292,7 +292,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     float signed_distance = e_tangent.signedDistance(robot_nose);
     float correction = viriato_consts.lateral_correction_gain * tanh(signed_distance);
     qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
-    angle +=  correction;
+    //angle +=  correction;
     sideVel = viriato_consts.lateral_correction_for_side_velocity * correction;
 
     // rot speed gain

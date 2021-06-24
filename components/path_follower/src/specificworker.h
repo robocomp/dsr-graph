@@ -86,10 +86,10 @@ class SpecificWorker : public GenericWorker
         struct ROBOT_CONSTS
         {
             float lateral_correction_gain = 0.2;
-            float lateral_correction_for_side_velocity = 400;
+            float lateral_correction_for_side_velocity = 500;
             float rotation_gain = 0.8;
             float times_final_distance_to_target_before_zero_rotation = 3;
-            float advance_gaussian_cut_x = 0.8;
+            float advance_gaussian_cut_x = 0.7;
             float advance_gaussian_cut_y = 0.2;
         };
         ROBOT_CONSTS viriato_consts;
