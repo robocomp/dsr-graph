@@ -324,6 +324,15 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         qDebug() << __FUNCTION__ << "Robot already at target. Returning empty path";
         return std::list<QPointF>();
     }
+
+    //source in a non-free cell (red cell)
+    if(neighboors_8(source_).empty())
+    {
+        qInfo() << __FUNCTION__ << "SE INICIA EL A* EN UN ROJO: " << source.x << ", " << source.z;
+        std::optional<QPointF> new_source = closest_free(source_);
+        source = pointToGrid(new_source->x(), new_source->y());
+    }
+
     const auto &[success, val] = getCell(source);
     if(not success)
     {
@@ -349,16 +358,8 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
 
     // OPEN List
     std::set<std::pair<std::uint32_t, Key>, decltype(comp)> active_vertices(comp);
-
-    //source in a non-free cell (red cell)
-    if(neighboors_8(source_).empty())
-    {
-        std::optional<QPointF> new_source = closest_free(source_);
-        source = pointToGrid(new_source->x(), new_source->y());
-        qInfo() << __FUNCTION__ << "SE INICIA EL A* EN UN ROJO: " << source.x << ", " << source.z;
-    }
     active_vertices.insert({0, source});
-
+    int i = 0;
     while (not active_vertices.empty())
     {
         //qInfo() << __FILE__ << __LINE__ << "Entrando en while";
@@ -367,18 +368,21 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         {
             //qInfo() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
             auto p = orderPath(previous, source, target);
+            qInfo() << "p.size() = " << p.size();
+            //esto es solo pa cd encuentra un path eh xd
             if (p.size() > 1)
                 return p;
             else
                 return std::list<QPointF>();
         }
-        //qInfo() << "No where == target";
+        qInfo() << i++ << ": No where == target";
         active_vertices.erase(active_vertices.begin());
         for (auto ed : neighboors_8(where))
         {
-            //qInfo() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
+            qInfo() << __FUNCTION__ << min_distance[ed.second.id] << ">" << min_distance[fmap.at(where).id] << "+" << ed.second.cost;
             if (min_distance[ed.second.id] > min_distance[fmap.at(where).id] + ed.second.cost)
             {
+                qInfo() << "considerando este neighbor" << endl;
                 active_vertices.erase({min_distance[ed.second.id], ed.first});
                 min_distance[ed.second.id] = min_distance[fmap.at(where).id] + ed.second.cost;
                 previous[ed.second.id] = std::make_pair(fmap.at(where).id, where);
@@ -529,7 +533,7 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
 
 std::optional<QPointF> Grid::closest_free(const QPointF &p)
 {
-    return this->closestMatching_spiralMove(p, [](auto cell){ return not cell.second.free; });
+    return this->closestMatching_spiralMove(p, [](auto cell){ return cell.second.free; });
 }
 
 std::optional<QPointF> Grid::closest_free_4x4(const QPointF &p)
