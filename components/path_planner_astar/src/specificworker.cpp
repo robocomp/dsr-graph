@@ -158,9 +158,8 @@ void SpecificWorker::compute()
                 {
                     if (widget_2d != nullptr)
                         draw_path(path, &widget_2d->scene);
-                    std::vector<float> x_values;
+                    std::vector<float> x_values, y_values;
                     x_values.reserve(path.size());
-                    std::vector<float> y_values;
                     y_values.reserve(path.size());
                     for (auto &&p : path)
                     {
@@ -201,23 +200,23 @@ void SpecificWorker::compute()
     else //do whatever you do without a plan
     {}
 
-    //Social Grid
-//    if(grid_updated)
-//    {
-//        cout<<"Updating grid ---------------------------------------"<<endl;
-//        if (auto node = G->get_node("social_grid"); node.has_value())
-//        {
-//            if (auto social_grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); social_grid_as_string.has_value()){
-//                grid.readFromString(social_grid_as_string.value());
-//                grid.saveToFile("grid.txt");
-//            }
-//        }
-//        if (widget_2d != nullptr){
-//            cout<<"drawing grid"<<endl;
-//            grid.draw(&widget_2d->scene);
-//        }
-//        grid_updated = false;
-//    }
+    //Update Grid
+    if(grid_updated)
+    {
+        cout<<"Updating grid ---------------------------------------"<<endl;
+        if (auto node = G->get_node(current_grid_name); node.has_value())
+        {
+            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value()){
+                grid.readFromString(grid_as_string.value());
+                grid.saveToFile("grid.txt");
+            }
+        }
+        if (widget_2d != nullptr){
+            cout<<"drawing grid"<<endl;
+            grid.draw(&widget_2d->scene);
+        }
+        grid_updated = false;
+    }
 }
 
 void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, bool read_from_file, const std::string file_name)
@@ -265,7 +264,7 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
         auto target = current_plan.get_target();
-        auto new_target = grid.closest_free(target);
+        auto new_target = grid.closest_free_4x4(target);
         qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
         return new_target;
         // ad to GRID, closest free cell in the direction of the robot.

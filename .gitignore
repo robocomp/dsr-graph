@@ -29,6 +29,8 @@ etc/insert_remove_*
 **/*.OLD
 !**/components/*/CMake*.txt
 !**/components/*/src/CMake*.txt
+**/Makefile
+**/CMakeCache.txt
 test/__pycache__/
 components/crdt_rtps_dsr_tests/test_result.txt
 components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_empty_file.json
@@ -39,4 +41,6 @@ components/crdt_rtps_dsr_tests/src/unittests/testfiles/write_initial_dsr2.json
 *cmake-build-default/
 *cmake-build-debug/
 
-components/graph_editor/src/3rd_party/
+components/graph_editor/src/3rd_party/*
+
+

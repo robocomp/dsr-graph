@@ -80,7 +80,7 @@ void SpecificWorker::initialize(int period)
 			current_opts = current_opts | opts::tree;
 		if(graph_view)
 			current_opts = current_opts | opts::graph;
-            main = opts::graph;
+            //main = opts::graph;
 		if(qscene_2d_view)
 			current_opts = current_opts | opts::scene;
 		if(osg_3d_view)
@@ -259,7 +259,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
               << " dist < 200 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET);
 
-    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
+    if ( (path.size() < 2) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
     {
         qInfo() << __FUNCTION__ << "Target achieved";
         advVel = 0;  sideVel= 0; rotVel = 0;
@@ -275,6 +275,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     /// Compute rotational speed
     // closest point to robot nose in path
     auto closest_point_to_nose = std::ranges::min_element(path, [robot_nose](auto &a, auto &b){ return (robot_nose - a).norm() < (robot_nose - b).norm();});
+
     // compute angle between robot-to-nose line and  tangent to closest point in path
     QLineF tangent;
     if(std::distance(path.cbegin(), closest_point_to_nose) == 0)
@@ -284,25 +285,29 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     else tangent = QLineF(to_QPointF(*(closest_point_to_nose - 1)), to_QPointF(*(closest_point_to_nose + 1)));
     QLineF robot_to_nose(to_QPointF(robot_pose), to_QPointF(robot_nose));
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(tangent)));
+
     // compute distance to path to cancel stationary error
     auto e_tangent = Eigen::Hyperplane<float, 2>::Through(Eigen::Vector2f(tangent.p1().x(), tangent.p1().y()),
                                                           Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
     float signed_distance = e_tangent.signedDistance(robot_nose);
-    float correction = 0.2*tanh(signed_distance);
+    float correction = viriato_consts.lateral_correction_gain * tanh(signed_distance);
     qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
-    angle += correction;
+    //angle +=  correction;
+    sideVel = viriato_consts.lateral_correction_for_side_velocity * correction;
+
     // rot speed gain
     rotVel = 2*angle;  // pioneer
-    rotVel = 0.8*angle;  // viriato
+    rotVel = viriato_consts.rotation_gain * angle;  // viriato
 
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
     // cancel final rotation
-    if(euc_dist_to_target < 3*FINAL_DISTANCE_TO_TARGET)
+    if(euc_dist_to_target < viriato_consts.times_final_distance_to_target_before_zero_rotation * FINAL_DISTANCE_TO_TARGET)
           rotVel = 0.f;
 
     /// Compute advance speed
-    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, 0.8, 0.2, 0), euc_dist_to_target);
+    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, viriato_consts.advance_gaussian_cut_x, viriato_consts.advance_gaussian_cut_y, 0),
+                      euc_dist_to_target);
 
     /// Compute bumper-away speed
     QVector2D total{0, 0};
@@ -317,12 +322,12 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     /// Compute bumper away speed for rectangular shape
     // get extendedrobot polygon in worlds's coordinate frame
-    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
-    for (const auto &p : rp)
-        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
-            total = total + QVector2D(p);
-    qInfo() << __FUNCTION__ << total;
-    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
+//    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
+//    for (const auto &p : rp)
+//        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
+//            total = total + QVector2D(p);
+//    qInfo() << __FUNCTION__ << total;
+//    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
     return std::make_tuple(advVel, sideVel, rotVel);
 }
 

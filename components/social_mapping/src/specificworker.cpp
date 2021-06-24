@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -32,7 +33,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
+	//G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
 
@@ -95,14 +96,11 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-		//widget
         // 2D widget
         widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
         if (widget_2d != nullptr)
-        {
             widget_2d->set_draw_laser(false);
-//            connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
-        }
+
 		//grid
         QRectF outerRegion;
         auto world_node = G->get_node(world_name).value();
@@ -117,56 +115,74 @@ void SpecificWorker::initialize(int period)
         }
         grid.dim.setCoords(outerRegion.left(), outerRegion.top(), outerRegion.right(), outerRegion.bottom());
         grid.TILE_SIZE = stoi(conf_params->at("tile_size").value);
-//        collisions =  std::make_shared<Collisions>();
-//        collisions->initialize(G, conf_params);
-//        grid.initialize(G, collisions, false);
-        if( auto grid_node = G->get_node("current_grid"); grid_node.has_value())
+
+        // read personal_spaces from G id they exists
+        if( auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
         {
-            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value()) {
-                grid.readFromString(grid_as_string.value());
-                grid_initialized = true;
-
-            }
+            auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
+            auto affordance_spaces_nodes = G->get_nodes_by_type(affordance_space_type_name);
+            if(not personal_spaces_nodes.empty() or not affordance_spaces_nodes.empty())
+                space_nodes_buffer.put(std::make_tuple(personal_spaces_nodes, affordance_spaces_nodes));
         }
-        qInfo() << "SIZE " << grid.size();
 
+        // read grid from G id it exists
+        if( auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
+        {
+            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
+                grid_buffer.put(std::string{grid_as_string.value().get()});
+        }
+        qInfo() << __FUNCTION__ << "SIZE " << grid.size();
 
 		this->Period = period;
 		timer.start(Period);
 	}
-
 }
 
 void SpecificWorker::compute()
 {
-    if(personal_spaces_changed)
+    if( auto space_nodes = space_nodes_buffer.try_get(); space_nodes.has_value())
     {
-        get_polylines_from_dsr();
-
-        if(grid_initialized) {
-            insert_polylines_in_grid();
-            inject_grid_in_G(grid);
-        }
-        personal_spaces_changed = false;
+        const auto spaces = get_polylines_from_dsr(space_nodes.value());
+        if (auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
+        {
+            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
+            {
+                grid.readFromString(grid_as_string.value());
+                insert_polylines_in_grid(spaces);
+                inject_grid_in_G();
+            }
+            else
+            {}
+        } else
+        {}
     }
+/*    if( auto grid_string = grid_buffer.try_get(); grid_string.has_value())
+    {
+        auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
+        auto affordance_spaces_nodes = G->get_nodes_by_type(affordance_space_type_name);
+        const auto spaces = get_polylines_from_dsr(std::make_tuple(personal_spaces_nodes, affordance_spaces_nodes));
+        if(not personal_spaces_nodes.empty() or not affordance_spaces_nodes.empty())
+        {
+            std::string compressed_data = gzip::compress(grid_string.value().data(), grid_string.value().size());
+            qInfo() << compressed_data.size() << " " << grid_string.value().size();
+            std::string decompressed_data = gzip::decompress(compressed_data.data(), compressed_data.size());
+
+            //grid.readFromString(grid_string.value());
+            grid.readFromString(decompressed_data);
+            insert_polylines_in_grid(spaces);
+            inject_grid_in_G();
+        }
+        else
+        {}  // grid has not changed. Use current one.
+    }*/
 }
 
-int SpecificWorker::startup_check()
+////////////////////////////////////////////////////////////////////////////
+
+SpecificWorker::Spaces SpecificWorker::get_polylines_from_dsr(const std::tuple<std::vector<DSR::Node>,std::vector<DSR::Node>> &space_nodes)
 {
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
-}
-
-
-
-void SpecificWorker::get_polylines_from_dsr(){
-    auto personal_spaces_nodes = G->get_nodes_by_type("personal_space");
-    auto affordance_spaces_nodes = G->get_nodes_by_type("affordance_space");
-    intimate_seq.clear();
-    personal_seq.clear();
-    social_seq.clear();
-    affordances_seq.clear();
+    const auto &[personal_spaces_nodes, affordance_spaces_nodes] = space_nodes;
+    Space intimate_seq, personal_seq, social_seq, affordances_seq;
 
     for (auto node: personal_spaces_nodes)
     {
@@ -181,109 +197,108 @@ void SpecificWorker::get_polylines_from_dsr(){
         for(auto &&[point_x,point_y] : iter::zip(personal_x, personal_y)){
             personal_pol.push_back(QPointF(point_x,point_y));
         }
-
         auto social_x = G->get_attrib_by_name<ps_social_x_pos_att>(node).value().get();
         auto social_y = G->get_attrib_by_name<ps_social_y_pos_att>(node).value().get();
         for(auto &&[point_x,point_y] : iter::zip(social_x, social_y)){
             social_pol.push_back(QPointF(point_x,point_y));
         }
-
         intimate_seq.push_back(intimate_pol);
         personal_seq.push_back(personal_pol);
         social_seq.push_back(social_pol);
     }
 
-    for(auto node: affordance_spaces_nodes){
+    for(auto node: affordance_spaces_nodes)
+    {
         QPolygonF affordance_pol;
         auto aff_x = G->get_attrib_by_name<aff_x_pos_att>(node).value().get();
         auto aff_y = G->get_attrib_by_name<aff_y_pos_att>(node).value().get();
-        for(auto &&[point_x,point_y] : iter::zip(aff_x, aff_y)){
+        for(auto &&[point_x,point_y] : iter::zip(aff_x, aff_y))
+        {
             affordance_pol.push_back(QPointF(point_x,point_y));
         }
         affordances_seq.push_back(affordance_pol);
     }
-
+    return std::make_tuple(intimate_seq, personal_seq, social_seq, affordances_seq);
 }
-void SpecificWorker::insert_polylines_in_grid() {
-
+void SpecificWorker::insert_polylines_in_grid(const Spaces &spaces)
+{
+    const auto &[intimate_seq, personal_seq, social_seq, affordances_seq] = spaces;
     grid.resetGrid();
-
     for (auto &&poly_soc : affordances_seq)
         grid.modifyCostInGrid(poly_soc, 2.0);
 
     //To set occupied
-    for (auto &&poly_intimate : iter::chain(intimate_seq)) {
+    for (auto &&poly_intimate : iter::chain(intimate_seq))
         grid.markAreaInGridAs(poly_intimate, false);
-    }
+
     for (auto &&poly_per : social_seq)
         grid.modifyCostInGrid(poly_per, 10.0);
 
     for (auto &&poly_soc : personal_seq)
         grid.modifyCostInGrid(poly_soc, 8.0);
 
-
-
-
     if (widget_2d != nullptr)
         grid.draw(&widget_2d->scene);
 }
-
-void SpecificWorker::inject_grid_in_G(const Grid &grid)
+void SpecificWorker::inject_grid_in_G()
 {
     std::string grid_as_string = grid.saveToString();
-    if (auto current_grid_node_o = G->get_node("social_grid"); current_grid_node_o.has_value())
+    if (auto current_grid_node_o = G->get_node(current_grid_name); current_grid_node_o.has_value())
     {
         G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node_o.value(), grid_as_string);
         G->update_node(current_grid_node_o.value());
     }
     else
-    {
-        if (auto mind = G->get_node(robot_mind_name); mind.has_value())
-        {
-            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>("social_grid");
-//            G->add_or_modify_attrib_local<name_att>(current_grid_node, "social_grid");
-            G->add_or_modify_attrib_local<parent_att>(current_grid_node, mind.value().id());
-            G->add_or_modify_attrib_local<level_att>(current_grid_node, G->get_node_level(mind.value()).value() + 1);
-            G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
-            G->add_or_modify_attrib_local<pos_x_att>(current_grid_node, (float) -262);
-            G->add_or_modify_attrib_local<pos_y_att>(current_grid_node, (float) 91);
-            if (std::optional<int> current_grid_node_id = G->insert_node(current_grid_node); current_grid_node_id.has_value())
-            {
-                DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), current_grid_node.id());
-                if (G->insert_or_assign_edge(edge))
-                    std::cout << __FUNCTION__ << "Edge successfully created between robot and grid" << std::endl;
-                else
-                {
-                    std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << mind.value().id() << "->" << current_grid_node_id.value()
-                              << " type: has" << std::endl;
-                    std::terminate();
-                }
-            } else
-            {
-                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'grid' node" << std::endl;
-                std::terminate();
-            }
-        }
-    }
+        std::cout << __FILE__ << __FUNCTION__ << " No grid node in G. Ignoring personal spaces" << std::endl;
+
+    // Creo que si no hay nodo grid no se debe crear aquí
+
+//    {
+//        if (auto mind = G->get_node(robot_mind_name); mind.has_value())
+//        {
+//            DSR::Node current_grid_node = DSR::Node::create<grid_node_type>(social_grid_type_name);
+//            G->add_or_modify_attrib_local<parent_att>(current_grid_node, mind.value().id());
+//            G->add_or_modify_attrib_local<level_att>(current_grid_node, G->get_node_level(mind.value()).value() + 1);
+//            G->add_or_modify_attrib_local<grid_as_string_att>(current_grid_node, grid_as_string);
+//            G->add_or_modify_attrib_local<pos_x_att>(current_grid_node, (float) -262);
+//            G->add_or_modify_attrib_local<pos_y_att>(current_grid_node, (float) 91);
+//            if (std::optional<int> current_grid_node_id = G->insert_node(current_grid_node); current_grid_node_id.has_value())
+//            {
+//                DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), current_grid_node.id());
+//                if (G->insert_or_assign_edge(edge) == false)
+//                    std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << mind.value().id() << "->" << current_grid_node_id.value()
+//                              << " type: has" << std::endl;
+//            }
+//            else
+//                std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting_new 'grid' node" << std::endl;
+//        }
+//    }
 }
-///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
-///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-    cout<< __FUNCTION__ <<" "<< id<<" " << type <<endl;
-    if (type == "grid")  // grid
+    if (type == grid_type_name)  // grid
     {
         if (auto node = G->get_node(id); node.has_value())
         {
-            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value()){
-                grid.readFromString(grid_as_string.value());
-                grid_initialized = true;
-            }
+            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
+                grid_buffer.put(std::string{grid_as_string.value().get()});
         }
     }
+     if (type==personal_space_type_name)
+     {
+         auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
+         auto affordance_spaces_nodes = G->get_nodes_by_type(affordance_space_type_name);
+         space_nodes_buffer.put(std::make_tuple(personal_spaces_nodes, affordance_spaces_nodes));
+     }
+}
 
-     if (type=="personal_space")
-        personal_spaces_changed = true;
-
+//////////////////////////////////////////////////////////////////////////////////////////
+int SpecificWorker::startup_check()
+{
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
 }

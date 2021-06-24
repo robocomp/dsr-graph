@@ -128,10 +128,11 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    static size_t iterations = 0;
-    static bool primera_vez=false;
-    static std::chrono::steady_clock::time_point begin;
+    static size_t iterations = 0, K = 0.5;
+    static bool primera_vez = false;
+    static std::chrono::steady_clock::time_point begin, lastPathStep;
     static int last_selected_index = custom_widget.comboBox_select_target->currentIndex();
+    static int last_path_size;
     // check for existing missions
     static Plan plan;
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
@@ -146,9 +147,11 @@ void SpecificWorker::compute()
     {
         if( auto path = path_buffer.try_get(); path.has_value())
         {
+            qInfo() << "Siguiendo el plan...";
             if(!primera_vez) {
                 primera_vez = true;
-                begin = std::chrono::steady_clock::now();
+                begin = lastPathStep = std::chrono::steady_clock::now();
+                last_path_size = path.value().size();
                 int vel_media = 300;
                 auto dist = 0;
                 for (int i = 0; i < path.value().size() - 1; ++i)
@@ -162,13 +165,19 @@ void SpecificWorker::compute()
                 auto time = dist / vel_media;
             }
             auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
+            if (last_path_size != path.value().size())
+                lastPathStep = std::chrono::steady_clock::now();
             float dist = (robot_pose - plan.get_target_trans()).norm();
-            if (path.value().size() < 2 or dist < 200)
+            auto now = std::chrono::steady_clock::now();
+            auto time_delta_s = std::chrono::duration_cast<std::chrono::seconds>(now - lastPathStep).count();
+            qInfo() << __FUNCTION__ << "Tiempo desde el último paso: " << time_delta_s << "s";
+            auto acceptable_distance = 1 + int(K * time_delta_s);
+            if (path.value().size() <= acceptable_distance or dist < 200)
             {
                 plan.set_active(false);
                 send_command_to_robot(std::make_tuple(0.f, 0.f, 0.f));
                 slot_stop_mission();
-                primera_vez=false;
+                primera_vez = false;
                 std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
                 auto d=std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
                 qInfo() << __FUNCTION__ << "Tiempo: " << d << "s";
@@ -190,7 +199,7 @@ void SpecificWorker::compute()
         }
     }
     else
-    { // there should be a plan after a few seconds  }
+    { // there should be a plan after a few seconds
     }
 //    check_robot_room();
 }
