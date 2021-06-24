@@ -483,6 +483,8 @@ void Grid::draw(QGraphicsScene* scene)
                 color = "#BF00FF";
             else if (value.cost == 10.0) //zona personal
                 color = "#00BFFF";
+            else if (value.cost == 50.0) //Affordance maximum
+                color = "#FF0000";
             else
                 color = "LightGreen";
         }

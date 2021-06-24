@@ -74,6 +74,13 @@ private:
 	void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
+  
+    Eigen::Vector3d transform_robot_to_world(float dist, float angle);
+    void modificar_laser(Eigen::VectorXf all_gauss_x, Eigen::VectorXf all_gauss_y, auto angles, auto &dist) ;
+    QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
+    void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
+    void draw_laser(std::vector<float> angles, std::vector<float> dist, QGraphicsScene* viewer_2d);
+
 
 	// laser stuff
 	//optional<Eigen::Vector3d> transform_robot_to_world(float dist, float angle);
