@@ -187,12 +187,12 @@ void SpecificWorker::path_follower_initialize()
     qDebug()<< "Controller - " << __FUNCTION__;
     try
     {
-        MAX_ADV_SPEED = QString::fromStdString(conf_params->at("MaxAdvanceSpeed").value).toFloat();
-        MAX_ROT_SPEED = QString::fromStdString(conf_params->at("MaxRotationSpeed").value).toFloat();
-        MAX_SIDE_SPEED = QString::fromStdString(conf_params->at("MaxSideSpeed").value).toFloat();
-        MAX_LAG = std::stof(conf_params->at("MinControllerPeriod").value);
-        ROBOT_RADIUS_MM =  QString::fromStdString(conf_params->at("RobotRadius").value).toFloat();
-        qDebug()<< __FUNCTION__ << "CONTROLLER: Params from config:"  << MAX_ADV_SPEED << MAX_ROT_SPEED << MAX_SIDE_SPEED << MAX_LAG << ROBOT_RADIUS_MM;
+        consts.max_adv_speed = QString::fromStdString(conf_params->at("MaxAdvanceSpeed").value).toFloat();
+        consts.max_rot_speed = QString::fromStdString(conf_params->at("MaxRotationSpeed").value).toFloat();
+        consts.max_side_speed = QString::fromStdString(conf_params->at("MaxSideSpeed").value).toFloat();
+        consts.max_lag = std::stof(conf_params->at("MinControllerPeriod").value);
+        consts.robot_radius =  QString::fromStdString(conf_params->at("RobotRadius").value).toFloat();
+        qDebug() << __FUNCTION__ << "CONTROLLER: Params from config:"  <<  consts.max_adv_speed <<  consts.max_rot_speed <<  consts.max_side_speed <<  consts.max_lag << consts.robot_radius;
     }
     catch (const std::out_of_range& oor)
     {
@@ -257,9 +257,9 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     // Target achieved
     std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
-              << " dist < 200 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET);
+              << " dist < 200 " << (euc_dist_to_target < consts.final_distance_to_target);
 
-    if ( (path.size() < 2) and (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
+    if ( (path.size() < 2) and (euc_dist_to_target < consts.final_distance_to_target))// or is_increasing(euc_dist_to_target))
     {
         qInfo() << __FUNCTION__ << "Target achieved";
         advVel = 0;  sideVel= 0; rotVel = 0;
@@ -290,23 +290,23 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     auto e_tangent = Eigen::Hyperplane<float, 2>::Through(Eigen::Vector2f(tangent.p1().x(), tangent.p1().y()),
                                                           Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
     float signed_distance = e_tangent.signedDistance(robot_nose);
-    float correction = viriato_consts.lateral_correction_gain * tanh(signed_distance);
+    float correction = consts.lateral_correction_gain * tanh(signed_distance);
     qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
     //angle +=  correction;
-    sideVel = viriato_consts.lateral_correction_for_side_velocity * correction;
+    sideVel = consts.lateral_correction_for_side_velocity * correction;
 
     // rot speed gain
     rotVel = 2*angle;  // pioneer
-    rotVel = viriato_consts.rotation_gain * angle;  // viriato
+    rotVel = consts.rotation_gain * angle;  // viriato
 
     // limit angular  values to physical limits
-    rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
+    rotVel = std::clamp(rotVel, -consts.max_rot_speed, consts.max_rot_speed);
     // cancel final rotation
-    if(euc_dist_to_target < viriato_consts.times_final_distance_to_target_before_zero_rotation * FINAL_DISTANCE_TO_TARGET)
+    if(euc_dist_to_target < consts.times_final_distance_to_target_before_zero_rotation * consts.final_distance_to_target)
           rotVel = 0.f;
 
     /// Compute advance speed
-    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, viriato_consts.advance_gaussian_cut_x, viriato_consts.advance_gaussian_cut_y, 0),
+    advVel = std::min(consts.max_adv_speed * exponentialFunction(rotVel, consts.advance_gaussian_cut_x, consts.advance_gaussian_cut_y, 0),
                       euc_dist_to_target);
 
     /// Compute bumper-away speed
