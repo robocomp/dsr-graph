@@ -163,7 +163,7 @@ class SpecificWorker : public GenericWorker
 
     // target
         Eigen::Vector2f current_target;
-        std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);
+        std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);  //adv, side, rot
         bool robot_is_active = false;
 
         // remove trailing path

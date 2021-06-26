@@ -191,20 +191,21 @@ void SpecificWorker::path_follower_initialize()
         consts.max_rot_speed = QString::fromStdString(conf_params->at("MaxRotationSpeed").value).toFloat();
         consts.max_side_speed = QString::fromStdString(conf_params->at("MaxSideSpeed").value).toFloat();
         consts.max_lag = std::stof(conf_params->at("MinControllerPeriod").value);
-        consts.robot_radius =  QString::fromStdString(conf_params->at("RobotRadius").value).toFloat();
-        qDebug() << __FUNCTION__ << "CONTROLLER: Params from config:"  <<  consts.max_adv_speed <<  consts.max_rot_speed <<  consts.max_side_speed <<  consts.max_lag << consts.robot_radius;
+        consts.robot_radius = QString::fromStdString(conf_params->at("RobotRadius").value).toFloat();
+        robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
+        robotZLong = std::stof(conf_params->at("RobotZLong").value);
+        robotBottomLeft = Mat::Vector3d(-robotXWidth / 2, -robotZLong / 2, 0);
+        robotBottomRight = Mat::Vector3d(robotXWidth / 2, -robotZLong / 2, 0);
+        robotTopRight = Mat::Vector3d(robotXWidth / 2, robotZLong / 2, 0);
+        robotTopLeft = Mat::Vector3d(-robotXWidth / 2, robotZLong / 2, 0);
+        qDebug() << __FUNCTION__ << "CONTROLLER: Params from config:" << consts.max_adv_speed << consts.max_rot_speed << consts.max_side_speed << consts.max_lag
+                 << consts.robot_radius;
     }
     catch (const std::out_of_range& oor)
     {
         std::cout << "CONTROLLER. Out of Range error reading parameters: " << oor.what() << '\n';
         std::terminate();
     }
-        robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
-        robotZLong = std::stof(conf_params->at("RobotZLong").value);
-        robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, -robotZLong / 2, 0);
-        robotBottomRight    = Mat::Vector3d ( robotXWidth / 2, -robotZLong / 2, 0);
-        robotTopRight       = Mat::Vector3d ( robotXWidth / 2, robotZLong / 2, 0);
-        robotTopLeft        = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
 }
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
 {

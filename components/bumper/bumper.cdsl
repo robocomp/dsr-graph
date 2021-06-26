@@ -1,0 +1,10 @@
+Component bumper
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+
