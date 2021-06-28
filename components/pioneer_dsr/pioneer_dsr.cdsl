@@ -1,0 +1,19 @@
+import "DifferentialRobot.idsl";
+import "CameraRGBDSimple.idsl";
+import "BatteryStatus.idsl";
+import "RSSIStatus.idsl";
+import "Ultrasound.idsl";
+import "FullPoseEstimation.idsl";
+import "Laser.idsl";
+
+Component pioneer_dsr
+{
+    Communications
+    {
+        requires DifferentialRobot, CameraRGBDSimple, BatteryStatus, RSSIStatus, Ultrasound, FullPoseEstimation, Laser;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+

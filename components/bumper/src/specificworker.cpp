@@ -143,7 +143,7 @@ void SpecificWorker::compute()
         float advVel = std::clamp(total.x(), -consts.max_adv_speed, consts.max_adv_speed);
         float sideVel = std::clamp(-total.y(), -consts.max_side_speed, consts.max_side_speed);
         send_command_to_robot(std::make_tuple(advVel, sideVel, 0.f));
-        draw_bumper(contacts);
+        draw_bumper(contacts, total);
 
         if(total != QVector2D(0, 0))
             qInfo() << __FUNCTION__ << advVel << sideVel;
@@ -151,15 +151,21 @@ void SpecificWorker::compute()
     }
     //fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
-void SpecificWorker::draw_bumper(const std::vector<QPointF> &contacts)
+void SpecificWorker::draw_bumper(const std::vector<QPointF> &contacts, const QVector2D &total)
 {
     static QGraphicsRectItem *robot_draw = nullptr;
     static std::vector<QGraphicsEllipseItem *> contacts_draw;
+    static QGraphicsLineItem *total_line = nullptr;
 
     if(robot_draw != nullptr)
     {
         widget_2d->scene.removeItem(robot_draw);
         delete robot_draw;
+    }
+    if(total_line != nullptr)
+    {
+        widget_2d->scene.removeItem(total_line);
+        delete total_line;
     }
     if(not contacts_draw.empty())
     {
@@ -174,13 +180,16 @@ void SpecificWorker::draw_bumper(const std::vector<QPointF> &contacts)
     robot_draw->setRotation(widget_2d->get_robot_polygon()->rotation());
     robot_draw->setPos(widget_2d->get_robot_polygon()->pos());
 
-    auto pen = QPen(QColor("red"));
+    auto pen = QPen(QColor("red"), 10);
     auto brush = QBrush(QColor("red"));
     for(const auto &p: contacts)
     {
         auto contact_in_world = robot->mapToScene(p);
         contacts_draw.emplace_back(widget_2d->scene.addEllipse(contact_in_world.x() - 50, contact_in_world.y() - 50, 100, 100, pen, brush));
     }
+
+    auto total_line_in_world = robot->mapToScene(total.toPointF());
+    total_line = widget_2d->scene.addLine(QLineF(robot->pos(), total_line_in_world * 6), pen);
 }
 std::vector<QPointF> SpecificWorker::get_points_along_extended_robot_polygon(int offset, int chunck)
 {

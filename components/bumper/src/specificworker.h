@@ -87,9 +87,9 @@ private:
     {
         float robot_length = 500;
         float robot_radius = robot_length / 2.0;
-        float max_adv_speed = 200;
+        float max_adv_speed = 400;
         float max_rot_speed = 1;
-        float max_side_speed = 200;
+        float max_side_speed = 400;
         float robot_width = 470;
         float offset = 250;
     };
@@ -103,7 +103,7 @@ private:
     FPSCounter fps;
 
     // draw
-    void draw_bumper(const std::vector<QPointF> &contacts);
+    void draw_bumper(const std::vector<QPointF> &contacts, const QVector2D &total);
 };
 
 #endif
