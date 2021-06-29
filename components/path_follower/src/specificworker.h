@@ -34,9 +34,7 @@
 #include <fps/fps.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
-//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
-
+#include  "../../../etc/graph_names.h"
 
 class Plan
 {
@@ -82,6 +80,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;
@@ -123,6 +122,7 @@ class SpecificWorker : public GenericWorker
         struct CONSTANTS
         {
             float robot_length = 500;
+            float robot_width = 400;
             float robot_radius = robot_length / 2.0;
             float max_adv_speed = 500;
             float max_rot_speed = 3;
@@ -138,17 +138,6 @@ class SpecificWorker : public GenericWorker
         };
         CONSTANTS consts;
 
-        // robot
-//        const float ROBOT_LENGTH = 500;  //GET FROM G
-//        float MAX_ADV_SPEED = 1000;
-//        float MAX_ROT_SPEED = 3;
-//        float MAX_SIDE_SPEED = 400;
-//        float MAX_LAG = 100; //ms
-//        float ROBOT_RADIUS_MM = 250; //mm
-//        const float FINAL_DISTANCE_TO_TARGET = 200; //mm
-//        float KB = 6.0;
-        QPolygonF get_robot_polygon();
-
         // controller
         void path_follower_initialize();
         std::tuple<float, float, float>
@@ -159,7 +148,6 @@ class SpecificWorker : public GenericWorker
         float exponentialFunction(float value, float xValue, float yValue, float min);
         float rewrapAngleRestricted(const float angle);
         std::vector<QPointF> get_points_along_extended_robot_polygon(int offset, int chunck);
-
 
     // target
         Eigen::Vector2f current_target;

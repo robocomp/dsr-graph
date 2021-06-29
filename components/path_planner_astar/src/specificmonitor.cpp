@@ -105,6 +105,7 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
 
+
     configGetString("NavigationAgent", "TileSize", aux.value,"250");
     params["TileSize"] = aux;
 

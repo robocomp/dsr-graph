@@ -21,7 +21,8 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
         std::terminate();
     }
-    QStringList ls = QString::fromStdString(params_->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
+    std::cout << __FILE__ << __FUNCTION__ << std::endl;
+    QStringList ls = QString::fromStdString(params_->at("excluded_objects_in_collision_check").value).replace(" ", "" ).split(',');
     std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
     foreach(const QString &s, ls)
         excludedNodes.insert(s.toStdString());

@@ -60,11 +60,10 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
+
 	this->Period = period;
 	if(this->startup_check_flag)
-	{
 		this->startup_check();
-	}
 	else
 	{
 		timer.start(Period);
@@ -88,22 +87,13 @@ void SpecificWorker::initialize(int period)
 		int current_opts = 0;
 		opts main = opts::none;
 		if(tree_view)
-		{
 		    current_opts = current_opts | opts::tree;
-		}
 		if(graph_view)
-		{
 		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
-		}
 		if(qscene_2d_view)
-		{
 		    current_opts = current_opts | opts::scene;
-		}
 		if(osg_3d_view)
-		{
 		    current_opts = current_opts | opts::osg;
-		}
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 

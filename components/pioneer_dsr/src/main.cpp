@@ -81,10 +81,7 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
-
 #include <GenericBase.h>
-
-
 
 class pioneer_dsr : public RoboComp::Application
 {

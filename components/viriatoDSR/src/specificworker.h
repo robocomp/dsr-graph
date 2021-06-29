@@ -30,7 +30,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
+#include  "../../../etc/graph_names.h"
 #include <chrono>
 #include <fps/fps.h>
 
@@ -79,6 +79,7 @@ private:
 	std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
     std::unique_ptr<DSR::RT_API> rt;
+    std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
     //params
 	std::string agent_name;

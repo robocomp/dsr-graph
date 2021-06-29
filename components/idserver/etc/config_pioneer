@@ -6,10 +6,8 @@ DSRGetID.Endpoints=tcp -p 11000
 
 agent_id = 1
 agent_name = idserver
-#dsr_input_file = ../../etc/omnirobot_simscene.json
-#dsr_input_file = ../../etc/simplesimpleworld-ramon.json
-dsr_input_file = /home/robocomp/robocomp/components/Robotica-avanzada/etc/informatica_dsr_4.json
-#dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
+
+dsr_input_file = ../../etc/informatica_dsr_4.json
 
 tree_view = false
 graph_view = true

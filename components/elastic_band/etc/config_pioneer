@@ -14,7 +14,18 @@ graph_view = true
 2d_view = true
 3d_view = false
 
+number_of_not_visible_points = 0  # should be 0 in very large grids
+robot_length = 500
+robot_radius = 250
+external_forces_gain = 24
+internal_forces_gain = 13
+delta_derivation_step = 50   # x and y displacement for gradient
+max_laser_range = 6000
+very_large_distance = 100000
+max_free_energy_iterations = 2
+max_total_energy_ratio = 10
 
+#######################################
 Ice.Warn.Connections=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0

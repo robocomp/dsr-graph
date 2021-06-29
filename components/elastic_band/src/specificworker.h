@@ -26,8 +26,8 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include  "../../../etc/viriato_graph_names.h"
-//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+#include  "../../../etc/graph_names.h"
+
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>
 #include <dsr/gui/dsr_gui.h>
@@ -81,6 +81,7 @@ private:
         std::shared_ptr<DSR::DSRGraph> G;
         std::unique_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::unique_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;
@@ -119,17 +120,23 @@ private:
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 
         //elastic band
-        struct CONSTANTS
+        struct CONSTANTS   //will be reinitialzes in setparams
         {
-            int number_of_not_visible_points = 4;
-            const float robot_length = 500;
-            const float robot_radius = robot_length /2.0;
-            const float road_step_separation = robot_length * 0.9;
-            const float KE = 30;
-            const float KI = 10;
-            const float delta = 50;   // x and y displacement for gradient
-            const float max_laser_range = 4000.f;
-            const float very_large_distance = 100000.f;
+            int number_of_not_visible_points = 0;  // should be 0 in very large grids
+            float robot_length = 500;
+            float robot_radius = robot_length /2.0 ;
+            float road_step_separation = robot_length * 0.9;
+            float KE = 30;
+            float KI = 10;
+            float delta = 50;   // x and y displacement for gradient
+            float max_laser_range = 4000.f;
+            float very_large_distance = 100000.f;
+            int max_free_energy_iterations = 3;
+            float max_total_energy_ratio = 10;
+            void update()
+            {
+                road_step_separation = robot_length * 0.9;
+            }
         };
         CONSTANTS constants;
 

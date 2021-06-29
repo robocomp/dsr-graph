@@ -97,8 +97,6 @@ std::string Grid::saveToString() const
 void Grid::readFromString(const std::string &cadena)
 {
     fmap.clear();
-
-
     std::istringstream stream(cadena);
     std::string line;
     std::uint32_t count = 0;

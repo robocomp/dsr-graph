@@ -105,63 +105,35 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
 
+    configGetString("","robot_width", aux.value,"400");
+    params["robot_width"] = aux;
+    configGetString("","robot_length", aux.value,"500");
+    params["robot_length"] = aux;
+    configGetString("","robot_radius", aux.value,"300");
+    params["robot_radius"] = aux;
+	configGetString( "","max_advance_speed", aux.value,"500");
+	params["max_advance_speed"] = aux;
+	configGetString( "","max_side_speed", aux.value,"400");
+	params["max_side_speed"] = aux;
+	configGetString( "","max_rotation_speed", aux.value,"1");
+	params["max_rotation_speed"] = aux;
+	configGetString( "","min_controller_period", aux.value,"100");
+	params["min_controller_period"] = aux;
+    configGetString( "","lateral_correction_gain", aux.value,"0.2");
+    params["lateral_correction_gain"] = aux;
+    configGetString( "","lateral_correction_for_side_velocity", aux.value,"500");
+    params["lateral_correction_for_side_velocity"] = aux;
+    configGetString( "","rotation_gain", aux.value,"0.9");
+    params["rotation_gain"] = aux;
+    configGetString( "","times_final_distance_to_target_before_zero_rotation", aux.value,"3");
+    params["times_final_distance_to_target_before_zero_rotation"] = aux;
+    configGetString( "","advance_gaussian_cut_x", aux.value,"0.7");
+    params["advance_gaussian_out_x"] = aux;
+    configGetString( "","advance_gaussian_cut_y", aux.value,"0.2");
+    params["advance_gaussian_out_y"] = aux;
+    configGetString( "","final_distance_to_target", aux.value,"200");
+    params["final_distance_to_target"] = aux;
 
-//	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
-//	params["RobotName"] = aux;
-//
-	configGetString( "NavigationAgent","MaxAdvanceSpeed", aux.value,"600");
-	params["MaxAdvanceSpeed"] = aux;
-
-	configGetString( "NavigationAgent","MaxSideSpeed", aux.value,"400");
-	params["MaxSideSpeed"] = aux;
-
-	configGetString( "NavigationAgent","MaxRotationSpeed", aux.value,"0.9");
-	params["MaxRotationSpeed"] = aux;
-
-	configGetString( "NavigationAgent","RobotXWidth", aux.value,"500");
-	params["RobotXWidth"] = aux;
-
-	configGetString( "NavigationAgent","RobotZLong", aux.value,"500");
-	params["RobotZLong"] = aux;
-
-	configGetString( "NavigationAgent","RobotRadius", aux.value,"300");
-	params["RobotRadius"] = aux;
-
-	configGetString( "NavigationAgent","MinControllerPeriod", aux.value,"100");
-	params["MinControllerPeriod"] = aux;
-//
-//	configGetString( "NavigationAgent","PlannerGraphPoints", aux.value,"100");
-//	params["PlannerGraphPoints"] = aux;
-//
-//	configGetString( "NavigationAgent","PlannerGraphNeighbours", aux.value,"20");
-//	params["PlannerGraphNeighbours"] = aux;
-//
-//	configGetString( "NavigationAgent","PlannerGraphMaxDistanceToSearch", aux.value,"2500");
-//	params["PlannerGraphMaxDistanceToSearch"] = aux;
-
-//	configGetString( "NavigationAgent","OuterRegionLeft", aux.value,"0");
-//	params["OuterRegionLeft"] = aux;
-//
-//	configGetString( "NavigationAgent","OuterRegionRight", aux.value,"6000");
-//	params["OuterRegionRight"] = aux;
-//
-//	configGetString( "NavigationAgent","OuterRegionBottom", aux.value,"-4250");
-//	params["OuterRegionBottom"] = aux;
-//
-//	configGetString( "NavigationAgent","OuterRegionTop", aux.value,"4250");
-//	params["OuterRegionTop"] = aux;
-
-//	configGetString( "NavigationAgent","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
-//	params["ExcludedObjectsInCollisionCheck"] = aux;
-//
-//	configGetString( "NavigationAgent","MinimumDetectableRotation", aux.value,"0.03");
-//	params["MinimumDetectableRotation"] = aux;
-//
-//	configGetString( "NavigationAgent","MinimumDetectableTranslation", aux.value,"10");
-//	params["MinimumDetectableTranslation"] = aux;
-//
-//	configGetString( "NavigationAgent","MinimumSafetyDistance", aux.value,"100");
-//	params["MinimumSafetyDistance"] = aux;
 }
 
 //Check parameters and transform them to worker structure

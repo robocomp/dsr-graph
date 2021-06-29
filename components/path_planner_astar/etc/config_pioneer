@@ -8,10 +8,12 @@ graph_view = true
 2d_view = true
 3d_view = false
 
+NavigationAgent.RobotName = pioneer
+
 NavigationAgent.TileSize = 200
 NavigationAgent.grid_file_name=pioneer-200-vrep.simscene.grid
 NavigationAgent.num_threads_for_grid_occupancy = 15
-NavigationAgent.read_from_file = false
+NavigationAgent.read_from_file = true
 
 NavigationAgent.MaxZSpeed = 650
 NavigationAgent.MaxXSpeed = 450

@@ -8,6 +8,8 @@ graph_view = true
 2d_view = true
 3d_view = false
 
+robot_name = viriato
+
 NavigationAgent.TileSize = 100
 NavigationAgent.grid_file_name=viriato-100-vrep-no-walls.simscene.grid
 NavigationAgent.num_threads_for_grid_occupancy = 15

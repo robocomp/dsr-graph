@@ -42,6 +42,7 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
+    std::setlocale(LC_NUMERIC, "C");
 	conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
@@ -49,6 +50,18 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
+
+    constants.number_of_not_visible_points = stoi(params.at("number_of_not_visible_points").value);
+    constants.robot_length = stof(params["robot_length"].value);
+    constants.robot_radius = stof(params["robot_radius"].value);
+    constants.KE = stof(params["external_forces_gain"].value);
+    constants.KI = stof(params["internal_forces_gain"].value);
+    constants.delta = stof(params["delta_derivation_step"].value);
+    constants.max_laser_range = stof(params["max_laser_range"].value);
+    constants.max_free_energy_iterations = stoi(params["max_free_energy_iterations"].value);
+    constants.max_total_energy_ratio = stof(params["max_total_energy_ratio"].value);
+    constants.update();  // to compute local relations
+
 	return true;
 }
 
@@ -64,7 +77,7 @@ void SpecificWorker::initialize(int period)
 	{
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
+		std::cout<< __FUNCTION__ << " Graph loaded" << std::endl;
 
         //dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);
@@ -91,6 +104,9 @@ void SpecificWorker::initialize(int period)
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
         rt_api = G->get_rt_api();
+
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att , cam_depth_att>();
@@ -126,17 +142,18 @@ void SpecificWorker::initialize(int period)
             std::terminate();
         }
         grid.dim.setCoords(outerRegion.left(), outerRegion.top(), outerRegion.right(), outerRegion.bottom());
-        grid.TILE_SIZE = stoi(conf_params->at("TileSize").value);
+        grid.TILE_SIZE = stoi(conf_params->at("tile_size").value);
         collisions =  std::make_shared<Collisions>();
         collisions->initialize(G, conf_params);
         grid.initialize(G, collisions, false);
-        if( auto grid_node = G->get_node("current_grid"); grid_node.has_value())
+        if( auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
         {
             if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
                 grid.readFromString(grid_as_string.value());
         }
-        qInfo() << "SIZE " << grid.size();
-		this->Period = 60;
+        qInfo() << " SIZE " << grid.size();
+
+		this->Period = 70;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
 	}
@@ -192,12 +209,20 @@ void SpecificWorker::compute()
 
 void SpecificWorker::elastic_band_initialize()
 {
-    robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
-    robotZLong = std::stof(conf_params->at("RobotZLong").value);
-    robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
-    robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
-    robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
-    robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
+    try
+    {
+        robotXWidth = std::stof(conf_params->at("robot_width").value);
+        robotZLong = std::stof(conf_params->at("robot_length").value);
+        robotBottomLeft = Mat::Vector3d(-robotXWidth / 2, robotZLong / 2, 0);
+        robotBottomRight = Mat::Vector3d(-robotXWidth / 2, -robotZLong / 2, 0);
+        robotTopRight = Mat::Vector3d(+robotXWidth / 2, -robotZLong / 2, 0);
+        robotTopLeft = Mat::Vector3d(+robotXWidth / 2, +robotZLong / 2, 0);
+    }
+    catch (const std::exception &e)
+    {
+        qInfo() << __FUNCTION__ << "No robot_width or robot_length params found in config file";
+        std::terminate();
+    }
 }
 
 void SpecificWorker::compute_forces(std::vector<QPointF> &path,
@@ -216,9 +241,9 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
     int nonVisiblePointsComputed = 0;
     forces_vector.clear();  // drawing only
     float total_energy_ratio = 0.f; // sum of gradients modules
-    size_t iterations = 0;
+    int iterations = 0;
 
-    while( total_energy_ratio > 10 or iterations++ < 5)
+    while( total_energy_ratio > constants.max_total_energy_ratio or iterations++ < constants.max_free_energy_iterations)
     {
         total_energy_ratio = 0.f;
         float total_energy = 0.f;
@@ -523,10 +548,6 @@ std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_l
 ///////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////
-
-
-
-
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
     // PATH_TO_TARGET
@@ -553,42 +574,42 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 grid.readFromString(grid_as_string.value());
         }
     }
-    else if (type == laser_type_name)    // Laser node updated
-    {
-        if (auto node = G->get_node(id); node.has_value())
-        {
-            auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
-            auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
-            if (dists.has_value() and angles.has_value())
-            {
-                const auto &d = dists.value().get();
-                const auto &a = angles.value().get();
-                if (d.empty() or a.empty()) return;
-                laser_buffer.put(std::make_tuple(a, d),
-                                 [this](const LaserData &in, std::tuple<QPolygonF, std::vector<QPointF>> &out) {
-                                     QPolygonF laser_poly;
-                                     std::vector<QPointF> laser_cart;
-                                     const auto &[angles, dists] = in;
-                                     laser_cart.reserve(angles.size());
-                                     auto inner = G->get_inner_eigen_api();
-                                     for (const auto &[angle, dist] : iter::zip(angles, dists))
-                                     {
-                                         //convert laser polar coordinates to cartesian
-                                         if (dist == 0) continue;
-                                         float x = dist * sin(angle);
-                                         float y = dist * cos(angle);
-                                         // QPointF p = robot->mapToScene(x, y);
-                                         Mat::Vector3d laserWorld = inner->transform(world_name, Mat::Vector3d(x, y, 0), robot_name).value();
-                                         laser_poly << QPointF(x, y);
-                                         //QPointF p = robot->mapToScene(x, y);
-                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
-                                         //laser_cart.emplace_back(QPointF(p.x(), p.y()));
-                                     }
-                                     out = std::make_tuple(laser_poly, laser_cart);
-                                 });
-            }
-        }
-    }
+//    else if (type == laser_type_name)    // Laser node updated
+//    {
+//        if (auto node = G->get_node(id); node.has_value())
+//        {
+//            auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
+//            auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
+//            if (dists.has_value() and angles.has_value())
+//            {
+//                const auto &d = dists.value().get();
+//                const auto &a = angles.value().get();
+//                if (d.empty() or a.empty()) return;
+//                laser_buffer.put(std::make_tuple(a, d),
+//                                 [this](const LaserData &in, std::tuple<QPolygonF, std::vector<QPointF>> &out) {
+//                                     QPolygonF laser_poly;
+//                                     std::vector<QPointF> laser_cart;
+//                                     const auto &[angles, dists] = in;
+//                                     laser_cart.reserve(angles.size());
+//                                     auto inner = G->get_inner_eigen_api();
+//                                     for (const auto &[angle, dist] : iter::zip(angles, dists))
+//                                     {
+//                                         //convert laser polar coordinates to cartesian
+//                                         if (dist == 0) continue;
+//                                         float x = dist * sin(angle);
+//                                         float y = dist * cos(angle);
+//                                         // QPointF p = robot->mapToScene(x, y);
+//                                         Mat::Vector3d laserWorld = inner->transform(world_name, Mat::Vector3d(x, y, 0), robot_name).value();
+//                                         laser_poly << QPointF(x, y);
+//                                         //QPointF p = robot->mapToScene(x, y);
+//                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+//                                         //laser_cart.emplace_back(QPointF(p.x(), p.y()));
+//                                     }
+//                                     out = std::make_tuple(laser_poly, laser_cart);
+//                                 });
+//            }
+//        }
+//    }
 }
 
 ///////////////////////////////////////////////////

@@ -25,11 +25,14 @@
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
+#include "../../../etc/graph_names.h"
+
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
-#include "../../../etc/pioneer_world_names.h"
+//#include "../../../etc/pioneer_world_names.h"
+
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -51,6 +54,7 @@ class SpecificWorker : public GenericWorker
         void initialize(int period);
 
     private:
+
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
