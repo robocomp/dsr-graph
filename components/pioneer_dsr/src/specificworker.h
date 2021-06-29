@@ -31,7 +31,6 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
-//#include "../../../etc/pioneer_world_names.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -79,7 +78,7 @@ class SpecificWorker : public GenericWorker
         std::unique_ptr<DSR::DSRViewer> graph_viewer;
         QHBoxLayout mainLayout;
         void add_or_assign_node_slot(std::uint64_t, const std::string &type);
-        void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
+        void modify_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names);
         void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
         void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
         void del_node_slot(std::uint64_t from){};
@@ -111,6 +110,7 @@ class SpecificWorker : public GenericWorker
         // robot
         void check_base_velocity_reference();
         DoubleBuffer<std::tuple<float, float, float>, std::tuple<float, float, float>> base_target_buffer;
+        std::uint64_t robot_id;
 };
 
 #endif

@@ -258,10 +258,11 @@ class SpecificWorker(GenericWorker):
     ###########################################
     def move_robot(self):
 
-        if self.speed_robot != self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
+        if self.speed_robot: #!= self.speed_robot_ant:  # or (isMoving and self.speed_robot == [0,0,0]):
             self.convert_base_speed_to_motors_speed(self.speed_robot[0], self.speed_robot[1])
             # print("Velocities sent to robot:", self.speed_robot)
-            self.speed_robot_ant = self.speed_robot
+            #self.speed_robot_ant = self.speed_robot
+            self.speed_robot = None
 
     ##################################################################################
     # SUBSCRIPTION to sendData method from JoystickAdapter interface
@@ -355,7 +356,7 @@ class SpecificWorker(GenericWorker):
     # setSpeedBase
     #
     def DifferentialRobot_setSpeedBase(self, advz, rot):
-        self.speed_robot = self.convert_base_speed_to_motors_speed(advz, rot)
+        self.speed_robot = [advz, rot]
 
     #
     # stopBase

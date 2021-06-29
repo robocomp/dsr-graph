@@ -42,7 +42,7 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    std::setlocale(LC_NUMERIC, "C");
+    std::setlocale(LC_NUMERIC, "C"); // without this, decimal dots are ignored
 	conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
@@ -53,6 +53,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
     constants.number_of_not_visible_points = stoi(params.at("number_of_not_visible_points").value);
     constants.robot_length = stof(params["robot_length"].value);
+    constants.robot_width = stof(params["robot_width"].value);
     constants.robot_radius = stof(params["robot_radius"].value);
     constants.KE = stof(params["external_forces_gain"].value);
     constants.KI = stof(params["internal_forces_gain"].value);
@@ -122,8 +123,11 @@ void SpecificWorker::initialize(int period)
         //connect(custom_widget.ke_slider, &QSlider::valueChanged, [this](auto v){ KE = v;});
         //connect(custom_widget.ki_slider, &QSlider::valueChanged, [this](auto v){ KI = v;});;
 
-		// path planner
-		elastic_band_initialize();
+		// robot polygon
+        robotBottomLeft = Mat::Vector3d(-    constants.robot_width / 2,     constants.robot_length / 2, 0);
+        robotBottomRight = Mat::Vector3d(-    constants.robot_width / 2, -    constants.robot_length / 2, 0);
+        robotTopRight = Mat::Vector3d(+    constants.robot_width / 2, -    constants.robot_length / 2, 0);
+        robotTopLeft = Mat::Vector3d(+    constants.robot_width / 2, +    constants.robot_length / 2, 0);
 
 		// check for existing intention node
 		if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
@@ -206,25 +210,6 @@ void SpecificWorker::compute()
     }
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
-
-void SpecificWorker::elastic_band_initialize()
-{
-    try
-    {
-        robotXWidth = std::stof(conf_params->at("robot_width").value);
-        robotZLong = std::stof(conf_params->at("robot_length").value);
-        robotBottomLeft = Mat::Vector3d(-robotXWidth / 2, robotZLong / 2, 0);
-        robotBottomRight = Mat::Vector3d(-robotXWidth / 2, -robotZLong / 2, 0);
-        robotTopRight = Mat::Vector3d(+robotXWidth / 2, -robotZLong / 2, 0);
-        robotTopLeft = Mat::Vector3d(+robotXWidth / 2, +robotZLong / 2, 0);
-    }
-    catch (const std::exception &e)
-    {
-        qInfo() << __FUNCTION__ << "No robot_width or robot_length params found in config file";
-        std::terminate();
-    }
-}
-
 void SpecificWorker::compute_forces(std::vector<QPointF> &path,
                                     const vector<QPointF> &laser_cart,
                                     const QPolygonF &laser_poly,
@@ -464,49 +449,7 @@ void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)
         G->update_node(node_path.value());
     }
 }
-
-/////////////////
-/*std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_laser_data()
-{
-    if( auto node = G->get_node(laser_name); node.has_value())
-    {
-        auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
-        auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
-        if (dists.has_value() and angles.has_value())
-        {
-            const auto &d = dists.value().get();
-            const auto &a = angles.value().get();
-            if (d.empty() or a.empty()) return {};
-            QPolygonF laser_poly;
-            std::vector<QPointF> laser_cart;
-            laser_cart.reserve(a.size());
-            //auto robot = widget_2d->get_robot_polygon();
-            //auto inner_eigen = G->get_inner_eigen_api();
-            for (const auto &[angle, dist] : iter::zip(a, d))
-            {
-                //convert laser polar coordinates to cartesian
-                if (dist == 0) continue;
-                float x = dist * sin(angle);
-                float y = dist * cos(angle);
-                //QPointF p = robot->mapToScene(x, y);
-                Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), robot_name).value();
-                //auto diff = Eigen::Vector3d(p.x(),p.y(),0) - laserWorld;
-                //qInfo() << p << " - [" << laserWorld.x() << "," << laserWorld.y() << "] = " << "[" << diff.x() << "," << diff.y() << "]";
-                //auto r = inner_eigen->transform_axis(world_name, robot_name);
-                //auto po = rt_api->get_translation(G->get_node(world_name).value(), G->get_node(robot_name).value().id());
-                // if (angle < 0.05 and angle > -0.05)
-                //  qInfo() << "q_robot:" << robot->pos() << " g_robot:" << r.value().x() << r.value().y() << r.value()[5];
-                //qInfo() << "q_robot:" << robot->pos() << " g_robot:" << po.value().x() << po.value().y() << " g2_robot:" << r.value().x() << r.value().y()  ;
-                laser_poly << QPointF(x, y);
-                laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
-                //laser_cart.emplace_back(QPointF(p.x(), p.y()));
-                //laser_cart.emplace_back(p);
-            }
-            return std::make_tuple(laser_poly, laser_cart);
-        }
-    }
-    return {};
-}*/
+//////////////////////////////////////////////////////////////////////////////////////////
 std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_laser_data(const DSR::Node &node)
 {
         auto angles = G->get_attrib_by_name<laser_angles_att>(node);
@@ -517,6 +460,7 @@ std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_l
             const auto &a = angles.value().get();
             if (d.empty() or a.empty()) return {};
             QPolygonF laser_poly;
+            laser_poly << QPointF(0, 100);
             std::vector<QPointF> laser_cart;
             laser_cart.reserve(a.size());
             //auto robot = widget_2d->get_robot_polygon();
@@ -527,20 +471,11 @@ std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> SpecificWorker::get_l
                 if (dist == 0) continue;
                 float x = dist * sin(angle);
                 float y = dist * cos(angle);
-                //QPointF p = robot->mapToScene(x, y);
                 Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), robot_name).value();
-                //auto diff = Eigen::Vector3d(p.x(),p.y(),0) - laserWorld;
-                //qInfo() << p << " - [" << laserWorld.x() << "," << laserWorld.y() << "] = " << "[" << diff.x() << "," << diff.y() << "]";
-                //auto r = inner_eigen->transform_axis(world_name, robot_name);
-                //auto po = rt_api->get_translation(G->get_node(world_name).value(), G->get_node(robot_name).value().id());
-                // if (angle < 0.05 and angle > -0.05)
-                //  qInfo() << "q_robot:" << robot->pos() << " g_robot:" << r.value().x() << r.value().y() << r.value()[5];
-                //qInfo() << "q_robot:" << robot->pos() << " g_robot:" << po.value().x() << po.value().y() << " g2_robot:" << r.value().x() << r.value().y()  ;
                 laser_poly << QPointF(x, y);
                 laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
-                //laser_cart.emplace_back(QPointF(p.x(), p.y()));
-                //laser_cart.emplace_back(p);
             }
+            laser_poly << QPointF(0, 100);
             return std::make_tuple(laser_poly, laser_cart);
         }
     return {};

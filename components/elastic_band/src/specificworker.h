@@ -107,15 +107,15 @@ private:
         Custom_widget custom_widget;
         FPSCounter fps;
 
-        //drawing
+        // drawing
         DSR::QScene2dViewer* widget_2d;
         std::vector<std::tuple<QVector2D, QVector2D>> forces_vector;
 
-        //laser
+        // laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
         std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data(const DSR::Node &node);
 
-            //Signal subscription
+        // double buffers
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 
@@ -124,6 +124,7 @@ private:
         {
             int number_of_not_visible_points = 0;  // should be 0 in very large grids
             float robot_length = 500;
+            float robot_width = 400;
             float robot_radius = robot_length /2.0 ;
             float road_step_separation = robot_length * 0.9;
             float KE = 30;
@@ -141,12 +142,14 @@ private:
         CONSTANTS constants;
 
         std::uint64_t last_path_id;  // ID of last path node that came through the slot
-        enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
-        void elastic_band_initialize( );
-        float robotXWidth, robotZLong; //robot dimensions read from config
+        //enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
+
+        // robot draw
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d, const QPolygonF &laser_poly);
         QPolygonF get_robot_polygon();
+
+        // band
         bool is_visible(QPointF p, const QPolygonF &laser_poly);
         bool is_point_visitable(const QPointF &point);
         void compute_forces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart,

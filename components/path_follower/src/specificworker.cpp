@@ -149,7 +149,7 @@ void SpecificWorker::initialize(int period)
         if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
             this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
 
-        this->Period = 100;
+        this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
     }
@@ -157,7 +157,6 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-
     static std::vector<Eigen::Vector2f> path;
 
     // Check for existing path_to_target_nodes
@@ -297,12 +296,12 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
                                                           Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
     float signed_distance = e_tangent.signedDistance(robot_nose);
     float correction = consts.lateral_correction_gain * tanh(signed_distance);
-    //angle +=  correction;
+    angle +=  correction;
     sideVel = consts.lateral_correction_for_side_velocity * correction;
 
     // rot speed gain
-    rotVel = consts.rotation_gain * angle;  // viriato
-    qInfo() << __FUNCTION__  << " angle error: " << angle << " correction: " << correction << " rorVel" << rotVel << " gain" << consts.rotation_gain;
+    rotVel = consts.rotation_gain * angle;
+    qInfo() << __FUNCTION__  << " angle error: " << angle << " correction: " << correction << " rorVel" << rotVel << " gain" << consts.rotation_gain << " max_rot_speed" << consts.max_rot_speed;
 
     // limit angular  values to physical limits
     rotVel = std::clamp(rotVel, -consts.max_rot_speed, consts.max_rot_speed);

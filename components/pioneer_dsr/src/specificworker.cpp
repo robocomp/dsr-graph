@@ -76,10 +76,10 @@ void SpecificWorker::initialize(int period)
         inner_eigen = G->get_inner_eigen_api();
 
 		//dsr update signals
-		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+		//connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
 		//connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-		//connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-		//connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+		connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::modify_attrs_slot, Qt::QueuedConnection);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
 		//connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
 		// Graph viewer
@@ -110,6 +110,14 @@ void SpecificWorker::initialize(int period)
                 fullposeestimation_proxy->setInitialPose(x, y, z, rx, ry, rz);
             }
             catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
+        }
+
+		if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
+		    robot_id = robot_id.value();
+		else
+        {
+		    qWarning() << "No robot node found. Terminate";
+            std::terminate();
         }
 
         this->Period = period;
@@ -359,12 +367,13 @@ std::optional<std::tuple<cv::Mat, std::vector<SpecificWorker::LaserPoint>>> Spec
             laser_data[i] = LaserPoint{0.f,(i - MAX_LASER_BINS / 2.f) / (MAX_LASER_BINS / TOTAL_HOR_ANGLE)};
         i++;
     }
-    auto laser_poly = filter_laser(laser_data);
+
+//   auto laser_poly = filter_laser(laser_data);
 //    vector<SpecificWorker::LaserPoint> laser_data_filtered;
 //    for(auto &l : laser_poly)
 //        laser_data_filtered.emplace_back(LaserPoint{(float)l.x(), (float)l.y()});
-
     //std::generate(laser_data_filtered.begin(), laser_data_filtered.end(), [&laser_poly]() mutable {  auto n = laser_poly.takeFirst(); return LaserPoint{(float)n.x(), (float)n.y()};});
+
     cv::flip(frame_virtual, frame_virtual, -1);
     return std::make_tuple(frame_virtual, laser_data);
 }
@@ -508,7 +517,6 @@ void SpecificWorker::update_robot_localization()
     }
     else    qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
 }
-
 //  Simplify contour with Ramer-Douglas-Peucker and filter out spikes
 QPolygonF SpecificWorker::filter_laser(const std::vector<SpecificWorker::LaserPoint> &ldata)
 {
@@ -591,26 +599,53 @@ void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, 
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker:: add_or_assign_node_slot(std::uint64_t, const std::string &type)
 {
-    if (type == differentialrobot_type_name)
+//    if (type == differentialrobot_type_name)
+//    {
+//        if (auto robot = G->get_node(robot_name); robot.has_value())
+//        {
+//            // speed
+//            auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
+//            auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
+//            auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
+//            if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
+//            {
+//                // Check de values are within robot's accepted range. Read them from config
+//                //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
+//                //std::clamp(ref_adv_speed.value(), lowerA, upperA);
+//                std::cout << __FUNCTION__ << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
+//                try
+//                { differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value()); }
+//                catch (const RoboCompGenericBase::HardwareFailedException &re)
+//                { std::cout << "Exception setting base speed " << re << '\n'; }
+//                catch (const Ice::Exception &e)
+//                { std::cout << e.what() << '\n'; }
+//            }
+//        }
+//    }
+}
+
+void SpecificWorker::modify_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names)
+{
+    if(id == 200)
     {
-        if (auto robot = G->get_node(robot_name); robot.has_value())
+        qInfo() << __FUNCTION__ << id;
+        auto r_adv = std::ranges::find_if(att_names, [](auto &name){ return name == "robot_ref_adv_speed";});
+        auto r_rot = std::ranges::find_if(att_names, [](auto &name){ return name == "robot_ref_rot_speed";});
+        if( r_adv != att_names.end() or r_rot != att_names.end())
         {
-            // speed
-            auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
-            auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-            auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
-            if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
+            if (auto robot = G->get_node(robot_name); robot.has_value())
             {
-                // Check de values are within robot's accepted range. Read them from config
-                //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
-                //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-                //std::cout << __FUNCTION__ << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
-                try
-                { differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value()); }
-                catch (const RoboCompGenericBase::HardwareFailedException &re)
-                { std::cout << "Exception setting base speed " << re << '\n'; }
-                catch (const Ice::Exception &e)
-                { std::cout << e.what() << '\n'; }
+                auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
+                auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
+                if (ref_adv_speed.has_value() and ref_rot_speed.has_value())
+                {
+                    std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " " << ref_rot_speed.value() << std::endl;
+                    try  { differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value()); }
+                    catch (const RoboCompGenericBase::HardwareFailedException &re)
+                    { std::cout << "Exception setting base speed " << re << '\n'; }
+                    catch (const Ice::Exception &e)
+                    { std::cout << e.what() << '\n'; }
+                }
             }
         }
     }

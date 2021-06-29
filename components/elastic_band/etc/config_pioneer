@@ -14,15 +14,16 @@ graph_view = true
 2d_view = true
 3d_view = false
 
-number_of_not_visible_points = 0  # should be 0 in very large grids
+number_of_not_visible_points = 3 # should be 0 in very large grids
 robot_length = 500
+robot_length = 400
 robot_radius = 250
-external_forces_gain = 24
-internal_forces_gain = 13
+external_forces_gain = 25
+internal_forces_gain = 12
 delta_derivation_step = 50   # x and y displacement for gradient
 max_laser_range = 6000
 very_large_distance = 100000
-max_free_energy_iterations = 2
+max_free_energy_iterations = 4
 max_total_energy_ratio = 10
 
 #######################################

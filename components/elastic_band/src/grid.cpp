@@ -390,7 +390,7 @@ void Grid::clear()
     fmap.clear();
 }
 
-std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
+std::optional<QPointF> Grid::closest_obstacle(const QPointF &p, int max_time)
 {
     Key key = pointToGrid(p);
     std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
@@ -398,7 +398,10 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
     QPointF obstacle;
     bool end = false;
     bool found = false;
-    while( not end and not found)
+
+    int elapsed;
+    auto begin = my_clock::now();
+    while( not end and not found and elapsed < max_time)  //ms
     {
         for(auto &&current_cell : L1)
         {
@@ -414,6 +417,7 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
         end = L2.empty();
         L1.swap(L2);
         L2.clear();
+        elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - begin).count();
     }
     if(found) return obstacle;
     else return {};
