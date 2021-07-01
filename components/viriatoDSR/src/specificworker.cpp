@@ -39,7 +39,7 @@ SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
 	//G->write_to_json_file("./"+agent_name+".json");
-    dsr_agent_info.reset();
+    agent_info_api.reset();
 	G.reset();
 }
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
@@ -69,8 +69,6 @@ void SpecificWorker::initialize(int period)
 
         // inner Api
         inner_eigen = G->get_inner_eigen_api();
-        dsr_agent_info = std::make_unique<DSR::AgentInfoAPI>(G.get());
-
         // self agent api
         agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
