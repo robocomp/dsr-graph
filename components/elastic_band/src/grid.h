@@ -30,9 +30,9 @@
 
 class Grid
 {
-    using Myclock = std::chrono::system_clock;
-    using Msec = std::chrono::duration<double, std::milli>;
-    using Seconds = std::chrono::seconds;
+    using my_clock = std::chrono::system_clock;
+    using msec = std::chrono::duration<double, std::milli>;
+    using seconds = std::chrono::seconds;
 
     public:
         using Dimensions = QRectF;
@@ -124,7 +124,7 @@ class Grid
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
-        std::optional<QPointF> closest_obstacle(const QPointF &p);
+        std::optional<QPointF> closest_obstacle(const QPointF &p, int max_time = 30);
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);

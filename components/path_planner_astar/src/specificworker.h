@@ -27,9 +27,7 @@
 
 #include <genericworker.h>
 
-#include  "../../../etc/viriato_graph_names.h"
-//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
-
+#include  "../../../etc/graph_names.h"
 #include "grid.h"
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>
@@ -83,10 +81,11 @@ class SpecificWorker : public GenericWorker
         void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
 
     private:
+
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-        std::shared_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;

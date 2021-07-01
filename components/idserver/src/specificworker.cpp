@@ -93,6 +93,9 @@ void SpecificWorker::initialize(int period)
         // Ignore attributes from G
         //G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();
 
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
 		this->Period = 200;
 
         // Compute max Id in G

@@ -67,9 +67,12 @@ void SpecificWorker::initialize(int period)
         std::cout << __FUNCTION__ << " - Graph loaded" << std::endl;
         rt = G->get_rt_api();
 
-        //Inner Api
+        // inner Api
         inner_eigen = G->get_inner_eigen_api();
         dsr_agent_info = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
         // dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);
@@ -545,7 +548,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 // Check de values are within robot's accepted range. Read them from config
                 //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
                 //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-                //std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
+                std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
                 try
                 { omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value()); }
                 catch (const RoboCompGenericBase::HardwareFailedException &re)

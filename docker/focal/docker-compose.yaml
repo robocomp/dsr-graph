@@ -1,9 +1,8 @@
 version: '2'
 services:
     idserver:
-        network_mode: host
-        image: robocomp/robocomp:focal_dsr
-        entrypoint: sh -c "cd components/idserver && (./bin/idserver /dsr_etc/idserver_config)"
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd /home/robolab/robocomp/components/dsr-graph/components/idserver && cat /dsr_etc/idserver_config && (./bin/idserver /dsr_etc/idserver_config)"
         environment: 
             - DISPLAY=$DISPLAY
         volumes:
@@ -12,11 +11,13 @@ services:
         user: robolab
         depends_on:
             - rcnode
+        networks:
+            - dsr_net
+        
 
     viriatoDSR:
-        network_mode: host
-        image: robocomp/robocomp:focal_dsr
-        entrypoint: sh -c "cd components/viriatoDSR/ && (./bin/viriatoDSR /dsr_etc/viriato_dsr_config)"
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd /home/robolab/robocomp/components/dsr-graph/components/viriatoDSR && cat /dsr_etc/viriato_dsr_config &&  (./bin/viriatoDSR /dsr_etc/viriato_dsr_config)"
         environment: 
             - DISPLAY=$DISPLAY
         volumes:
@@ -24,13 +25,20 @@ services:
             - ./etc:/dsr_etc/
         user: robolab
         depends_on:
-            - rcnode
+            - idserver
+        networks:
+            - dsr_net
 
     rcnode:
-        network_mode: host
         image: robocomp/robocomp:focal_dsr
         entrypoint: sh -c "rcnode"
         ports:
             - 9999:9999
             - 9998:9998
+        networks:
+            - dsr_net
+        
             
+networks:
+    dsr_net:
+        driver: bridge

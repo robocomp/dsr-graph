@@ -31,7 +31,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
     qRegisterMetaType<std::uint64_t>("std::uint64_t");
-	this->startup_check_flag = startup_check;
+    this->startup_check_flag = startup_check;
     QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
@@ -40,52 +40,70 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
-	G.reset();
+    std::cout << "Destroying SpecificWorker" << std::endl;
+    G.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
+    conf_params = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
     try
     {
+        std::setlocale(LC_NUMERIC, "C");
         agent_name = params["agent_name"].value;
         agent_id = stoi(params["agent_id"].value);
         tree_view = params["tree_view"].value == "true";
         graph_view = params["graph_view"].value == "true";
         qscene_2d_view = params["2d_view"].value == "true";
         osg_3d_view = params["3d_view"].value == "true";
+
+        consts.max_adv_speed = stof(params.at("max_advance_speed").value);
+        consts.max_rot_speed = stof(params.at("max_rotation_speed").value);
+        consts.max_side_speed = stof(params.at("max_side_speed").value);
+        consts.robot_length = stof(params.at("robot_length").value);
+        consts.robot_width = stof(params.at("robot_width").value);
+        consts.robot_radius = stof(params.at("robot_radius").value);
+        consts.lateral_correction_gain = stof(params.at("lateral_correction_gain").value);
+        consts.lateral_correction_for_side_velocity = stof(params.at("lateral_correction_for_side_velocity").value);
+        consts.rotation_gain = std::stof(params.at("rotation_gain").value);
+        consts.times_final_distance_to_target_before_zero_rotation = stof(params.at("times_final_distance_to_target_before_zero_rotation").value);
+        consts.advance_gaussian_cut_y = stof(params.at("advance_gaussian_out_x").value);
+        consts.advance_gaussian_cut_y = stof(params.at("advance_gaussian_out_y").value);
+        consts.final_distance_to_target = stof(params.at("final_distance_to_target").value); // mm
     }
-    catch(...){std::cout << __FUNCTION__ << "Problem reading params" << std::endl;};
-	return true;
+    catch (const std::exception &e)
+    {
+        std::cout << __FUNCTION__ << " Problem reading params" << std::endl;
+        std::terminate();
+    };
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << __FUNCTION__ << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-		this->startup_check();
-	else
-	{
-		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+    std::cout << __FUNCTION__ << std::endl;
+    this->Period = period;
+    if(this->startup_check_flag)
+        this->startup_check();
+    else
+    {
+        // create graph
+        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+        std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
         // Graph viewer
-		using opts = DSR::DSRViewer::view;
-		int current_opts = 0;
-		opts main = opts::none;
-		if(tree_view)
-			current_opts = current_opts | opts::tree;
-		if(graph_view)
-			current_opts = current_opts | opts::graph;
-            main = opts::graph;
-		if(qscene_2d_view)
-			current_opts = current_opts | opts::scene;
-		if(osg_3d_view)
-			current_opts = current_opts | opts::osg;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+        using opts = DSR::DSRViewer::view;
+        int current_opts = 0;
+        opts main = opts::none;
+        if(tree_view)
+            current_opts = current_opts | opts::tree;
+        if(graph_view)
+            current_opts = current_opts | opts::graph;
+        if(qscene_2d_view)
+            current_opts = current_opts | opts::scene;
+        if(osg_3d_view)
+            current_opts = current_opts | opts::osg;
+        dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-" + std::to_string(agent_id)));
 
         //dsr update signals
@@ -97,6 +115,9 @@ void SpecificWorker::initialize(int period)
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
+
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att >();
@@ -131,12 +152,11 @@ void SpecificWorker::initialize(int period)
         this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
-	}
+    }
 }
 
 void SpecificWorker::compute()
 {
-
     static std::vector<Eigen::Vector2f> path;
 
     // Check for existing path_to_target_nodes
@@ -151,14 +171,14 @@ void SpecificWorker::compute()
     // if no path node, stop controlling
     if(auto node_path = G->get_node(current_path_name); node_path.has_value())
     {
-        if (const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
+        //if (const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
         {
-            const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
+            //const auto &[angles, dists, laser_poly, laser_cart] = laser_data.value();
             auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 500, 0), robot_name).value();
             auto robot_pose_3d = inner_eigen->transform(world_name, robot_name).value();
             auto robot_nose = Eigen::Vector2f(nose_3d.x(), nose_3d.y());
             auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
-            auto speeds = update(path, laser_poly, robot_pose, robot_nose, current_target);
+            auto speeds = update(path, QPolygonF(), robot_pose, robot_nose, current_target);
             auto[adv, side, rot] =  send_command_to_robot(speeds);
             remove_trailing_path(path, robot_pose);
 
@@ -175,8 +195,8 @@ void SpecificWorker::compute()
             std::cout << "\t Rotate -> " << rot << std::endl;
             std::cout << "\tRobot_is_active -> " << std::boolalpha << robot_is_active << std::endl;
         }
-        else
-        {} // check elapsed time since last reading. Stop the robot if too long
+        //else
+        //{} // check elapsed time since last reading. Stop the robot if too long
     }
     else
         qDebug() << __FUNCTION__ << "No path_node found in G";
@@ -185,26 +205,12 @@ void SpecificWorker::compute()
 void SpecificWorker::path_follower_initialize()
 {
     qDebug()<< "Controller - " << __FUNCTION__;
-    try
-    {
-        MAX_ADV_SPEED = QString::fromStdString(conf_params->at("MaxAdvanceSpeed").value).toFloat();
-        MAX_ROT_SPEED = QString::fromStdString(conf_params->at("MaxRotationSpeed").value).toFloat();
-        MAX_SIDE_SPEED = QString::fromStdString(conf_params->at("MaxSideSpeed").value).toFloat();
-        MAX_LAG = std::stof(conf_params->at("MinControllerPeriod").value);
-        ROBOT_RADIUS_MM =  QString::fromStdString(conf_params->at("RobotRadius").value).toFloat();
-        qDebug()<< __FUNCTION__ << "CONTROLLER: Params from config:"  << MAX_ADV_SPEED << MAX_ROT_SPEED << MAX_SIDE_SPEED << MAX_LAG << ROBOT_RADIUS_MM;
-    }
-    catch (const std::out_of_range& oor)
-    {
-        std::cout << "CONTROLLER. Out of Range error reading parameters: " << oor.what() << '\n';
-        std::terminate();
-    }
-        robotXWidth = std::stof(conf_params->at("RobotXWidth").value);
-        robotZLong = std::stof(conf_params->at("RobotZLong").value);
-        robotBottomLeft     = Mat::Vector3d ( -robotXWidth / 2, -robotZLong / 2, 0);
-        robotBottomRight    = Mat::Vector3d ( robotXWidth / 2, -robotZLong / 2, 0);
-        robotTopRight       = Mat::Vector3d ( robotXWidth / 2, robotZLong / 2, 0);
-        robotTopLeft        = Mat::Vector3d ( -robotXWidth / 2, robotZLong / 2, 0);
+    robotBottomLeft = Mat::Vector3d(-consts.robot_width / 2, -consts.robot_length / 2, 0);
+    robotBottomRight = Mat::Vector3d(consts.robot_width / 2, -consts.robot_length / 2, 0);
+    robotTopRight = Mat::Vector3d(consts.robot_width / 2, consts.robot_length / 2, 0);
+    robotTopLeft = Mat::Vector3d(-consts.robot_width / 2, consts.robot_length / 2, 0);
+    qDebug() << __FUNCTION__ << "CONTROLLER: Params from config:" << consts.max_adv_speed << consts.max_rot_speed << consts.max_side_speed << consts.max_lag
+             << consts.robot_radius;
 }
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
 {
@@ -218,8 +224,9 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     std::vector<float> y_values;  y_values.reserve(path.size());
     std::transform(closest_point_to_robot, path.cend(), std::back_inserter(y_values),
                    [](const auto &value) { return value.y(); });
+    qInfo() << __FUNCTION__ << " new paths " << x_values.size() << y_values.size();
     if (auto node_path = G->get_node(current_path_name); node_path.has_value())
-    //if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
+        //if (auto node_paths = G->get_nodes_by_type(path_to_target_type_name); not node_paths.empty())
     {
         //auto path_to_target_node = node_paths.front();
         G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_values);
@@ -241,9 +248,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     // now y is forward direction and x is pointing rightwards
     float advVel = 0.f, sideVel = 0.f, rotVel = 0.f;
-    //auto firstPointInPath = points.front();
     bool active = true;
-    bool blocked = false;
     // Compute euclidean distance to target
     float euc_dist_to_target = (robot_pose - target).norm();
 
@@ -257,11 +262,11 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
 
     // Target achieved
     std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
-              << " dist < 200 " << (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET);
+              << " dist < 200 " << (euc_dist_to_target < consts.final_distance_to_target) << std::endl;
 
-    if ( (path.size() < 2) or (euc_dist_to_target < FINAL_DISTANCE_TO_TARGET))// or is_increasing(euc_dist_to_target))
+    if( (path.size() < 2) or (euc_dist_to_target < consts.final_distance_to_target))
     {
-        qInfo() << __FUNCTION__ << "Target achieved";
+        qInfo() << __FUNCTION__ << " -------------- Target achieved -----------------";
         advVel = 0;  sideVel= 0; rotVel = 0;
         active = false;
         robot_is_active = false;
@@ -275,6 +280,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     /// Compute rotational speed
     // closest point to robot nose in path
     auto closest_point_to_nose = std::ranges::min_element(path, [robot_nose](auto &a, auto &b){ return (robot_nose - a).norm() < (robot_nose - b).norm();});
+
     // compute angle between robot-to-nose line and  tangent to closest point in path
     QLineF tangent;
     if(std::distance(path.cbegin(), closest_point_to_nose) == 0)
@@ -284,45 +290,29 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     else tangent = QLineF(to_QPointF(*(closest_point_to_nose - 1)), to_QPointF(*(closest_point_to_nose + 1)));
     QLineF robot_to_nose(to_QPointF(robot_pose), to_QPointF(robot_nose));
     float angle = rewrapAngleRestricted(qDegreesToRadians(robot_to_nose.angleTo(tangent)));
+
     // compute distance to path to cancel stationary error
     auto e_tangent = Eigen::Hyperplane<float, 2>::Through(Eigen::Vector2f(tangent.p1().x(), tangent.p1().y()),
                                                           Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
     float signed_distance = e_tangent.signedDistance(robot_nose);
-    float correction = 0.2*tanh(signed_distance);
-    qInfo() << __FUNCTION__  << " angle error: " << angle << "correction: " << correction;
-    angle += correction;
+    float correction = consts.lateral_correction_gain * tanh(signed_distance);
+    angle +=  correction;
+    sideVel = consts.lateral_correction_for_side_velocity * correction;
+
     // rot speed gain
-    rotVel = 2*angle;  // pioneer
-    rotVel = 0.8*angle;  // viriato
+    rotVel = consts.rotation_gain * angle;
+    qInfo() << __FUNCTION__  << " angle error: " << angle << " correction: " << correction << " rorVel" << rotVel << " gain" << consts.rotation_gain << " max_rot_speed" << consts.max_rot_speed;
 
     // limit angular  values to physical limits
-    rotVel = std::clamp(rotVel, -MAX_ROT_SPEED, MAX_ROT_SPEED);
+    rotVel = std::clamp(rotVel, -consts.max_rot_speed, consts.max_rot_speed);
     // cancel final rotation
-    if(euc_dist_to_target < 3*FINAL_DISTANCE_TO_TARGET)
-          rotVel = 0.f;
+    if(euc_dist_to_target < consts.times_final_distance_to_target_before_zero_rotation * consts.final_distance_to_target)
+        rotVel = 0.f;
 
     /// Compute advance speed
-    advVel = std::min(MAX_ADV_SPEED * exponentialFunction(rotVel, 0.8, 0.2, 0), euc_dist_to_target);
+    advVel = std::min(consts.max_adv_speed * exponentialFunction(rotVel, consts.advance_gaussian_cut_x, consts.advance_gaussian_cut_y, 0),
+                      euc_dist_to_target);
 
-    /// Compute bumper-away speed
-    QVector2D total{0, 0};
-//    const auto &[angles, dists] = laser_data;
-//    for (const auto &[angle, dist] : iter::zip(angles, dists))
-//    {
-//        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
-//        float diff = limit - dist;
-//        if (diff >= 0)
-//            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
-//    }
-
-    /// Compute bumper away speed for rectangular shape
-    // get extendedrobot polygon in worlds's coordinate frame
-    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
-    for (const auto &p : rp)
-        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
-            total = total + QVector2D(p);
-    qInfo() << __FUNCTION__ << total;
-    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);
     return std::make_tuple(advVel, sideVel, rotVel);
 }
 
@@ -383,24 +373,6 @@ std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std:
     return std::make_tuple(adv_, side_, rot_);
 }
 
-//std::tuple<float, float, float> SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds) //adv, side, rot
-//{
-//    static QMat adv_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ADV_SPEED,MAX_ADV_SPEED}, QPointF{-20,20}}});
-//    static QMat rot_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_ROT_SPEED,MAX_ROT_SPEED}, QPointF{-15,15}}});
-//    static QMat side_conv = QMat::afinTransformFromIntervals(QList<QPair<QPointF,QPointF>>{QPair<QPointF,QPointF>{QPointF{-MAX_SIDE_SPEED,MAX_SIDE_SPEED}, QPointF{-15,15}}});
-//
-//    auto &[adv_, side_, rot_] = speeds;
-//    auto adv = (adv_conv * QVec::vec2(adv_,1.0))[0];
-//    auto rot = (rot_conv * QVec::vec2(rot_,1.0))[0];
-//    auto side = (side_conv * QVec::vec2(side_, 1.0))[0];
-//    auto robot_node = G->get_node(robot_name);
-//    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv);
-//    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot);
-//    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side);
-//    G->update_node(robot_node.value());
-//    return std::make_tuple(adv, side, rot);
-//}
-
 // compute max de gauss(value) where gauss(x)=y  y min
 float SpecificWorker::exponentialFunction(float value, float xValue, float yValue, float min)
 {
@@ -455,45 +427,45 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             }
         }
     }
-    else if (type == laser_type_name)    // Laser node updated
-    {
-        //qInfo() << __FUNCTION__ << " laser node change";
-        if( auto node = G->get_node(id); node.has_value())
-        {
-            auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
-            auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
-            if(dists.has_value() and angles.has_value())
-            {
-                //if(dists.value().get().empty() or angles.value().get().empty()) return;
-                //qInfo() << __FUNCTION__ << dists->get().size();
-
-                std::tuple<std::vector<float>, std::vector<float>> && tuple = std::make_tuple(angles.value().get(), dists.value().get());
-                laser_buffer.put(std::move(tuple),
-                                 [this](LaserData &&in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out)
-                                 {
-                                     QPolygonF laser_poly;
-                                     std::vector<QPointF> laser_cart;
-                                     auto &&[angles, dists] = in;
-                                     for (auto &&[angle, dist] : iter::zip(std::move(angles), std::move(dists)))
-                                     {
-                                         //convert laser polar coordinates to cartesian
-                                         float x = dist * sin(angle);
-                                         float y = dist * cos(angle);
-                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
-                                         laser_poly << QPointF(x, y);
-                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
-                                     }
-                                     out = std::make_tuple(angles, dists, laser_poly, laser_cart);
-                                 });
-            }
-        }
-    }
+//    else if (type == laser_type_name)    // Laser node updated
+//    {
+//        //qInfo() << __FUNCTION__ << " laser node change";
+//        if( auto node = G->get_node(id); node.has_value())
+//        {
+//            auto angles = G->get_attrib_by_name<laser_angles_att>(node.value());
+//            auto dists = G->get_attrib_by_name<laser_dists_att>(node.value());
+//            if(dists.has_value() and angles.has_value())
+//            {
+//                //if(dists.value().get().empty() or angles.value().get().empty()) return;
+//                //qInfo() << __FUNCTION__ << dists->get().size();
+//
+//                std::tuple<std::vector<float>, std::vector<float>> && tuple = std::make_tuple(angles.value().get(), dists.value().get());
+//                laser_buffer.put(std::move(tuple),
+//                                 [this](LaserData &&in, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>> &out)
+//                                 {
+//                                     QPolygonF laser_poly;
+//                                     std::vector<QPointF> laser_cart;
+//                                     auto &&[angles, dists] = in;
+//                                     for (auto &&[angle, dist] : iter::zip(std::move(angles), std::move(dists)))
+//                                     {
+//                                         //convert laser polar coordinates to cartesian
+//                                         float x = dist * sin(angle);
+//                                         float y = dist * cos(angle);
+//                                         Mat::Vector3d laserWorld = inner_eigen->transform(world_name,Mat::Vector3d(x, y, 0), laser_name).value();
+//                                         laser_poly << QPointF(x, y);
+//                                         laser_cart.emplace_back(QPointF(laserWorld.x(), laserWorld.y()));
+//                                     }
+//                                     out = std::make_tuple(angles, dists, laser_poly, laser_cart);
+//                                 });
+//            }
+//        }
+//    }
 }
 
 void SpecificWorker::del_node_slot(std::uint64_t from)
 {
-        if( auto node = G->get_node(current_path_name); not node.has_value())
-            qInfo() << __FUNCTION__  << "Path node deleter. Aborting control";
+    if( auto node = G->get_node(current_path_name); not node.has_value())
+        qInfo() << __FUNCTION__  << "Path node deleter. Aborting control";
 }
 
 ///////////////////////////////////////////////////
@@ -501,9 +473,9 @@ void SpecificWorker::del_node_slot(std::uint64_t from)
 //////////////////////////////////////////////////
 int SpecificWorker::startup_check()
 {
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
 }
 /**************************************/
 
@@ -543,3 +515,24 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector2f> &path, QGraphicsScen
         scene_road_points.push_back(line2);
     }
 }
+
+
+/// Compute bumper-away speed
+//QVector2D total{0, 0};
+//    const auto &[angles, dists] = laser_data;
+//    for (const auto &[angle, dist] : iter::zip(angles, dists))
+//    {
+//        float limit = (fabs(ROBOT_LENGTH / 2.f * sin(angle)) + fabs(ROBOT_LENGTH / 2.f * cos(angle))) + 200;
+//        float diff = limit - dist;
+//        if (diff >= 0)
+//            total = total + QVector2D(-diff * cos(angle), -diff * sin(angle));
+//    }
+
+/// Compute bumper away speed for rectangular shape
+// get extendedrobot polygon in worlds's coordinate frame
+//    std::vector<QPointF> rp = get_points_along_extended_robot_polygon(200, 40);
+//    for (const auto &p : rp)
+//        if(not laser_poly.containsPoint(p, Qt::OddEvenFill))
+//            total = total + QVector2D(p);
+//    qInfo() << __FUNCTION__ << total;
+//    sideVel = std::clamp(total.y(), -MAX_SIDE_SPEED, MAX_SIDE_SPEED);

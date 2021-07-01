@@ -72,9 +72,10 @@ class SpecificWorker(GenericWorker):
         
         #SCENE_FILE = '../../etc/autonomy_lab_no_arm_bill.ttt'
         #SCENE_FILE = '../../etc/autonomy_lab_bill.ttt'
-        SCENE_FILE = '../../etc/autonomy_lab_no_arm_middle_wall.ttt'
         #SCENE_FILE = '../../etc/autonomy_lab_no_arm_no_middle_wall.ttt'
-        
+        SCENE_FILE = params["coppelia_file"]
+        print(SCENE_FILE)
+
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
@@ -193,7 +194,7 @@ class SpecificWorker(GenericWorker):
         while True:
             self.pr.step()
             self.read_cameras()
-            #self.read_people()
+            self.read_people()
             self.read_laser()
             self.read_joystick()
             self.read_robot_speed()
@@ -561,6 +562,7 @@ class SpecificWorker(GenericWorker):
     def OmniRobot_setSpeedBase(self, advx, advz, rot):
         #converted = self.convert_base_speed_to_radians(advz, advx, rot)
         self.speed_robot = self.convert_base_speed_to_radians(advz, advx, rot)
+        print(self.speed_robot)
         #self.robot.set_base_angular_velocites(converted)
 
     #

@@ -1,0 +1,32 @@
+CommonBehavior.Endpoints=tcp -p 17702
+
+# Proxies for required interfaces
+#DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+
+# This property is used by the clients to connect to IceStorm.
+#TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
+
+agent_id = 44 # Change id
+agent_name = elastic_band
+
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
+
+number_of_not_visible_points = 3 # should be 0 in very large grids
+robot_length = 500
+robot_length = 400
+robot_radius = 250
+external_forces_gain = 25
+internal_forces_gain = 12
+delta_derivation_step = 50   # x and y displacement for gradient
+max_laser_range = 6000
+very_large_distance = 100000
+max_free_energy_iterations = 4
+max_total_energy_ratio = 10
+
+#######################################
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0

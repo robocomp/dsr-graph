@@ -26,8 +26,8 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include  "../../../etc/viriato_graph_names.h"
-//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+#include  "../../../etc/graph_names.h"
+
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>
 #include <dsr/gui/dsr_gui.h>
@@ -81,6 +81,7 @@ private:
         std::shared_ptr<DSR::DSRGraph> G;
         std::unique_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::unique_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;
@@ -106,30 +107,49 @@ private:
         Custom_widget custom_widget;
         FPSCounter fps;
 
-        //drawing
+        // drawing
         DSR::QScene2dViewer* widget_2d;
         std::vector<std::tuple<QVector2D, QVector2D>> forces_vector;
 
-        //laser
+        // laser
         using LaserData = std::tuple<std::vector<float>, std::vector<float>>;  //<angles, dists>
-        std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data();
+        std::optional<std::tuple<QPolygonF, std::vector<QPointF>>> get_laser_data(const DSR::Node &node);
 
-            //Signal subscription
+        // double buffers
         DoubleBuffer<std::vector<QPointF>, std::vector<QPointF>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<QPolygonF, std::vector<QPointF>>> laser_buffer;
 
         //elastic band
-        const float ROBOT_LENGTH = 500;
-        const float ROAD_STEP_SEPARATION = ROBOT_LENGTH * 0.9;
-        float KE = 50;
-        float KI = 300;
+        struct CONSTANTS   //will be reinitialzes in setparams
+        {
+            int number_of_not_visible_points = 0;  // should be 0 in very large grids
+            float robot_length = 500;
+            float robot_width = 400;
+            float robot_radius = robot_length /2.0 ;
+            float road_step_separation = robot_length * 0.9;
+            float KE = 30;
+            float KI = 10;
+            float delta = 50;   // x and y displacement for gradient
+            float max_laser_range = 4000.f;
+            float very_large_distance = 100000.f;
+            int max_free_energy_iterations = 3;
+            float max_total_energy_ratio = 10;
+            void update()
+            {
+                road_step_separation = robot_length * 0.9;
+            }
+        };
+        CONSTANTS constants;
+
         std::uint64_t last_path_id;  // ID of last path node that came through the slot
-        enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
-        void elastic_band_initialize( );
-        float robotXWidth, robotZLong; //robot dimensions read from config
+        //enum class SearchState {NEW_TARGET, AT_TARGET, NO_TARGET_FOUND, NEW_FLOOR_TARGET};
+
+        // robot draw
         Mat::Vector3d robotBottomLeft, robotBottomRight, robotTopRight, robotTopLeft;
         void draw_path( std::vector<QPointF> &path, QGraphicsScene *viewer_2d, const QPolygonF &laser_poly);
         QPolygonF get_robot_polygon();
+
+        // band
         bool is_visible(QPointF p, const QPolygonF &laser_poly);
         bool is_point_visitable(const QPointF &point);
         void compute_forces(std::vector<QPointF> &path, const std::vector<QPointF> &laser_cart,

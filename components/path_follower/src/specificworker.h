@@ -34,9 +34,7 @@
 #include <fps/fps.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
-//#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
-
+#include  "../../../etc/graph_names.h"
 
 class Plan
 {
@@ -82,6 +80,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;
@@ -120,16 +119,24 @@ class SpecificWorker : public GenericWorker
         DoubleBuffer<std::vector<Eigen::Vector2f>, std::vector<Eigen::Vector2f>> path_buffer;
         DoubleBuffer<LaserData, std::tuple<std::vector<float>, std::vector<float>, QPolygonF, std::vector<QPointF>>> laser_buffer;
 
-        // robot
-        const float ROBOT_LENGTH = 500;  //GET FROM G
-        float MAX_ADV_SPEED = 1000;
-        float MAX_ROT_SPEED = 3;
-        float MAX_SIDE_SPEED = 400;
-        float MAX_LAG = 100; //ms
-        float ROBOT_RADIUS_MM = 250; //mm
-        const float FINAL_DISTANCE_TO_TARGET = 200; //mm
-        float KB = 6.0;
-        QPolygonF get_robot_polygon();
+        struct CONSTANTS
+        {
+            float robot_length = 500;
+            float robot_width = 400;
+            float robot_radius = robot_length / 2.0;
+            float max_adv_speed = 500;
+            float max_rot_speed = 3;
+            float max_side_speed = 400;
+            float max_lag = 100;  // ms
+            float lateral_correction_gain = 0.2;
+            float lateral_correction_for_side_velocity = 500;
+            float rotation_gain = 0.9;
+            float times_final_distance_to_target_before_zero_rotation = 3;
+            float advance_gaussian_cut_x = 0.7;
+            float advance_gaussian_cut_y = 0.2;
+            float final_distance_to_target = 200; // mm
+        };
+        CONSTANTS consts;
 
         // controller
         void path_follower_initialize();
@@ -142,10 +149,9 @@ class SpecificWorker : public GenericWorker
         float rewrapAngleRestricted(const float angle);
         std::vector<QPointF> get_points_along_extended_robot_polygon(int offset, int chunck);
 
-
     // target
         Eigen::Vector2f current_target;
-        std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);
+        std::tuple<float, float, float> send_command_to_robot(const std::tuple<float, float, float> &speeds);  //adv, side, rot
         bool robot_is_active = false;
 
         // remove trailing path

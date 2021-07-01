@@ -1,0 +1,38 @@
+CommonBehavior.Endpoints=tcp -p 17700
+
+agent_id = 35 # Change id
+agent_name = path_planner
+
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
+
+NavigationAgent.RobotName = pioneer
+
+NavigationAgent.TileSize = 200
+NavigationAgent.grid_file_name=pioneer-200-vrep.simscene.grid
+NavigationAgent.num_threads_for_grid_occupancy = 15
+NavigationAgent.read_from_file = true
+
+NavigationAgent.MaxZSpeed = 650
+NavigationAgent.MaxXSpeed = 450
+NavigationAgent.MaxRotationSpeed = 2
+
+NavigationAgent.RobotXWidth = 540
+NavigationAgent.RobotZLong = 460
+NavigationAgent.RobotRadius = 400
+NavigationAgent.MinControllerPeriod = 100
+
+NavigationAgent.PlannerGraphPoints = 400
+NavigationAgent.PlannerGraphNeighbours = 20
+NavigationAgent.PlannerGraphMaxDistanceToSearch = 2500 #mm
+
+NavigationAgent.MinimunDetectableRotation = 0.03			# to accept a new target
+NavigationAgent.MinimunDetectableTranslation = 7 			# to accept a new target
+
+NavigationAgent.ExcludedObjectsInCollisionCheck = floor
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0

@@ -1,18 +1,25 @@
-CommonBehavior.Endpoints=tcp -p 10008
+CommonBehavior.Endpoints=tcp -h idserver -p 10008
 
 
 # Proxies for required interfaces
 DSRGetID.Endpoints=tcp -p 11000
 
-agent_id = 8
+agent_id = 1
 agent_name = idserver
-#dsr_input_file = ../../etc/simplesimpleworld.json
+#dsr_input_file = ../../etc/omnirobot_simscene.json
 #dsr_input_file = ../../etc/simplesimpleworld-ramon.json
 #dsr_input_file = ../../etc/autonomyLab_width_integer.json
-dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
-tree_view = true 
+#dsr_input_file = ../../etc/autonomyLab_complete.simscene.json
+#dsr_input_file = ../../etc/autonomyLab_one_room.simscene.json
+#dsr_input_file = ../../etc/autonomyLab_two_rooms_no_objects.simscene.json
+#dsr_input_file = ../../etc/autonomyLab_two_rooms_no_objects_development.simscene.json
+dsr_input_file = ../../etc/autonomyLab_objects.simscene.json
+
+
+
+tree_view = false
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 
 dsr_output_path = ../../etc/
@@ -20,6 +27,6 @@ dsr_write_to_file = false
 period = 100000  # miliseconds period on dsr saving to file
 
 
-Ice.Warn.Connections=0
-Ice.Trace.Network=0
-Ice.Trace.Protocol=0
+Ice.Warn.Connections=2
+Ice.Trace.Network=2
+Ice.Trace.Protocol=2

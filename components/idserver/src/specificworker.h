@@ -57,6 +57,7 @@ public slots:
 
 private:
     std::shared_ptr<DSR::DSRGraph> G;
+    std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
     std::string agent_name;
     bool startup_check_flag;
     std::unique_ptr<DSR::DSRViewer> dsr_viewer;

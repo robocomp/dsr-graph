@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.0 )
+cmake_minimum_required( VERSION 3.10 )
 PROJECT( components )
 
 #add_definitions( -DQT_NO_WARNING_OUTPUT )
@@ -7,6 +7,7 @@ PROJECT( components )
 #include_directories(/usr/include/eigen3)
 add_subdirectory( idserver )
 add_subdirectory( viriatoDSR )
+add_subdirectory( graph_editor )
 #add_subdirectory( people_to_dsr )
 #add_subdirectory( change_graph )
 #add_subdirectory( graph_editor )

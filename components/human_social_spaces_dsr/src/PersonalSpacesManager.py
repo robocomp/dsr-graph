@@ -198,15 +198,18 @@ class PersonalSpacesManager:
     def calculate_affordance_trapezoidal(self, obj):
         left_angle = obj.ry + obj.inter_angle / 2
         right_angle = obj.ry - obj.inter_angle / 2
+        
 
         polyline = [[(obj.tx + obj.width / 2), obj.ty],
                     [(obj.tx - obj.width / 2), obj.ty],
+                    
+                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
+                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))],
 
                     [(obj.tx + obj.inter_space * (cos(pi/2 - left_angle))),
-                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))],
+                     (obj.ty + obj.inter_space * (sin(pi/2 - left_angle)))]
 
-                    [(obj.tx + obj.inter_space * (cos(pi/2 - right_angle))),
-                     (obj.ty + obj.inter_space * (sin(pi/2 - right_angle)))]]
+                    ]
 
         return polyline
 

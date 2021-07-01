@@ -89,7 +89,6 @@ void Grid::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
         auto duration = Myclock::now() - start_time;
         std::cout << __FUNCTION__ << " " << count << " elements inserted.  It took " << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "secs" << std::endl;
 
-        ////////////////
         if(not file_name.empty())
             saveToFile(file_name);
     }
@@ -325,6 +324,15 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         qDebug() << __FUNCTION__ << "Robot already at target. Returning empty path";
         return std::list<QPointF>();
     }
+
+    //source in a non-free cell (red cell)
+    if(neighboors_8(source_).empty())
+    {
+        qInfo() << __FUNCTION__ << "SE INICIA EL A* EN UN ROJO: " << source.x << ", " << source.z;
+        std::optional<QPointF> new_source = closest_free(source_);
+        source = pointToGrid(new_source->x(), new_source->y());
+    }
+
     const auto &[success, val] = getCell(source);
     if(not success)
     {
@@ -351,7 +359,7 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
     // OPEN List
     std::set<std::pair<std::uint32_t, Key>, decltype(comp)> active_vertices(comp);
     active_vertices.insert({0, source});
-
+    int i = 0;
     while (not active_vertices.empty())
     {
         //qInfo() << __FILE__ << __LINE__ << "Entrando en while";
@@ -360,19 +368,21 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         {
             //qInfo() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
             auto p = orderPath(previous, source, target);
+            qInfo() << "p.size() = " << p.size();
+            //esto es solo pa cd encuentra un path eh xd
             if (p.size() > 1)
                 return p;
             else
                 return std::list<QPointF>();
         }
-        //qInfo() << "No where == target";
+        qInfo() << i++ << ": No where == target";
         active_vertices.erase(active_vertices.begin());
-
         for (auto ed : neighboors_8(where))
         {
-            //qInfo() << __FILE__ << __FUNCTION__ << "antes del if" << ed.first.x << ed.first.z << ed.second.id << fmap[where].id << min_distance[ed.second.id] << min_distance[fmap[where].id];
+            qInfo() << __FUNCTION__ << min_distance[ed.second.id] << ">" << min_distance[fmap.at(where).id] << "+" << ed.second.cost;
             if (min_distance[ed.second.id] > min_distance[fmap.at(where).id] + ed.second.cost)
             {
+                qInfo() << "considerando este neighbor" << endl;
                 active_vertices.erase({min_distance[ed.second.id], ed.first});
                 min_distance[ed.second.id] = min_distance[fmap.at(where).id] + ed.second.cost;
                 previous[ed.second.id] = std::make_pair(fmap.at(where).id, where);
@@ -473,6 +483,8 @@ void Grid::draw(QGraphicsScene* scene)
                 color = "#BF00FF";
             else if (value.cost == 10.0) //zona personal
                 color = "#00BFFF";
+            else if (value.cost == 50.0) //Affordance maximum
+                color = "#FF0000";
             else
                 color = "LightGreen";
         }
@@ -493,43 +505,46 @@ void Grid::clear()
     fmap.clear();
 }
 
-std::optional<QPointF> Grid::closest_matching(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred)
+#include <unistd.h>
+std::optional<QPointF> Grid::closestMatching_spiralMove(const QPointF &p, std::function<bool(std::pair<Grid::Key, Grid::T>)> pred)
 {
-    Key key = pointToGrid(p);
-    std::cout << __FUNCTION__ << " " << key << std::endl;
-    std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_8(key, true);
-    std::vector<std::pair<Grid::Key, Grid::T>> L2;
-    QPointF match = p;
-    const auto &[success, v] = getCell(key);
-    bool end = false;
-    bool found = success and pred(std::make_pair(key, v));
-    while( not end and not found)
-    {
-        for(auto &&current_cell : L1)
-        {
-            if(pred(current_cell))
-            {
-                match = current_cell.first.toQPointF();
-                found = true;
-                break;
-            }
-            auto selected = neighboors_8(current_cell.first, true);
-            L2.insert(L2.end(), selected.begin(), selected.end());
+    size_t moveUnit = TILE_SIZE;
+    int vi = moveUnit, vj = 0, tamSegmento = 1, i = p.x(), j = p.y(), recorrido = 0;
+
+    QPointF retPoint;
+    while(true) {
+        i += vi; j += vj; ++recorrido;
+        retPoint.setX(i); retPoint.setY(j);
+        Key key = pointToGrid(retPoint);
+        const auto &[success, v] = getCell(key);
+        if(success and pred(std::make_pair(key, v)))
+            return std::optional<QPointF>(retPoint);
+        if (recorrido == tamSegmento) {
+            recorrido = 0;
+            int aux = vi; vi = -vj; vj = aux;
+            if (vj == 0)
+                ++tamSegmento;
         }
-        end = L2.empty();
-        L1.swap(L2);
-        L2.clear();
     }
-    if(found) return match;
-    else return {};
 }
 
 std::optional<QPointF> Grid::closest_obstacle(const QPointF &p)
 {
-    return this->closest_matching(p, [](auto cell){ return not cell.second.free; });
+    return this->closestMatching_spiralMove(p, [](auto cell){ return not cell.second.free; });
 }
 
 std::optional<QPointF> Grid::closest_free(const QPointF &p)
 {
-    return this->closest_matching(p, [](const auto &cell){ return cell.second.free; });
+    return this->closestMatching_spiralMove(p, [](auto cell){ return cell.second.free; });
+}
+
+std::optional<QPointF> Grid::closest_free_4x4(const QPointF &p)
+{
+    return this->closestMatching_spiralMove(p, [this, p](const auto &cell){
+        if (not cell.second.free)
+            return false;
+        Key key = pointToGrid(QPointF(cell.first.x, cell.first.z));
+        std::vector<std::pair<Grid::Key, Grid::T>> L1 = neighboors_16(key, false);
+        return (L1.size() == 16);
+    });
 }

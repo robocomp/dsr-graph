@@ -86,10 +86,6 @@ bool SpecificMonitor::sendParamsToWorker(RoboCompCommonBehavior::ParameterList p
 ///We need to supply a list of accepted values to each call
 void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 {
-//	RoboCompCommonBehavior::Parameter aux;
-//	aux.editable = true;
-//	configGetString( "","InnerModelPath", aux.value, "nofile");
-//	params["InnerModelPath"] = aux;
 	RoboCompCommonBehavior::Parameter aux;
 	aux.editable = false;
 	configGetString( "","agent_name", aux.value,"");
@@ -105,65 +101,32 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	configGetString( "","3d_view", aux.value, "none");
 	params["3d_view"] = aux;
 
-    configGetString("NavigationAgent", "TileSize", aux.value,"250");
-    params["TileSize"] = aux;
-
-	configGetString("NavigationAgent", "RobotName", aux.value,"robot");
-	params["RobotName"] = aux;
-
-	configGetString( "NavigationAgent","MaxZSpeed", aux.value,"600");
-	params["MaxZSpeed"] = aux;
-
-	configGetString( "NavigationAgent","MaxXSpeed", aux.value,"400");
-	params["MaxXSpeed"] = aux;
-
-	configGetString( "NavigationAgent","MaxRotationSpeed", aux.value,"0.9");
-	params["MaxRotationSpeed"] = aux;
-
-	configGetString( "NavigationAgent","RobotXWidth", aux.value,"500");
-	params["RobotXWidth"] = aux;
-
-	configGetString( "NavigationAgent","RobotZLong", aux.value,"500");
-	params["RobotZLong"] = aux;
-
-	configGetString( "NavigationAgent","RobotRadius", aux.value,"300");
-	params["RobotRadius"] = aux;
-
-	configGetString( "NavigationAgent","MinControllerPeriod", aux.value,"100");
-	params["MinControllerPeriod"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphPoints", aux.value,"100");
-	params["PlannerGraphPoints"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphNeighbours", aux.value,"20");
-	params["PlannerGraphNeighbours"] = aux;
-
-	configGetString( "NavigationAgent","PlannerGraphMaxDistanceToSearch", aux.value,"2500");
-	params["PlannerGraphMaxDistanceToSearch"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionLeft", aux.value,"0");
-	params["OuterRegionLeft"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionRight", aux.value,"6000");
-	params["OuterRegionRight"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionBottom", aux.value,"-4250");
-	params["OuterRegionBottom"] = aux;
-
-	configGetString( "NavigationAgent","OuterRegionTop", aux.value,"4250");
-	params["OuterRegionTop"] = aux;
-
-	configGetString( "NavigationAgent","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
-	params["ExcludedObjectsInCollisionCheck"] = aux;
-
-	configGetString( "NavigationAgent","MinimumDetectableRotation", aux.value,"0.03");
-	params["MinimumDetectableRotation"] = aux;
-
-	configGetString( "NavigationAgent","MinimumDetectableTranslation", aux.value,"10");
-	params["MinimumDetectableTranslation"] = aux;
-
-	configGetString( "NavigationAgent","MinimumSafetyDistance", aux.value,"100");
-	params["MinimumSafetyDistance"] = aux;
+    configGetString("", "tile_size", aux.value,"250");
+    params["tile_size"] = aux;
+	configGetString("", "robot_name", aux.value,"robot");
+	params["robot_name"] = aux;
+	configGetString("","robot_width", aux.value,"500");
+	params["robot_width"] = aux;
+	configGetString("","robot_length", aux.value,"500");
+	params["robot_length"] = aux;
+	configGetString("","robot_radius", aux.value,"300");
+	params["robot_radius"] = aux;
+	configGetString("","excluded_objects_in_collision_check", aux.value,"floor");
+	params["excluded_objects_in_collision_check"] = aux;
+    configGetString("", "number_of_not_visible_points", aux.value, "0");
+    params["number_of_not_visible_points"] = aux;
+    configGetString("", "external_forces_gain", aux.value,"30");
+    params["external_forces_gain"] = aux;
+    configGetString("", "internal_forces_gain", aux.value,"10");
+    params["internal_forces_gain"] = aux;
+    configGetString("", "delta_derivation_step", aux.value,"50");
+    params["delta_derivation_step"] = aux;
+    configGetString("", "max_laser_range", aux.value,"4000");
+    params["max_laser_range"] = aux;
+    configGetString("", "max_free_energy_iterations", aux.value,"3");
+    params["max_free_energy_iterations"] = aux;
+    configGetString("", "max_total_energy_ratio", aux.value,"10");
+    params["max_total_energy_ratio"] = aux;
 }
 
 //Check parameters and transform them to worker structure

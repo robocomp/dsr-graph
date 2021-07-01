@@ -17,7 +17,6 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
-#include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <algorithm>
 #include <ranges>
@@ -42,7 +41,8 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
+    std::setlocale(LC_NUMERIC, "C");
+    conf_params  = std::make_shared<RoboCompCommonBehavior::ParameterList>(params);
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
     tree_view = params["tree_view"].value == "true";
@@ -51,9 +51,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	osg_3d_view = params["3d_view"].value == "true";
 	grid_file_name = params["grid_file_name"].value;
 	read_from_file = params["read_from_file"].value == "true";
-	num_threads_for_grid_occupancy = stoi(params["num_threads_for_grid_occupancy"].value);
-    std::setlocale(LC_NUMERIC, "C");
-	return true;
+	num_threads_for_grid_occupancy = stoi(params["num_threads_for_grid_occupancy"].value);;
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
@@ -94,6 +93,9 @@ void SpecificWorker::initialize(int period)
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
 
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
         // Ignore attributes from G
         G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
 
@@ -121,12 +123,8 @@ void SpecificWorker::initialize(int period)
     }
 }
 
-/* TODO: borrar */
-static int n_ok = 0;
-
 void SpecificWorker::compute()
 {
-
     static QGraphicsEllipseItem *target_draw = nullptr;
 
     // Check for new published intention/plan
@@ -135,49 +133,50 @@ void SpecificWorker::compute()
         current_plan = plan_o.value();
         qInfo() << __FUNCTION__ << "New plan arrived: ";
         current_plan.print();
-        auto t = current_plan.get_target();
-        if(target_draw != nullptr) delete target_draw;
-        target_draw = widget_2d->scene.addEllipse(t.x(), t.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magente")));
+        auto target = current_plan.get_target();
 
-        if(auto intention = G->get_node(current_intention_name); intention.has_value())
+        if(target_draw != nullptr) delete target_draw;
+        target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magente")));
+
+        if( not grid.dim.contains(target))
         {
-            QPointF target = current_plan.get_target();
-            if( not grid.dim.contains(target))
+            qWarning() << __FUNCTION__ <<  "Target is out of grid. No plan found";
+            return;
+        }
+
+        Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
+        auto valid_target = search_a_feasible_target(current_plan);
+        if( valid_target.has_value())
+        {
+            qInfo() << __FUNCTION__ <<  " x: " << valid_target->x() << " y: " << valid_target->y();
+            std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), valid_target.value());
+            qInfo() << __FUNCTION__ << " Path computed of size: " << path.size();
+            if (not path.empty())
             {
-                cout << "El target está fuera del grid" << endl;
-                std::terminate();
-            }
-            Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
-            auto valid_target = search_a_feasible_target(current_plan);
-            if( valid_target.has_value())
-            {
-                cout << "x: " << valid_target->x() << " y: " << valid_target->y() << endl;
-                std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), valid_target.value());
-                qInfo() << __FUNCTION__ << " Path size: " << path.size();
-                if (not path.empty())
+                if (widget_2d != nullptr)
+                    draw_path(path, &widget_2d->scene);
+
+                std::vector<float> x_values, y_values;
+                x_values.reserve(path.size());
+                y_values.reserve(path.size());
+                for (auto &&p : path)
                 {
-                    if (widget_2d != nullptr)
-                        draw_path(path, &widget_2d->scene);
-                    std::vector<float> x_values;
-                    x_values.reserve(path.size());
-                    std::vector<float> y_values;
-                    y_values.reserve(path.size());
-                    for (auto &&p : path)
+                    x_values.push_back(p.x());
+                    y_values.push_back(p.y());
+                }
+                if (auto path = G->get_node(current_path_name); path.has_value())
+                {
+                    auto path_to_target_node = path.value();
+                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
+                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
+                    G->update_node(path_to_target_node);
+                }
+                else // create path_to_target_node with the solution path
+                {
+                    if(auto intention = G->get_node(current_intention_name); intention.has_value())
                     {
-                        x_values.push_back(p.x());
-                        y_values.push_back(p.y());
-                    }
-                    if (auto path = G->get_node(current_path_name); path.has_value())
-                    {
-                        auto path_to_target_node = path.value();
-                        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-                        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-                        G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
-                        G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
-                        G->update_node(path_to_target_node);
-                    } else // create path_to_target_node with the solution path
-                    {
-                        cout << "Ha funcionao " << ++n_ok << " veces" << endl;
                         auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
                         G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
                         G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
@@ -191,25 +190,25 @@ void SpecificWorker::compute()
                         DSR::Edge edge_to_intention = DSR::Edge::create<thinks_edge_type>(id.value(), intention.value().id());
                         G->insert_or_assign_edge(edge_to_intention);
                     }
+                    else qWarning() << __FUNCTION__ << "No intention node found. Can't create path node";
                 }
-                else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
             }
-            else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
+            else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
         }
-        else qWarning() << __FUNCTION__ << "Mo intention node found";
+        else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
     }
     else //do whatever you do without a plan
     {}
 
-    //Social Grid
+    //Update Grid
     if(grid_updated)
     {
         cout<<"Updating grid ---------------------------------------"<<endl;
-        if (auto node = G->get_node("social_grid"); node.has_value())
+        if (auto node = G->get_node(current_grid_name); node.has_value())
         {
-            if (auto social_grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); social_grid_as_string.has_value()){
-                grid.readFromString(social_grid_as_string.value());
-                grid.saveToFile("grid.txt");
+            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value()){
+                grid.readFromString(grid_as_string.value());
+                //grid.saveToFile("grid.txt");
             }
         }
         if (widget_2d != nullptr){
@@ -265,7 +264,7 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
 {
         auto target = current_plan.get_target();
-        auto new_target = grid.closest_free(target);
+        auto new_target = grid.closest_free_4x4(target);
         qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
         return new_target;
         // ad to GRID, closest free cell in the direction of the robot.

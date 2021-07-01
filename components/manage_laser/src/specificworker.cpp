@@ -19,6 +19,7 @@
 #include "specificworker.h"
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
+#include <cppitertools/slice.hpp>
 #include <execution>
 
 /**
@@ -115,8 +116,25 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+
+    //Comprobar si hay nodos de tipo personas
+    qInfo()<<"Llegado";
+    if(auto personal_space = G->get_nodes_by_type("personal_space"); not personal_space.empty()) {
+        Eigen::VectorXf all_gauss_x(personal_space.size() * 9), all_gauss_y(personal_space.size() * 9);
+
+        auto laser_node= G->get_node(laser_name).value();
+        const auto &angles = G->get_attrib_by_name<laser_angles_att>(laser_node).value().get();
+        auto dist = G->get_attrib_by_name<laser_dists_att>(laser_node).value().get();
+        obtener_puntos_gausianas(personal_space, all_gauss_x, all_gauss_y);
+        modificar_laser(all_gauss_x, all_gauss_y, angles, dist);
+        draw_laser(angles,dist,&widget_2d->scene);
+        qInfo()<<"Llegado";
+        if (auto laser = G->get_node(laser_name); laser.has_value()) {
+            if (auto laser_node = G->get_node(laser_social_name); laser_node.has_value()) {
+                std::cout << __FUNCTION__ << " Adding fake laser to laser_node node " << std::endl;
+
     // Comprobar si hay nodos de tipo personas
-    if(auto personal_spaces = G->get_nodes_by_type("personal_space"); not personal_spaces.empty())
+    /*if(auto personal_spaces = G->get_nodes_by_type("personal_space"); not personal_spaces.empty())
     {
         auto laser_node= G->get_node(laser_name).value();
         if(const auto angles_o = G->get_attrib_by_name<laser_angles_att>(laser_node); angles_o.has_value())
@@ -129,7 +147,7 @@ void SpecificWorker::compute()
                 update_social_laser(new_dist, angles);
             }
         }
-    }
+    }*/
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 
@@ -200,9 +218,10 @@ std::vector<float> SpecificWorker::modify_laser(const std::vector<DSR::Node> &pe
     std::vector<float> new_dist;
     if(const auto robot_in_w = inner_eigen->transform(world_name, robot_name); robot_in_w.has_value())
     {
+        const int step=2;
         QPointF robot(robot_in_w.value().x(), robot_in_w.value().y());
         new_dist.reserve(dist.size());
-        for (auto &&[ang, dis] : iter::zip(angles, dist))
+        for (auto &&[ang, dis] : iter::slice(iter::zip(angles, dist),0,(int)angles.size(),step))
         {
             if (const auto laser_cart_world = inner_eigen->transform(world_name, Mat::Vector3d(dis*sin(ang), dis*cos(ang), 0.f), robot_name); laser_cart_world.has_value())
             {
@@ -218,7 +237,8 @@ std::vector<float> SpecificWorker::modify_laser(const std::vector<DSR::Node> &pe
                                 return dis;
                         });
                 if (not distances.empty())
-                    new_dist.emplace_back(std::ranges::min(distances));
+                    for (int i=0; i<step; i++)
+                        new_dist.emplace_back(std::ranges::min(distances));
                 else
                     qWarning() << __FUNCTION__ << " new_dist vector is empty after searching intersections. Should not happen";
             }
@@ -287,7 +307,62 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
+void SpecificWorker::draw_laser(std::vector<float> angles, std::vector<float> dist, QGraphicsScene* viewer_2d)
+{
+    QPolygonF polig;
+    polig << QPointF(0,150);
+    for (const auto &[dist, angle] : iter::zip(dist, angles))
+    {
+        //std::cout << dist << "," << angle << std::endl;
+        polig << QPointF(dist * sin(angle), dist * cos(angle));
+    }
+    polig << QPointF(0,150);
+    viewer_2d->clear();
+    viewer_2d->addPolygon(polig, QPen(QColor("LightPink"), 8), QBrush(QColor("LightPink")));
+};
+
+/*void SpecificWorker::draw_laser(std::vector<float> angles, std::vector<float> dist,QGraphicsScene* viewer_2d)
+{
+    static std::vector<QGraphicsPolygonItem *> scene_laser;
+    QPolygonF polig;
+    for (QGraphicsPolygonItem* item : scene_laser)
+    {
+        viewer_2d->removeItem((QGraphicsItem *) item);
+        delete item;
+    }
+    scene_laser.clear();
+
+    /// Draw all points
+    QGraphicsPolygonItem *laser;
+    std::string color;
+    for (const auto &[dist, angle] : iter::zip(dist, angles))
+    {
+        polig << QPointF(dist * sin(angle), dist * cos(angle));
+
+        if(p_pair.size() < 2)
+            continue;
+        Mat::Vector2d a_point(p_pair[0].x(), p_pair[0].y());
+        Mat::Vector2d b_point(p_pair[1].x(), p_pair[1].y());
+        Mat::Vector2d dir = a_point - b_point;
+        Mat::Vector2d dir_perp = dir.unitOrthogonal();
+        Eigen::ParametrizedLine segment = Eigen::ParametrizedLine<double, 2>::Through(a_point, b_point);
+        Eigen::ParametrizedLine<double, 2> segment_perp((a_point+b_point)/2, dir_perp);
+        auto left = segment_perp.pointAt(50);
+        auto right = segment_perp.pointAt(-50);
+        QLineF qsegment(QPointF(a_point.x(), a_point.y()), QPointF(b_point.x(), b_point.y()));
+        QLineF qsegment_perp(QPointF(left.x(), left.y()), QPointF(right.x(), right.y()));
+
+        polig = viewer_2d->addLine(qsegment, QPen(QBrush(QColor(QString::fromStdString(color))), 20));
+        line2 = viewer_2d->addLine(qsegment_perp, QPen(QBrush(QColor(QString::fromStdString("#F0FF00"))), 20));
+        line1->setZValue(2000);
+        line2->setZValue(2000);
+        scene_laser.push_back(line1);
+        scene_laser.push_back(line2);
+    }
+    scene_laser
+}*/
 void SpecificWorker::add_or_assign_node_slot(std::uint64_t, const std::string &type)
 {
 
 }
+
