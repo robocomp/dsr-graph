@@ -6,9 +6,21 @@
 #define DSR_TEST_BASE_H
 
 #include <random>
+#include <utility>
 #include "dsr/api/dsr_api.h"
 
 static const std::string MARKER = ";";
+
+struct Operation {
+    uint32_t agent_id;
+    uint64_t timestamp;
+    std::string operation;
+    bool result;
+
+    std::string operator()() const {
+        return std::to_string(agent_id)+ ";" + std::to_string(timestamp) +";"+ operation+ ";" + std::to_string(result);
+    }
+};
 
 class DSR_test {
 public:
@@ -19,8 +31,9 @@ public:
         random_pos = std::uniform_int_distribution((int)-200, (int)200);
         random_selector = std::uniform_int_distribution(0,1);
     };
-    DSR_test( std::shared_ptr<DSR::DSRGraph> G_, const std::string& output_,const std::string& output_result_) :
-     G(G_), output(output_), output_result(output_result_)
+
+    DSR_test( std::shared_ptr<DSR::DSRGraph> G_, std::string  output_,std::string  output_result_) :
+     G(std::move(G_)), output(std::move(output_)), output_result(std::move(output_result_))
     {
             mt = std::mt19937(rd());
             dist = std::uniform_real_distribution((float)-40.0, (float)40.0);
@@ -30,7 +43,6 @@ public:
 
     //virtual ~DSR_test() {};
 
-
     virtual void save_json_result() = 0;
     virtual void run_test() = 0;
 
@@ -39,8 +51,8 @@ protected:
     std::pair<uint64_t , uint64_t> removeEdgeIDs();
     std::pair<uint64_t, uint64_t> getEdgeIDs();
 
-    int removeID();
-    int getID();
+    uint64_t removeID();
+    uint64_t getID();
 
     int rnd_selector() { return random_selector(mt); };
     float rnd_float() { return random_pos(mt); };
@@ -59,10 +71,11 @@ private:
     std::uniform_real_distribution<float> dist;
     std::uniform_int_distribution<int> random_selector, random_pos;
 
-    std::vector<std::pair<int, int>> created_edges;
+    std::vector<std::pair<uint64_t, uint64_t>> created_edges;
     std::shared_mutex mut;
 protected:
-    std::vector<int> created_nodes;
+    std::vector<uint64_t> created_nodes;
+    std::vector<Operation> operations;
 };
 
 

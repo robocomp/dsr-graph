@@ -10,9 +10,8 @@
 #include <fstream>
 
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
-void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const std::shared_ptr<DSR::DSRGraph>& G)
+void CRDT_conflict_resolution::insert_or_assign_attributes(const std::shared_ptr<DSR::DSRGraph>& G)
 {
     static int it = 0;
     while (it++ < num_ops)
@@ -28,7 +27,7 @@ void CRDT_conflict_resolution::insert_or_assign_attributes(int i, const std::sha
         std::string str = std::to_string(agent_id) + "-"+ std::to_string(it);
 
         DSR::Attribute ab (str, 0, agent_id);
-        node.value().attrs()["testattrib"] = ab;
+        node.value().attrs()["test_string_type"] = ab;
 
         G->add_or_modify_attrib_local<pos_x_att>(node.value(), rnd_float());
         G->add_or_modify_attrib_local<pos_y_att>(node.value(), rnd_float());
@@ -49,9 +48,9 @@ void CRDT_conflict_resolution::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
-        insert_or_assign_attributes(0, G);
+        insert_or_assign_attributes(G);
         end_global = std::chrono::steady_clock::now();
-        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
         result = "CONCURRENT ACCESS: conflict_resolution"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/num_ops;

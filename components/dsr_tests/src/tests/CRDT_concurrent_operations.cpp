@@ -21,7 +21,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
     while (it++ < no )
     {
         bool r = false;
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point start_ = std::chrono::steady_clock::now();
 
         // ramdomly select create or remove
         int x = rnd(mt);
@@ -30,9 +30,9 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
             {
                 // create node
                 DSR::Node node;
-                node.type("n"); //node.id(id);
+                node.type("testtype");
                 node.agent_id(agent_id);
-                //node.name("plane" + std::to_string(id));
+
                 G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
                 G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
                 G->add_attrib_local<pos_x_att>(node,  rnd_float());
@@ -50,7 +50,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
 
             }
             else {
-                int id = removeID();
+                uint64_t id = removeID();
                 if (id > -1) {
                     r = G->delete_node(id);
                     if (r)
@@ -65,7 +65,7 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
             if(rnd_selector() == 0)
             {
                 DSR::Edge edge;
-                edge.type("Edge");
+                edge.type("testtype_e");
                 //get two ids
                 edge.from(getID());
                 edge.to(getID());
@@ -92,20 +92,18 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
         else if (x == 2)
         {
             std::vector<uint64_t> keys;
-            for (auto &x : G->getCopy()){
-                keys.emplace_back(x.first);
+            for (auto &xx : G->getCopy()){
+                keys.emplace_back(xx.first);
             }
-            std::uniform_int_distribution<int> rnd = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
+            std::uniform_int_distribution<int> rnd_select = std::uniform_int_distribution(0, static_cast<int>(keys.size()-1));
             // request node
-            auto nid = keys.at(rnd(mt));
+            auto nid = keys.at(rnd_select(mt));
             //qDebug() << __FUNCTION__ << nid;
             if(nid<0) continue;
             std::optional<DSR::Node> node = G->get_node(nid);
             if (!node.has_value())
             {
                 qDebug() << "ERROR OBTENIENDO EL NODO";
-                //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                //times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
                 std::this_thread::sleep_for(std::chrono::microseconds(delay));
                 continue;
             }
@@ -126,16 +124,14 @@ void CRDT_concurrent_operations::concurrent_ops(int i, int no , const std::share
 
             if (!r) {
                 qDebug() << "ERROR INSERTANDO EL NODO";
-                //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                //times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
                 std::this_thread::sleep_for(std::chrono::microseconds(delay));
                 continue;
 
             }
         }
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point end_ = std::chrono::steady_clock::now();
         if (r)
-            times_th.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+            times_th.emplace_back(std::chrono::duration_cast<std::chrono::milliseconds>(end_ - start).count());
         std::this_thread::sleep_for(std::chrono::microseconds(delay));
     }
     {
@@ -155,15 +151,13 @@ void CRDT_concurrent_operations::run_test()
         }
         //create_or_remove_nodes(0, G);
         start_global = std::chrono::steady_clock::now();
-
-
         for (auto &t: threads) if (t.joinable()) t.join();//out = false;
 
 
         qDebug() << __FUNCTION__ << "Test finished";
 
         end_global = std::chrono::steady_clock::now();
-        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
         result = "CONCURRENT ACCESS: concurrent_operations:"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
         mean = static_cast<double>(std::accumulate(times.begin(), times.end(), 0))/(num_ops*num_threads);

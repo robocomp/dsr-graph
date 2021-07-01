@@ -24,7 +24,7 @@ static void get_node(benchmark::State& state) {
 
     for (auto _ : state) {
         auto node = G->get_node("world");
-       benchmark::DoNotOptimize(node);
+        benchmark::DoNotOptimize(node);
     }
 }
 

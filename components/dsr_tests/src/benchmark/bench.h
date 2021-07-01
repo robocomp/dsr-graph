@@ -24,10 +24,7 @@ public:
 
 private:
     Graph () {
-
-
         G = std::make_shared<DSR::DSRGraph>(0, "test", 1551);
-
     }
     std::shared_ptr<DSR::DSRGraph> G;
     std::shared_ptr<DSR::DSRGraph> G_2;

@@ -50,7 +50,6 @@ public:
 
 
     public slots:
-		void autokill();
 		void compute();
 		int startup_check();
 		void initialize(int period);
@@ -74,6 +73,7 @@ public:
 		std::string dsr_input_file;
         std::string dsr_test_file;
         std::string dsr_empty_test_file;
+        int delay;
         std::string test_name;
 		std::string MARKER = ";";
 

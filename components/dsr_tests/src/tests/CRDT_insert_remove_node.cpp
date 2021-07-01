@@ -8,7 +8,7 @@
 #include <thread>
 #include <fstream>
 
-void CRDT_insert_remove_node::create_or_remove_nodes(int i, const std::shared_ptr<DSR::DSRGraph>& G)
+void CRDT_insert_remove_node::create_or_remove_nodes(const std::shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)
@@ -20,39 +20,39 @@ void CRDT_insert_remove_node::create_or_remove_nodes(int i, const std::shared_pt
         {
             // create node
             DSR::Node node;
-            node.type("n");
-            //auto id = newID();
-            //node.id( id );
+            node.type("testtype");
             node.agent_id(0);
-            //node.name("plane" + std::to_string(id));
             G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
             G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
             G->add_attrib_local<pos_x_att>(node,  rnd_float());
             G->add_attrib_local<pos_y_att>(node,  rnd_float());
             G->add_attrib_local<parent_att>(node,  static_cast<uint64_t>(100));
 
-            //node.attrs(attrs);
-
             // insert node
             auto res = G->insert_node(node);
             if (res.has_value()) {
                 created_nodes.push_back(res.value());
+                //operations.emplace_back(Operation{0, get_unix_timestamp(), "INSERT_NODE;" + std::to_string(res.value()), true});
                 qDebug() << "Created node:" << res.value() << " Total size:" << G->size();
-            } else  qDebug() << "Error inserting node "<< " Total size:" << G->size();
+            } else  {
+                //operations.emplace_back(Operation{0, get_unix_timestamp(), "INSERT_NODE;FAIL", false});
+                qDebug() << "Error inserting node "<< " Total size:" << G->size();
+            }
 
         }
         else
         {
             //qDebug() << __FUNCTION__ << "Remove node";
-            int id = removeID();
+            uint64_t id = removeID();
             if(id>-1)
             {
                 r = G->delete_node(id);
-                if (r)
+                if (r) {
+                    //operations.emplace_back(Operation{0, get_unix_timestamp(), "DELETE_NODE;" + std::to_string(id), true});
                     qDebug() << "Deleted node:" << id << " Total size:" << G->size();
-                else {
+                } else {
+                    //operations.emplace_back(Operation{0, get_unix_timestamp(), "DELETE_NODE;FAIL(" + std::to_string(id)+ ")", false});
                     qDebug() << "Error deleting node:" << id << " Total size:" << G->size();
-
                 }
             }
         }
@@ -68,9 +68,9 @@ void CRDT_insert_remove_node::run_test()
 {
     try {
         start_global = std::chrono::steady_clock::now();
-        create_or_remove_nodes(0, G);
+        create_or_remove_nodes(G);
         end_global = std::chrono::steady_clock::now();
-        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
         result = "CONCURRENT ACCESS: create_or_remove_nodes"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 
