@@ -7,8 +7,8 @@ import subprocess
 import time
 import unittest
 from assertions import ApiAssertionsMixin
-
-os.environ['TERM'] = 'xterm'
+import itertools
+#os.environ['TERM'] = 'xterm'
 
 
 
@@ -20,14 +20,14 @@ class KillableCommand:
     def run_in_thread(self):
         environ=os.environ.copy()
         environ['PATH'] = "/opt/robocomp/bin:" + environ["PATH"]
-        command_output = subprocess.Popen(self._command,
+        print( 'xterm -hold -e bash -exec "' + self._command + '"')
+        command_output = subprocess.Popen( 'xterm -hold -e bash -exec "' + self._command + '"',
                                           stdout=subprocess.PIPE,
-                                          stderr=subprocess.STDOUT, env=environ,
-                                          shell=True,
-                                          universal_newlines=True)
+                                          stderr=subprocess.STDOUT, env=environ, universal_newlines=True,
+                                          shell=True)
 
         for stdout_line in iter(command_output.stdout.readline, ""):
-            print("%s running: %s"%(self._command.split(';')[-1], stdout_line))
+            print("%s running: %s"%(" ".join(self._command).split('&&')[-1], stdout_line))
             if self._exit:
                 print("Killing %s" % self._command)
                 command_output.kill()
@@ -50,15 +50,6 @@ class KillableCommand:
 
 class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
 
-    def test_attributes(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_attribute_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_attribute_test1"
-        JSON_1 = "../etc/change_attribute_agent0_dsr.json"
-        JSON_2 = "../etc/change_attribute_agent1_dsr.json"
-        self.rename_previous_files([JSON_1, JSON_2])
-        idserver = self.launch_commands([COMMAND_1, COMMAND_2])
-        self.open_and_compare_jsons(JSON_1, JSON_2)
-        self.finish_all(idserver)
 
     def rename_previous_files(self, files):
         assert isinstance(files, list), 'files parameter must be a list of paths to files'
@@ -67,29 +58,40 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             if os.path.exists(file):
                 os.rename(file, file+".back.%d" % timestamp)
 
+    """
+    def test_attributes(self):
+        COMMAND_1 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_attribute_test0"
+        COMMAND_2 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_attribute_test1"
+        JSON_1 = "../etc/change_attribute_agent0_dsr.json"
+        JSON_2 = "../etc/change_attribute_agent1_dsr.json"
+        self.rename_previous_files([JSON_1, JSON_2])
+        idserver = self.launch_commands([COMMAND_1, COMMAND_2])
+        self.open_and_compare_jsons(JSON_1, JSON_2)
+        self.finish_all(idserver)
+
     def test_conflict(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_conflict_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_conflict_test1"
+        COMMAND_1 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_conflict_test0"
+        COMMAND_2 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_conflict_test1"
         JSON_1 = "../etc/conflict_resolution_agent0_dsr.json"
         JSON_2 = "../etc/conflict_resolution_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
-
+    """
     def test_node(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_node_test1"
+        COMMAND_1 = "cd ../components/dsr_tests/ && ./bin/dsr_tests etc/config_node_test0"
+        COMMAND_2 = "cd ../components/dsr_tests/ && ./bin/dsr_tests etc/config_node_test1"
         JSON_1 = "../etc/insert_remove_node_agent0_dsr.json"
         JSON_2 = "../etc/insert_remove_node_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2])
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
-        
+    """  
     def test_edge(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_edge_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_edge_test1"
+        COMMAND_1 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_edge_test0"
+        COMMAND_2 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_edge_test1"
         JSON_1 = "../etc/insert_remove_edge_agent0_dsr.json"
         JSON_2 = "../etc/insert_remove_edge_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
@@ -98,8 +100,8 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
         self.finish_all(idserver)
 
     def test_concurrent(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_concurrent_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_concurrent_test1"
+        COMMAND_1 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_concurrent_test0"
+        COMMAND_2 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_concurrent_test1"
         JSON_1 = "../etc/concurrent_operations_agent0_dsr.json"
         JSON_2 = "../etc/concurrent_operations_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
@@ -109,19 +111,21 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
 
 
     def test_delayed_start(self):
-        COMMAND_1 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_delayed_test0"
-        COMMAND_2 = "cd ../components/crdt_rtps_dsr_tests; ./bin/crdt_rtps_dsr_tests etc/config_delayed_test1"
-        JSON_1 = "../etc/delayed_start_agent0_dsr.json"
-        JSON_2 = "../etc/delayed_start_agent1_dsr.json"
+        COMMAND_1 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_node_test0"
+        COMMAND_2 = "cd ../components/dsr_tests; ./bin/dsr_tests etc/config_node_test1"
+        JSON_1 = "../etc/insert_remove_node_agent0_dsr.json"
+        JSON_2 = "../etc/insert_remove_node_agent1_dsr.json"
         self.rename_previous_files([JSON_1, JSON_2])
         idserver = self.launch_commands([COMMAND_1, COMMAND_2], delay=6)
         self.open_and_compare_jsons(JSON_1, JSON_2)
         self.finish_all(idserver)
+    """
+
 
     def finish_all(self, idserver):
         idserver.terminate()
         check_kill_process("idserver")
-        check_kill_process("crdt_rtps_dsr_tests")
+        check_kill_process("dsr_tests")
 
     def open_and_compare_jsons(self, json1_path, json2_path):
         self.maxDiff = None
@@ -134,7 +138,7 @@ class ExternalToolsTester(ApiAssertionsMixin, unittest.TestCase):
             self.assertJsonEqual(data1, data2)
 
     def launch_commands(self, commands, delay=0):
-        idserver_command = KillableCommand("cd ../components/idserver_nogui; ./bin/idserver etc/config")
+        idserver_command = KillableCommand("cd ../components/idserver && ./bin/idserver etc/config")
         idserver = multiprocessing.Process(target=idserver_command.run_in_thread)
         jobs = []
         for command in commands:

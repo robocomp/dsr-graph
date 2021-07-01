@@ -72,8 +72,9 @@ class SpecificWorker(GenericWorker):
         
         #SCENE_FILE = '../../etc/autonomy_lab_no_arm_bill.ttt'
         #SCENE_FILE = '../../etc/autonomy_lab_bill.ttt'
-        SCENE_FILE = '../../etc/autonomy_lab_no_arm_no_middle_wall.ttt'
-
+        SCENE_FILE = '../../etc/autonomy_lab_no_arm_middle_wall.ttt'
+        #SCENE_FILE = '../../etc/autonomy_lab_no_arm_no_middle_wall.ttt'
+        
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
         self.pr.start()
@@ -192,7 +193,7 @@ class SpecificWorker(GenericWorker):
         while True:
             self.pr.step()
             self.read_cameras()
-            self.read_people()
+            #self.read_people()
             self.read_laser()
             self.read_joystick()
             self.read_robot_speed()

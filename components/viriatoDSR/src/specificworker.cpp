@@ -38,8 +38,9 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	G->write_to_json_file("./"+agent_name+".json");
-    G.reset();
+	//G->write_to_json_file("./"+agent_name+".json");
+    dsr_agent_info.reset();
+	G.reset();
 }
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
@@ -68,6 +69,7 @@ void SpecificWorker::initialize(int period)
 
         //Inner Api
         inner_eigen = G->get_inner_eigen_api();
+        dsr_agent_info = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
         // dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);

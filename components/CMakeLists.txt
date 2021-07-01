@@ -13,15 +13,15 @@ add_subdirectory( viriatoDSR )
 #add_subdirectory( social_navigation )
 #add_subdirectory( social_rules )
 #add_subdirectory( watcherDSR )
-#add_subdirectory( elastic_band )
-#add_subdirectory( path_follower )
-#add_subdirectory( path_planner_astar )
-#add_subdirectory( mission_controller_viriato )
+add_subdirectory( elastic_band )
+add_subdirectory( path_follower )
+add_subdirectory( path_planner_astar )
+add_subdirectory( mission_controller_viriato )
 
 #add_subdirectory( graspDSR )
 
-#add_subdirectory( yolov4-detector )
-#add_subdirectory( pan_tilt_attention_control )
+add_subdirectory( yolov4-detector )
+add_subdirectory( pan_tilt_attention_control )
 
 
 add_subdirectory( dsr_tests )

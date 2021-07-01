@@ -60,6 +60,7 @@ private:
     std::string agent_name;
     bool startup_check_flag;
     std::unique_ptr<DSR::DSRViewer> dsr_viewer;
+    std::unique_ptr<DSR::AgentInfoAPI> dsr_agent_info;
 	QHBoxLayout mainLayout;
 	QWidget window;
     uint64_t node_id = 0;

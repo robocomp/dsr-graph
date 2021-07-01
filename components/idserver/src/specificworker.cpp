@@ -78,6 +78,7 @@ void SpecificWorker::initialize(int period)
             std::terminate();
         }
 
+        //dsr_agent_info = std::make_unique<DSR::AgentInfoAPI>(G.get());
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;

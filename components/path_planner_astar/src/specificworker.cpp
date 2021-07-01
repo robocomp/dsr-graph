@@ -202,22 +202,22 @@ void SpecificWorker::compute()
     {}
 
     //Social Grid
-//    if(grid_updated)
-//    {
-//        cout<<"Updating grid ---------------------------------------"<<endl;
-//        if (auto node = G->get_node("social_grid"); node.has_value())
-//        {
-//            if (auto social_grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); social_grid_as_string.has_value()){
-//                grid.readFromString(social_grid_as_string.value());
-//                grid.saveToFile("grid.txt");
-//            }
-//        }
-//        if (widget_2d != nullptr){
-//            cout<<"drawing grid"<<endl;
-//            grid.draw(&widget_2d->scene);
-//        }
-//        grid_updated = false;
-//    }
+    if(grid_updated)
+    {
+        cout<<"Updating grid ---------------------------------------"<<endl;
+        if (auto node = G->get_node("social_grid"); node.has_value())
+        {
+            if (auto social_grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); social_grid_as_string.has_value()){
+                grid.readFromString(social_grid_as_string.value());
+                grid.saveToFile("grid.txt");
+            }
+        }
+        if (widget_2d != nullptr){
+            cout<<"drawing grid"<<endl;
+            grid.draw(&widget_2d->scene);
+        }
+        grid_updated = false;
+    }
 }
 
 void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, bool read_from_file, const std::string file_name)
