@@ -1,0 +1,63 @@
+version: '2'
+services:
+    idserver:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd idserver && (./bin/idserver etc/config_pioneer)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - /:/
+        user: robolab
+        
+    pioneer_dsr:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd pioneer_dsr && (./bin/pioneer_dsr etc/config_coppelia)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        user: robolab
+        depends_on:
+            - idserver
+            - rcnode
+            
+    rcnode:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "rcnode"
+        user: robolab
+        
+    
+    elastic_band:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd elastic_band && (./bin/elastic_band etc/config_pioneer)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        user: robolab
+        
+    
+    path_follower:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd path_follower && (./bin/path_follower etc/config_pioneer)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        user: robolab
+        
+    path_planner_astar:
+        network_mode: host
+        image: robocomp/robocomp:focal_dsr_dev
+        entrypoint: sh -c "cd path_planner_astar && (./bin/path_planner_astar etc/config_pioneer)"
+        environment: 
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        user: robolab
