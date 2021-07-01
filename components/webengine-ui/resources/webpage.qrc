@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>page.html</file>
+        <file>leaflet.js</file>
+        <file>leaflet.css</file>
+        <file>leaflet_omnivore.js</file>
+        <file>qwebchannel.js</file>
+    </qresource>
+</RCC>

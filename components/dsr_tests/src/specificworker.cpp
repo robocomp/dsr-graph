@@ -24,7 +24,6 @@
 #include "tests/CRDT_insert_remove_edge.h"
 #include "tests/CRDT_conflict_resolution.h"
 #include "tests/CRDT_concurrent_operations.h"
-#include "tests/CRDT_delayed_start.h"
 
 
 /**
@@ -33,7 +32,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
     this->startup_check_flag = startup_check;
-    connect(&autokill_timer, SIGNAL(timeout()), this, SLOT(autokill()));
+    //connect(&autokill_timer, SIGNAL(timeout()), this, SLOT(autokill()));
 }
 
 /**
@@ -62,7 +61,16 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params) {
     dsr_input_file = params["dsr_input_file"].value;
     test_output_file = params["test_output_file"].value;
     dsr_input_file = params["dsr_input_file"].value;
-
+    try {
+        delay = std::stoi(params["dsr_test_delay"].value);
+    } catch (std::invalid_argument& e)
+    {
+        qWarning() <<"Invalid value [" << params["dsr_test_delay"].value.c_str() << "] on config argument dsr_test_delay. Setting value to default [10]";
+        delay = 10;
+    } catch (std::out_of_range & e) {
+        qWarning() <<"Out of range value [" << params["dsr_test_delay"].value.c_str() << "] on config argument dsr_test_delay. Setting value to default [10]";
+        delay = 10;
+    }
     test_name = params["test_name"].value;
     return true;
 }
@@ -100,7 +108,7 @@ void SpecificWorker::compute()
     switch(std::distance(tests.begin(), iter)){
         case 0: {
             qDebug() << "INSERT AND REMOVE NODES TEST:";
-            CRDT_insert_remove_node concurrent_test = CRDT_insert_remove_node( G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_node concurrent_test ( G, dsr_output_file, test_output_file, 2500, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -108,7 +116,7 @@ void SpecificWorker::compute()
         }
         case 1: {
             qDebug() << "INSERT AND REMOVE EDGES TEST:";
-            CRDT_insert_remove_edge concurrent_test = CRDT_insert_remove_edge(G, dsr_output_file, test_output_file, 2500);
+            CRDT_insert_remove_edge concurrent_test (G, dsr_output_file, test_output_file, 2500, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -116,7 +124,7 @@ void SpecificWorker::compute()
         }
         case 2: {
             qDebug() << "CHANGE ATTRIBUTES TEST:";
-            CRDT_change_attribute concurrent_test = CRDT_change_attribute( G, dsr_output_file,  test_output_file,5000, agent_id);
+            CRDT_change_attribute concurrent_test ( G, dsr_output_file,  test_output_file,5000, agent_id, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -124,7 +132,7 @@ void SpecificWorker::compute()
         }
         case 3: {
             qDebug() << "CONFLICT RESOLUTION TEST:";
-            CRDT_conflict_resolution concurrent_test = CRDT_conflict_resolution(G, dsr_output_file, test_output_file, 10000, agent_id);
+            CRDT_conflict_resolution concurrent_test (G, dsr_output_file, test_output_file, 10000, agent_id, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
@@ -132,24 +140,23 @@ void SpecificWorker::compute()
         }
         case 4: {
             qDebug() << "CONCURRENT OPERATIONS TEST:";
-            CRDT_concurrent_operations concurrent_test = CRDT_concurrent_operations(G, dsr_output_file,  test_output_file, 1000, 20, agent_id);
+            CRDT_concurrent_operations concurrent_test (G, dsr_output_file,  test_output_file, 1000, 20, agent_id, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (15));
             concurrent_test.save_json_result();
             break;
         }
-        case 5: {
+        /*case 5: {
             qDebug() << "DELAYED START TEST:";
-            CRDT_delayed_start concurrent_test = CRDT_delayed_start(G, dsr_output_file,  test_output_file,1200, agent_id);
+            CRDT_delayed_start concurrent_test (G, dsr_output_file,  test_output_file,1200, agent_id, 10);
             concurrent_test.run_test();
             std::this_thread::sleep_for(std::chrono::seconds (20));
             concurrent_test.save_json_result();
             break;
-        }
+        }*/
         case 6: {
             qDebug() << "DUMMY:";
-            exit_ = false;
-            break;
+            exit(0);
         }
         default: {
             qDebug() << "TEST NOT FOUND";
@@ -162,10 +169,4 @@ void SpecificWorker::compute()
 
 }
 
-
-void SpecificWorker::autokill()
-{
-//    G->write_to_json_file(dsr_output_file);
-    exit(0);
-}
 

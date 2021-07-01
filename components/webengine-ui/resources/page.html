@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="qrc:///leaflet.css" crossorigin="" />
+    <script src="qrc:///leaflet.js" crossorigin=""></script>
+    <script src='qrc:///leaflet_omnivore.js'></script>
+    <script src="qrc:///qwebchannel.js"></script>
+    <style>
+        #mapid {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            /* The height of the header */
+            bottom: 0;
+            left: 0;
+        }
+
+        .margin-left-1rem {
+            margin-left: 1rem;
+        }
+
+        .padding-left-1rem {
+            padding-left: 1rem;
+        }
+
+        .padding-left-3rem {
+            padding-left: 3rem;
+        }
+
+        .leaflet-divicon
+        {
+            background: rgb(255, 115, 60);
+            border:1px solid rgb(0, 0, 0);
+            border-radius:50%;
+        }
+
+    </style>
+    <title>Visor Diputación</title>
+</head>
+
+<body>
+<div id='mapid'></div>
+
+<script>
+    //document.getElementById("MyWebView").openDevTools();
+
+    //Create the map object and insert the div with id 'mapid'. The initial coordinates 39.47.. and -6.34.. are selected.
+    // and zoom 20.
+    var map = L.map('mapid', { zoomDelta: 0.5, zoomSnap: 0.5 }).setView([39.479076, -6.342119], 15);
+
+    //Loading the map display layer.
+    var streets = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZmFoYW5pIiwiYSI6ImNqMTZiYm4xMjAyYjEzMnFxdmxnd2V3cHkifQ.-8Hau4tMxMiiSF-9D5AAYA', { maxZoom: 25 }).addTo(map);
+
+
+    /*
+    function textQtWebchannel() {
+        if (typeof QWebChannel != 'undefined') {
+            console.log("QWebChannel on");
+        } else {
+            console.log("QWebChannel off");
+        }
+
+        if (typeof navigator != 'undefined') {
+            console.log("navigator on");
+
+            if (typeof navigator.qtWebChannelTransport != 'undefined') {
+                console.log("navigator.qtWebChannelTransport on");
+            } else {
+                console.log("navigator.qtWebChannelTransport off");
+            }
+        } else {
+            console.log("navigator off");
+        }
+
+        if (typeof qt != 'undefined') {
+            console.log("qt on");
+
+            if (typeof qt.webChannelTransport != 'undefined') {
+                console.log("qt.webChannelTransport on");
+
+                new QWebChannel(qt.webChannelTransport, function(channel) {
+                    window.VisJsApi = channel.objects.VisJsApi;
+                    window.VPntr = channel.objects.VPntr;
+                });
+
+            } else {
+                console.log("qt.webChannelTransport off");
+            }
+        } else {
+            console.log("qt off");
+        }
+    }
+    textQtWebchannel();
+*/
+    var robotIcon = L.divIcon({className: "leaflet-divicon", iconSize: [4, 4]}); //new L.Icon({iconUrl: "qrc:///robot.png", iconSize: [15, 15]});
+    var marker = new Map();
+    var current_event;
+    map.on("zoomstart", (event) => {
+        current_event = event;
+    });
+
+    map.on("zoomend", (event) => {
+        current_event = undefined;
+    });
+
+    var pos;
+
+    window.webChannelPosition = new QWebChannel(qt.webChannelTransport, function(channel)
+    {
+        pos = channel.objects.ObjectPositions;
+        console.log(pos.positions);
+        pos.pos_changed.connect((name) => {
+            //console.log("Event", name, marker);
+            if (marker.has(name)) {
+                if (!current_event) {
+                    pos.get_pos(name, (p) => {
+                        map.removeLayer(marker.get(name))
+                        marker.set(name, L.marker([p.x, p.y], {icon: robotIcon}).addTo(map));
+                    });
+                }
+            } else {
+                pos.get_pos(name, (p) => {
+                    marker.set(name,  L.marker([p.x, p.y], {icon: robotIcon}).addTo(map));
+                });
+            }
+        });
+    });
+
+    /*
+    //It doesn't work until we put https in zato
+    //Put a marker in the user position
+    function onLocationFound(e) {
+        var radius = e.accuracy;
+
+        L.marker(e.latlng).addTo(map)
+            .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+        L.circle(e.latlng, radius).addTo(map);
+    }
+
+    //callback invoked when the location is found.
+    map.on('locationfound', onLocationFound);
+
+    //Get the location every 5 seconds
+    locate = () => map.locate({setView: true, maxZoom: 16});
+    setInterval(locate, 5000);
+    */
+
+</script>
+
+</body>
+
+</html>

@@ -2,15 +2,13 @@
 // Created by juancarlos on 7/5/20.
 //
 
-#include <QtCore/qlogging.h>
+#include<QtCore/qlogging.h>
 #include <QtCore/qdebug.h>
 #include "CRDT_change_attribute.h"
 #include <thread>
 #include <random>
 #include <fstream>
-
 #include <type_traits>
-REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
 void CRDT_change_attribute::insert_or_assign_attributes(int i, const std::shared_ptr<DSR::DSRGraph>& G)
 {
@@ -40,9 +38,11 @@ void CRDT_change_attribute::insert_or_assign_attributes(int i, const std::shared
         std::string str = std::to_string(agent_id) + "-" + std::to_string(i) + "_" + std::to_string(it);
 
         if (rnd_selector()) {
-            G->add_or_modify_attrib_local<testattrib_att>(node.value(), str) ;
+            G->add_or_modify_attrib_local<test_string_type_att>(node.value(), str) ;
+            //operations.emplace_back(Operation{0, get_unix_timestamp(), "UPDATE_NODE_ATT;" + std::to_string(node.id()), true});
         } else {
-            G->remove_attrib_local(node.value(), "testattrib") ;
+            G->remove_attrib_local(node.value(), "test_string_type") ;
+            //operations.emplace_back(Operation{0, get_unix_timestamp(), "DELETE_NODE_ATT;" + std::to_string(node.id()) , true});
         }
         
         G->add_or_modify_attrib_local<pos_x_att>(node.value(),  rnd_float());
@@ -70,7 +70,7 @@ void CRDT_change_attribute::run_test()
         start_global = std::chrono::steady_clock::now();
         insert_or_assign_attributes(0, G);
         end_global = std::chrono::steady_clock::now();
-        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
         result = "CONCURRENT ACCESS: insert_or_assign_attributes"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly ";
         qDebug()<< QString::fromStdString(result);
 

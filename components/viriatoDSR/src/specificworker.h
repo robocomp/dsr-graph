@@ -29,6 +29,7 @@
 #include <innermodel/innermodel.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+#include "dsr/api/dsr_agent_info_api.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include  "../../../etc/graph_names.h"
 #include <chrono>

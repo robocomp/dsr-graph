@@ -11,7 +11,7 @@
 #include <type_traits>
 REGISTER_TYPE(testattrib, std::reference_wrapper<const std::string>, false)
 
-void CRDT_insert_remove_edge::create_or_remove_edges(int i, const std::shared_ptr<DSR::DSRGraph>& G)
+void CRDT_insert_remove_edge::create_or_remove_edges(const std::shared_ptr<DSR::DSRGraph>& G)
 {
     static int it=0;
     while (it++ < num_ops)
@@ -22,10 +22,11 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const std::shared_pt
         if(rnd_selector() == 0)
         {
             DSR::Edge edge;
-            edge.type("Edge");
+            edge.type("testtype_e");
             //get two ids
             edge.from(getID());
             edge.to(getID());
+
             G->add_attrib_local<name_att>(edge,  std::string("fucking_plane"));
             G->add_attrib_local<color_att>(edge,  std::string("SteelBlue"));
 
@@ -33,16 +34,22 @@ void CRDT_insert_remove_edge::create_or_remove_edges(int i, const std::shared_pt
             if (r) {
                 addEdgeIDs(edge.from(), edge.to());
                 qDebug() << "Created edge:" << edge.from() << " - " << edge.to();
+                operations.emplace_back(Operation{0, get_unix_timestamp(), "INSERT_EDGE;(" + std::to_string(edge.from()) + "," + std::to_string(edge.to()) + ")", true});
+            } else {
+                operations.emplace_back(Operation{0, get_unix_timestamp(), "INSERT_EDGE;FAIL(" + std::to_string(edge.from()) + "," + std::to_string(edge.to()) + ")", true});
             }
         }
         else
         {
             //get two ids
             auto [from, to] = removeEdgeIDs();
-            r = G->delete_edge(from, to, "Edge");
-            if (r)
-                qDebug() << "Deleted edge :"  << from << " - " << to ;
-
+            r = G->delete_edge(from, to, "testtype_e");
+            if (r) {
+                //operations.emplace_back(Operation{0, get_unix_timestamp(), "DELETE_EDGE;(" + std::to_string(from) + "," + std::to_string(to) + ")", true});
+                qDebug() << "Deleted edge :" << from << " - " << to;
+            } else {
+                //operations.emplace_back(Operation{0, get_unix_timestamp(), "DELETE_EDGE;FAIL(" + std::to_string(from) + "," + std::to_string(to) + ")", true});
+            }
         }
         end = std::chrono::steady_clock::now();
         if (r)
@@ -58,7 +65,7 @@ void CRDT_insert_remove_edge::run_test()
         int i = 0;
         while (i++ < 20) {
             DSR::Node node;
-            node.type("other");
+            node.type("testtype");
             node.agent_id(0);
             G->add_attrib_local<name_att>(node, std::string("fucking_plane"));
             G->add_attrib_local<color_att>(node, std::string("SteelBlue"));
@@ -71,13 +78,14 @@ void CRDT_insert_remove_edge::run_test()
             if (id.has_value()) {
                 qDebug() << "Created node:" << id.value() << " Total size:" << G->size();
                 created_nodes.push_back(id.value());
+                operations.emplace_back(Operation{0, get_unix_timestamp(), "INSERT_NODE;" + std::to_string(id.value()), true});
             }
         }
 
         start_global = std::chrono::steady_clock::now();
-        create_or_remove_edges(0, G);
+        create_or_remove_edges(G);
         end_global = std::chrono::steady_clock::now();
-        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
+        uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(end_global - start_global).count();
         result = "CONCURRENT ACCESS: create_or_remove_edges"+ MARKER + "OK"+ MARKER + std::to_string(time) + MARKER + "Finished properly";
         //write_test_output(result);
         qDebug()<< QString::fromStdString(result);

@@ -6,7 +6,6 @@ SET ( SOURCES
   tests/CRDT_change_attribute.cpp
   tests/CRDT_concurrent_operations.cpp
   tests/CRDT_conflict_resolution.cpp
-  tests/CRDT_delayed_start.cpp
   tests/CRDT_insert_remove_edge.cpp
   tests/CRDT_insert_remove_node.cpp
   tests/DSR_test.cpp

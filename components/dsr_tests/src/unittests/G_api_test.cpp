@@ -14,7 +14,7 @@
 
 CATCH_CONFIG_MAIN
 
-REGISTER_EDGE_TYPE(testtype_e);
+//REGISTER_EDGE_TYPE(testtype_e);
 REGISTER_NODE_TYPE(testtype_n);
 
 

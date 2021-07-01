@@ -106,6 +106,8 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
     params["test_output_file"] = aux;
     configGetString( "","test_name", aux.value, "");
     params["test_name"] = aux;
+    configGetString( "","dsr_test_delay", aux.value, "10");
+    params["dsr_test_delay"] = aux;
     //configGetString( "","gui", aux.value, "true");
     //params["gui"] = aux;
 }

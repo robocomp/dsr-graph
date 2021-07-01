@@ -17,7 +17,7 @@ NavigationAgent.read_from_file = true
 
 NavigationAgent.MaxZSpeed = 650
 NavigationAgent.MaxXSpeed = 450
-NavigationAgent.MaxRotationSpeed = 2 
+NavigationAgent.MaxRotationSpeed = 2
 
 NavigationAgent.RobotXWidth = 540
 NavigationAgent.RobotZLong = 460

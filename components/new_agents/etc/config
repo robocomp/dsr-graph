@@ -1,0 +1,24 @@
+CommonBehavior.Endpoints=tcp -p 10008
+
+
+# Proxies for required interfaces
+DSRGetID.Endpoints=tcp -p 11000
+
+agent_id = 1000
+agent_name = new_agent
+dsr_input_file = ../../etc/autonomyLab_one_room.simscene.json
+
+
+tree_view = false
+graph_view = true
+2d_view = false
+3d_view = false
+
+dsr_output_path = ../../etc/
+dsr_write_to_file = false
+period = 1000
+
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
