@@ -8,7 +8,6 @@ services:
             - DISPLAY=$DISPLAY
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /:/
         user: robolab
         
     pioneer_dsr:
@@ -23,6 +22,7 @@ services:
         depends_on:
             - idserver
             - rcnode
+            - coppelia
             
     rcnode:
         network_mode: host
@@ -61,3 +61,13 @@ services:
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
         user: robolab
+
+    coppelia:
+        network_mode: host
+        build: docker-image-coppeliasim
+        environment:
+            - DISPLAY=$DISPLAY
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - ./docker-image-coppeliasim/shared:/shared
+
