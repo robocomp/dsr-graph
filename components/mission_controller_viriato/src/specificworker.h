@@ -28,7 +28,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include  "../../../etc/viriato_graph_names.h"
+#include  "../../../etc/graph_names.h"
 #include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"

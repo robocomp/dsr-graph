@@ -133,6 +133,7 @@ void SpecificWorker::compute()
     static std::chrono::steady_clock::time_point begin, lastPathStep;
     static int last_selected_index = custom_widget.comboBox_select_target->currentIndex();
     static int last_path_size;
+
     // check for existing missions
     static Plan plan;
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
@@ -141,14 +142,15 @@ void SpecificWorker::compute()
         plan.print();
         custom_widget.current_plan->setPlainText(QString::fromStdString(plan.pprint()));
         plan.set_active(true);
-        qInfo() << "Iterations: " << iterations++;
+        qInfo() << __FUNCTION__ << " Iterations: " << iterations++;
     }
     if(plan.is_active())
     {
         if( auto path = path_buffer.try_get(); path.has_value())
         {
-            qInfo() << "Siguiendo el plan...";
-            if(!primera_vez) {
+            qInfo() << __FUNCTION__ << " Siguiendo el plan...";
+            if(!primera_vez)
+            {
                 primera_vez = true;
                 begin = lastPathStep = std::chrono::steady_clock::now();
                 last_path_size = path.value().size();
@@ -169,7 +171,7 @@ void SpecificWorker::compute()
                 lastPathStep = std::chrono::steady_clock::now();
             float dist = (robot_pose - plan.get_target_trans()).norm();
             auto now = std::chrono::steady_clock::now();
-            auto time_delta_s = std::chrono::duration_cast<std::chrono::seconds>(now - lastPathStep).count();
+            auto time_delta_s = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPathStep).count();
             qInfo() << __FUNCTION__ << "Tiempo desde el último paso: " << time_delta_s << "s";
             auto acceptable_distance = 1 + int(K * time_delta_s);
             if (path.value().size() <= acceptable_distance or dist < 200)
@@ -180,7 +182,7 @@ void SpecificWorker::compute()
                 primera_vez = false;
                 std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
                 auto d=std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-                qInfo() << __FUNCTION__ << "Tiempo: " << d << "s";
+                qInfo() << __FUNCTION__ << " Tiempo: " << d << " s";
                 if(custom_widget.checkBox_cyclic->isChecked())  // cycli
                 {
                     std::random_device rd; std::mt19937 mt(rd());
@@ -189,13 +191,12 @@ void SpecificWorker::compute()
                     do { new_index = random_index(mt);}
                     while( new_index == last_selected_index);  //avoid repeating rooms
                     last_selected_index = new_index;
-                    qInfo() << __FUNCTION__ << "new index selected" << new_index;
+                    qInfo() << __FUNCTION__ << " new index selected" << new_index;
                     custom_widget.comboBox_select_target->setCurrentIndex(last_selected_index);
                     slot_start_mission();
                 }
             }
-            else
-                qInfo() << __FUNCTION__ << "Path size: " << path.value().size();
+            else  qInfo() << __FUNCTION__ << "Path size: " << path.value().size();
         }
     }
     else
@@ -383,11 +384,20 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 
 void SpecificWorker::update_room_list()
 {
-    auto nodes = G->get_nodes_by_type(std::string(room_type_name));
+    auto room_nodes = G->get_nodes_by_type(std::string(room_type_name));
+    auto cup_nodes = G->get_nodes_by_type(std::string(cup_type_name));
+    auto oven_nodes = G->get_nodes_by_type(std::string(oven_type_name));
+    auto glass_nodes = G->get_nodes_by_type(std::string(glass_type_name));
+    auto refrigerator_nodes = G->get_nodes_by_type(std::string(refrigerator_type_name));
+    auto vase_nodes = G->get_nodes_by_type(std::string(vase_type_name));
+
     QStringList node_names = QStringList();
     custom_widget.comboBox_select_target->clear();
-    for (auto node : nodes)
+    for (auto node : room_nodes)
         node_names.insert(0, QString::fromStdString(node.name()));
+    for (auto node : refrigerator_nodes)
+        node_names.insert(0, QString::fromStdString(node.name()));
+
     custom_widget.comboBox_select_target->insertItems(0, node_names);
 }
 
@@ -443,37 +453,40 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// UI
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void SpecificWorker::slot_start_mission()
 {
     std::string name = custom_widget.comboBox_select_target->currentText().toStdString();
-    qInfo() << __FUNCTION__ << "New mission to " << QString::fromStdString(name);
+    qInfo() << __FUNCTION__ << " New mission to " << QString::fromStdString(name);
 
     if (auto node = G->get_node(name); node.has_value())
     {
-        auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(node.value());
-        auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(node.value());
-        if (polygon_x.has_value() and polygon_y.has_value())
+        if( node.value().type() == room_type_name)
         {
-            QPolygonF pol;
-            for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
-                pol << QPointF(px, py);
-            QRectF rect = pol.boundingRect();
-            QPointF pos = rect.center();
-            if (custom_widget.checkBox_random->isChecked())
+            auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(node.value());
+            auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(node.value());
+            if (polygon_x.has_value() and polygon_y.has_value())
             {
-                std::random_device rd;
-                std::mt19937 mt(rd());
-                std::uniform_int_distribution<int> dist_x(-rect.width()/3, rect.width()/3);
-                std::uniform_int_distribution<int> dist_y(-rect.height()/3, rect.height()/3);
-                pos.setX(pos.x()+dist_x(mt));
-                pos.setY(pos.y()+dist_y(mt));
-            }
-            create_mission(pos, node.value().id());
+                QPolygonF pol;
+                for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
+                    pol << QPointF(px, py);
+                QRectF rect = pol.boundingRect();
+                QPointF pos = rect.center();
+                if (custom_widget.checkBox_random->isChecked())
+                {
+                    std::random_device rd;
+                    std::mt19937 mt(rd());
+                    std::uniform_int_distribution<int> dist_x(-rect.width() / 3, rect.width() / 3);
+                    std::uniform_int_distribution<int> dist_y(-rect.height() / 3, rect.height() / 3);
+                    pos.setX(pos.x() + dist_x(mt));
+                    pos.setY(pos.y() + dist_y(mt));
+                }
+                create_mission(pos, node.value().id());
+            } else
+                qWarning() << __FUNCTION__ << " No delimiting polygon atts";
         }
     }
+    else qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(name) << " found in G";
 }
-
 void SpecificWorker::slot_stop_mission()
 {
     qInfo() << __FUNCTION__  ;
@@ -504,7 +517,6 @@ void SpecificWorker::slot_stop_mission()
     else
         qWarning() << __FUNCTION__ << "No intention node found";
 }
-
 void SpecificWorker::slot_cancel_mission()
 {
     slot_stop_mission();
