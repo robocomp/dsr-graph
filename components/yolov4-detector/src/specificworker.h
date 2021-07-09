@@ -43,7 +43,7 @@
 #include <fps/fps.h>
 #include <doublebuffer/DoubleBuffer.h>
 #include <random/random_selector.h>
-#include  "../../../etc/viriato_graph_names.h"
+#include  "../../../etc/graph_names.h"
 #include "plan.h"
 #include <Eigen/Core>
 
