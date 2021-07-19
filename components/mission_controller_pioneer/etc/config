@@ -1,7 +1,7 @@
 CommonBehavior.Endpoints=tcp -p 10117
 
 agent_id = 17 # Change id
-agent_name = controller_dsr
+agent_name = mission_controller_pioneer
 tree_view = false
 graph_view = true
 2d_view = true

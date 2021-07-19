@@ -884,11 +884,6 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
     }
 }
 
-//void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
-//{
-//    if(from == G->get_node(world_name).value().id() and to == G->get_node(robot_name).value().id() and type == "RT")
-//            compute_visible_objects();
-//}
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::clear_button_slot()
 {

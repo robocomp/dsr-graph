@@ -368,21 +368,21 @@ std::list<QPointF> Grid::computePath(const QPointF &source_, const QPointF &targ
         {
             //qInfo() << __FILE__ << __FUNCTION__  << "Min distance found:" << min_distance[fmap.at(where).id];  //exit point
             auto p = orderPath(previous, source, target);
-            qInfo() << "p.size() = " << p.size();
+            //qInfo() << "p.size() = " << p.size();
             //esto es solo pa cd encuentra un path eh xd
             if (p.size() > 1)
                 return p;
             else
                 return std::list<QPointF>();
         }
-        qInfo() << i++ << ": No where == target";
+        //qInfo() << i++ << ": No where == target";
         active_vertices.erase(active_vertices.begin());
         for (auto ed : neighboors_8(where))
         {
-            qInfo() << __FUNCTION__ << min_distance[ed.second.id] << ">" << min_distance[fmap.at(where).id] << "+" << ed.second.cost;
+            //qInfo() << __FUNCTION__ << min_distance[ed.second.id] << ">" << min_distance[fmap.at(where).id] << "+" << ed.second.cost;
             if (min_distance[ed.second.id] > min_distance[fmap.at(where).id] + ed.second.cost)
             {
-                qInfo() << "considerando este neighbor" << endl;
+                //qInfo() << "considerando este neighbor" << endl;
                 active_vertices.erase({min_distance[ed.second.id], ed.first});
                 min_distance[ed.second.id] = min_distance[fmap.at(where).id] + ed.second.cost;
                 previous[ed.second.id] = std::make_pair(fmap.at(where).id, where);

@@ -32,7 +32,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
 #include <custom_widget.h>
-#include  "/home/robocomp/robocomp/components/Robotica-avanzada/etc/pioneer_world_names.h"
+#include  "../../../etc/graph_names.h"
 #include <opencv2/opencv.hpp>
 #include "plan.h"
 

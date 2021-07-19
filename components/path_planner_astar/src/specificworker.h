@@ -38,30 +38,6 @@
 #include <doublebuffer/DoubleBuffer.h>
 #include "plan.h"
 
-//class Plan
-//{
-//    public:
-//        enum class Actions {GOTO};
-//        Actions action;
-//        std::string target_place;
-//        std::map<std::string, double> params;
-//        bool is_active = false;
-//        bool is_location(const Mat::Vector2d &loc)
-//        {
-//            return Mat::Vector2d(params.at("x"), params.at("y")) == loc;
-//        }
-//        void print()
-//        {
-//            std::cout << "------ Begin Plan ----------" << std::endl;
-//            std::cout << "\t Action: " << action_strings[action] << " Taget_place: " << target_place << std::endl;
-//            for(auto &&[k,v]: params)
-//                std::cout << "\t par1: " << k << " : " << std::to_string(v) << std::endl;
-//            std::cout << "------ End Plan ----------" << std::endl;
-//        };
-//
-//    private:
-//        std::map<Actions, std::string> action_strings{{Actions::GOTO, "GOTO"}};
-//};
 
 class SpecificWorker : public GenericWorker
 {
