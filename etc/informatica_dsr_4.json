@@ -1055,6 +1055,29 @@
             "src": "1"
           },
           {
+            "dst": "446",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  1.570796012878418
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  -600,
+                  -13596.990234375,
+                  1200
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
             "dst": "47",
             "label": "RT",
             "linkAttribute": {
@@ -3823,6 +3846,50 @@
         "id": "49",
         "links": [],
         "name": "wall_40",
+        "type": "plane"
+      },
+      "446": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 2400
+          },
+          "height": {
+            "type": 1,
+            "value": 1010
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -129
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -20
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 150
+          }
+        },
+        "id": "446",
+        "links": [],
+        "name": "wall_115",
         "type": "plane"
       },
       "5": {

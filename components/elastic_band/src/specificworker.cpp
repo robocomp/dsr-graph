@@ -304,13 +304,17 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
                 {   // compute distance from laser measure to delta points minus RLENGTH/2 or 0 and keep it positive
 
                     if (QVector2D(lr).length() >= constants.max_laser_range)  // if laser at MAX_RANGE, discard
-                        pdx[i] = mdx[i] = pdy[i] = mdy[i] = constants.very_large_distance;
+                        pdx[i] = mdx[i] = pdy[i] = mdy[i] = 0.f;
                     else
                     {
                         pdx[i] = QVector2D(p + QPointF(constants.delta, 0.f) - lc).length() - (constants.robot_radius);
+                        if(pdx[i] > constants.max_distance_range) pdx[i] = 0.f;
                         mdx[i] = QVector2D(p + QPointF(-constants.delta, 0.f) - lc).length() - (constants.robot_radius);
+                        if(mdx[i] > constants.max_distance_range) mdx[i] = 0.f;
                         pdy[i] = QVector2D(p + QPointF(0.f, constants.delta) - lc).length() - (constants.robot_radius);
+                        if(pdy[i] > constants.max_distance_range) pdy[i] = 0.f;
                         mdy[i] = QVector2D(p + QPointF(0.f, -constants.delta) - lc).length() - (constants.robot_radius);
+                        if(mdy[i] > constants.max_distance_range) mdy[i] = 0.f;
                     }
                     i++;
                 };
@@ -335,13 +339,14 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             total_energy += total.length();
 
             // for drawing
-            try
-            {
-                auto p_draw = QVector2D(path.at(index_of_p_in_path));
-                forces_vector.push_back(std::make_tuple(p_draw, (total + p_draw) * 1.1));
-            }
-            catch (const std::exception &e)
-            { std::cout << e.what() << std::endl; };
+            if( total.length() > 10)
+                try
+                {
+                    auto p_draw = QVector2D(path.at(index_of_p_in_path));
+                    forces_vector.push_back(std::make_tuple(p_draw, (total + p_draw) * 1.1));
+                }
+                catch (const std::exception &e)
+                { std::cout << e.what() << std::endl; };
 
             /// Compute additional restrictions to be forced in the minimization process
             QPointF temp_p = p + total.toPointF();

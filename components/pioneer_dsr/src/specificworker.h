@@ -58,6 +58,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::unique_ptr<DSR::RT_API> rt;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
 
         //DSR params

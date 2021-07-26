@@ -178,7 +178,7 @@ void SpecificWorker::compute()
         custom_widget.current_plan->setPlainText(QString::fromStdString(current_plan.pprint()));
     }
     // Follow current mission and check for plan completion and remove path and intntion node from G
-    
+
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 

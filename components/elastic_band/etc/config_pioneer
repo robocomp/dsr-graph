@@ -21,8 +21,8 @@ robot_radius = 250
 external_forces_gain = 25
 internal_forces_gain = 12
 delta_derivation_step = 50   # x and y displacement for gradient
-max_laser_range = 6000
-very_large_distance = 100000
+max_laser_range = 5000
+very_large_distance = 1000
 max_free_energy_iterations = 4
 max_total_energy_ratio = 10
 

@@ -75,6 +75,9 @@ void SpecificWorker::initialize(int period)
         rt = G->get_rt_api();
         inner_eigen = G->get_inner_eigen_api();
 
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
 		//dsr update signals
 		//connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
 		//connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);

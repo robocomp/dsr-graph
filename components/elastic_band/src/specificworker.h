@@ -134,6 +134,7 @@ private:
             float very_large_distance = 100000.f;
             int max_free_energy_iterations = 3;
             float max_total_energy_ratio = 10;
+            float max_distance_range = 1000;
             void update()
             {
                 road_step_separation = robot_length * 0.9;
