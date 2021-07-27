@@ -124,7 +124,7 @@ class Grid
         void setCost(const Key &k,float cost);
         void markAreaInGridAs(const QPolygonF &poly, bool free);   // if true area becomes free
         void modifyCostInGrid(const QPolygonF &poly, float cost);
-        std::optional<QPointF> closest_obstacle(const QPointF &p, int max_time = 30);
+        std::optional<QPointF> closest_obstacle(const QPointF &p, int max_time = 30); //ms
         std::vector<std::pair<Key, T>> neighboors(const Key &k, const std::vector<int> &xincs,const std::vector<int> &zincs, bool all = false);
         std::vector<std::pair<Key, T>> neighboors_8(const Key &k,  bool all = false);
         std::vector<std::pair<Key, T>> neighboors_16(const Key &k,  bool all = false);

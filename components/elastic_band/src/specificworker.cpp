@@ -157,7 +157,7 @@ void SpecificWorker::initialize(int period)
         }
         qInfo() << " SIZE " << grid.size();
 
-		this->Period = 70;
+		this->Period = 60;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
 	}
@@ -266,7 +266,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
                     if (auto closest_obstacle = grid.closest_obstacle(p); closest_obstacle.has_value())
                     {
                         float p_dist = QVector2D(p - closest_obstacle.value()).length();
-                        px = mx = py = my = p_dist;  // all deltas initially equal to p distance to closests obstacle
+                        px = mx = py = my = p_dist;  // all deltas initially equal to p distance to closest obstacle
                         if (auto closest_obstacle = grid.closest_obstacle(p + QPointF(delta, 0.f)); closest_obstacle.has_value())
                             px = QVector2D(p + QPointF(delta, 0.f) - closest_obstacle.value()).length();
                         if (auto closest_obstacle = grid.closest_obstacle(p + QPointF(-delta, 0.f)); closest_obstacle.has_value())
@@ -275,8 +275,13 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
                             py = QVector2D(p + QPointF(0.f, delta) - closest_obstacle.value()).length();
                         if (auto closest_obstacle = grid.closest_obstacle(p + QPointF(0.f, -delta)); closest_obstacle.has_value())
                             my = QVector2D(p + QPointF(0.f, -delta) - closest_obstacle.value()).length();
+
                         QVector2D grad((px - mx) / delta, (py - my) / delta);
-                        e_force = grad;
+                        //e_force = grad;
+                        if( p_dist < constants.max_distance_range)
+                            e_force = grad * (constants.max_distance_range - p_dist) * constants.KE;
+                        else
+                            e_force = QVector2D(0.f, 0.f);
                     } else
                     {
                         qDebug() << __FUNCTION__ << "No valid closest obstacle found in Grid";
@@ -295,26 +300,24 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             else
             {
                 // compute Jacobian of current point. as +- min_dist deltas in both axis for current point
-                std::vector<float> pdx(laser_cart.size());
-                std::vector<float> mdx(laser_cart.size());
-                std::vector<float> pdy(laser_cart.size());
-                std::vector<float> mdy(laser_cart.size());
+                std::vector<float> pdx(laser_cart.size(), 0.f);
+                std::vector<float> mdx(laser_cart.size(), 0.f);
+                std::vector<float> pdy(laser_cart.size(), 0.f);
+                std::vector<float> mdy(laser_cart.size(), 0.f);
+                std::vector<float> center(laser_cart.size(), 0.f);
 
                 for (size_t i = 0; const auto &&[lc, lr]: iter::zip(laser_cart, laser_poly))
                 {   // compute distance from laser measure to delta points minus RLENGTH/2 or 0 and keep it positive
 
                     if (QVector2D(lr).length() >= constants.max_laser_range)  // if laser at MAX_RANGE, discard
-                        pdx[i] = mdx[i] = pdy[i] = mdy[i] = 0.f;
+                        pdx[i] = mdx[i] = pdy[i] = mdy[i] = center[i] = constants.max_distance_range + 1;
                     else
                     {
                         pdx[i] = QVector2D(p + QPointF(constants.delta, 0.f) - lc).length() - (constants.robot_radius);
-                        if(pdx[i] > constants.max_distance_range) pdx[i] = 0.f;
                         mdx[i] = QVector2D(p + QPointF(-constants.delta, 0.f) - lc).length() - (constants.robot_radius);
-                        if(mdx[i] > constants.max_distance_range) mdx[i] = 0.f;
                         pdy[i] = QVector2D(p + QPointF(0.f, constants.delta) - lc).length() - (constants.robot_radius);
-                        if(pdy[i] > constants.max_distance_range) pdy[i] = 0.f;
                         mdy[i] = QVector2D(p + QPointF(0.f, -constants.delta) - lc).length() - (constants.robot_radius);
-                        if(mdy[i] > constants.max_distance_range) mdy[i] = 0.f;
+                        center[i] = QVector2D(p - lc).length() - (constants.robot_radius);
                     }
                     i++;
                 };
@@ -323,11 +326,15 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
                 auto mx_min = std::ranges::min(mdx);
                 auto py_min = std::ranges::min(pdy);
                 auto my_min = std::ranges::min(mdy);
+                auto center_min = std::ranges::min(center);
 
                 // compute gradient as [ pD / dx, pD / dy ]
                 QVector2D grad((px_min - mx_min) / delta, (py_min - my_min) / delta);
-                e_force = grad;
-                //qInfo() << px_min << mx_min << py_min << my_min << f_force;
+                if( center_min < constants.max_distance_range)
+                    e_force = grad * (constants.max_distance_range - center_min) * constants.KE;
+                else
+                    e_force = QVector2D(0.f, 0.f);
+                //qInfo() << px_min << mx_min << py_min << my_min << center_min;
             }
 
             // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
@@ -335,15 +342,15 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
             const QVector2D itangential = QVector2D::dotProduct(e_force, base_line) * base_line;
             e_force = e_force - itangential;
 
-            QVector2D total = (constants.KI * i_force) + (constants.KE * e_force);
+            QVector2D total = (constants.KI * i_force) + (e_force);
             total_energy += total.length();
 
             // for drawing
-            if( total.length() > 10)
+            if( total.length() > 0)
                 try
                 {
                     auto p_draw = QVector2D(path.at(index_of_p_in_path));
-                    forces_vector.push_back(std::make_tuple(p_draw, (total + p_draw) * 1.1));
+                    forces_vector.push_back(std::make_tuple(p_draw, (total + p_draw)));
                 }
                 catch (const std::exception &e)
                 { std::cout << e.what() << std::endl; };
@@ -551,7 +558,6 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 //        }
 //    }
 }
-
 ///////////////////////////////////////////////////
 /// GUI
 //////////////////////////////////////////////////
@@ -606,12 +612,9 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     pen.setColor(fcolor);
     for(auto &&[orig, dest] : forces_vector)
     {
-        if(not (dest == QVector2D(0,0)))
-        {
-            auto l = viewer_2d->addLine(QLineF(orig.toPointF(), dest.toPointF()), pen);
-            l->setZValue(2000);
-            scene_road_points.push_back(l);
-        }
+        auto l = viewer_2d->addLine(QLineF(orig.toPointF(), dest.toPointF()), pen);
+        l->setZValue(2000);
+        scene_road_points.push_back(l);
     }
     //qInfo() << "----------";
 }

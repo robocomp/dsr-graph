@@ -399,10 +399,12 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p, int max_time)
     bool end = false;
     bool found = false;
 
-    int elapsed;
-    auto begin = my_clock::now();
-    while( not end and not found and elapsed < max_time)  //ms
-    {
+    //int elapsed;
+    //auto begin = my_clock::now();
+    int iters = 0; int max_iters = 3;
+    //while( not end and not found and elapsed < max_time)  //ms
+    while( not end and not found and iters < max_iters)  //ms
+        {
         for(auto &&current_cell : L1)
         {
             if(not current_cell.second.free)
@@ -417,7 +419,9 @@ std::optional<QPointF> Grid::closest_obstacle(const QPointF &p, int max_time)
         end = L2.empty();
         L1.swap(L2);
         L2.clear();
-        elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - begin).count();
+        iters++;
+        //elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(my_clock::now() - begin).count();
+
     }
     if(found) return obstacle;
     else return {};

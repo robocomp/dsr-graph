@@ -18,11 +18,11 @@ number_of_not_visible_points = 3 # should be 0 in very large grids
 robot_length = 500
 robot_length = 400
 robot_radius = 250
-external_forces_gain = 25
-internal_forces_gain = 12
+external_forces_gain = 0.08
+internal_forces_gain = 10
 delta_derivation_step = 50   # x and y displacement for gradient
 max_laser_range = 5000
-very_large_distance = 1000
+very_large_distance = 100000
 max_free_energy_iterations = 4
 max_total_energy_ratio = 10
 
