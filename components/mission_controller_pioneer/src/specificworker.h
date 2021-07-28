@@ -44,8 +44,6 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
-
 public slots:
 	void compute();
 	int startup_check();
@@ -93,6 +91,7 @@ private:
     // Robot and shape
     QPolygonF robot_polygon;
     DSR::Node get_robot_node();
+    void send_command_to_robot(const std::tuple<float, float, float> &speeds);   //adv, side, rot
 
     // Camera
     //DoubleBuffer<std::vector<std::uint8_t>, cv::Mat> virtual_camera_buffer;
@@ -103,6 +102,8 @@ private:
 
     // Missions
     DoubleBuffer<Plan, Plan> plan_buffer;
+    Plan current_plan;
+    void insert_intention_node(const Plan &plan);
 
     //Path
     std::vector<Eigen::Vector3d> path;

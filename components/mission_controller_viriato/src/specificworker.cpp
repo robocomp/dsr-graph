@@ -67,7 +67,7 @@ void SpecificWorker::initialize(int period)
 		timer.start(Period);
 		// create graph
 		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, ""); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
 		//dsr update signals
 		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot, Qt::QueuedConnection);
@@ -132,7 +132,7 @@ void SpecificWorker::compute()
     static bool primera_vez = false;
     static std::chrono::steady_clock::time_point begin, lastPathStep;
     static int last_selected_index = custom_widget.comboBox_select_target->currentIndex();
-    static int last_path_size;
+    static uint last_path_size;
 
     // check for existing missions
     static Plan plan;
@@ -154,9 +154,8 @@ void SpecificWorker::compute()
                 primera_vez = true;
                 begin = lastPathStep = std::chrono::steady_clock::now();
                 last_path_size = path.value().size();
-                int vel_media = 300;
                 auto dist = 0;
-                for (int i = 0; i < path.value().size() - 1; ++i)
+                for (uint i = 0; i < path.value().size() - 1; ++i)
                     dist = dist + (path.value()[i] - path.value()[i + 1]).norm();
 
                 qInfo() << path.value().size();
@@ -164,7 +163,6 @@ void SpecificWorker::compute()
                 qInfo() << __FUNCTION__ << "Final: " << path.value()[path.value().size() - 1].x() << ","
                         << path.value()[path.value().size() - 1].y();
                 qInfo() << __FUNCTION__ << "Distancia: " << dist;
-                auto time = dist / vel_media;
             }
             auto robot_pose = inner_eigen->transform(world_name, robot_name).value();
             if (last_path_size != path.value().size())
@@ -173,7 +171,7 @@ void SpecificWorker::compute()
             auto now = std::chrono::steady_clock::now();
             auto time_delta_s = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPathStep).count();
             qInfo() << __FUNCTION__ << "Tiempo desde el último paso: " << time_delta_s << "s";
-            auto acceptable_distance = 1 + int(K * time_delta_s);
+            auto acceptable_distance = 1 + uint(K * time_delta_s);
             if (path.value().size() <= acceptable_distance or dist < 200)
             {
                 plan.set_active(false);

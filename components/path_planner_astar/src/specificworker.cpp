@@ -388,6 +388,8 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             if (plan.has_value())
             {
                 qInfo() << __FUNCTION__ << QString::fromStdString(plan.value()) << " " << intention.value().id();
+                // if(Plan::is:valid(plan.value())   // ADD THIS TO AVOID CRASHING THE AGENT WITH ILL FORMED PLANS
+                // {};
                 plan_buffer.put(Plan(plan.value()));
             }
         }

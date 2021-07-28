@@ -16,6 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "specificworker.h"
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
@@ -155,9 +156,7 @@ void SpecificWorker::compute()
     auto robot_node = get_robot_node();
     if (auto vframe_t = virtual_camera_buffer.try_get(); vframe_t.has_value())
     {
-        //auto vframe = vframe_t.value();
         auto vframe = cv::Mat(cam_api->get_height(), cam_api->get_width(), CV_8UC3, vframe_t.value().data());
-
         project_robot_on_image(robot_node, robot_polygon, vframe, cam_api->get_focal_x());
         if (auto laser_o = laser_buffer.try_get(); laser_o.has_value() and not vframe.empty())
         {
@@ -166,18 +165,23 @@ void SpecificWorker::compute()
 
         }
         project_path_on_image(path, robot_node, vframe, cam_api->get_focal_x());
-
         pix = QPixmap::fromImage(QImage(vframe.data, vframe.cols, vframe.rows, QImage::Format_RGB888));
         custom_widget.label_rgb->setPixmap(pix);
     }
     // check for existing missions
     if (auto plan_o = plan_buffer.try_get(); plan_o.has_value())
     {
-        auto current_plan = plan_o.value();
+        current_plan = plan_o.value();
         current_plan.print();
         custom_widget.current_plan->setPlainText(QString::fromStdString(current_plan.pprint()));
+        // Create an interpretable version of the plan: m_plan
+        // check that there is a computed path in G
+        // get the path and divide it in N check points separated 1 sec
+        // add to the plan the check points
     }
-    // Follow current mission and check for plan completion and remove path and intntion node from G
+    // Compute next step of m_plan and check that it matches the current state
+
+
 
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,38 +225,35 @@ void SpecificWorker::project_robot_on_image(const DSR::Node &robot_node, const Q
     }
     else{ std::cout << __FUNCTION__ << " No robot_local_linear_velocity attribute in robot: " << robot_name << std::endl; }
 }
-
 void SpecificWorker::project_path_on_image(const std::vector<Eigen::Vector3d> &path, const DSR::Node robot_node, cv::Mat virtual_frame, float focal)
 {
     int cont = 0;
     std::vector<cv::Point> cv_points;
-    Eigen::Hyperplane<double,3> robot_plane(Eigen::Vector3d(0.0, 1.0, 0.0), 1000);
+    Eigen::Hyperplane<double, 3> robot_plane(Eigen::Vector3d(0.0, 1.0, 0.0), 1000);
 
-    auto cmp = [](auto &a, auto &b){ return std::get<double>(a) < std::get<double>(b);};
+    auto cmp = [](auto &a, auto &b) { return std::get<double>(a) < std::get<double>(b); };
     std::set<std::tuple<Eigen::Vector3d, double>, decltype(cmp)> ahead_of_robot;
-    for(const auto &p : path)
+    for (const auto &p : path)
     {
         auto apr = inner_eigen->transform(robot_name, p, world_name).value();
         auto d = robot_plane.signedDistance(apr);
-        if(d>0)
+        if (d > 0)
             ahead_of_robot.insert(std::make_tuple(p, d));
     }
-    std::transform(ahead_of_robot.cbegin(), ahead_of_robot.cend(), std::back_inserter(cv_points), [this, virtual_frame](auto &p)
-    {
+    std::transform(ahead_of_robot.cbegin(), ahead_of_robot.cend(), std::back_inserter(cv_points), [this, virtual_frame](auto &p) {
         if (auto projected_point = inner_eigen->transform(pioneer_camera_virtual_name, std::get<0>(p), world_name); projected_point.has_value())
-        {   auto point = cam_api->project(projected_point.value());
-            if(point.y() > virtual_frame.rows/2)
-            return cv::Point(point.x(), point.y());
-        }
-        else
+        {
+            auto point = cam_api->project(projected_point.value());
+            if (point.y() > virtual_frame.rows / 2)
+                return cv::Point(point.x(), point.y());
+        } else
             return cv::Point();
     });
-    for(const auto &p : cv_points)
+    for (const auto &p : cv_points)
         cv::circle(virtual_frame, p, 6, cv::Scalar(51, 165, 50), cv::FILLED);
-    for(auto &&p: iter::sliding_window(cv_points, 2))
+    for (auto &&p: iter::sliding_window(cv_points, 2))
         cv::line(virtual_frame, p[0], p[1], cv::Scalar(190, 234, 182), 2);
 }
-
 void SpecificWorker::project_laser_on_image(const DSR::Node &robot_node, const QPolygonF &laser_poly_local, cv::Mat virtual_frame, float focal)
 {
         std::vector<cv::Point> cv_poly;
@@ -279,7 +280,6 @@ void SpecificWorker::project_laser_on_image(const DSR::Node &robot_node, const Q
         cv::fillPoly(overlay, &pts, &npts, 1, cv::Scalar(255,182,193));
         cv::addWeighted(overlay, alpha, virtual_frame, 1 - alpha, 0, virtual_frame);  // blending the overlay (with alpha opacity) with the source image (with 1-alpha opacity)
 }
-
 void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScene* viewer_2d)
 {
     static std::vector<QGraphicsLineItem *> scene_road_points;
@@ -319,7 +319,15 @@ void SpecificWorker::draw_path(std::vector<Eigen::Vector3d> &path, QGraphicsScen
             scene_road_points.push_back(line2);
         }
 }
-
+void SpecificWorker::send_command_to_robot(const std::tuple<float, float, float> &speeds)   //adv, side, rot
+{
+    auto &[adv_, side_, rot_] = speeds;
+    auto robot_node = G->get_node(robot_name);
+    G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot_node.value(),  (float)adv_);
+    G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot_node.value(), (float)rot_);
+    G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot_node.value(),  (float)side_);
+    G->update_node(robot_node.value());
+}
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -382,7 +390,6 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
     }
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////
 
 int SpecificWorker::startup_check()
@@ -411,11 +418,14 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
         plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
         plan = Plan(plan_string);
         plan.print();
+        insert_intention_node(plan);
         plan_buffer.put(std::move(plan));
     }
     else
         qWarning() << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
-
+}
+void SpecificWorker::insert_intention_node(const Plan &plan)
+{
     // Check if there is not 'intention' node yet in G
     if(auto mind = G->get_node(robot_mind_name); mind.has_value())
     {
@@ -434,7 +444,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
                 {
                     std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->" << intention_node.id()
                               << " type: has" << std::endl;
-                    G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
+                    G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_string());
                     G->update_node(intention_node);
                 }
                 else
@@ -452,7 +462,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
         else // there is one intention node
         {
             std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
+            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_string());
             G->update_node(intention.value());
         }
     }
@@ -462,26 +472,57 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
         std::terminate();
     }
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// UI
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SpecificWorker::slot_start_mission()
 {
-
+    if(not current_plan.is_empty)
+    {
+        insert_intention_node(current_plan);
+        auto temp_plan = current_plan;
+        plan_buffer.put(std::move(temp_plan));
+    }
+    else
+        qWarning() << __FUNCTION__ << "No valid plan available";
 }
 
 void SpecificWorker::slot_stop_mission()
 {
+    qInfo() << __FUNCTION__  ;
+    send_command_to_robot(std::make_tuple(0.f,0.f,0.f));   //adv, side, rot
 
+    // Check if there is intention node in G
+    if(auto intention = G->get_node(current_intention_name); intention.has_value())
+    {
+        if (auto path = G->get_node(current_path_name); path.has_value())
+        {
+            if (G->delete_node(path.value().id()))
+                qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_path_name) << " deleted ";
+            else
+                qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_path_name);
+        }
+        if( auto target_room_edges = G->get_node_edges_by_type(intention.value(), "goto_action"); not target_room_edges.empty())
+        {
+            for (const auto &tr_edge : target_room_edges)
+                G->delete_edge(tr_edge.from(), tr_edge.to(), "goto_action");
+        }
+        if (G->delete_node(intention.value().id()))
+            qInfo() << __FUNCTION__ << "Node " << QString::fromStdString(current_intention_name) << " deleted ";
+        else
+            qInfo() << __FUNCTION__ << "Error deleting node " << QString::fromStdString(current_intention_name);
+        send_command_to_robot(std::make_tuple(0.f,0.f,0.f));   //adv, side, rot
+    }
+    else
+        qWarning() << __FUNCTION__ << "No intention node found";
 }
 
 void SpecificWorker::slot_cancel_mission()
 {
-
+    slot_stop_mission();
+    current_plan.is_empty = true;
 }
-
 
 //    using namespace std::placeholders;
 //    if (auto target_node = G->get_node(id); target_node.has_value())
