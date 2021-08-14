@@ -1,0 +1,12 @@
+import "DepthEstimation.idsl";
+
+Component depthDSR
+{
+    Communications
+    {
+     requires DepthEstimation;
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
