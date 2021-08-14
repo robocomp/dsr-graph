@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2020 by YOUR NAME HERE
+ *    Copyright (C) 2020 by vaibhaw khemka
  *
  *    This file is part of RoboComp
  *
