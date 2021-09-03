@@ -1,3 +1,5 @@
+
+
 # DSR Components
 - [Description](#description)
 - [Definitions](#definitions)
@@ -7,8 +9,14 @@
   * [Create a new agent to interact with the running CORTEX instance.](#create-a-new-agent-to-interact-with-the-running-cortex-instance)
 - [Related papers](#related-papers)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>  
 
+&nbsp;  
+
+[![Docker Image](https://github.com/robocomp/dsr-graph/actions/workflows/publish_docker_images.yml/badge.svg)](https://github.com/robocomp/dsr-graph/actions/workflows/publish_docker_images.yml)
+
+&nbsp;  
+  
 
 Note: This documentation is related to the DSR/CORTEX **components**. You can find the DSR/CORTEX related **library** in robocomp repository ([libs/dsr](https://github.com/robocomp/robocomp/tree/development/libs/dsr)) with some developer documentation to use the APIs and UIs.
 
