@@ -34,6 +34,7 @@
 #include <CameraRGBDSimple.h>
 #include <CameraRGBDSimplePub.h>
 #include <CoppeliaUtils.h>
+#include <FullPoseEstimation.h>
 #include <GenericBase.h>
 #include <JointMotor.h>
 #include <JointMotorPub.h>
@@ -48,7 +49,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
+using TuplePrx = std::tuple<RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr,RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr,RoboCompLaser::LaserPrxPtr,RoboCompOmniRobot::OmniRobotPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -65,6 +66,8 @@ public:
 
 
 	RoboCompCoppeliaUtils::CoppeliaUtilsPrxPtr coppeliautils_proxy;
+	RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr fullposeestimation_proxy;
+	RoboCompLaser::LaserPrxPtr laser_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	virtual void CameraRGBDSimplePub_pushRGBD (RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep) = 0;

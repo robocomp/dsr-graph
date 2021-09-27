@@ -205,12 +205,12 @@ class SpecificWorker(GenericWorker):
 
             # Update personal_space node
             if personal_space_node is not None:
-                personal_space_node.attrs['ps_social_x_pos'].value = x_social
-                personal_space_node.attrs['ps_social_y_pos'].value = y_social
-                personal_space_node.attrs['ps_personal_x_pos'].value = x_personal
-                personal_space_node.attrs['ps_personal_y_pos'].value = y_personal
-                personal_space_node.attrs['ps_intimate_x_pos'].value = x_intimate
-                personal_space_node.attrs['ps_intimate_y_pos'].value = y_intimate
+                personal_space_node.attrs['ps_social_x_pos'].value = np.array(x_social,dtype=np.float32)
+                personal_space_node.attrs['ps_social_y_pos'].value = np.array(y_social,dtype=np.float32)
+                personal_space_node.attrs['ps_personal_x_pos'].value = np.array(x_personal,dtype=np.float32)
+                personal_space_node.attrs['ps_personal_y_pos'].value = np.array(y_personal,dtype=np.float32)
+                personal_space_node.attrs['ps_intimate_x_pos'].value = np.array(x_intimate,dtype=np.float32)
+                personal_space_node.attrs['ps_intimate_y_pos'].value = np.array(y_intimate,dtype=np.float32)
 
                 try:
                     self.g.update_node(personal_space_node)
@@ -225,12 +225,13 @@ class SpecificWorker(GenericWorker):
 
                 new_node = Node(agent_id=self.agent_id, type='personal_space', name=node_name)
 
-                new_node.attrs['ps_social_x_pos'] = Attribute(list(x_social), self.agent_id)
-                new_node.attrs['ps_social_y_pos'] = Attribute(list(y_social), self.agent_id)
-                new_node.attrs['ps_personal_x_pos'] = Attribute(list(x_personal), self.agent_id)
-                new_node.attrs['ps_personal_y_pos'] = Attribute(list(y_personal), self.agent_id)
-                new_node.attrs['ps_intimate_x_pos'] = Attribute(list(x_intimate), self.agent_id)
-                new_node.attrs['ps_intimate_y_pos'] = Attribute(list(y_intimate), self.agent_id)
+                new_node.attrs['person_id'] = Attribute(person_id, self.agent_id)
+                new_node.attrs['ps_social_x_pos'] = Attribute(np.array(x_social,dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_social_y_pos'] = Attribute(np.array(y_social,dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_personal_x_pos'] = Attribute(np.array(x_personal,dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_personal_y_pos'] = Attribute(np.array(y_personal,dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_intimate_x_pos'] = Attribute(np.array(x_intimate,dtype=np.float32), self.agent_id)
+                new_node.attrs['ps_intimate_y_pos'] = Attribute(np.array(y_intimate,dtype=np.float32), self.agent_id)
                 # new_node.attrs['ps_shared_with'] = Attribute(list([],) self.agent_id)
 
                 try:
@@ -370,6 +371,8 @@ class SpecificWorker(GenericWorker):
                 node_name = 'person_' + str(person.id)
                 new_node = Node(agent_id=self.agent_id, type='person', name=node_name)
                 new_node.attrs['person_id'] = Attribute(person.id, self.agent_id)
+                new_node.attrs['pos_x'] = Attribute(25.0, self.agent_id)
+                new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
 
                 try:
                     id_result = self.g.insert_node(new_node)

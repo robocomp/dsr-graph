@@ -1,0 +1,10 @@
+Component elastic_band_social 
+{
+    Communications
+    {
+    };
+    language Cpp11;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+

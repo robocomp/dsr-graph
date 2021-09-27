@@ -12,14 +12,17 @@ FullPoseEstimation.Endpoints=tcp -p 10016
 OmniRobotProxy = omnirobot:tcp -p 10004
 CoppeliaUtilsProxy = coppeliautils:tcp -p 10666
 DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+FullPoseEstimationProxy = fullposeestimation:tcp -p 10216
+LaserProxy = laser:tcp -p 10003
 
 agent_id = 10
 agent_name = viriatoDSR
 #dsr_input_file = /home/robocomp/robocomp/components/dsr-graph/etc/autonomyLab2.json
 tree_view = false
 graph_view = true
-2d_view = false
-3d_view = false
+2d_view = true
+3d_view = true
+robot_real = false
 
 # This property is used by the clients to connect to IceStorm.
 TopicManager.Proxy=IceStorm/TopicManager:default -p 9999
