@@ -93,6 +93,9 @@ private:
 	int qscene_2d_view;
 	int osg_3d_view;
 
+    // Flag camara robot
+    bool robot_real;
+
 	// Graph Viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
@@ -119,6 +122,13 @@ private:
     void check_new_nose_referece_for_pan_tilt();
 
     FPSCounter fps;
+
+    //struct LaserPoint{ float dist; float angle;};
+    //std::vector<LaserPoint> read_laser_from_robot();
+    void read_laser_from_robot();
+    //void read_laser_laserdata(const std::vector<LaserPoint> &laser_data);
+    void read_robot_localization();
+    //void obtenerRobot();
 
 };
 

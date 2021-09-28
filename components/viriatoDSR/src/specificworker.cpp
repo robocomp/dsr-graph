@@ -52,6 +52,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = (params["graph_view"].value == "true") ? DSR::DSRViewer::view::graph : 0;
 	qscene_2d_view = (params["2d_view"].value == "true") ? DSR::DSRViewer::view::scene : 0;
 	osg_3d_view = (params["3d_view"].value == "true") ? DSR::DSRViewer::view::osg : 0;
+    robot_real = params["robot_real"].value == "true";
 	return true;
 }
 void SpecificWorker::initialize(int period)
@@ -129,20 +130,93 @@ void SpecificWorker::initialize(int period)
 }
 void SpecificWorker::compute()
 {
-    update_laser();
-    update_omirobot_timed();
-    update_rgbd();
-    update_pantilt_position_timed();
-    //update_pantilt_position();
-    //update_arm_state();
 
-    //check_new_nose_referece_for_pan_tilt();
+    if (robot_real)
+    {
+        //ROBOT
+        read_robot_localization();
+        read_laser_from_robot();
+    }
+    else // Coppelia
+    {
+        //SIMULADOR
 
+        update_laser();
+        update_omirobot_timed();
+        update_rgbd();
+        update_pantilt_position_timed();
+        //update_pantilt_position();
+        //update_arm_state();
+
+        //check_new_nose_referece_for_pan_tilt();
+    }
+    
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SpecificWorker::read_laser_from_robot()
+{
+    try
+    {
+        const auto &data = laser_proxy->getLaserData();
+        // Transform laserData into two std::vector<float>
+        std::vector<float> dists;
+        std::transform(data.begin(), data.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
+        std::vector<float> angles;
+        std::transform(data.begin(), data.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
+
+        // update laser in DSR
+        auto node = G->get_node("laser");
+        if (node.has_value())
+        {
+            G->add_or_modify_attrib_local<laser_dists_att>(node.value(), dists);
+            G->add_or_modify_attrib_local<laser_angles_att>(node.value(), angles);
+            G->update_node(node.value());
+        }
+    }
+    catch (const Ice::Exception &e){ std::cout << e.what() << " No laser_pioneer_data" << std::endl;}
+}
+
+
+void SpecificWorker::read_robot_localization()
+{
+    static RoboCompFullPoseEstimation::FullPoseEuler last_state;
+    RoboCompFullPoseEstimation::FullPoseEuler pose;
+    try
+    {
+        pose = fullposeestimation_proxy->getFullPoseEuler();
+        //qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
+    }
+    catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
+
+    if( auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        if( auto parent = G->get_parent_node(robot.value()); parent.has_value())
+        {
+            if (are_different(std::vector < float > {pose.x, pose.y, pose.rz},
+                              std::vector < float > {last_state.x, last_state.y, last_state.rz},
+                              std::vector < float > {1, 1, 0.05}))
+            {
+                auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
+                G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector < float > {0.0, 0.0, pose.rz});
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector < float > {pose.x, pose.y, 0.0});
+                G->modify_attrib_local<rt_translation_velocity_att>(edge, std::vector<float>{pose.vx, pose.vy, pose.vz});
+                G->modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge, std::vector<float>{pose.vrx, pose.vry, pose.vrz});
+                // linear velocities are WRT world axes, so local speed has to be computed WRT to the robot's moving frame
+                float side_velocity = -sin(pose.rz) * pose.vx + cos(pose.rz) * pose.vy;
+                float adv_velocity = -cos(pose.rz) * pose.vx + sin(pose.rz) * pose.vy;
+                G->insert_or_assign_edge(edge);
+                G->add_or_modify_attrib_local<robot_local_linear_velocity_att>(robot.value(), std::vector<float>{adv_velocity, side_velocity, pose.rz});
+                G->update_node(robot.value());
+                last_state = pose;
+            }
+        }
+        else  qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
+    }
+    else    qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
+}
 void SpecificWorker::update_rgbd()
 {
     const auto rgb_o = rgb_buffer.try_get();
@@ -532,30 +606,30 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 }
             }
     }
-    else if (type == omnirobot_type_name)   // pasar al SLOT the change attrib
-    {
-        //qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
-        if (auto robot = G->get_node(robot_name); robot.has_value())
-        {
-            // speed
-            auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
-            auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-            auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
-            if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
-            {
-                // Check de values are within robot's accepted range. Read them from config
-                //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
-                //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-                std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
-                try
-                { omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value()); }
-                catch (const RoboCompGenericBase::HardwareFailedException &re)
-                { std::cout << "Exception setting base speed " << re << '\n'; }
-                catch (const Ice::Exception &e)
-                { std::cout << e.what() << '\n'; }
-            }
-        }
-    }
+//    else if (type == omnirobot_type_name)   // pasar al SLOT the change attrib
+//    {
+//        //qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
+//        if (auto robot = G->get_node(robot_name); robot.has_value())
+//        {
+//            // speed
+//            auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
+//            auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
+//            auto ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(robot.value());
+//            if (ref_adv_speed.has_value() and ref_rot_speed.has_value() and ref_side_speed.has_value())
+//            {
+//                // Check de values are within robot's accepted range. Read them from config
+//                //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
+//                //std::clamp(ref_adv_speed.value(), lowerA, upperA);
+//                std::cout << __FUNCTION__ << " " << ref_side_speed.value() << " "  << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
+//                try
+//                { omnirobot_proxy->setSpeedBase(ref_side_speed.value(), ref_adv_speed.value(), ref_rot_speed.value()); }
+//                catch (const RoboCompGenericBase::HardwareFailedException &re)
+//                { std::cout << "Exception setting base speed " << re << '\n'; }
+//                catch (const Ice::Exception &e)
+//                { std::cout << e.what() << '\n'; }
+//            }
+//        }
+//    }
 }
 
 void SpecificWorker::add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type)
@@ -631,6 +705,33 @@ void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
             }
         }
+    if (id == 200)//Actualizar atributos de velocidad cuando la localización y su nodo cambie
+    {
+        if(const auto node = G->get_node(200); node.has_value())
+        {
+            auto att_name_adv = std::ranges::find(att_names, "robot_ref_adv_speed");
+            auto att_name_rot = std::ranges::find(att_names, "robot_ref_rot_speed");
+            auto att_name_side = std::ranges::find(att_names, "robot_ref_side_speed");
+
+            if(att_name_adv != std::end(att_names) or att_name_rot != std::end(att_names) or att_name_side != std::end(att_names))
+            {
+                float ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(node.value()).value();
+                float ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(node.value()).value();
+                float ref_side_speed = G->get_attrib_by_name<robot_ref_side_speed_att>(node.value()).value();
+
+                //std::cout << __FUNCTION__ << " " << adv.value() << std::endl;
+                try
+                {
+                    omnirobot_proxy->setSpeedBase(ref_side_speed, ref_adv_speed, ref_rot_speed);
+                }
+                catch (const RoboCompGenericBase::HardwareFailedException &re)
+                {
+                    std::cout << "Exception setting base speed " << re << '\n';
+                }
+                catch (const Ice::Exception &e) { std::cout << e.what() << '\n'; }
+            }
+        }
+    }
 }
 ///////////////////////////////////////////////////////////////////
 bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
@@ -661,12 +762,14 @@ void SpecificWorker::CameraRGBDSimplePub_pushRGBD(RoboCompCameraRGBDSimple::TIma
 //SUBSCRIPTION to pushLaserData method from LaserPub interface
 void SpecificWorker::LaserPub_pushLaserData(RoboCompLaser::TLaserData laserData)
 {
+    //qInfo() << "PASA POR AQUÍ." << endl;
 	laser_buffer.put(std::move(laserData));
 }
 
 //SUBSCRIPTION to pushBaseState method from OmniRobotPub interface
 void SpecificWorker::OmniRobotPub_pushBaseState(RoboCompGenericBase::TBaseState state)
 {
+    //qInfo() << "PASA POR ROBOT." << endl;
 	omnirobot_buffer.put(RoboCompGenericBase::TBaseState{state});
 }
 
