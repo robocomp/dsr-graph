@@ -27,6 +27,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -99,11 +100,11 @@ void SpecificWorker::initialize(int period)
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
         try {
-            //float x = 1.24;
-            float x = 3.85;
-            //float y = -18.911;
-            float y = -22.387;
-            float z = 0;
+            //float x = 3.85;
+            float x = 0.0;
+            //float y = -22.387;
+            float y = 0.0;
+            float z = 0.0;
             float rx = 0;
             float ry = 0;
             float rz = 180;
@@ -128,22 +129,15 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    cout<<"locate"<< endl;
     update_robot_localization();
-    cout<<"battery"<< endl;
-	read_battery();
-    cout<<"update_camera_rgbd"<< endl;
+    read_battery();
     auto camera_rgbd_frame = compute_camera_rgbd_frame();
     update_camera_rgbd(giraff_camera_realsense_name,camera_rgbd_frame, focalx, focaly);
-    cout<<"update_camera_simple"<< endl;
-    auto camera_simple_frame = compute_camera_simple_frame();
-    update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
-    cout<<"update_camera_simple1"<< endl;
-    auto camera_simple1_frame = compute_camera_simple1_frame();
-    update_camera_simple1(giraff_camera_face_id_name, camera_simple1_frame);
-    cout<<"read laser"<< endl;
+    //auto camera_simple_frame = compute_camera_simple_frame();
+    //update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
+    //auto camera_simple1_frame = compute_camera_simple1_frame();
+    //update_camera_simple1(giraff_camera_face_id_name, camera_simple1_frame);
     auto laser = read_laser_from_robot();
-    cout<<"update laser" << endl;
     update_laser(laser);
 
 }
@@ -171,7 +165,7 @@ void SpecificWorker::update_robot_localization()
         pose.x = pose.x ;
         pose.y = pose.y ;
         pose.z = pose.z ;
-        qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
+        //qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
     }
     catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
 
@@ -444,6 +438,7 @@ QPolygonF SpecificWorker::filter_laser(const std::vector<SpecificWorker::LaserPo
     laser_poly.pop_back();
     return laser_poly;  // robot coordinates
 }
+
 void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out)
 {
     if(pointList.size()<2)
@@ -502,30 +497,37 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
             // speed
-
             auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
             auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-
+            qInfo() << __FUNCTION__ << ref_adv_speed.has_value() << ref_rot_speed.has_value();
             if (ref_adv_speed.has_value() and ref_rot_speed.has_value())
-
             {
                 //comprobar si la velocidad ha cambiado y el cambio es mayor de 10mm o algo así, entonces entra y tiene que salir estos mensajes
-
-
-                std::cout<< "////////////////////////////"<<endl;
+                std::cout << __FUNCTION__  <<endl;
                 // Check de values are within robot's accepted range. Read them from config
                 //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
                 //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-                std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " "  << ref_rot_speed.value() << std::endl;
-                try
+                float adv = ref_adv_speed.value();
+                float rot = ref_rot_speed.value();
+                //float inc = 10.0;
+                cout << __FUNCTION__ << "adv " << adv << " rot " << rot << endl;
+                if ( adv != av_anterior or rot != rot_anterior)
                 {
-                    differentialrobot_proxy->setSpeedBase(ref_adv_speed.value()*1000, ref_rot_speed.value());
-
+                    std::cout<< "..................................."<<endl;
+                    std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " " << ref_rot_speed.value()
+                              << std::endl;
+                    av_anterior = adv;
+                    rot_anterior = rot;
+                    try {
+                        differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value());
+                    }
+                    catch (const RoboCompGenericBase::HardwareFailedException &re) {
+                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
+                    }
+                    catch (const Ice::Exception &e) {
+                        std::cout << e.what() << '\n';
+                    }
                 }
-                catch (const RoboCompGenericBase::HardwareFailedException &re)
-                { std::cout << "Exception setting base speed " << re << '\n'; }
-                catch (const Ice::Exception &e)
-                { std::cout << e.what() << '\n';}
             }
         }
     }

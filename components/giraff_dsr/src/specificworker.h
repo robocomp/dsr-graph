@@ -73,7 +73,8 @@ private:
 	void modify_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
     void add_or_assign_node_slot(std::uint64_t, const std::string &type);
     void modify_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names);
-
+    float av_anterior = 9999;
+    float rot_anterior = 9999;
 
     void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
 	void del_node_slot(std::uint64_t from){};     
