@@ -19,9 +19,4 @@ class ApiAssertionsMixin(object):
             outfile.write(j1)
         with open('last_json2.txt', 'w') as outfile:
             outfile.write(j2)
-        self.maxDiff = None
-        with open('last_json1.txt', 'w') as outfile:
-            json.dump(first, outfile, sort_keys=True, indent=4)
-        with open('last_json2.txt', 'w') as outfile:
-            json.dump(second, outfile, sort_keys=True, indent=4)
         self.assertEqual(j1, j2, msg)
