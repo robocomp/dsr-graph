@@ -15,9 +15,9 @@ graph_view = true
 3d_view = false
 
 number_of_not_visible_points = 3 # should be 0 in very large grids
-robot_length = 500
-robot_length = 400
-robot_radius = 250
+robot_length = 450
+robot_length = 450
+robot_radius = 225
 external_forces_gain = 0.01
 internal_forces_gain = 10
 delta_derivation_step = 50   # x and y displacement for gradient
