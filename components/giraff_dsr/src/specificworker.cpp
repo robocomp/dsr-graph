@@ -99,18 +99,18 @@ void SpecificWorker::initialize(int period)
 		    current_opts = current_opts | opts::osg;
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
-        try {
-            //float x = 3.85;
-            float x = 0.0;
-            //float y = -22.387;
-            float y = 0.0;
-            float z = 0.0;
-            float rx = 0;
-            float ry = 0;
-            float rz = 180;
-            fullposeestimation_proxy->setInitialPose(x, y, z, rx, ry, rz);
-        }
-        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
+//        try {
+//            //float x = 3.85;
+//            float x = 0.0;
+//            //float y = -22.387;
+//            float y = 0.0;
+//            float z = 0.0;
+//            float rx = 0;
+//            float ry = 0;
+//            float rz = 180;
+//            fullposeestimation_proxy->setInitialPose(x, y, z, rx, ry, rz);
+//        }
+//        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
 
 
         if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
@@ -120,13 +120,10 @@ void SpecificWorker::initialize(int period)
             qWarning() << "No robot node found. Terminate";
             std::terminate();
         }
-
 		this->Period = period;
 		timer.start(Period);
 	}
-
 }
-
 void SpecificWorker::compute()
 {
     update_robot_localization();
@@ -139,9 +136,7 @@ void SpecificWorker::compute()
     //update_camera_simple1(giraff_camera_face_id_name, camera_simple1_frame);
     auto laser = read_laser_from_robot();
     update_laser(laser);
-
 }
-
 void SpecificWorker::read_battery()
 {
     try
@@ -162,9 +157,6 @@ void SpecificWorker::update_robot_localization()
     try
     {
         pose = fullposeestimation_proxy->getFullPoseEuler();
-        pose.x = pose.x ;
-        pose.y = pose.y ;
-        pose.z = pose.z ;
         //qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
     }
     catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
@@ -177,7 +169,6 @@ void SpecificWorker::update_robot_localization()
                           std::vector < float > {last_state.x, last_state.y, last_state.rz},
                           std::vector < float > {1, 1, 0.05}))
             {
-                cout<<"new pose"<< endl;
                 auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
                 G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector < float > {0.0, 0.0, pose.rz});
                 G->modify_attrib_local<rt_translation_att>(edge, std::vector < float > {pose.x, pose.y, 0.0});

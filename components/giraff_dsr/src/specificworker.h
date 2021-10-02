@@ -27,7 +27,7 @@
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
-#include "/home/robo02/robocomp/components/dsr-graph/etc/graph_names.h"
+#include "../../etc/graph_names.h"
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
