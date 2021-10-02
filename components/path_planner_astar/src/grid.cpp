@@ -55,7 +55,7 @@ void Grid::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
         std::vector<std::vector<float>> coordinates;
         std::vector<float> rot{0.0, 0.0, 0.0};
         for (float i = dim.left(); i < dim.right(); i += TILE_SIZE)
-            for (float j = dim.bottom(); j < dim.top(); j += TILE_SIZE)
+            for (float j = dim.top(); j < dim.bottom(); j += TILE_SIZE)
                 coordinates.emplace_back(std::vector<float>{i,j, 10.f});
         std::cout << __FUNCTION__ << " Creating occupation grid with " << num_threads << " threads for "  << coordinates.size() << " positions" << std::endl;
         std::cout << __FUNCTION__ << " Estimated time: " << coordinates.size()*12/1000/60.f << " minutes"  << std::endl;
