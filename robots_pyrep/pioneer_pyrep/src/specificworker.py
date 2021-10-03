@@ -20,26 +20,21 @@
 #
 
 from genericworker import *
-import os, time, queue
-from bisect import bisect_left
-from os.path import dirname, join, abspath
+import time
 from pyrep import PyRep
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
-from pyrep.objects.shape import Object
 from pyrep.objects.joint import Joint
 import numpy as np
 from pytransform3d.transform_manager import TransformManager
 import pytransform3d.transformations as pytr
 import pytransform3d.rotations as pyrot
-import numpy_indexed as npi
-from itertools import zip_longest
 import cv2
-import imutils
 from threading import Lock
-from collections import namedtuple
-import math
+import itertools as it
+import numpy_indexed as npi
+
 
 class TimeControl:
     def __init__(self, period_):
@@ -73,7 +68,8 @@ class SpecificWorker(GenericWorker):
 
     def setParams(self, params):
 
-        SCENE_FILE = '../../etc/informatica.ttt'
+        #SCENE_FILE = '../../etc/informatica.ttt'
+        SCENE_FILE = '/home/robocomp/robocomp/components/robocomp-pioneer/etc/exterior-robolab.ttt'
 
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
@@ -119,6 +115,10 @@ class SpecificWorker(GenericWorker):
         self.cameras_read = self.cameras_write.copy()
         self.mutex_c = Lock()
 
+        # laser
+        self.ldata_write = []
+        self.ldata_read = []
+
         # PoseEstimation
         self.robot_full_pose_write = RoboCompFullPoseEstimation.FullPoseEuler()
         self.robot_full_pose_read = RoboCompFullPoseEstimation.FullPoseEuler()
@@ -135,12 +135,51 @@ class SpecificWorker(GenericWorker):
         tc = TimeControl(0.05)
         while True:
             self.pr.step()
+            self.read_laser()
             self.read_cameras([self.front_left_camera_name, self.front_right_camera_name])
             self.read_joystick()
             self.read_robot_pose()
             self.move_robot()
 
             tc.wait()
+
+    ###########################################
+    ### LASER get and publish laser data
+    ###########################################
+
+    def read_laser(self):
+        data = self.pr.script_call("get_depth_data@Hokuyo_front", 1)
+        if len(data[1]) > 0:
+            polar = np.zeros(shape=(int(len(data[1]) / 3), 2))
+            i = 0
+            for x, y, z in self.grouper(data[1], 3):  # extract non-intersecting groups of 3
+                polar[i] = [-np.arctan2(y, x), np.linalg.norm([x, y])]  # add to list in polar coordinates
+                i += 1
+
+            angles = np.linspace(-np.radians(120), np.radians(120), 360)  # create regular angular values
+            positions = np.searchsorted(angles,
+                                        polar[:, 0])  # list of closest position in polar for each laser measurement
+            self.ldata_write = [RoboCompLaser.TData(a, 0) for a in angles]  # create empty 360 angle array
+            pos, medians = npi.group_by(positions).median(polar[:, 1])  # group by repeated positions
+            for p, m in it.zip_longest(pos, medians):  # fill the angles with measures
+                if p < len(self.ldata_write):
+                    self.ldata_write[p].dist = int(m * 1000)  # to millimeters
+            if self.ldata_write[0] == 0:
+                self.ldata_write[0] = 200  # half robot width
+            for i in range(0, len(self.ldata_write)):
+                if self.ldata_write[i].dist == 0:
+                    self.ldata_write[i].dist = self.ldata_write[i - 1].dist
+
+            self.ldata_read, self.ldata_write = self.ldata_write, self.ldata_read
+
+            try:
+                self.laserpub_proxy.pushLaserData(self.ldata_read)
+            except Ice.Exception as e:
+                print(e)
+
+    def grouper(self, inputs, n, fillvalue=None):
+        iters = [iter(inputs)] * n
+        return it.zip_longest(*iters, fillvalue=fillvalue)
 
     ###########################################
     ### CAMERAS get and publish cameras data
@@ -495,3 +534,26 @@ class SpecificWorker(GenericWorker):
         ret.percentage = 100
         return ret
     #
+
+# =============== Methods for Component Implements ==================
+    # ===================================================================
+    #
+    # IMPLEMENTATION of getLaserAndBStateData method from Laser interface
+    #
+    def Laser_getLaserAndBStateData(self):
+        ret = RoboCompLaser.TLaserData()
+        bState = RoboCompGenericBase.TBaseState()
+        return [ret, bState]
+    #
+    # IMPLEMENTATION of getLaserConfData method from Laser interface
+    #
+    def Laser_getLaserConfData(self):
+        ret = RoboCompLaser.LaserConfData()
+        return ret
+    #
+    # IMPLEMENTATION of getLaserData method from Laser interface
+    #
+    def Laser_getLaserData(self):
+        return self.ldata_read
+    # ===================================================================
+    # ===================================================================

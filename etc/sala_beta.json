@@ -5,19 +5,19 @@
                 "attribute": {
                     "OuterRegionBottom": {
                         "type": 1,
-                        "value": -35000
+                        "value": 2500
                     },
                     "OuterRegionLeft": {
                         "type": 1,
-                        "value": -12500
+                        "value": -5000
                     },
                     "OuterRegionRight": {
                         "type": 1,
-                        "value": 12500
+                        "value": 5000
                     },
                     "OuterRegionTop": {
                         "type": 1,
-                        "value": 35000
+                        "value": -2500
                     },
                     "color": {
                         "type": 0,
@@ -204,11 +204,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -278.689453
+                        "value": -86
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -3.151021
+                        "value": -430
                     }
                 },
                 "id": "1000",
