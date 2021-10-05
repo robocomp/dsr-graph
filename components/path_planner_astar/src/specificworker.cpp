@@ -132,11 +132,11 @@ void SpecificWorker::compute()
     {
         current_plan = plan_o.value();
         qInfo() << __FUNCTION__ << "New plan arrived: ";
-        current_plan.print();
+        current_plan.pprint();
         auto target = current_plan.get_target();
 
         if(target_draw != nullptr) delete target_draw;
-        target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magente")));
+        target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magenta")));
 
         if( not grid.dim.contains(target))
         {
@@ -326,7 +326,7 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
         location <<"[" << std::to_string(pos_x) << "," << std::to_string(pos_y) << "," + std::to_string(0) << "]";
         plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
         plan = Plan(plan_string);
-        plan.print();
+        plan.pprint();
         plan_buffer.put(std::move(plan));
     }
     else

@@ -36,7 +36,7 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include "plan.h"
+#include "/home/robocomp/robocomp/components/robocomp-giraff/etc/plan.h"
 
 
 class SpecificWorker : public GenericWorker
