@@ -1,0 +1,27 @@
+CommonBehavior.Endpoints=tcp -p 19703
+
+agent_id = 45
+agent_name = path_follower
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
+
+robot_length = 500
+robot_width = 400
+robot_radius = 250
+max_advance_speed = 1000
+max_rotation_speed = 1.5
+max_side_speed = 0
+lateral_correction_gain = 0.2
+lateral_correction_for_side_velocity = 0
+rotation_gain = 1
+times_final_distance_to_target_before_zero_rotation = 3
+advance_gaussian_cut_x = 0.8
+advance_gaussian_cut_y = 0.5
+final_distance_to_target = 200  # mm
+
+################################################
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
