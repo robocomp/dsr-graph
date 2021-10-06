@@ -147,7 +147,10 @@ void SpecificWorker::initialize(int period)
 
         // check for existing path node
         if(auto paths = G->get_nodes_by_type(path_to_target_type_name); not paths.empty())
+        {
+            std::cout << paths.front().name() << paths.front().id() << std::endl;
             this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
+        }
 
         this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
@@ -168,7 +171,7 @@ void SpecificWorker::compute()
         if(widget_2d != nullptr)
             draw_path(path, &widget_2d->scene);
     }
-    // if no path node, stop controlling
+    // if there is a path in G
     if(auto node_path = G->get_node(current_path_name); node_path.has_value())
     {
         //if (const auto laser_data = laser_buffer.try_get(); laser_data.has_value())
@@ -198,18 +201,20 @@ void SpecificWorker::compute()
         //else
         //{} // check elapsed time since last reading. Stop the robot if too long
     }
-    else
-        qDebug() << __FUNCTION__ << "No path_node found in G";
+    else // stop controlling
+    {
+        qDebug() << __FUNCTION__ << "No path_node found in G. Stopping the robot";
+    }
     fps.print("FPS: ", [this](auto x){ dsr_viewer->set_external_hz(x);});
 }
 void SpecificWorker::path_follower_initialize()
 {
-    qDebug()<< "Controller - " << __FUNCTION__;
+    qDebug() << __FUNCTION__ << "Controller - ";
     robotBottomLeft = Mat::Vector3d(-consts.robot_width / 2, -consts.robot_length / 2, 0);
     robotBottomRight = Mat::Vector3d(consts.robot_width / 2, -consts.robot_length / 2, 0);
     robotTopRight = Mat::Vector3d(consts.robot_width / 2, consts.robot_length / 2, 0);
     robotTopLeft = Mat::Vector3d(-consts.robot_width / 2, consts.robot_length / 2, 0);
-    qDebug() << __FUNCTION__ << "CONTROLLER: Params from config:" << consts.max_adv_speed << consts.max_rot_speed << consts.max_side_speed << consts.max_lag
+    qInfo() << __FUNCTION__ << "CONTROLLER: Params from config:" << consts.max_adv_speed << consts.max_rot_speed << consts.max_side_speed << consts.max_lag
              << consts.robot_radius;
 }
 void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose)
@@ -465,7 +470,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 void SpecificWorker::del_node_slot(std::uint64_t from)
 {
     if( auto node = G->get_node(current_path_name); not node.has_value())
-        qInfo() << __FUNCTION__  << "Path node deleter. Aborting control";
+    {
+        qInfo() << __FUNCTION__ << "Path node deleter. Aborting control";
+        send_command_to_robot(std::make_tuple(0.0,0.0,0.0));
+    }
 }
 
 ///////////////////////////////////////////////////
