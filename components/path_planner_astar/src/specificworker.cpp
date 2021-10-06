@@ -324,63 +324,63 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id)
 {
     qInfo() << __FUNCTION__ << "[" << pos_x << " " << pos_y << "] Id:" << id;
-    Plan plan;
-    std::string plan_string;
-    // we get the id of the object clicked from the 2D representation
-    if (auto target_node = G->get_node(id); target_node.has_value())
-    {
-        //const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," + std::to_string(0) + "]";
-        std::stringstream location;
-        location <<"[" << std::to_string(pos_x) << "," << std::to_string(pos_y) << "," + std::to_string(0) << "]";
-        plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
-        plan = Plan(plan_string);
-        plan.pprint();
-        plan_buffer.put(std::move(plan));
-    }
-    else
-        qWarning() << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
 
-    if(auto mind = G->get_node(robot_mind_name); mind.has_value())
+    if(auto node = G->get_node(id); node.has_value())
     {
-        // Check if there is not 'intention' node yet in G
-        if (auto intention = G->get_node(current_intention_name); not intention.has_value())
+        Plan plan(Plan::Actions::GOTO);
+        auto p = qvariant_cast<QVariantMap>(plan.planJ["GOTO"]);
+        p.insert("x", pos_x);
+        p.insert("y", pos_y);
+        p.insert("destiny", QString::fromStdString(node.value().name()));
+        plan.planJ["GOTO"].setValue(p);
+        std::cout << plan.pprint() << " " << plan.to_json() << std::endl;
+        plan_buffer.put(std::move(plan));
+
+        if (auto mind = G->get_node(robot_mind_name); mind.has_value())
         {
-            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
-            G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
-            G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
-            G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -440);
-            G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 13);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
-            if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
+            // Check if there is not 'intention' node yet in G
+            if (auto intention = G->get_node(current_intention_name); not intention.has_value())
             {
-                DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
-                if (G->insert_or_assign_edge(edge))
-                    std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
-                else
+                DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
+                G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
+                G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
+                G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -440);
+                G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 13);
+                G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_json());
+                if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
                 {
-                    std::cout << __FUNCTION__ << ": Fatal error inserting new edge: " << mind.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
+                    DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
+                    if (G->insert_or_assign_edge(edge))
+                        std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->"
+                                  << intention_node_id.value()
+                                  << " type: has" << std::endl;
+                    else
+                    {
+                        std::cout << __FUNCTION__ << ": Fatal error inserting new edge: " << mind.value().id() << "->"
+                                  << intention_node_id.value()
+                                  << " type: has" << std::endl;
+                        std::terminate();
+                    }
+                } else
+                {
+                    std::cout << __FUNCTION__ << ": Fatal error inserting_new 'intention' node" << std::endl;
                     std::terminate();
                 }
             } else
             {
-                std::cout << __FUNCTION__ << ": Fatal error inserting_new 'intention' node" << std::endl;
-                std::terminate();
+                std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id()
+                          << std::endl;
+                G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_json());
+                G->update_node(intention.value());
+                std::cout << __FUNCTION__  << " INSERT: " << plan.to_json() << std::endl;
             }
-
         } else
         {
-            std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
-            G->update_node(intention.value());
+            std::cout << __FUNCTION__ << " No node " << robot_mind_name << " found in G" << std::endl;
+            std::terminate();
         }
-    }
-    else
-    {
-        std::cout  << __FUNCTION__ << " No node " << robot_mind_name << " found in G" << std::endl;
-        std::terminate();
-    }
+    } else
+        std::cout << __FUNCTION__ << " No target object node " << node.value().name() << " found in G" << std::endl;
 }
 
 ///////////////////////////////////////////////////
