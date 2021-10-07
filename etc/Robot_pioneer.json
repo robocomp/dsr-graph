@@ -1,0 +1,775 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "1000": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Magenta"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -72.913704
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -298.025543
+                    }
+                },
+                "id": "1000",
+                "links": [
+                ],
+                "name": "mind",
+                "type": "transform"
+            },
+            "200": {
+                "attribute": {
+                    "base_target_x": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "base_target_y": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 12238
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 109.763153
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -662.005188
+                    },
+                    "ref_adv_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_rot_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_side_speed": {
+                        "type": 2,
+                        "value": 0
+                    }
+                },
+                "id": "200",
+                "links": [
+                    {
+                        "dst": "201",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "210",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -0.5199999809265137
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    -60,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "211",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0.5199999809265137
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    60,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "212",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "215",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -1.570796012878418
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    100,
+                                    0,
+                                    400
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "216",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -3.141590118408203
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -100,
+                                    400
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "220",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -200,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "221",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    400
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "225",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "230",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "1000",
+                        "label": "has",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    }
+                ],
+                "name": "robot",
+                "type": "differentialrobot"
+            },
+            "201": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Red"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 540
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 55.088669
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -400.637115
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 460
+                    }
+                },
+                "id": "201",
+                "links": [
+                ],
+                "name": "body",
+                "type": "plane"
+            },
+            "210": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Brown"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "ifconfig": {
+                        "type": 0,
+                        "value": "40000,50000"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 269.640747
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -672.432739
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": "210",
+                "links": [
+                ],
+                "name": "pioneer_camera_left",
+                "type": "rgbd"
+            },
+            "211": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Brown"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "ifconfig": {
+                        "type": 0,
+                        "value": "40000,50000"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 165.133224
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -751.082092
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": "211",
+                "links": [
+                ],
+                "name": "pioneer_camera_right",
+                "type": "rgbd"
+            },
+            "212": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Brown"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 265.133209
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -721.082092
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 640
+                    }
+                },
+                "id": "212",
+                "links": [
+                ],
+                "name": "pioneer_camera_virtual",
+                "type": "rgbd"
+            },
+            "215": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Pink"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -43.32309
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -454.813324
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "215",
+                "links": [
+                ],
+                "name": "slam_0",
+                "type": "plane"
+            },
+            "216": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Pink"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -187.219208
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -576.509399
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "216",
+                "links": [
+                ],
+                "name": "slam_1",
+                "type": "plane"
+            },
+            "220": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Red"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -84.149361
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -519.922058
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "220",
+                "links": [
+                ],
+                "name": "battery",
+                "type": "plane"
+            },
+            "221": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -169.030411
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -622.991882
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "221",
+                "links": [
+                ],
+                "name": "wifi",
+                "type": "plane"
+            },
+            "225": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Magenta"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 20.94146
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -728.082703
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "225",
+                "links": [
+                ],
+                "name": "ultrasound",
+                "type": "ultrasound"
+            },
+            "230": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Orange"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -81.811905
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -706.797302
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "230",
+                "links": [
+                ],
+                "name": "laser",
+                "type": "laser"
+            }
+        }
+    }
+}
