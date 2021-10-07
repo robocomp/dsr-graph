@@ -1,0 +1,14 @@
+import "AGGLPlanner";
+
+
+Component AGMPlannerPython
+{
+    Communications
+    {
+       implements AGGLPlanner;
+    };
+    language python;
+    gui Qt(QMainWindow);
+    options dsr;
+};
+

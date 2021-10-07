@@ -1,0 +1,111 @@
+{
+"DSRModel":{
+        "symbols": {
+              "1": {
+               "attribute": {
+                        "key": "alias",
+                        "value": "package1",
+                        "pos_x": {
+                        "value": 0
+                                 },
+                        "pos_y":{
+                        "value": -150
+                                }
+                            },
+              "id": "1",
+                "type": "obj",
+         "links":[
+                    {
+                        "src": "1",
+                        "dst": "8",
+                        "label": "at"
+                    }
+                ]
+        
+             },
+             
+            "2":{
+                "id": "2",
+                "type": "trck",
+                  
+                "attribute": {
+                        "key": "alias",
+                        "value": "PGH-TRUCK",
+                        "pos_x": {
+                           "value": 200
+                         },
+                        "pos_y":{
+                           "value": -150
+                        }
+                     },
+                "links":[
+                    {
+                        "src": "2",
+                        "dst": "6",
+                        "label": "at"
+                    }
+                ]
+      },
+           "6": {
+                "id": "6",
+                "type": "lctn",
+                "attribute": {
+                        "key": "alias",
+                        "value": "PGH-PO",
+                        "pos_x": {
+                                 "value": 200
+                                },
+                        "pos_y":{
+                                 "value": 0
+                                }
+                             },
+               "links":[
+                    {
+                        "src": "6",
+                        "dst": "10",
+                        "label": "inCity"
+                    }
+                ]
+       },
+          "8": {
+                "id": "8",
+                "type": "lctn",
+                "attribute": {
+                        "key": "alias",
+                        "value": "PGH-AIRPORT",
+                        "pos_x": {
+                                   "value": 80
+                                },
+                        "pos_y":{
+                                   "value": 0
+                                }
+                        },
+                        
+                "links":[
+                    {
+                        "src": "8",
+                        "dst": "10",
+                        "label": "inCity"
+                    }
+                ]
+      },
+         "10": {
+                "id": "10",
+                "type": "city",
+                "attribute": {
+                        "key": "alias",
+                        "value": "PGH",
+                        "pos_x": {
+                                   "value": 170
+                                },
+                        "pos_y":{
+                                   "value": 150
+                                }
+                        },
+                  "links": []
+                        }
+                }
+}
+}
+
+

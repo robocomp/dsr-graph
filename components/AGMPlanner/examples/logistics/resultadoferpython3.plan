@@ -1,0 +1,5 @@
+drivetruck@{'lo1': u'6', 'tr': u'2', 'lo2': u'8', 'ci': u'10'}
+loadtruck@{'truck': u'2', 'obj': u'1', 'loc': u'8'}
+drivetruck@{'lo1': u'8', 'tr': u'2', 'lo2': u'6', 'ci': u'10'}
+unloadtruck@{'truck': u'2', 'obj': u'1', 'loc': u'6'}
+# time: 0.251831

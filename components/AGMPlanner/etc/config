@@ -1,0 +1,45 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+# Proxies for required interfaces
+AGGLPlannerProxy = agglplanner:tcp -h localhost -p 37000
+
+agent_id = 30 # Change id
+agent_name = AGMPlanner
+tree_view = false
+graph_view = true
+2d_view = false
+3d_view = false
+
+#Rules file
+#Test value = examples/logistics/domain.aggl
+aggl_file = examples/logistics/domain.aggl
+#Starting world file
+#Test value = examples/logistics/init0.xml
+init_file = examples/logistics/init0.xml
+#Goal world file
+#Test value = examples/logistics/prueba0.aggt
+aggt_goal = examples/logistics/prueba0.aggt
+#Result plan file 
+#Test value = examples/logistics/resultado.plan
+result_plan = examples/logistics/resultado.plan
+
+
+
+
+
+#Ice.MessageSizeMax=20004800
+
+#JSON variables
+#Path de salida del JSON
+dsr_output_path = ../../etc/
+#Path de entrada. Debo elegir el archivo json dinamico.
+#dsr_input_file = ../../etc/   
+
+
+
+InnerModelPath = innermodel.xml
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
+Ice.MessageSizeMax=20004800
