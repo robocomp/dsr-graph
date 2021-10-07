@@ -1,7 +1,7 @@
 CommonBehavior.Endpoints=tcp -p 17700
 
 agent_id = 35 # Change id
-agent_name = path_planner
+agent_name = path_planner_astar
 
 tree_view = false
 graph_view = true

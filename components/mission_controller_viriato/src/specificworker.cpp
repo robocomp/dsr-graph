@@ -456,6 +456,52 @@ void SpecificWorker::slot_start_mission()
     std::string name = custom_widget.comboBox_select_target->currentText().toStdString();
     qInfo() << __FUNCTION__ << " New mission to " << QString::fromStdString(name);
 
+
+    qInfo() << __FUNCTION__ << " Check if required agents are running " ;
+    /*     Launch Agents     */
+
+
+    const std::vector<std::string> agents { "path_follower" , "path_planner_astar"};
+    const std::map<std::string, std::string> agent_command { { "path_follower", "./bin/path_follower etc/config_viriato"},
+                                                             { "path_planner_astar", "./bin/path_planner_astar etc/config_viriato"}};
+    std::vector<std::string> connected_agents = G->get_connected_agents();
+
+    auto transform_agent_name = [](std::string &agent) {
+        //"Participant_" + agent_id ( " + agent_name + " )").data()
+        if (agent.empty()) return agent;
+        constexpr std::string_view particpant_str = std::string_view("Participant_");
+        constexpr size_t size = particpant_str.size();
+        size_t pos = agent.find(particpant_str);
+        agent.erase(pos, size); // Remove "Participant_"
+        pos = agent.find_first_of('(');
+        agent.erase(0, pos+2); // Remove from agent_id to agent_name start
+        agent.erase(agent.size()-2, 2); // Remove " )"
+        //std::cout <<" ------ |" <<  agent << "|" << std::endl;
+        return agent;
+    };
+
+    std::vector<std::string> diff;
+
+    std::transform(connected_agents.begin(), connected_agents.end(), connected_agents.begin(), transform_agent_name);
+    std::sort(connected_agents.begin(), connected_agents.end());
+    std::set_difference(agents.begin(), agents.end() , connected_agents.begin(), connected_agents.end(), std::back_inserter(diff));
+    for (std::string& agent : diff) {
+        //Ejecutar agentes.
+        qInfo() << __FUNCTION__ << " Starting " << agent.data() ;
+
+        std::string nohup = "nohup";
+        auto cd = "cd  ../" + agent;
+        //std::string pop = "popd";
+        std::string xterm = "xterm -e ";
+        std::string discard_output = ">/dev/null 2>/dev/null";
+
+        auto command =  cd + "  && " + nohup + " " + xterm + " "  + agent_command.at(agent) + " & " + discard_output;
+        std::system(command.c_str());
+    }
+
+    //if (auto node_it = std::find_if(connected_agents.begin(), connected_agents.end(), [](auto &el) { return a.}) )
+
+    /*     Mission Code      */
     if (auto node = G->get_node(name); node.has_value())
     {
         if( node.value().type() == room_type_name)
