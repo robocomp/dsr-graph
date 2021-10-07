@@ -100,9 +100,9 @@ void SpecificWorker::initialize(int period)
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 //        try {
-//            //float x = 3.85;
+////            float x = 3.85;
 //            float x = 0.0;
-//            //float y = -22.387;
+////            float y = -22.387;
 //            float y = 0.0;
 //            float z = 0.0;
 //            float rx = 0;

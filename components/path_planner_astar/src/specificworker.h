@@ -36,7 +36,7 @@
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
 #include <doublebuffer/DoubleBuffer.h>
-#include "plan.h"
+#include "/home/robocomp/robocomp/components/robocomp-giraff/etc/plan.h"
 
 
 class SpecificWorker : public GenericWorker
@@ -102,6 +102,8 @@ class SpecificWorker : public GenericWorker
         std::tuple<SearchState, Mat::Vector2d> search_a_feasible_target(const Node &target, const std::map<std::string, double> &params, const Node &robot);
         void path_planner_initialize(  DSR::QScene2dViewer *viewer_2d, bool read_from_file = false, const std::string file_name = std::string());
         std::optional<QPointF> search_a_feasible_target(const Plan &current_plan);
+        void run_current_plan(const QPointF &target);
+        void update_grid();
 
         std::shared_ptr<Collisions> collisions;
         Grid grid;

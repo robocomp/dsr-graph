@@ -67,13 +67,6 @@ void SpecificWorker::initialize(int period)
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
 
-        //dsr update signals
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
-
         // Graph viewer
         using opts = DSR::DSRViewer::view;
         int current_opts = 0;
@@ -117,6 +110,13 @@ void SpecificWorker::initialize(int period)
         if (auto intentions = G->get_nodes_by_type(intention_type_name); not intentions.empty())
             this->add_or_assign_node_slot(intentions.front().id(), "intention");
 
+        //dsr update signals
+        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+
         this->Period = 200;
         std::cout << __FUNCTION__ << " Initialization complete. Starting 'compute' at " << 1/(this->Period/1000.f) << " Hz"<< std::endl;
         timer.start(Period);
@@ -132,11 +132,11 @@ void SpecificWorker::compute()
     {
         current_plan = plan_o.value();
         qInfo() << __FUNCTION__ << "New plan arrived: ";
-        current_plan.print();
+        current_plan.pprint();
         auto target = current_plan.get_target();
 
         if(target_draw != nullptr) delete target_draw;
-        target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magente")));
+        target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magenta")));
 
         if( not grid.dim.contains(target))
         {
@@ -144,79 +144,12 @@ void SpecificWorker::compute()
             return;
         }
 
-        Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
-        auto valid_target = search_a_feasible_target(current_plan);
-        if( valid_target.has_value())
-        {
-            qInfo() << __FUNCTION__ <<  " x: " << valid_target->x() << " y: " << valid_target->y();
-            std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), valid_target.value());
-            qInfo() << __FUNCTION__ << " Path computed of size: " << path.size();
-            if (not path.empty())
-            {
-                if (widget_2d != nullptr)
-                    draw_path(path, &widget_2d->scene);
-
-                std::vector<float> x_values, y_values;
-                x_values.reserve(path.size());
-                y_values.reserve(path.size());
-                for (auto &&p : path)
-                {
-                    x_values.push_back(p.x());
-                    y_values.push_back(p.y());
-                }
-                if (auto path = G->get_node(current_path_name); path.has_value())
-                {
-                    auto path_to_target_node = path.value();
-                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
-                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
-                    G->update_node(path_to_target_node);
-                }
-                else // create path_to_target_node with the solution path
-                {
-                    if(auto intention = G->get_node(current_intention_name); intention.has_value())
-                    {
-                        auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
-                        G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
-                        G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
-                        G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -542);
-                        G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) 106);
-                        G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention.value().id());
-                        G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
-                        G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
-                        G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
-                        auto id = G->insert_node(path_to_target_node);
-                        DSR::Edge edge_to_intention = DSR::Edge::create<thinks_edge_type>(id.value(), intention.value().id());
-                        G->insert_or_assign_edge(edge_to_intention);
-                    }
-                    else qWarning() << __FUNCTION__ << "No intention node found. Can't create path node";
-                }
-            }
-            else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
-        }
-        else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
+        run_current_plan(target);
     }
     else //do whatever you do without a plan
     {}
 
-    //Update Grid
-    if(grid_updated)
-    {
-        cout<<"Updating grid ---------------------------------------"<<endl;
-        if (auto node = G->get_node(current_grid_name); node.has_value())
-        {
-            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value()){
-                grid.readFromString(grid_as_string.value());
-                //grid.saveToFile("grid.txt");
-            }
-        }
-        if (widget_2d != nullptr){
-            cout<<"drawing grid"<<endl;
-            grid.draw(&widget_2d->scene);
-        }
-        grid_updated = false;
-    }
+    update_grid();
 }
 
 void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, bool read_from_file, const std::string file_name)
@@ -252,6 +185,81 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
     robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
     robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
     robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
+}
+
+void SpecificWorker::run_current_plan(const QPointF &target)
+{
+    Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
+    auto valid_target = search_a_feasible_target(current_plan);
+    if( valid_target.has_value())
+    {
+        qInfo() << __FUNCTION__ <<  " x: " << valid_target->x() << " y: " << valid_target->y();
+        std::list<QPointF> path = grid.computePath(QPointF(nose_3d.x(), nose_3d.y()), valid_target.value());
+        qInfo() << __FUNCTION__ << " Path computed of size: " << path.size();
+        if (not path.empty())
+        {
+            if (widget_2d != nullptr)
+            draw_path(path, &widget_2d->scene);
+
+            std::vector<float> x_values, y_values;
+            x_values.reserve(path.size());
+            y_values.reserve(path.size());
+            for (auto &&p : path)
+            {
+                x_values.push_back(p.x());
+                y_values.push_back(p.y());
+            }
+            if (auto path = G->get_node(current_path_name); path.has_value())
+            {
+                auto path_to_target_node = path.value();
+                G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
+                G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
+                G->update_node(path_to_target_node);
+            }
+            else // create path_to_target_node with the solution path
+            {
+                if(auto intention = G->get_node(current_intention_name); intention.has_value())
+                {
+                    auto path_to_target_node = DSR::Node::create<path_to_target_node_type>(current_path_name);
+                    G->add_or_modify_attrib_local<path_x_values_att>(path_to_target_node, x_values);
+                    G->add_or_modify_attrib_local<path_y_values_att>(path_to_target_node, y_values);
+                    G->add_or_modify_attrib_local<pos_x_att>(path_to_target_node, (float) -542);
+                    G->add_or_modify_attrib_local<pos_y_att>(path_to_target_node, (float) 106);
+                    G->add_or_modify_attrib_local<parent_att>(path_to_target_node, intention.value().id());
+                    G->add_or_modify_attrib_local<level_att>(path_to_target_node, 3);
+                    G->add_or_modify_attrib_local<path_target_x_att>(path_to_target_node, (float) target.x());
+                    G->add_or_modify_attrib_local<path_target_y_att>(path_to_target_node, (float) target.y());
+                    auto id = G->insert_node(path_to_target_node);
+                    DSR::Edge edge_to_intention = DSR::Edge::create<thinks_edge_type>(id.value(), intention.value().id());
+                    G->insert_or_assign_edge(edge_to_intention);
+                }
+                else qWarning() << __FUNCTION__ << "No intention node found. Can't create path node";
+            }
+        }
+        else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
+    }
+    else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
+}
+
+void SpecificWorker::update_grid()
+{
+    if (grid_updated)
+    {
+        std::cout << __FUNCTION__ << " Updating grid ---------------------------------------" << std::endl;
+        if (auto node = G->get_node(current_grid_name); node.has_value())
+        {
+            if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
+                grid.readFromString(grid_as_string.value());
+        }
+        if (widget_2d != nullptr)
+        {
+            cout << "drawing grid" << endl;
+            grid.draw(&widget_2d->scene);
+        }
+        grid_updated = false;
+    }
 }
 
 //
@@ -316,63 +324,63 @@ void SpecificWorker::inject_grid_in_G(const Grid &grid)
 void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id)
 {
     qInfo() << __FUNCTION__ << "[" << pos_x << " " << pos_y << "] Id:" << id;
-    Plan plan;
-    std::string plan_string;
-    // we get the id of the object clicked from the 2D representation
-    if (auto target_node = G->get_node(id); target_node.has_value())
-    {
-        //const std::string location = "[" + std::to_string(pos_x) + "," + std::to_string(pos_y) + "," + std::to_string(0) + "]";
-        std::stringstream location;
-        location <<"[" << std::to_string(pos_x) << "," << std::to_string(pos_y) << "," + std::to_string(0) << "]";
-        plan_string = R"({"plan":[{"action":"goto","params":{"location":)" + location.str() + R"(,"object":")" + target_node.value().name() + "\"}}]}";
-        plan = Plan(plan_string);
-        plan.print();
-        plan_buffer.put(std::move(plan));
-    }
-    else
-        qWarning() << __FUNCTION__ << " No target node  " << QString::number(id) << " found";
 
-    if(auto mind = G->get_node(robot_mind_name); mind.has_value())
+    if(auto node = G->get_node(id); node.has_value())
     {
-        // Check if there is not 'intention' node yet in G
-        if (auto intention = G->get_node(current_intention_name); not intention.has_value())
+        Plan plan(Plan::Actions::GOTO);
+        auto p = qvariant_cast<QVariantMap>(plan.planJ["GOTO"]);
+        p.insert("x", pos_x);
+        p.insert("y", pos_y);
+        p.insert("destiny", QString::fromStdString(node.value().name()));
+        plan.planJ["GOTO"].setValue(p);
+        std::cout << plan.pprint() << " " << plan.to_json() << std::endl;
+        plan_buffer.put(std::move(plan));
+
+        if (auto mind = G->get_node(robot_mind_name); mind.has_value())
         {
-            DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
-            G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
-            G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
-            G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -440);
-            G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 13);
-            G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan_string);
-            if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
+            // Check if there is not 'intention' node yet in G
+            if (auto intention = G->get_node(current_intention_name); not intention.has_value())
             {
-                DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
-                if (G->insert_or_assign_edge(edge))
-                    std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
-                else
+                DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
+                G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
+                G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
+                G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float) -440);
+                G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float) 13);
+                G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_json());
+                if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
                 {
-                    std::cout << __FUNCTION__ << ": Fatal error inserting new edge: " << mind.value().id() << "->" << intention_node_id.value()
-                              << " type: has" << std::endl;
+                    DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
+                    if (G->insert_or_assign_edge(edge))
+                        std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->"
+                                  << intention_node_id.value()
+                                  << " type: has" << std::endl;
+                    else
+                    {
+                        std::cout << __FUNCTION__ << ": Fatal error inserting new edge: " << mind.value().id() << "->"
+                                  << intention_node_id.value()
+                                  << " type: has" << std::endl;
+                        std::terminate();
+                    }
+                } else
+                {
+                    std::cout << __FUNCTION__ << ": Fatal error inserting_new 'intention' node" << std::endl;
                     std::terminate();
                 }
             } else
             {
-                std::cout << __FUNCTION__ << ": Fatal error inserting_new 'intention' node" << std::endl;
-                std::terminate();
+                std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id()
+                          << std::endl;
+                G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_json());
+                G->update_node(intention.value());
+                std::cout << __FUNCTION__  << " INSERT: " << plan.to_json() << std::endl;
             }
-
         } else
         {
-            std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id() << std::endl;
-            G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan_string);
-            G->update_node(intention.value());
+            std::cout << __FUNCTION__ << " No node " << robot_mind_name << " found in G" << std::endl;
+            std::terminate();
         }
-    }
-    else
-    {
-        std::cout  << __FUNCTION__ << " No node " << robot_mind_name << " found in G" << std::endl;
-        std::terminate();
-    }
+    } else
+        std::cout << __FUNCTION__ << " No target object node " << node.value().name() << " found in G" << std::endl;
 }
 
 ///////////////////////////////////////////////////
@@ -388,9 +396,9 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             if (plan.has_value())
             {
                 qInfo() << __FUNCTION__ << QString::fromStdString(plan.value()) << " " << intention.value().id();
-                // if(Plan::is:valid(plan.value())   // ADD THIS TO AVOID CRASHING THE AGENT WITH ILL FORMED PLANS
-                // {};
-                plan_buffer.put(Plan(plan.value()));
+                Plan my_plan(plan.value());
+                if (my_plan.is_action(Plan::Actions::GOTO))
+                    plan_buffer.put(std::move(my_plan));
             }
         }
     }
