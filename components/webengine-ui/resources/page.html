@@ -95,8 +95,10 @@
     textQtWebchannel();
 */
     var robotIcon = L.divIcon({className: "leaflet-divicon", iconSize: [4, 4]}); //new L.Icon({iconUrl: "qrc:///robot.png", iconSize: [15, 15]});
+    var oldrobotIcon = L.divIcon({className: "leaflet-divicon", iconSize: [1, 1]});
     var marker = new Map();
     var current_event;
+
     map.on("zoomstart", (event) => {
         current_event = event;
     });
@@ -107,6 +109,11 @@
 
     var pos;
 
+    let max_len = 60;
+    marker_info = new Map();
+
+
+    let distance = (a, b) => Math.sqrt(Math.pow(b[0]-a[0], 2) + Math.pow(b[1]-a[1], 2));
     window.webChannelPosition = new QWebChannel(qt.webChannelTransport, function(channel)
     {
         pos = channel.objects.ObjectPositions;
@@ -118,11 +125,31 @@
                     pos.get_pos(name, (p) => {
                         map.removeLayer(marker.get(name))
                         marker.set(name, L.marker([p.x, p.y], {icon: robotIcon}).addTo(map));
+                        var obj_history = marker_info.get(name);
+                        if (obj_history.old_pos.length === 0 || distance(obj_history.old_pos[obj_history.old_pos.length-1], [p.x, p.y]) > 0.000008) {
+                            obj_history.old_pos.push([p.x, p.y]); // Add new position to old_pod, but draw it in the next position change.
+                        }
+
+                        if (obj_history.old_pos.length > 1) {
+                            obj_history.old_markers.set(obj_history.old_pos[obj_history.old_pos.length-2], L.marker(obj_history.old_pos[obj_history.old_pos.length-2], {icon: oldrobotIcon}).addTo(map));
+                            if (obj_history.old_pos.length > max_len)
+                            {
+                                var rm_pos = obj_history.old_pos.shift();
+                                var rm_layer = obj_history.old_markers.get(rm_pos);
+                                obj_history.old_markers.delete(rm_pos);
+                                map.removeLayer(rm_layer);
+                            }
+                        }
                     });
                 }
             } else {
                 pos.get_pos(name, (p) => {
                     marker.set(name,  L.marker([p.x, p.y], {icon: robotIcon}).addTo(map));
+                    var obj_history = {};
+                    obj_history.old_pos = []
+                    obj_history.old_markers = new Map();
+                    marker_info.set(name, obj_history)
+                    obj_history.old_pos.push([p.x, p.y]); // Add new position to old_pod, but draw it in the next position change.
                 });
             }
         });

@@ -138,7 +138,7 @@ public:
                 }
             }
 
-        });
+        }, Qt::QueuedConnection);
 
 
     }
@@ -152,5 +152,6 @@ public:
     PositionMap object_positions;
     QWebChannel *com_channel;
     DSR::DSRGraph *G;
+
 };
 #endif
