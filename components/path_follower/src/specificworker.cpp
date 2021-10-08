@@ -67,7 +67,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
         consts.lateral_correction_for_side_velocity = stof(params.at("lateral_correction_for_side_velocity").value);
         consts.rotation_gain = std::stof(params.at("rotation_gain").value);
         consts.times_final_distance_to_target_before_zero_rotation = stof(params.at("times_final_distance_to_target_before_zero_rotation").value);
-        consts.advance_gaussian_cut_y = stof(params.at("advance_gaussian_out_x").value);
+        consts.advance_gaussian_cut_x = stof(params.at("advance_gaussian_out_x").value);
         consts.advance_gaussian_cut_y = stof(params.at("advance_gaussian_out_y").value);
         consts.final_distance_to_target = stof(params.at("final_distance_to_target").value); // mm
     }

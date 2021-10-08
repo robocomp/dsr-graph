@@ -1,0 +1,847 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "1000": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Magenta"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -86
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -430
+                    }
+                },
+                "id": "1000",
+                "links": [
+                    {
+                        "dst": "36451350883598337",
+                        "label": "has",
+                        "linkAttribute": {
+                        },
+                        "src": "1000"
+                    }
+                ],
+                "name": "mind",
+                "type": "transform"
+            },
+            "200": {
+                "attribute": {
+                    "base_target_x": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "base_target_y": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 12238
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 109.763153
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -662.005188
+                    },
+                    "ref_adv_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_rot_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "ref_side_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "robot_local_linear_velocity": {
+                        "type": 3,
+                        "value": [
+                            0.05445510149002075,
+                            3.0953281778470884e-41,
+                            0
+                        ]
+                    }
+                },
+                "id": "200",
+                "links": [
+                    {
+                        "dst": "201",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "220",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -200,
+                                    200
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "221",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    400
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "225",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "230",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    350
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "1000",
+                        "label": "has",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "36164520703426580",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "36173624071159828",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "36444219711160340",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    }
+                ],
+                "name": "robot",
+                "type": "differentialrobot"
+            },
+            "201": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Red"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 540
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 10
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 55.088669
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -400.637115
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 460
+                    }
+                },
+                "id": "201",
+                "links": [
+                ],
+                "name": "body",
+                "type": "plane"
+            },
+            "220": {
+                "attribute": {
+                    "battery_load": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Red"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -109.371811
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -426.914276
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "220",
+                "links": [
+                ],
+                "name": "battery",
+                "type": "plane"
+            },
+            "221": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -169.030411
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -622.991882
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "221",
+                "links": [
+                ],
+                "name": "wifi",
+                "type": "plane"
+            },
+            "225": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Magenta"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 20.94146
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -728.082703
+                    },
+                    "texture": {
+                        "type": 0,
+                        "value": "#b7e059"
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "225",
+                "links": [
+                ],
+                "name": "ultrasound",
+                "type": "ultrasound"
+            },
+            "230": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Orange"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 15
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 20
+                    },
+                    "laser_angles": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "laser_dists": {
+                        "type": 3,
+                        "value": [
+                        ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -81.811905
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -706.797302
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 70
+                    }
+                },
+                "id": "230",
+                "links": [
+                ],
+                "name": "laser",
+                "type": "laser"
+            },
+            "36164520703426580": {
+                "attribute": {
+                    "cam_depthFactor": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "cam_depth_alivetime": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_width": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb": {
+                        "type": 5,
+                        "value": [
+                        ]
+                    },
+                    "cam_rgb_alivetime": {
+                        "type": 1,
+                        "value": -898030147
+                    },
+                    "cam_rgb_cameraID": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "cam_rgb_depth": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_height": {
+                        "type": 1,
+                        "value": 480
+                    },
+                    "cam_rgb_width": {
+                        "type": 1,
+                        "value": 640
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 287.049988
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -598.570007
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 0
+                    }
+                },
+                "id": "36164520703426580",
+                "links": [
+                ],
+                "name": "giraff_camera_usb",
+                "type": "rgbd"
+            },
+            "36173624071159828": {
+                "attribute": {
+                    "cam_depthFactor": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "cam_depth_alivetime": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_width": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb": {
+                        "type": 5,
+                        "value": [
+                        ]
+                    },
+                    "cam_rgb_alivetime": {
+                        "type": 1,
+                        "value": -898030241
+                    },
+                    "cam_rgb_cameraID": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "cam_rgb_depth": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_height": {
+                        "type": 1,
+                        "value": 640
+                    },
+                    "cam_rgb_width": {
+                        "type": 1,
+                        "value": 352
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 236.449997
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -509.410004
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 0
+                    }
+                },
+                "id": "36173624071159828",
+                "links": [
+                ],
+                "name": "giraff_camera_face_id",
+                "type": "rgbd"
+            },
+            "36444219711160340": {
+                "attribute": {
+                    "cam_depthFactor": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "cam_depth_alivetime": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_cameraID": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_depth_width": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb": {
+                        "type": 5,
+                        "value": [
+                        ]
+                    },
+                    "cam_rgb_alivetime": {
+                        "type": 1,
+                        "value": -898030155
+                    },
+                    "cam_rgb_cameraID": {
+                        "type": 1,
+                        "value": 3
+                    },
+                    "cam_rgb_depth": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focalx": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_focaly": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "cam_rgb_width": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "name": {
+                        "type": 0,
+                        "value": ""
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 277.48999
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -714.049988
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 0
+                    }
+                },
+                "id": "36444219711160340",
+                "links": [
+                ],
+                "name": "giraff_camera_realsense",
+                "type": "rgbd"
+            }
+        }
+    }
+}
