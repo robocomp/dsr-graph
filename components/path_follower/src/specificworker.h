@@ -156,6 +156,8 @@ class SpecificWorker : public GenericWorker
 
         // remove trailing path
         void remove_trailing_path(const std::vector<Eigen::Vector2f> &path, const Eigen::Vector2f &robot_pose );
-
+        std::atomic_bool is_cyclic = ATOMIC_VAR_INIT(false);
+        float dist_along_path(const std::vector<Eigen::Vector2f> &path);
+        void print_current_state(const std::vector<Eigen::Vector2f> &path, Eigen::Matrix<float, 2, 1> matrix1, float adv, float side, float rot);
 };
 #endif

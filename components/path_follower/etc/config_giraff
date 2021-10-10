@@ -13,12 +13,12 @@ robot_radius = 250
 max_advance_speed = 800
 max_rotation_speed = 1.2
 max_side_speed = 0
-lateral_correction_gain = 0.2
+lateral_correction_gain = 1.2
 lateral_correction_for_side_velocity = 0
 rotation_gain = 1
-times_final_distance_to_target_before_zero_rotation = 3
+times_final_distance_to_target_before_zero_rotation = 1
 advance_gaussian_cut_x = 0.8
-advance_gaussian_cut_y = 0.5
+advance_gaussian_cut_y = 0.4
 final_distance_to_target = 200  # mm
 
 ################################################

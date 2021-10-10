@@ -124,7 +124,8 @@ void SpecificWorker::initialize(int period)
 
         // Custom widget
         dsr_viewer->add_custom_widget_to_dock("Path follower", &custom_widget);
-        connect(custom_widget.startButton, &QPushButton::clicked, [this](){
+        connect(custom_widget.startButton, &QPushButton::clicked, [this]()
+        {
             if(robot_is_active)
             {
                 robot_is_active = false;
@@ -160,7 +161,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    static std::vector<Eigen::Vector2f> path;
+    static std::vector<Eigen::Vector2f> path, saved_path;
 
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value()) // NEW PATH!
@@ -168,6 +169,10 @@ void SpecificWorker::compute()
         qInfo() << __FUNCTION__ << "New path";
         path.clear();
         path = path_o.value();
+        if(is_cyclic.load())
+            saved_path = path;
+        current_target = path.back();
+        robot_is_active = true;
         if(widget_2d != nullptr)
             draw_path(path, &widget_2d->scene);
     }
@@ -183,20 +188,21 @@ void SpecificWorker::compute()
             auto robot_pose = Eigen::Vector2f(robot_pose_3d.x(), robot_pose_3d.y());
             auto speeds = update(path, QPolygonF(), robot_pose, robot_nose, current_target);
             auto[adv, side, rot] =  send_command_to_robot(speeds);
-            remove_trailing_path(path, robot_pose);
+            if(not is_cyclic.load())
+                remove_trailing_path(path, robot_pose);
 
-            std::cout << "---------------------------" << std::endl;
-            std::cout << "Robot position: " << std::endl;
-            std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
-            std::cout << "Target position: " << std::endl;
-            std::cout << "\t " << current_target.x() << ", " << current_target.y() << std::endl;
-            std::cout << "Dist to target: " << std::endl;
-            std::cout << "\t " << (robot_pose - current_target).norm() << std::endl;
-            std::cout << "Ref speeds:  " << std::endl;
-            std::cout << "\t Advance-> " << adv << std::endl;
-            std::cout << "\t Side -> " << side << std::endl;
-            std::cout << "\t Rotate -> " << rot << std::endl;
-            std::cout << "\tRobot_is_active -> " << std::boolalpha << robot_is_active << std::endl;
+            if(not robot_is_active)  // robot reached the target
+            {
+                if(not is_cyclic.load())
+                    if(auto path_d = G->get_node(current_path_name); path_d.has_value())
+                        G->delete_node(path_d.value().id());
+                else
+                {
+                    path = saved_path;
+                    robot_is_active = true;
+                }
+            }
+            print_current_state(path, robot_pose, adv, side, rot);
         }
         //else
         //{} // check elapsed time since last reading. Stop the robot if too long
@@ -241,19 +247,27 @@ void SpecificWorker::remove_trailing_path(const std::vector<Eigen::Vector2f> &pa
     else
         std::cout << __FUNCTION__ << "No path target " << std::endl;
 }
+float SpecificWorker::dist_along_path(const std::vector<Eigen::Vector2f> &path)
+{
+    float len = 0.0;
+    for(auto &&p : iter::sliding_window(path, 2))
+        len += (p[1]-p[0]).norm();
+    return len;
+};
 std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::Vector2f> &path, const QPolygonF &laser_poly, const Eigen::Vector2f &robot_pose,
                                                        const Eigen::Vector2f &robot_nose, const Eigen::Vector2f &target)
 {
-    qDebug() << "Controller - "<< __FUNCTION__;
+    static float adv_vel_ant = 0;
+    qDebug() << " Controller - "<< __FUNCTION__;
     if(path.size() < 2)
     {
         qWarning() << __FUNCTION__ << " Path with less than 2 elements. Returning";
+        robot_is_active = false;
         return std::make_tuple(0, 0, 0);
     }
 
     // now y is forward direction and x is pointing rightwards
     float advVel = 0.f, sideVel = 0.f, rotVel = 0.f;
-    bool active = true;
     // Compute euclidean distance to target
     float euc_dist_to_target = (robot_pose - target).norm();
 
@@ -265,15 +279,11 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
         return res;
     };
 
-    // Target achieved
-    std::cout << std::boolalpha << __FUNCTION__ << " Conditions: n points < 2 " << (path.size() < 2)
-              << " dist < 200 " << (euc_dist_to_target < consts.final_distance_to_target) << std::endl;
-
-    if( (path.size() < 2) or (euc_dist_to_target < consts.final_distance_to_target))
+    //if( (path.size() < 2) or (euc_dist_to_target < consts.final_distance_to_target))
+    if( (path.size() < 2) or (dist_along_path(path) < consts.final_distance_to_target))
     {
         qInfo() << __FUNCTION__ << " -------------- Target achieved -----------------";
         advVel = 0;  sideVel= 0; rotVel = 0;
-        active = false;
         robot_is_active = false;
         custom_widget.startButton->setText("Start");
         return std::make_tuple(0,0,0);  //adv, side, rot
@@ -282,7 +292,7 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     // lambda to convert from Eigen to QPointF
     auto to_QPointF = [](const Eigen::Vector2f &a){ return QPointF(a.x(), a.y());};
 
-    /// Compute rotational speed
+    /// Compute rotational speed with the Stanley algorithm
     // closest point to robot nose in path
     auto closest_point_to_nose = std::ranges::min_element(path, [robot_nose](auto &a, auto &b){ return (robot_nose - a).norm() < (robot_nose - b).norm();});
 
@@ -300,8 +310,13 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     auto e_tangent = Eigen::Hyperplane<float, 2>::Through(Eigen::Vector2f(tangent.p1().x(), tangent.p1().y()),
                                                           Eigen::Vector2f(tangent.p2().x(), tangent.p2().y()));
     float signed_distance = e_tangent.signedDistance(robot_nose);
-    float correction = consts.lateral_correction_gain * tanh(signed_distance);
+
+    //float correction = consts.lateral_correction_gain * tanh(signed_distance);
+    adv_vel_ant = std::clamp(adv_vel_ant, 10.f, 1000.f);
+    float correction = atan2( consts.lateral_correction_gain * signed_distance, adv_vel_ant);
     angle +=  correction;
+
+    //
     sideVel = consts.lateral_correction_for_side_velocity * correction;
 
     // rot speed gain
@@ -317,9 +332,16 @@ std::tuple<float, float, float> SpecificWorker::update(const std::vector<Eigen::
     /// Compute advance speed
     advVel = std::min(consts.max_adv_speed * exponentialFunction(rotVel, consts.advance_gaussian_cut_x, consts.advance_gaussian_cut_y, 0),
                       euc_dist_to_target);
+    adv_vel_ant = advVel;
 
     return std::make_tuple(advVel, sideVel, rotVel);
 }
+
+//
+//void SpecificWorker::pure_pursuit_control()
+//{
+//
+//}
 
 std::vector<QPointF> SpecificWorker::get_points_along_extended_robot_polygon(int offset, int chunck)
 {
@@ -398,6 +420,22 @@ float SpecificWorker::rewrapAngleRestricted(const float angle)
         return angle;
 }
 
+void SpecificWorker::print_current_state(const std::vector<Eigen::Vector2f> &path, Eigen::Matrix<float, 2, 1> robot_pose, float adv, float side, float rot)
+{
+    std::cout << "---------------------------" << std::endl;
+    std::cout << "Robot position: " << std::endl;
+    std::cout << "\t " << robot_pose.x() << ", " << robot_pose.y() << std::endl;
+    std::cout << "Target position: " << std::endl;
+    std::cout << "\t " << path.back().x() << ", " << path.back().y() << std::endl;
+    std::cout << "Dist to target: " << std::endl;
+    std::cout << "\t " << dist_along_path(path) << std::endl;
+    std::cout << "Ref speeds:  " << std::endl;
+    std::cout << "\t Advance-> " << adv << std::endl;
+    std::cout << "\t Side -> " << side << std::endl;
+    std::cout << "\t Rotate -> " << rot << std::endl;
+    std::cout << "\tRobot_is_active -> " << std::boolalpha << robot_is_active << std::endl;
+}
+
 ///////////////////////////////////////////////////////
 //// Check new target from mouse
 ///////////////////////////////////////////////////////
@@ -419,16 +457,20 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             auto y_values = G->get_attrib_by_name<path_y_values_att>(node.value());
             if(x_values.has_value() and y_values.has_value())
             {
-                std::vector<Eigen::Vector2f> path;
                 auto x = x_values.value().get();
                 auto y = y_values.value().get();
-                for (const auto &[x, y] : iter::zip(x, y))
-                    path.emplace_back(Eigen::Vector2f(x, y));
+                std::vector<Eigen::Vector2f> path; path.reserve(x.size());
+                for (auto &&[x, y] : iter::zip(x, y))
+                    path.push_back(Eigen::Vector2f(x, y));
+
                 path_buffer.put(std::move(path));
-                auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
-                auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
-                if(t_x.has_value() and t_y.has_value())
-                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
+//                auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
+//                auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
+//                if(t_x.has_value() and t_y.has_value())
+//                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
+
+//              auto cyclic = G->get_attrib_by_name<path_is_cyclic_att>(node.value());
+                is_cyclic.store(true);
             }
         }
     }
