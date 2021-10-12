@@ -65,40 +65,35 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-		this->startup_check();
-	else
-	{
-		timer.start(Period);
-		// create graph
-		G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, ""); // Init nodes
-		std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;  
+    // create graph
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id, ""); // Init nodes
+    std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
-		//dsr update signals
-		connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-		connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::modify_edge_slot);
-		//connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::modify_attrs_slot);
-		connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-		connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+    //dsr update signals
+    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::modify_edge_slot);
+    //connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::modify_attrs_slot);
+    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
-		// Graph viewer
-		using opts = DSR::DSRViewer::view;
-		int current_opts = 0;
-		opts main = opts::none;
-		if(tree_view)
-		    current_opts = current_opts | opts::tree;
-		if(graph_view)
-		{
-		    current_opts = current_opts | opts::graph;
-		    main = opts::graph;
-		}
-		if(qscene_2d_view)
-		    current_opts = current_opts | opts::scene;
-		if(osg_3d_view)
-		    current_opts = current_opts | opts::osg;
-        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-        setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+    // Graph viewer
+    using opts = DSR::DSRViewer::view;
+    int current_opts = 0;
+    opts main = opts::none;
+    if(tree_view)
+        current_opts = current_opts | opts::tree;
+    if(graph_view)
+    {
+        current_opts = current_opts | opts::graph;
+        main = opts::graph;
+    }
+    if(qscene_2d_view)
+        current_opts = current_opts | opts::scene;
+    if(osg_3d_view)
+        current_opts = current_opts | opts::osg;
+    graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+    setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+
 //        try {
 ////            float x = 3.85;
 //            float x = 0.0;
@@ -113,13 +108,18 @@ void SpecificWorker::initialize(int period)
 //        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
 
 
-        if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
-            robot_id = robot_id.value();
-        else
-        {
-            qWarning() << "No robot node found. Terminate";
-            std::terminate();
-        }
+    if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
+        robot_id = robot_id.value();
+    else
+    {
+        qWarning() << "No robot node found. Terminate";
+        std::terminate();
+    }
+	this->Period = period;
+	if(this->startup_check_flag)
+		this->startup_check();
+	else
+	{
 		this->Period = period;
 		timer.start(Period);
 	}

@@ -11,7 +11,7 @@ dsr_input_file = ../../etc/informatica_dsr_4.json
 
 tree_view = false
 graph_view = true
-2d_view = false
+2d_view = true
 3d_view = false
 
 dsr_output_path = ../../etc/

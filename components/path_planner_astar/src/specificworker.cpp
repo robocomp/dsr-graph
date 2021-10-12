@@ -58,65 +58,65 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 void SpecificWorker::initialize(int period)
 {
     std::cout << __FUNCTION__ << std::endl;
+    // create graph
+    G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
+    std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
+
+    // Graph viewer
+    using opts = DSR::DSRViewer::view;
+    int current_opts = 0;
+    opts main = opts::none;
+    if (tree_view)
+        current_opts = current_opts | opts::tree;
+    if (graph_view)
+        current_opts = current_opts | opts::graph;
+    if (qscene_2d_view)
+        current_opts = current_opts | opts::scene;
+    if (osg_3d_view)
+        current_opts = current_opts | opts::osg;
+
+    graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+    setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
+
+    //Inner Api
+    inner_eigen = G->get_inner_eigen_api();
+
+    // self agent api
+    agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
+    // Ignore attributes from G
+    G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
+
+    // 2D widget
+    widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
+    if (widget_2d != nullptr)
+    {
+        widget_2d->set_draw_laser(false);
+        connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
+    }
+
+    // path planner
+    path_planner_initialize(widget_2d, read_from_file, grid_file_name);
+    qInfo() << __FUNCTION__ << "Grid created with size " << grid.size() * sizeof(Grid::T) << "bytes";
+    inject_grid_in_G(grid);
+    qInfo() << __FUNCTION__ << "Grid injected in G";
+
+    // check for existing intention node
+    if (auto intentions = G->get_nodes_by_type(intention_type_name); not intentions.empty())
+        this->add_or_assign_node_slot(intentions.front().id(), "intention");
+
+    //dsr update signals
+    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+    //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
+    //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
+    //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+
     this->Period = period;
     if (this->startup_check_flag)
         this->startup_check();
     else
     {
-        // create graph
-        G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
-        std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
-
-        // Graph viewer
-        using opts = DSR::DSRViewer::view;
-        int current_opts = 0;
-        opts main = opts::none;
-        if (tree_view)
-            current_opts = current_opts | opts::tree;
-        if (graph_view)
-            current_opts = current_opts | opts::graph;
-        if (qscene_2d_view)
-            current_opts = current_opts | opts::scene;
-        if (osg_3d_view)
-            current_opts = current_opts | opts::osg;
-
-        graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-        setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
-
-        //Inner Api
-        inner_eigen = G->get_inner_eigen_api();
-
-        // self agent api
-        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
-
-        // Ignore attributes from G
-        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_dists_att, laser_angles_att>();
-
-        // 2D widget
-        widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
-        if (widget_2d != nullptr)
-        {
-            widget_2d->set_draw_laser(false);
-            connect(widget_2d, SIGNAL(mouse_right_click(int, int, std::uint64_t)), this, SLOT(new_target_from_mouse(int, int, std::uint64_t)));
-        }
-
-        // path planner
-        path_planner_initialize(widget_2d, read_from_file, grid_file_name);
-        qInfo() << __FUNCTION__ << "Grid created with size " << grid.size() * sizeof(Grid::T) << "bytes";
-        inject_grid_in_G(grid);
-        qInfo() << __FUNCTION__ << "Grid injected in G";
-
-        // check for existing intention node
-        if (auto intentions = G->get_nodes_by_type(intention_type_name); not intentions.empty())
-            this->add_or_assign_node_slot(intentions.front().id(), "intention");
-
-        //dsr update signals
-        connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
-        //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
-        //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-        connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
-
         this->Period = 200;
         std::cout << __FUNCTION__ << " Initialization complete. Starting 'compute' at " << 1/(this->Period/1000.f) << " Hz"<< std::endl;
         timer.start(Period);
@@ -133,7 +133,9 @@ void SpecificWorker::compute()
         current_plan = plan_o.value();
         qInfo() << __FUNCTION__ << "New plan arrived: ";
         current_plan.pprint();
-        auto target = current_plan.get_target();
+        auto x = current_plan.get_attribute("x").toFloat();
+        auto y = current_plan.get_attribute("y").toFloat();
+        QPointF target(x,y);
 
         if(target_draw != nullptr) delete target_draw;
         target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magenta")));
@@ -238,9 +240,9 @@ void SpecificWorker::run_current_plan(const QPointF &target)
                 else qWarning() << __FUNCTION__ << "No intention node found. Can't create path node";
             }
         }
-        else qWarning() << __FUNCTION__ << "Empty path. No path found for " << current_plan.get_target() << " despite all efforts";
+        else qWarning() << __FUNCTION__ << "Empty path. No path found for target despite all efforts";
     }
-    else qWarning() << __FUNCTION__ << "No free point found close to target" << current_plan.get_target();
+    else qWarning() << __FUNCTION__ << "No free point found close to target";
 }
 
 void SpecificWorker::update_grid()
@@ -269,9 +271,9 @@ void SpecificWorker::update_grid()
 // if not select one. One option is to analyze the local orientation of the barrier
 //
 
-std::optional<QPointF> SpecificWorker::search_a_feasible_target(const Plan &current_plan)
+std::optional<QPointF> SpecificWorker::search_a_feasible_target(Plan &current_plan)
 {
-        auto target = current_plan.get_target();
+        QPointF target(current_plan.get_attribute("x").toFloat(), current_plan.get_attribute("y").toFloat());
         auto new_target = grid.closest_free_4x4(target);
         qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
         return new_target;
@@ -328,11 +330,9 @@ void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t i
     if(auto node = G->get_node(id); node.has_value())
     {
         Plan plan(Plan::Actions::GOTO);
-        auto p = qvariant_cast<QVariantMap>(plan.planJ["GOTO"]);
-        p.insert("x", pos_x);
-        p.insert("y", pos_y);
-        p.insert("destiny", QString::fromStdString(node.value().name()));
-        plan.planJ["GOTO"].setValue(p);
+        plan.insert_attribute("x", pos_x);
+        plan.insert_attribute("y", pos_x);
+        plan.insert_attribute("destiny", QString::fromStdString(node.value().name()));
         std::cout << plan.pprint() << " " << plan.to_json() << std::endl;
         plan_buffer.put(std::move(plan));
 

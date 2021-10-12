@@ -78,15 +78,12 @@ void SpecificWorker::initialize(int period)
             std::terminate();
         }
 
-        //dsr_agent_info = std::make_unique<DSR::AgentInfoAPI>(G.get());
         // Graph viewer
         using opts = DSR::DSRViewer::view;
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
         opts main = opts::none;
         if (graph_view)
-		{
         	main = opts::graph;
-		}
 		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
@@ -97,7 +94,6 @@ void SpecificWorker::initialize(int period)
         agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
 		this->Period = 200;
-
         // Compute max Id in G
         get_max_id_from_G();
         if (dsr_write_to_file)
