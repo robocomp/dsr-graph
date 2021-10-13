@@ -455,6 +455,10 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
         {
             auto x_values = G->get_attrib_by_name<path_x_values_att>(node.value());
             auto y_values = G->get_attrib_by_name<path_y_values_att>(node.value());
+            auto is_cyclic_o = G->get_attrib_by_name<path_is_cyclic_att>(node.value());
+            if(is_cyclic_o.has_value())
+                is_cyclic.store(is_cyclic_o.value());
+            else is_cyclic.store(false);
             if(x_values.has_value() and y_values.has_value())
             {
                 auto x = x_values.value().get();
@@ -470,7 +474,6 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
 //                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
 
 //              auto cyclic = G->get_attrib_by_name<path_is_cyclic_att>(node.value());
-                is_cyclic.store(true);
             }
         }
     }
