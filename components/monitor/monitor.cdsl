@@ -1,0 +1,9 @@
+Component monitor
+{
+    Communications
+    {
+    };
+    language python;
+    options dsr;
+};
+
