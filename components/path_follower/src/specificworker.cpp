@@ -468,12 +468,12 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                     path.push_back(Eigen::Vector2f(x, y));
 
                 path_buffer.put(std::move(path));
-//                auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value());
-//                auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
-//                if(t_x.has_value() and t_y.has_value())
-//                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
+                auto t_x = G->get_attrib_by_name<path_target_x_att>(node.value()); //
+                auto t_y = G->get_attrib_by_name<path_target_y_att>(node.value());
+                if(t_x.has_value() and t_y.has_value())
+                    current_target = Eigen::Vector2f(t_x.value(), t_y.value());
 
-//              auto cyclic = G->get_attrib_by_name<path_is_cyclic_att>(node.value());
+              auto cyclic = G->get_attrib_by_name<path_is_cyclic_att>(node.value()); //
             }
         }
     }
