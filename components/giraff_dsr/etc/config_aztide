@@ -1,0 +1,28 @@
+CommonBehavior.Endpoints=tcp -p 10700
+
+# Proxies for required interfaces
+BatteryStatusProxy = batterystatus:tcp -h 192.168.1.48 -p 10050
+CameraRGBDSimpleProxy = camerargbdsimple:tcp -h 192.168.1.48 -p 10095
+CameraSimpleProxy = camerasimple:tcp -h 192.168.1.48 -p 10195
+CameraSimple1Proxy = camerasimple:tcp -h 192.168.1.48 -p 11060
+DifferentialRobotProxy = differentialrobot:tcp -h 192.168.1.48 -p 10004
+FullPoseEstimationProxy = fullposeestimation:tcp -h 192.168.1.48 -p 10696
+GiraffProxy = giraff:tcp -h 192.168.1.48 -p 10052
+LaserProxy = laser:tcp -h 192.168.1.48 -p 10003
+RealSenseFaceIDProxy = realsensefaceid:tcp -h 192.168.1.48 -p 11070
+
+
+agent_id = 30 # Change id
+agent_name = giraff_dsr
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
+#Ice.MessageSizeMax=20004800
+
+InnerModelPath = innermodel.xml
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
+Ice.MessageSizeMax=20004800
