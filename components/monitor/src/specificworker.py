@@ -28,6 +28,7 @@ sys.path.append('/opt/robocomp/lib')
 console = Console(highlight=False)
 
 from pydsr import *
+import json
 
 
 # If RoboComp was compiled with Python bindings you can use InnerModel in Python
@@ -44,6 +45,8 @@ class SpecificWorker(GenericWorker):
         # YOU MUST SET AN UNIQUE ID FOR THIS AGENT IN YOUR DEPLOYMENT. "_CHANGE_THIS_ID_" for a valid unique integer
         self.agent_id = 69
         self.g = DSRGraph(0, "monitor", self.agent_id)
+        self.plan = None
+        self.plan_node_id = None
 
         try:
             signals.connect(self.g, signals.UPDATE_NODE_ATTR, self.update_node_att)
@@ -106,19 +109,33 @@ class SpecificWorker(GenericWorker):
 
     def update_node_att(self, id: int, attribute_names: [str]):
         console.print(f"UPDATE NODE ATT: {id} {attribute_names}", style='green')
+        pass
 
     def update_node(self, id: int, type: str):
         console.print(f"UPDATE NODE: {id} {type}", style='green')
+        if type == 'intention':
+            node = self.g.get_node('current_intention')
+            self.plan = json.loads(node.attrs['current_intention'].value)
+            self.plan_node_id = id
+            print("Plan info inserted")
+            print(f"Node ID: {self.plan_node_id}")
+            print(f"Plan: {self.plan}")
 
     def delete_node(self, id: int):
         console.print(f"DELETE NODE:: {id} ", style='green')
+        if id == self.plan_node_id:
+            self.plan = None
+            self.plan_node_id = None
+            print("Plan info removed")
 
     def update_edge(self, fr: int, to: int, type: str):
-
         console.print(f"UPDATE EDGE: {fr} to {type}", type, style='green')
+        pass
 
     def update_edge_att(self, fr: int, to: int, type: str, attribute_names: [str]):
         console.print(f"UPDATE EDGE ATT: {fr} to {type} {attribute_names}", style='green')
+        pass
 
     def delete_edge(self, fr: int, to: int, type: str):
         console.print(f"DELETE EDGE: {fr} to {type} {type}", style='green')
+        pass
