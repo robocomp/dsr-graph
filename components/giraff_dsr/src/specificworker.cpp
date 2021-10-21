@@ -120,8 +120,8 @@ void SpecificWorker::compute()
 {
     update_robot_localization();
     read_battery();
-    auto camera_rgbd_frame = compute_camera_rgbd_frame();
-    update_camera_rgbd(giraff_camera_realsense_name,camera_rgbd_frame, focalx, focaly);
+//    auto camera_rgbd_frame = compute_camera_rgbd_frame();
+//    update_camera_rgbd(giraff_camera_realsense_name,camera_rgbd_frame, focalx, focaly);
     auto camera_simple_frame = compute_camera_simple_frame();
     update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
     //auto camera_simple1_frame = compute_camera_simple1_frame();
