@@ -32,9 +32,11 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 
 class SpecificWorker : public GenericWorker
 {

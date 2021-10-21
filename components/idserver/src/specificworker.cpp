@@ -83,9 +83,10 @@ void SpecificWorker::initialize(int period)
 		int current_opts = tree_view | graph_view | qscene_2d_view | osg_3d_view;
         opts main = opts::none;
         if (graph_view)
-        	main = opts::graph;
-		dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
-		setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
+        {	main = opts::graph; }
+
+        dsr_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
+        setWindowTitle(QString::fromStdString(agent_name + "-" + dsr_input_file));
 
         // Ignore attributes from G
         //G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();

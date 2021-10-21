@@ -42,16 +42,8 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
+    // TODO ESTO EN UN TRY CON .at()
+    //////////////////////////////////
 	agent_name = params["agent_name"].value;
 	agent_id = stoi(params["agent_id"].value);
 	tree_view = params["tree_view"].value == "true";
@@ -130,8 +122,8 @@ void SpecificWorker::compute()
     read_battery();
     auto camera_rgbd_frame = compute_camera_rgbd_frame();
     update_camera_rgbd(giraff_camera_realsense_name,camera_rgbd_frame, focalx, focaly);
-    //auto camera_simple_frame = compute_camera_simple_frame();
-    //update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
+    auto camera_simple_frame = compute_camera_simple_frame();
+    update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
     //auto camera_simple1_frame = compute_camera_simple1_frame();
     //update_camera_simple1(giraff_camera_face_id_name, camera_simple1_frame);
     auto laser = read_laser_from_robot();
@@ -241,14 +233,16 @@ cv::Mat SpecificWorker::compute_camera_simple_frame()
         cdata_camera_simple = camerasimple_proxy->getImage();
         //this->focalx = cdata_camera_simple.focalx;
         //this->focaly = cdata_camera_simple.focaly;
-
-        if(!cdata_camera_simple.image.empty()) {
-            camera_simple_frame = cv::imdecode(cdata_camera_simple.image, -1 );
+        if( not cdata_camera_simple.image.empty())
+        {
+            if(cdata_camera_simple.compressed)
+                camera_simple_frame = cv::imdecode(cdata_camera_simple.image, -1 );
+            else
+                camera_simple_frame = cv::Mat(cv::Size(cdata_camera_simple.width, cdata_camera_simple.height), CV_8UC3, &cdata_camera_simple.image[0], cv::Mat::AUTO_STEP);
             cv::cvtColor(camera_simple_frame, camera_simple_frame, cv::COLOR_BGR2RGB);
         }
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
-
+    catch (const Ice::Exception &e){ std::cout << e.what() <<  " In compute_camera_simple_frame" << std::endl;}
     return camera_simple_frame;
 }
 
