@@ -20,6 +20,9 @@ const std::string viriato_head_camera_name = "viriato_head_camera_sensor";
 const std::string giraff_camera_realsense_name = "giraff_camera_realsense";
 const std::string giraff_camera_usb_name = "giraff_camera_usb";
 const std::string giraff_camera_face_id_name = "giraff_camera_face_id";
+const std::string pioneer_head_camera_left_name = "pioneer_camera_left";
+const std::string pioneer_head_camera_right_name = "pioneer_camera_right";
+const std::string pioneer_camera_virtual_name = "pioneer_camera_virtual";
 const std::string laser_name = "laser";
 const std::string laser_social_name = "laser_social";
 const std::string battery_name = "battery";
@@ -58,6 +61,7 @@ const std::string vase_type_name = "vase";
 const std::string refrigerator_type_name = "refrigerator";
 const std::string oven_type_name = "oven";
 const std::string apple_type_name = "apple";
+const std::string object_type_name = "object";
 
 
 // EDGES TYPES

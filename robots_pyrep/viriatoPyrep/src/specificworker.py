@@ -273,7 +273,7 @@ class SpecificWorker(GenericWorker):
                                              self.hokuyo_base_back_right
                                              ], self.robot)
         try:
-            self.laserpub_proxy.pushLaserData(ldata)
+            self.laserpub_proxy.pushLaserData(self.ldata)
         except Ice.Exception as e:
             print(e)
 
