@@ -179,7 +179,7 @@ void SpecificWorker::compute()
     {
         if(auto node_path = G->get_node(current_path_name) ; node_path.has_value())
         {
-            if( auto node_laser = G->get_node(laser_social_name); node_laser.has_value())
+            if( auto node_laser = G->get_node(laser_name); node_laser.has_value())
                 node=node_laser.value();
             else
             {

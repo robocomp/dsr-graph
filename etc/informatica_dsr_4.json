@@ -5,19 +5,19 @@
         "attribute": {
           "OuterRegionBottom": {
             "type": 1,
-            "value": -35000
+            "value": -55000
           },
           "OuterRegionLeft": {
             "type": 1,
-            "value": -12500
+            "value": -45000
           },
           "OuterRegionRight": {
             "type": 1,
-            "value": 12500
+            "value": 45000
           },
           "OuterRegionTop": {
             "type": 1,
-            "value": 35000
+            "value": 55000
           },
           "color": {
             "type": 0,
@@ -198,6 +198,190 @@
                   -9768.7998046875,
                   -9751.2890625,
                   1200
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "500",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  13575,
+                  -14043,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "501",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  13575,
+                  34197,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "502",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  15075,
+                  34197,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "503",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  15075,
+                  31397,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "504",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  24375,
+                  31397,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "505",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  24375,
+                  -30103,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "506",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  13575,
+                  -30103,
+                  0
+                ]
+              }
+            },
+            "src": "1"
+          },
+          {
+            "dst": "507",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  13575,
+                  -14043,
+                  0
                 ]
               }
             },
@@ -1682,6 +1866,358 @@
         "name": "wall_6",
         "type": "plane"
       },
+      "500": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -280
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -3
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "500",
+        "links": [],
+        "name": "wall_marc0",
+        "type": "plane"
+      },
+      "501": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -282
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -5
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "501",
+        "links": [],
+        "name": "wall_marc1",
+        "type": "plane"
+      },
+      "502": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -282
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -6
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "502",
+        "links": [],
+        "name": "wall_marc2",
+        "type": "plane"
+      },
+      "503": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -288
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -8
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "503",
+        "links": [],
+        "name": "wall_marc3",
+        "type": "plane"
+      },
+      "504": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -288
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -8
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "504",
+        "links": [],
+        "name": "wall_marc4",
+        "type": "plane"
+      },
+      "505": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -288
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -8
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "505",
+        "links": [],
+        "name": "wall_marc5",
+        "type": "plane"
+      },
+      "506": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -288
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -8
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "506",
+        "links": [],
+        "name": "wall_marc6",
+        "type": "plane"
+      },
+      "507": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Khaki"
+          },
+          "depth": {
+            "type": 1,
+            "value": 1
+          },
+          "height": {
+            "type": 1,
+            "value": 1000
+          },
+          "level": {
+            "type": 1,
+            "value": 1
+          },
+          "parent": {
+            "type": 7,
+            "value": "1"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -288
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -8
+          },
+          "texture": {
+            "type": 0,
+            "value": "#3333ff"
+          },
+          "width": {
+            "type": 1,
+            "value": 1000
+          }
+        },
+        "id": "507",
+        "links": [],
+        "name": "wall_marc7",
+        "type": "plane"
+      },
       "1000": {
         "attribute": {
           "color": {
@@ -1726,7 +2262,7 @@
           },
           "height": {
             "type": 1,
-            "value": 70000
+            "value": 110000
           },
           "level": {
             "type": 1,
@@ -1750,7 +2286,7 @@
           },
           "width": {
             "type": 1,
-            "value": 25000
+            "value": 90000
           }
         },
         "id": "2",
@@ -1991,6 +2527,29 @@
           },
           {
             "dst": "220",
+            "label": "RT",
+            "linkAttribute": {
+              "rt_rotation_euler_xyz": {
+                "type": 3,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "rt_translation": {
+                "type": 3,
+                "value": [
+                  0,
+                  -200,
+                  200
+                ]
+              }
+            },
+            "src": "200"
+          },
+          {
+            "dst": "820",
             "label": "RT",
             "linkAttribute": {
               "rt_rotation_euler_xyz": {
@@ -2486,6 +3045,50 @@
         "id": "220",
         "links": [],
         "name": "battery",
+        "type": "plane"
+      },
+      "820": {
+        "attribute": {
+          "color": {
+            "type": 0,
+            "value": "Red"
+          },
+          "depth": {
+            "type": 1,
+            "value": 15
+          },
+          "height": {
+            "type": 1,
+            "value": 20
+          },
+          "level": {
+            "type": 1,
+            "value": 2
+          },
+          "parent": {
+            "type": 7,
+            "value": "200"
+          },
+          "pos_x": {
+            "type": 2,
+            "value": -82.149361
+          },
+          "pos_y": {
+            "type": 2,
+            "value": -517.922058
+          },
+          "texture": {
+            "type": 0,
+            "value": "#b7e059"
+          },
+          "width": {
+            "type": 1,
+            "value": 70
+          }
+        },
+        "id": "820",
+        "links": [],
+        "name": "gps",
         "type": "plane"
       },
       "221": {

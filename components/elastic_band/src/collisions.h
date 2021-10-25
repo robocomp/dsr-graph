@@ -24,7 +24,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
-#include  "../../../etc/graph_names.h"
+#include  "../../../etc/pioneer_world_names.h"
 
 
 typedef fcl::BVHModel<fcl::OBBRSS> FCLModel;
