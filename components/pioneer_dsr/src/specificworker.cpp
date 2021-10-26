@@ -108,8 +108,8 @@ void SpecificWorker::initialize(int period)
                 //float x = 9835+11*340;
                 // float x = -3085;
                 //float y = -14043;
-                float x = 14963-13*340-400;//-3171;
-                float y = 18225-13600+900;//-6680;
+                float x = 10143;//14963-13*340-400;//-3171;
+                float y = 5525; //18225-13600+900;//-6680;
                 float z = 0;
                 float rx = 0;
                 float ry = 0;
@@ -119,7 +119,19 @@ void SpecificWorker::initialize(int period)
             }
             catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
         }
+        // get camera_api
+        if(auto cam_node = G->get_node(pioneer_camera_virtual_name); cam_node.has_value()){
+            cout << "ESTALLO" << endl;
+            cam_api = G->get_camera_api(cam_node.value());
 
+            }
+        else
+        {
+            std::cout << "Controller-DSR terminate: could not find a camera node named " << pioneer_head_camera_right_name << std::endl;
+
+            std::terminate();
+        }
+        auto rt = G->get_rt_api();
 		if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
 		    robot_id = robot_id.value();
 		else
@@ -402,34 +414,55 @@ cv::Mat SpecificWorker::compute_virtual_frame()
         int thicknessCircle1 = 2;
         cdata_virtual = camerargbdsimple_proxy->getImage("pioneer_camera_virtual");
         if( auto node = G->get_node(waypoints_name); node.has_value()) {
-           auto waypoints_pos = inner_eigen->transform(pioneer_camera_virtual_name, waypoints_name).value();
-           cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-           cout << waypoints_pos.x() ;
-//           auto waycoords = cam_api->project(
-//                    Eigen::Vector3d( waypoints_pos.x(),  waypoints_pos.y(),
-//                                    waypoints_pos.z())/*, cam_api->get_focal_x(), cam_api->get_focal_y()*/);
-//            cout<< "HOLA ANA";
-//            cv::Point centerCircle2(waycoords[0], waycoords[1]);
-//            cv::Scalar colorCircle2(0, 100, 0);
-//            cv::circle(virtual_frame, centerCircle2, radiusCircle, colorCircle2, thicknessCircle1);
+          auto xpos = G->get_attrib_by_name<wayp_x_att>(node.value());
+          auto ypos = G->get_attrib_by_name<wayp_y_att>(node.value());
+//            cout << "PRUEBA" << xpos.value() << endl;
+            if( auto parent = G->get_parent_node(node.value()); parent.has_value()) {
+                auto edge = rt->get_edge_RT(parent.value(), node.value().id()).value();
+                G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0.0, 0.0, 0.0});
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{ xpos.value(),  ypos.value(), 0.0});
+                // linear velocities are WRT world axes, so local speed has to be computed WRT to the robot's moving frame
+                G->insert_or_assign_edge(edge);
+            }
+
+           auto waypoints_pos = inner_eigen->transform(pioneer_camera_virtual_name ,waypoints_name ).value();
+           cout << "///////////////////  POS_x"<< waypoints_pos.x() << endl;
+            cout << "///////////////////  POS_y"<< waypoints_pos.y() << endl;
+            cout << "///////////////////  POS_z"<< waypoints_pos.z() << endl;
+            cout << "///////////////////  CAM_HEIGHT"<< cam_api->get_height() << endl;
+            cout << "///////////////////  CAM_WIDTH"<< cam_api->get_width() << endl;
+            cout << "///////////////////  FOCAL_X"<< cam_api->get_focal_x() << endl;
+            cout << "///////////////////  focal_y"<< cam_api->get_focal_y() << endl;
+           auto waycoords = cam_api->project(
+                    Eigen::Vector3d( waypoints_pos.x(),  waypoints_pos.y(),
+                                      waypoints_pos.z()), cam_api->get_width()/2, cam_api->get_height()/2);
+           cout << "///////WAYCOORDS X" << waycoords[0] << endl;
+            cout << "///////WAYCOORDS Y" << waycoords[1] << endl;
+
+            this->focalx = cdata_virtual.focalx;
+            this->focaly = cdata_virtual.focaly;
+
+            vector<int> compression_params;
+            compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            compression_params.push_back(50);
+            //qInfo() <<"1: "<< m.cols*m.rows*3;
+
+            if(!cdata_virtual.image.empty()) {
+                cv::imdecode(cdata_virtual.image, 1, &virtual_frame);
+                cv::cvtColor(virtual_frame, virtual_frame, cv::COLOR_BGR2RGB);
+                cv::Point centerCircle2((int) waycoords[0], (int) waycoords[1] );
+                cv::Scalar colorCircle2(0, 233, 255);
+                cv::circle(virtual_frame, centerCircle2, radiusCircle, colorCircle2, thicknessCircle1);
+                cout << "TAMAÑO" << virtual_frame.cols << virtual_frame.rows;
+                cv::imshow("PRUEBA", virtual_frame);
+
+            }
+        }
         }
 
 
 
-        this->focalx = cdata_virtual.focalx;
-        this->focaly = cdata_virtual.focaly;
 
-        vector<int> compression_params;
-        compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
-        compression_params.push_back(50);
-        //qInfo() <<"1: "<< m.cols*m.rows*3;
-
-        if(!cdata_virtual.image.empty()) {
-            cv::imdecode(cdata_virtual.image, 1, &virtual_frame);
-            cv::cvtColor(virtual_frame, virtual_frame, cv::COLOR_BGR2RGB);
-
-        }
-    }
     catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
 
     return virtual_frame;
@@ -524,11 +557,7 @@ void SpecificWorker::update_robot_localization_gps()
         map = gpsublox_proxy->getData();
         qInfo() << __FUNCTION__ << " mapx" << map.mapx;
         qInfo() << __FUNCTION__ << " mapY" << map.mapy;
-        ofstream myfile;
-        myfile.open ("examplegps.txt", ios::app);
-        myfile <<  map.mapx <<";"<<  map.mapy<<"; \n" ;
 
-        myfile.close();
         qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
     }
     catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
