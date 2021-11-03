@@ -1,0 +1,478 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "1": {
+                "attribute": {
+                    "OuterRegionBottom": {
+                        "type": 1,
+                        "value": -7500
+                    },
+                    "OuterRegionLeft": {
+                        "type": 1,
+                        "value": -7500
+                    },
+                    "OuterRegionRight": {
+                        "type": 1,
+                        "value": 7500
+                    },
+                    "OuterRegionTop": {
+                        "type": 1,
+                        "value": 7500
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "SeaGreen"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "0"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 71.272423
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -2.885518
+                    }
+                },
+                "id": "1",
+                "links": [
+                    {
+                        "dst": "50",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "60",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "200",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    -0.6995884776115417
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    1324.4864501953125,
+                                    238.7539825439453,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "900",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    -1.2999999523162842,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    -2150,
+                                    -675,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    }
+                ],
+                "name": "world",
+                "type": "world"
+            },
+            "1000": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "Magenta"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "mass": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "200"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -278.689453
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -3.151021
+                    }
+                },
+                "id": "1000",
+                "links": [
+                    {
+                        "dst": "44430886032113665",
+                        "label": "has",
+                        "linkAttribute": {
+                        },
+                        "src": "1000"
+                    }
+                ],
+                "name": "mind",
+                "type": "transform"
+            },
+            "200": {
+                "attribute": {
+                    "base_target_x": {
+                        "type": 2,
+                        "value": 3600
+                    },
+                    "base_target_y": {
+                        "type": 2,
+                        "value": 1550
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "Blue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "port": {
+                        "type": 1,
+                        "value": 12238
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -174.637238
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -74.730019
+                    },
+                    "robot_ref_adv_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "robot_ref_rot_speed": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "robot_ref_side_speed": {
+                        "type": 2,
+                        "value": 0
+                    }
+                },
+                "id": "200",
+                "links": [
+                    {
+                        "dst": "60",
+                        "label": "in",
+                        "linkAttribute": {
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "900",
+                        "label": "is_near",
+                        "linkAttribute": {
+                        },
+                        "src": "200"
+                    },
+                    {
+                        "dst": "1000",
+                        "label": "has",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "200"
+                    }
+                ],
+                "name": "robot",
+                "type": "omnirobot"
+            },
+            "44430886032113665": {
+                "attribute": {
+                    "agent_description": {
+                        "type": 0,
+                        "value": "TODO"
+                    },
+                    "agent_id": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "agent_name": {
+                        "type": 0,
+                        "value": "Participant_1 ( idserver )"
+                    },
+                    "cpu_usage": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "memory_usage": {
+                        "type": 6,
+                        "value": 73204
+                    },
+                    "num_procs": {
+                        "type": 6,
+                        "value": 26
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1000"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 10
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 10
+                    },
+                    "timestamp_agent": {
+                        "type": 7,
+                        "value": "1635942136082315766"
+                    },
+                    "timestamp_alivetime": {
+                        "type": 7,
+                        "value": "64"
+                    },
+                    "timestamp_creation": {
+                        "type": 7,
+                        "value": "1635942071793708584"
+                    }
+                },
+                "id": "44430886032113665",
+                "links": [
+                ],
+                "name": "Participant_1 ( idserver )",
+                "type": "agent"
+            },
+            "50": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "delimiting_polygon_x": {
+                        "type": 3,
+                        "value": [
+                            -3892,
+                            -262,
+                            -3761,
+                            -336
+                        ]
+                    },
+                    "delimiting_polygon_y": {
+                        "type": 3,
+                        "value": [
+                            -1690,
+                            -1690,
+                            2133,
+                            2227
+                        ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 44.890675
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -51.743259
+                    }
+                },
+                "id": "50",
+                "links": [
+                    {
+                        "dst": "60",
+                        "label": "accessible",
+                        "linkAttribute": {
+                        },
+                        "src": "50"
+                    }
+                ],
+                "name": "dinning_room",
+                "type": "room"
+            },
+            "60": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "delimiting_polygon_x": {
+                        "type": 3,
+                        "value": [
+                            -262,
+                            3237,
+                            -280,
+                            3181
+                        ]
+                    },
+                    "delimiting_polygon_y": {
+                        "type": 3,
+                        "value": [
+                            -1690,
+                            -1690,
+                            2301,
+                            2283
+                        ]
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 174.980789
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -146.958786
+                    }
+                },
+                "id": "60",
+                "links": [
+                    {
+                        "dst": "50",
+                        "label": "accessible",
+                        "linkAttribute": {
+                        },
+                        "src": "60"
+                    }
+                ],
+                "name": "kitchen",
+                "type": "room"
+            },
+            "900": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "SteelBlue"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "person_id": {
+                        "type": 7,
+                        "value": "0"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -33.240002
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 54.41
+                    }
+                },
+                "id": "900",
+                "links": [
+                    {
+                        "dst": "50",
+                        "label": "in",
+                        "linkAttribute": {
+                        },
+                        "src": "900"
+                    }
+                ],
+                "name": "person_0",
+                "type": "person"
+            }
+        }
+    }
+}

@@ -1,0 +1,203 @@
+fontName=Arial
+fontSize=14
+lineThickness=2.0
+longPattern=3
+name=change_room2
+nodeThickness=2.0
+shortPattern=1
+spacePattern=3
+vertexDiameter=40.0
+===
+types
+{
+(object)
+(person)
+(robot)
+(room)
+}
+===
+askForAffordancePermission : active(1)
+{
+	{
+		o:object(110,-50)
+		p:person(-50,-180)
+		robot:robot(185,-215)
+		o->o(interactive)
+		p->o(interacting)
+		p->p(is_near)
+		p->robot(affordance_blocking)
+		robot->robot(blocked)
+	}
+	=>
+	{
+		o:object(125,105)
+		p:person(-60,-15)
+		robot:robot(190,-40)
+		o->o(interactive)
+		p->o(interacting)
+		p->p(is_near)
+	}
+}
+
+askForGroupalPermission : active(1)
+{
+	{
+		p:person(-70,-245)
+		p2:person(115,10)
+		robot:robot(-195,55)
+		p->p(is_near)
+		p->p2(interacting)
+		p->robot(is_blocking)
+		p2->p(interacting)
+		p2->robot(is_blocking)
+		robot->robot(blocked)
+	}
+	=>
+	{
+		p:person(0,-350)
+		p2:person(170,-75)
+		robot:robot(-140,10)
+		p->p(is_near)
+		p->p2(interacting)
+		p2->p(interacting)
+	}
+}
+
+askForIndividualPermission : active(1)
+{
+	{
+		p:person(-40,-50)
+		robot:robot(-195,55)
+		p->p(is_near)
+		p->robot(front)
+		p->robot(is_blocking)
+		robot->robot(blocked)
+	}
+	=>
+	{
+		p:person(10,-115)
+		robot:robot(-140,10)
+		p->p(is_near)
+		p->robot(front)
+	}
+	precondition
+	{
+		(forall 
+			otherp:person
+			(when   
+				(not (= p otherp))
+				(not (is_blocking otherp robot))
+			)       
+		)
+	}
+}
+
+changeRoom : active(1)
+{
+	{
+		robot:robot(-300,-190)
+		room1:room(-210,-365)
+		room2:room(-5,-205)
+		robot->robot(blocked)*
+		robot->room1(in)
+		room1->room2(accessible)
+		room2->room1(accessible)
+	}
+	=>
+	{
+		robot:robot(-155,-25)
+		room1:room(-140,-205)
+		room2:room(105,-30)
+		robot->robot(blocked)*
+		robot->room2(in)
+		room1->room2(accessible)
+		room2->room1(accessible)
+	}
+}
+
+goToAffordance : active(1)
+{
+	{
+		o:object(-5,80)
+		p:person(-155,-20)
+		robot:robot(125,-80)
+		p->o(interacting)
+		p->robot(affordance_blocking)
+	}
+	=>
+	{
+		o:object(35,100)
+		p:person(-125,-25)
+		robot:robot(105,-95)
+		p->o(interacting)
+		p->p(is_near)
+		p->robot(affordance_blocking)
+	}
+}
+
+goToGroupOfPeople : active(1)
+{
+	{
+		p:person(-235,-35)
+		p2:person(25,105)
+		robot:robot(-35,-180)
+		p->p2(interacting)
+		p->robot(is_blocking)
+		p2->p(interacting)
+		p2->robot(is_blocking)
+	}
+	=>
+	{
+		p:person(-275,-40)
+		p2:person(-30,30)
+		robot:robot(0,-205)
+		p->p(is_near)
+		p->p2(interacting)
+		p->robot(is_blocking)
+		p2->p(interacting)
+		p2->robot(is_blocking)
+	}
+}
+
+goToPerson : active(1)
+{
+	{
+		p:person(-235,-35)
+		robot:robot(-35,-180)
+		p->robot(is_blocking)
+	}
+	=>
+	{
+		p:person(-225,-80)
+		robot:robot(0,-205)
+		p->p(is_near)
+		p->robot(is_blocking)
+	}
+	precondition
+	{
+		(forall 
+			otherp:person
+			(when   
+				(not (= p otherp))
+				(not (is_blocking otherp robot))
+			)       
+		)
+	}
+}
+
+takeTheAttention : active(1)
+{
+	{
+		p:person(-15,-25)
+		robot:robot(-150,50)
+		p->p(is_near)
+	}
+	=>
+	{
+		p:person(75,0)
+		robot:robot(-105,90)
+		p->p(is_near)
+		p->robot(front)
+	}
+}
+

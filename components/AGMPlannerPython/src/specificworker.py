@@ -27,7 +27,10 @@ sys.path.append('/opt/robocomp/lib')
 console = Console(highlight=False)
 
 from pydsr import *
-
+import sys
+sys.path.append('/usr/local/share/agm')
+from agglplanner import *
+import os
 
 # If RoboComp was compiled with Python bindings you can use InnerModel in Python
 # import librobocomp_qmat
@@ -42,7 +45,9 @@ class SpecificWorker(GenericWorker):
 
         # YOU MUST SET AN UNIQUE ID FOR THIS AGENT IN YOUR DEPLOYMENT. "_CHANGE_THIS_ID_" for a valid unique integer
         self.agent_id = 45
+        self.output_file_count=0
         self.g = DSRGraph(0, "pythonAgent", self.agent_id)
+        self.rt_api = rt_api(self.g)
 
         try:
             signals.connect(self.g, signals.UPDATE_NODE_ATTR, self.update_node_att)
@@ -72,9 +77,114 @@ class SpecificWorker(GenericWorker):
     @QtCore.Slot()
     def compute(self):
       
+        print('Writing JSON')
+        file = "AGMPlannerPython" + "_" + '{}'.format(self.output_file_count) + ".json"
+        self.output_file_count = self.output_file_count +1
+        self.g.write_to_json_file(file)
+        print(file)
 
-        pass
+ #      if not(self.g.get_node('Planificador')):
+#            print('holiiiiiiiiiiiiiiiiiiiiiiii')
+#            new_node = Node(agent_id=self.agent_id, type='planner', name='Planificador')
+#            id_mind = self.g.get_node('mind').id
+#            vector=["Holo", "holi", "holuuuu"]
+#            new_node.attrs['parent'] = Attribute(id_mind, self.agent_id)
+#            new_node.attrs['plan_list'] = Attribute(vector, self.agent_id)
+#            new_node.attrs['pos_x'] = Attribute(-239.0, self.agent_id)
+#            new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
 
+#            try:
+#                id_result = self.g.insert_node(new_node)
+#                #self.rt_api.insert_or_assign_edge_RT(self.g.get_node('mind'), id_result, [0, 0, 0], [.0, 0, .0])
+#                id_mind = self.g.get_node('mind').id
+#                has_edge = Edge(id_result, id_mind, 'has', self.agent_id)
+#                self.g.insert_or_assign_edge(has_edge)
+#                print(' inserted new node  ', id_result)
+
+#            except:
+#                traceback.print_exc()
+#                print('cant update node or add edge RT')
+#        else:
+#            print('adioooooooooooooooooooooooh')
+
+        if self.g.get_node('mind'):
+            print('EXISTE MENTE')
+            if not (self.g.get_node('current_intention')):
+                # Final Version of the code
+                pythonarg = "python3 "  # python3
+                agglplanarg = "../../../../../software/AGM/AGGLPlanner/agglplan.py "  # the command to call the .py file
+                agglfile = "input_files/aggl_files/change_roomViriato2.aggl "  # ruleset.aggl file
+                initfile = file + " "  # initialworld.xml/.json file
+                aggtgoal = "input_files/aggt_files/targetGoToKitchen_Viriato.aggt "  # goalfile.aggt file
+                resultplan = "input_files/plan_files/resultadoViriato.plan"  # resultplan.plan file
+                # print the full chain before call the command line
+                cadenatotal = pythonarg + agglplanarg + agglfile + initfile + aggtgoal + resultplan
+                print("cadenatotal =")
+                print(cadenatotal)
+
+                os.system(cadenatotal)
+
+                if os.stat(resultplan).st_size == 0:
+                    print('ESTA VACIOOOOOOOOOOOO')
+                else:
+                    with open(resultplan) as f:
+                        lines = f.read()
+                        first = lines.split('\n', 1)[0]
+                    print('PLAN: ', first)
+
+                    print('se crea nodo intención')
+                    new_node = Node(agent_id=self.agent_id, type='intention', name='current_intention')
+                    id_mind = self.g.get_node('mind').id
+                    # id_level = self.g.get_node('mind').level
+                    # print(id_level)
+                    new_node.attrs['parent'] = Attribute(id_mind, self.agent_id)
+                    new_node.attrs['level'] = Attribute(3, self.agent_id)
+                    new_node.attrs['pos_x'] = Attribute(-200.0, self.agent_id)
+                    new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
+                    new_node.attrs['current_intention'] = Attribute(first, self.agent_id)
+
+                    try:
+                        id_result = self.g.insert_node(new_node)
+                        # self.rt_api.insert_or_assign_edge_RT(self.g.get_node('mind'), id_result, [0, 0, 0], [.0, 0, .0])
+                        id_mind = self.g.get_node('mind').id
+                        has_edge = Edge(id_result, id_mind, 'has', self.agent_id)
+                        self.g.insert_or_assign_edge(has_edge)
+                        print(' inserted new node  ', id_result)
+
+                    except:
+                        traceback.print_exc()
+                        print('cant update node or add edge RT')
+
+
+
+
+
+            else:
+                print('chaooooooo')
+
+        os.remove(file)
+
+            
+
+
+#        plans = []
+#        f = open("input_files/plan_files/resultadoViriato.plan", "r")
+#        while (True):
+#            linea = f.readline()
+#            if not('#' in linea):
+#                print(linea)
+#                plans.append(linea)
+#            if not linea:
+#                break
+#        f.close()
+#        print('SEPARASIO')
+#        for nom in peliculas:
+#            print(nom)
+
+
+
+
+        #pass
         return True
 
     def startup_check(self):
