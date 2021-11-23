@@ -37,6 +37,10 @@
 
 #include "3D_view.h"
 
+#include <opencv4/opencv2/core.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv4/opencv2/highgui.hpp>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -58,8 +62,10 @@ private:
     geometry_queries_api geom;
     std::unique_ptr<DSR::CameraAPI> cam;
     std::shared_ptr<DSR::InnerEigenAPI> inner;
+    std::unordered_map<std::string, QLabel*> contornos;
+    std::unordered_map<std::string, std::unique_ptr<cv::Mat>> contornos_img;
 
-	//DSR params
+    //DSR params
 	std::string agent_name;
 	int agent_id;
 
@@ -77,7 +83,18 @@ private:
 	void add_or_assign_attrs_slot(std::uint64_t id, const std::map<std::string, DSR::Attribute> &attribs){};
 	void add_or_assign_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type);
 
-	void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+	void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){
+	    if (edge_tag == "visible") {
+            std::cout << "close" << std::endl;
+            std::string name = G->get_name_from_id(to).value_or("");
+            if (contornos[name]) {
+                contornos[name]->close();
+                delete contornos[name];
+            }
+            contornos.erase(name);
+            contornos_img.erase(name);
+        }
+	};
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
