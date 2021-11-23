@@ -63,7 +63,7 @@
 
 // QT includes
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 // ICE includes
 #include <Ice/Ice.h>
@@ -81,7 +81,10 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
+
 #include <GenericBase.h>
+
+
 
 class pioneer_dsr : public RoboComp::Application
 {
@@ -131,7 +134,9 @@ int ::pioneer_dsr::run(int argc, char* argv[])
 	RoboCompCameraRGBDSimple::CameraRGBDSimplePrxPtr camerargbdsimple_proxy;
 	RoboCompDifferentialRobot::DifferentialRobotPrxPtr differentialrobot_proxy;
 	RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr fullposeestimation_proxy;
+	RoboCompGpsUblox::GpsUbloxPrxPtr gpsublox_proxy;
 	RoboCompLaser::LaserPrxPtr laser_proxy;
+	RoboCompLaser::LaserPrxPtr laser1_proxy;
 	RoboCompRSSIStatus::RSSIStatusPrxPtr rssistatus_proxy;
 	RoboCompUltrasound::UltrasoundPrxPtr ultrasound_proxy;
 
@@ -204,6 +209,22 @@ int ::pioneer_dsr::run(int argc, char* argv[])
 
 	try
 	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "GpsUbloxProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy GpsUbloxProxy\n";
+		}
+		gpsublox_proxy = Ice::uncheckedCast<RoboCompGpsUblox::GpsUbloxPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy GpsUblox: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("GpsUbloxProxy initialized Ok!");
+
+
+	try
+	{
 		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserProxy", proxy, ""))
 		{
 			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
@@ -216,6 +237,22 @@ int ::pioneer_dsr::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	rInfo("LaserProxy initialized Ok!");
+
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "Laser1Proxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
+		}
+		laser1_proxy = Ice::uncheckedCast<RoboCompLaser::LaserPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy Laser1: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("LaserProxy1 initialized Ok!");
 
 
 	try
@@ -250,7 +287,7 @@ int ::pioneer_dsr::run(int argc, char* argv[])
 	rInfo("UltrasoundProxy initialized Ok!");
 
 
-	tprx = std::make_tuple(batterystatus_proxy,camerargbdsimple_proxy,differentialrobot_proxy,fullposeestimation_proxy,laser_proxy,rssistatus_proxy,ultrasound_proxy);
+	tprx = std::make_tuple(batterystatus_proxy,camerargbdsimple_proxy,differentialrobot_proxy,fullposeestimation_proxy,gpsublox_proxy,laser_proxy,laser1_proxy,rssistatus_proxy,ultrasound_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
@@ -334,43 +371,35 @@ int main(int argc, char* argv[])
 	QString prefix("");
 	if (argc > 1)
 	{
-	    QString initIC = QString("--Ice.Config=");
-	    for (int i = 1; i < argc; ++i)
-		{
-		    arg = argv[i];
-            if (arg.find(initIC.toStdString(), 0) == 0)
-            {
-                configFile = QString::fromStdString(arg).remove(0, initIC.size());
-            }
-            else
-            {
-                configFile = QString::fromStdString(argv[1]);
-            }
-        }
 
-        // Search in argument list for --prefix= argument (if exist)
-        QString prfx = QString("--prefix=");
-        for (int i = 2; i < argc; ++i)
-        {
-            arg = argv[i];
-            if (arg.find(prfx.toStdString(), 0) == 0)
-            {
-                prefix = QString::fromStdString(arg).remove(0, prfx.size());
-                if (prefix.size()>0)
-                    prefix += QString(".");
-                printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
-            }
-        }
-
-        // Search in argument list for --test argument (if exist)
-        QString startup = QString("--startup-check");
+		// Search in argument list for arguments
+		QString startup = QString("--startup-check");
+		QString initIC = QString("--Ice.Config=");
+		QString prfx = QString("--prefix=");
 		for (int i = 0; i < argc; ++i)
 		{
 			arg = argv[i];
-			if (arg.find(startup.toStdString(), 0) == 0)
+			if (arg.find(startup.toStdString(), 0) != std::string::npos)
 			{
 				startup_check_flag = true;
 				cout << "Startup check = True"<< endl;
+			}
+			else if (arg.find(prfx.toStdString(), 0) != std::string::npos)
+			{
+				prefix = QString::fromStdString(arg).remove(0, prfx.size());
+				if (prefix.size()>0)
+					prefix += QString(".");
+				printf("Configuration prefix: <%s>\n", prefix.toStdString().c_str());
+			}
+			else if (arg.find(initIC.toStdString(), 0) != std::string::npos)
+			{
+				configFile = QString::fromStdString(arg).remove(0, initIC.size());
+				qDebug()<<__LINE__<<"Starting with config file:"<<configFile;
+			}
+			else if (i==1 and argc==2 and arg.find("--", 0) == std::string::npos)
+			{
+				configFile = QString::fromStdString(arg);
+				qDebug()<<__LINE__<<QString::fromStdString(arg)<<argc<<arg.find("--", 0)<<"Starting with config file:"<<configFile;
 			}
 		}
 

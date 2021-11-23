@@ -26,7 +26,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
-#include  "../../../etc/graph_names.h"
+#include  "../../../etc/pioneer_world_names.h"
 
 #include <custom_widget.h>
 #include <dsr/api/dsr_api.h>

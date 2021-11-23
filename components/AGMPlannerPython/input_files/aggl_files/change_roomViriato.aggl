@@ -1,0 +1,104 @@
+fontName=Arial
+fontSize=14
+lineThickness=2
+longPattern=3
+name=change_room2
+nodeThickness=2
+shortPattern=1
+spacePattern=3
+vertexDiameter=40
+===
+types
+{
+	(object)
+	(person)
+	(robot)
+	(omnirobot)
+	(room)
+}
+===
+
+changeRoom : active(1)
+{
+	{
+		robot:omnirobot(-300,-190)
+		room1:room(-210,-365)
+		room2:room(-5,-205)
+		robot->robot(blocked)*
+		robot->room1(in)
+	}
+	=>
+	{
+		robot:omnirobot(-155,-25)
+		room1:room(-140,-205)
+		room2:room(105,-30)
+		robot->robot(blocked)*
+		robot->room2(in)
+	}
+	precondition
+	  {
+	    (and
+	      (accessible room1 room2)
+	      (accessible room2 room1)
+	    )  
+	  }
+}
+
+goToPerson : active(1)
+{
+	{
+		p:person(-235,-35)
+		robot:omnirobot(-35,-180)
+		p->robot(is_blocking)
+	}
+	=>
+	{
+		p:person(-225,-80)
+		robot:omnirobot(0,-205)
+		robot->p(is_near)
+		p->robot(is_blocking)
+	}
+	precondition
+	{
+
+	}
+}
+
+takeTheAttention : active(1)
+{
+	{
+		p:person(-15,-25)
+		robot:omnirobot(-150,50)
+		robot->p(is_near)
+	}
+	=>
+	{
+		p:person(75,0)
+		robot:omnirobot(-105,90)
+		robot->p(is_near)
+		p->robot(front)
+	}
+}
+
+askForIndividualPermission : active(1)
+{
+	{
+		p:person(-40,-50)
+		robot:omnirobot(-195,55)
+		robot->p(is_near)
+		p->robot(front)
+		p->robot(is_blocking)
+		robot->robot(blocked)
+	}
+	=>
+	{
+		p:person(10,-115)
+		robot:omnirobot(-140,10)
+		robot->p(is_near)
+
+	}
+	precondition
+	{
+
+	}
+}

@@ -1,0 +1,8 @@
+{
+	200:omnirobot(1,1)
+	60:room(1,1)
+	200->60(in)
+}
+precondition
+{
+}

@@ -7,8 +7,8 @@ DSRGetID.Endpoints=tcp -p 11000
 agent_id = 1
 agent_name = idserver
 
-dsr_input_file = ../../etc/informatica_dsr_4.json
-
+#dsr_input_file = ../../etc/informatica_dsr_4.json
+dsr_input_file = ../../etc/exterior-robolab.json
 tree_view = false
 graph_view = true
 2d_view = true

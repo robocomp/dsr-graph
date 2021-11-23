@@ -109,7 +109,7 @@
 
     var pos;
 
-    let max_len = 60;
+    let max_len = 1000;
     marker_info = new Map();
 
 
@@ -126,7 +126,7 @@
                         map.removeLayer(marker.get(name))
                         marker.set(name, L.marker([p.x, p.y], {icon: robotIcon}).addTo(map));
                         var obj_history = marker_info.get(name);
-                        if (obj_history.old_pos.length === 0 || distance(obj_history.old_pos[obj_history.old_pos.length-1], [p.x, p.y]) > 0.000008) {
+                        if (obj_history.old_pos.length === 0 || distance(obj_history.old_pos[obj_history.old_pos.length-1], [p.x, p.y]) > 0.0000008) {
                             obj_history.old_pos.push([p.x, p.y]); // Add new position to old_pod, but draw it in the next position change.
                         }
 

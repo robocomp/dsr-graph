@@ -5,12 +5,13 @@ import "RSSIStatus.idsl";
 import "Ultrasound.idsl";
 import "FullPoseEstimation.idsl";
 import "Laser.idsl";
+import "GpsUblox.idsl";
 
 Component pioneer_dsr
 {
     Communications
     {
-        requires DifferentialRobot, CameraRGBDSimple, BatteryStatus, RSSIStatus, Ultrasound, FullPoseEstimation, Laser;
+        requires DifferentialRobot, CameraRGBDSimple, BatteryStatus, RSSIStatus, Ultrasound, FullPoseEstimation, Laser, Laser, GpsUblox;
     };
     language Cpp11;
     gui Qt(QMainWindow);

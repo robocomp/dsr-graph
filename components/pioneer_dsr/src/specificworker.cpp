@@ -20,6 +20,10 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/enumerate.hpp>
+#include <iostream>
+#include <fstream>
+#include <time.h>
+
 
 /**
 * \brief Default constructor
@@ -75,9 +79,6 @@ void SpecificWorker::initialize(int period)
         rt = G->get_rt_api();
         inner_eigen = G->get_inner_eigen_api();
 
-        // self agent api
-        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
-
 		//dsr update signals
 		//connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
 		//connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
@@ -104,17 +105,33 @@ void SpecificWorker::initialize(int period)
 		{
 		    qInfo() << "Robot real";
             try {
-                float x = 3305;
-                float y = -21699;
+                //float x = 9835+11*340;
+                // float x = -3085;
+                //float y = -14043;
+                float x = 10143;//14963-13*340-400;//-3171;
+                float y = 5525; //18225-13600+900;//-6680;
                 float z = 0;
                 float rx = 0;
                 float ry = 0;
-                float rz = 0;
+                float rz = 180;
                 fullposeestimation_proxy->setInitialPose(x, y, z, rx, ry, rz);
+                gpsublox_proxy->setInitialPose(x, y);
             }
             catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
         }
+        // get camera_api
+        if(auto cam_node = G->get_node(pioneer_camera_virtual_name); cam_node.has_value()){
+            cout << "ESTALLO" << endl;
+            cam_api = G->get_camera_api(cam_node.value());
 
+            }
+        else
+        {
+            std::cout << "Controller-DSR terminate: could not find a camera node named " << pioneer_head_camera_right_name << std::endl;
+
+            std::terminate();
+        }
+        auto rt = G->get_rt_api();
 		if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
 		    robot_id = robot_id.value();
 		else
@@ -130,7 +147,11 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    update_robot_localization();
+
+    update_robot_localization_gps();
+    read_battery();
+    update_gps();
+    read_RSSI();
     if (robot_real)
     {
         //Llamada a metodo para guardar la imagen virtual del robot
@@ -156,12 +177,15 @@ void SpecificWorker::compute()
 std::vector<SpecificWorker::LaserPoint> SpecificWorker::read_laser_from_robot()
 {
     std::vector<LaserPoint> laser_data;
+    std::vector<LaserPoint> laser_data_back;
 
     try {
         auto laser = laser_proxy->getLaserData();
+        auto laser_back = laser1_proxy->getLaserData();
         //for(auto &d : laser)
         //    qInfo() << d.angle << d.dist;
         std::transform(laser.begin(), laser.end(), std::back_inserter(laser_data), [](const auto &l) {return LaserPoint{l.dist, l.angle}; });
+        std::transform(laser_back.begin(), laser_back.end(), std::back_inserter(laser_data_back), [](const auto &l) {return LaserPoint{l.dist, l.angle}; });
     }catch (const Ice::Exception &e){ std::cout << e.what() << " No laser_pioneer_data" << std::endl; return {};}
 
     return laser_data;
@@ -386,20 +410,59 @@ cv::Mat SpecificWorker::compute_virtual_frame()
     cv::Mat virtual_frame;
     try
     {
+        int radiusCircle = 30;
+        int thicknessCircle1 = 2;
         cdata_virtual = camerargbdsimple_proxy->getImage("pioneer_camera_virtual");
-        this->focalx = cdata_virtual.focalx;
-        this->focaly = cdata_virtual.focaly;
+        if( auto node = G->get_node(waypoints_name); node.has_value()) {
+          auto xpos = G->get_attrib_by_name<wayp_x_att>(node.value());
+          auto ypos = G->get_attrib_by_name<wayp_y_att>(node.value());
+//            cout << "PRUEBA" << xpos.value() << endl;
+            if( auto parent = G->get_parent_node(node.value()); parent.has_value()) {
+                auto edge = rt->get_edge_RT(parent.value(), node.value().id()).value();
+                G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0.0, 0.0, 0.0});
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{ xpos.value(),  ypos.value(), 0.0});
+                // linear velocities are WRT world axes, so local speed has to be computed WRT to the robot's moving frame
+                G->insert_or_assign_edge(edge);
+            }
 
-        vector<int> compression_params;
-        compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
-        compression_params.push_back(50);
-        //qInfo() <<"1: "<< m.cols*m.rows*3;
+           auto waypoints_pos = inner_eigen->transform(pioneer_camera_virtual_name ,waypoints_name ).value();
+           cout << "///////////////////  POS_x"<< waypoints_pos.x() << endl;
+            cout << "///////////////////  POS_y"<< waypoints_pos.y() << endl;
+            cout << "///////////////////  POS_z"<< waypoints_pos.z() << endl;
+            cout << "///////////////////  CAM_HEIGHT"<< cam_api->get_height() << endl;
+            cout << "///////////////////  CAM_WIDTH"<< cam_api->get_width() << endl;
+            cout << "///////////////////  FOCAL_X"<< cam_api->get_focal_x() << endl;
+            cout << "///////////////////  focal_y"<< cam_api->get_focal_y() << endl;
+           auto waycoords = cam_api->project(
+                    Eigen::Vector3d( waypoints_pos.x(),  waypoints_pos.y(),
+                                      waypoints_pos.z()), cam_api->get_width()/2, cam_api->get_height()/2);
+           cout << "///////WAYCOORDS X" << waycoords[0] << endl;
+            cout << "///////WAYCOORDS Y" << waycoords[1] << endl;
 
-        if(!cdata_virtual.image.empty()) {
-            cv::imdecode(cdata_virtual.image, 1, &virtual_frame);
-            cv::cvtColor(virtual_frame, virtual_frame, cv::COLOR_BGR2RGB);
+            this->focalx = cdata_virtual.focalx;
+            this->focaly = cdata_virtual.focaly;
+
+            vector<int> compression_params;
+            compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            compression_params.push_back(50);
+            //qInfo() <<"1: "<< m.cols*m.rows*3;
+
+            if(!cdata_virtual.image.empty()) {
+                cv::imdecode(cdata_virtual.image, 1, &virtual_frame);
+                cv::cvtColor(virtual_frame, virtual_frame, cv::COLOR_BGR2RGB);
+                cv::Point centerCircle2((int) waycoords[0], (int) waycoords[1] );
+                cv::Scalar colorCircle2(0, 233, 255);
+                cv::circle(virtual_frame, centerCircle2, radiusCircle, colorCircle2, thicknessCircle1);
+                cout << "TAMAÑO" << virtual_frame.cols << virtual_frame.rows;
+                cv::imshow("PRUEBA", virtual_frame);
+
+            }
         }
-    }
+        }
+
+
+
+
     catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
 
     return virtual_frame;
@@ -483,6 +546,48 @@ void SpecificWorker::read_RSSI()
     }
     catch(const Ice::Exception &e) { std::cout << e.what() << std::endl;}
 }
+void SpecificWorker::update_robot_localization_gps()
+{
+    static RoboCompFullPoseEstimation::FullPoseEuler last_state;
+    RoboCompFullPoseEstimation::FullPoseEuler pose;
+    RoboCompGpsUblox::DatosGPS map;
+    try
+    {
+        pose = fullposeestimation_proxy->getFullPoseEuler();
+        map = gpsublox_proxy->getData();
+        qInfo() << __FUNCTION__ << " mapx" << map.mapx;
+        qInfo() << __FUNCTION__ << " mapY" << map.mapy;
+
+        qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
+    }
+    catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
+
+    if( auto robot = G->get_node(robot_name); robot.has_value())
+    {
+        if( auto parent = G->get_parent_node(robot.value()); parent.has_value())
+        {
+            if (are_different(std::vector < float > {map.mapx, map.mapy},
+                              std::vector < float > {last_state.x, last_state.y},
+                              std::vector < float > {1, 1, 0.05}))
+            {
+                auto edge = rt->get_edge_RT(parent.value(), robot->id()).value();
+                G->modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector < float > {0.0, 0.0, pose.rz});
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector < float > {map.mapx, map.mapy, 0.0});
+                G->modify_attrib_local<rt_translation_velocity_att>(edge, std::vector<float>{pose.vx, pose.vy, pose.vz});
+                G->modify_attrib_local<rt_rotation_euler_xyz_velocity_att>(edge, std::vector<float>{pose.vrx, pose.vry, pose.vrz});
+                // linear velocities are WRT world axes, so local speed has to be computed WRT to the robot's moving frame
+                float side_velocity = -sin(pose.rz) * pose.vx + cos(pose.rz) * pose.vy;
+                float adv_velocity = -cos(pose.rz) * pose.vx + sin(pose.rz) * pose.vy;
+                G->insert_or_assign_edge(edge);
+                G->add_or_modify_attrib_local<robot_local_linear_velocity_att>(robot.value(), std::vector<float>{adv_velocity, side_velocity, pose.rz});
+                G->update_node(robot.value());
+                last_state = pose;
+            }
+        }
+        else  qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
+    }
+    else    qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
+}
 void SpecificWorker::update_robot_localization()
 {
     static RoboCompFullPoseEstimation::FullPoseEuler last_state;
@@ -490,6 +595,11 @@ void SpecificWorker::update_robot_localization()
     try
     {
         pose = fullposeestimation_proxy->getFullPoseEuler();
+        //ofstream myfile;
+        //myfile.open ("examplecuadrado.txt", ios::app);
+        //myfile <<  pose.x <<";"<<  pose.y<< ";"<<  pose.rz<< "; \n" ;
+
+        //myfile.close();
         //qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
     }
     catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
@@ -519,6 +629,26 @@ void SpecificWorker::update_robot_localization()
         else  qWarning() << __FUNCTION__ << " No parent found for node " << QString::fromStdString(robot_name);
     }
     else    qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
+}
+void SpecificWorker::update_gps()
+{
+    try {
+            auto gps_state = gpsublox_proxy->getData();
+        qInfo() << __FUNCTION__ << "ENTROOOOOO" ;
+        if( auto gps = G->get_node(gps_name); gps.has_value())
+        {
+            G->add_or_modify_attrib_local<gps_latitude_att>(gps.value(), (float)gps_state.latitude);
+            G->add_or_modify_attrib_local<gps_longitude_att>(gps.value(), (float)gps_state.longitude);
+            G->add_or_modify_attrib_local<gps_map_x_att>(gps.value(), (float)gps_state.mapx);
+            G->add_or_modify_attrib_local<gps_map_y_att>(gps.value(), (float)gps_state.mapy);
+            G->update_node(gps.value());
+        }
+        qInfo() << __FUNCTION__ << " UTMx" << gps_state.UTMx;
+        qInfo() << __FUNCTION__ << " UTMY" << gps_state.UTMy;
+
+
+    }
+    catch(const Ice::Exception &e) { std::cout << e.what() << std::endl;}
 }
 //  Simplify contour with Ramer-Douglas-Peucker and filter out spikes
 QPolygonF SpecificWorker::filter_laser(const std::vector<SpecificWorker::LaserPoint> &ldata)
@@ -602,8 +732,10 @@ void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, 
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker:: add_or_assign_node_slot(std::uint64_t, const std::string &type)
 {
-//    if (type == differentialrobot_type_name)
-//    {
+    if (type == differentialrobot_type_name)
+    {
+        qInfo() << "HOLA";
+    }
 //        if (auto robot = G->get_node(robot_name); robot.has_value())
 //        {
 //            // speed
@@ -631,7 +763,7 @@ void SpecificWorker::modify_attrs_slot(std::uint64_t id, const std::vector<std::
 {
     if(id == 200)
     {
-        qInfo() << __FUNCTION__ << id;
+        qInfo() << __FUNCTION__ << " entro" << id;
         auto r_adv = std::ranges::find_if(att_names, [](auto &name){ return name == "robot_ref_adv_speed";});
         auto r_rot = std::ranges::find_if(att_names, [](auto &name){ return name == "robot_ref_rot_speed";});
         if( r_adv != att_names.end() or r_rot != att_names.end())

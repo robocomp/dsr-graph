@@ -25,7 +25,7 @@
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
-#include "../../../etc/graph_names.h"
+#include "../../../etc/pioneer_world_names.h"
 
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
@@ -58,7 +58,7 @@ class SpecificWorker : public GenericWorker
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::unique_ptr<DSR::RT_API> rt;
-        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
+        std::shared_ptr<DSR::CameraAPI> cam_api;
 
 
         //DSR params
@@ -87,8 +87,10 @@ class SpecificWorker : public GenericWorker
 
         // remote services
         void update_robot_localization();
+        void update_robot_localization_gps();
         void read_battery();
         void read_RSSI();
+        void update_gps();
 
         //laser
         using Point = std::pair<float, float>;
