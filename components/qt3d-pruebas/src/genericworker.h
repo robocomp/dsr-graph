@@ -20,7 +20,7 @@
 #define GENERICWORKER_H
 
 #include "config.h"
-#include <stdint.h>
+#include <cstdint>
 #include <qlog/qlog.h>
 
 #if Qt5_FOUND

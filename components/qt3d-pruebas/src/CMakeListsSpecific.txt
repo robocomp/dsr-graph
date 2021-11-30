@@ -19,8 +19,9 @@ SET ( HEADERS
     Cuboid.h
 )
 
+INCLUDE( $ENV{ROBOCOMP}/cmake/modules/opencv4.cmake )
 
 add_definitions(-g  -fmax-errors=1 -std=c++2a -march=haswell -mavx2 )
-SET (LIBS ${LIBS}   dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)
+SET (LIBS ${LIBS}   dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen opencv_imgproc)
 
 

@@ -288,7 +288,7 @@ public:
                         int idxPos6  = rawIdxArray[i+5] * stride +  byteOffset;
 
                         //Ignore tangents (3, 6)
-
+                        int idx = 0;
                         for (auto idxPos : {idxPos1, idxPos2, idxPos3, idxPos4, idxPos5, idxPos6}) {
                             QByteArray posx = vertexBufferData.mid(idxPos + 0 * sizeof(float), sizeof(float));
                             QByteArray posy = vertexBufferData.mid(idxPos + 1 * sizeof(float), sizeof(float));
@@ -299,12 +299,17 @@ public:
                             float y = *reinterpret_cast<const float *>(posy.data());
                             float z = *reinterpret_cast<const float *>(posz.data());
 
+                            //std::cout << "idx: " << idx << " Vertex: " << x << " " << y << " " << z << std::endl;
                             QVector4D tmp = world_matrix * matrix * QVector4D(x, y, z, 1.0);
                             auto v3 = tmp.toVector3D();
 
                             positions.emplace_back(v3.x(), v3.y(), v3.z());
                             indices.push_back(positions.size()-1);
+                            idx++;
                         }
+
+                        //std::cout << " ------------------------------- "<< std::endl;
+
                     }
 
                     //Entity->setEnabled(false);
@@ -359,7 +364,7 @@ private:
         camera->setViewCenter(QVector3D(0, 0, 0));
 
 
-        auto mat_head = inner->get_transformation_matrix("floor", "viriato_head_camera_sensor").value();
+        auto mat_head = inner->get_transformation_matrix("world", "viriato_head_camera_sensor").value();
 
         auto tr_head = mat_head.translation();
         auto rot = mat_head.rotation();
@@ -827,7 +832,7 @@ private:
                                  const std::vector<std::string> &att_name)
     {
         if (type == "RT"sv) {
-            auto mat = inner->get_transformation_matrix("floor", "viriato_head_camera_sensor").value();
+            auto mat = inner->get_transformation_matrix("world", "viriato_head_camera_sensor").value();
             auto tr_head = mat.translation();
             auto rot = mat.rotation();
 
@@ -862,7 +867,7 @@ private:
         auto z = g->get_attrib_by_name<depth_att>(node);
         auto path = g->get_attrib_by_name<path_att>(node);
 
-        auto mat = inner->get_transformation_matrix("floor", node.name());
+        auto mat = inner->get_transformation_matrix("world", node.name());
 
         if (((x.has_value() && y.has_value() && z.has_value() )|| path.has_value()) && mat.has_value()) {
 
@@ -875,6 +880,7 @@ private:
 
             QVector3D scale (1, 1, 1);
 
+            if (node.name() == "Wall9") return;
             if (node.name() == "floor") {
                 material->setAmbient(QColor(QRgb(0x474747)));
                 material->setSpecular(QColor(QRgb(0x474747)));
