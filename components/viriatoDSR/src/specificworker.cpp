@@ -754,7 +754,7 @@ int SpecificWorker::startup_check()
 //////////////////////////////////////////////////////////////////////
 void SpecificWorker::CameraRGBDSimplePub_pushRGBD(RoboCompCameraRGBDSimple::TImage im, RoboCompCameraRGBDSimple::TDepth dep)
 {
-	qDebug() << __FUNCTION__;
+	//qDebug() << __FUNCTION__;
 	rgb_buffer.put(std::move(im));
 	depth_buffer.put(std::move(dep));	
 }
