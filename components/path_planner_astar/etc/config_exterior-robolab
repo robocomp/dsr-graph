@@ -12,9 +12,9 @@ NavigationAgent.RobotName = pioneer
 
 NavigationAgent.TileSize = 300
 #NavigationAgent.grid_file_name=pioneer-200-vrep.simscene.grid
-NavigationAgent.grid_file_name=exterior-robolab.simscene.grid
+NavigationAgent.grid_file_name=exterior-robolab.simscene_prueba_1.grid
 NavigationAgent.num_threads_for_grid_occupancy = 15
-NavigationAgent.read_from_file = true
+NavigationAgent.read_from_file = false
 
 NavigationAgent.MaxZSpeed = 650
 NavigationAgent.MaxXSpeed = 450

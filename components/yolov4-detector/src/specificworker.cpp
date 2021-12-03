@@ -105,8 +105,11 @@ void SpecificWorker::initialize(int period)
         graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
         setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-        //Inner Api
+        // Inner Api
         inner_eigen = G->get_inner_eigen_api();
+
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
         // get camera_api
         if (auto cam_node = G->get_node(viriato_head_camera_name); cam_node.has_value())
@@ -252,7 +255,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
-                G->update_node(synth_node.value());    // COMPROBAR SI SE PUEDE QUITAR ESTO
+                G->update_node(synth_node.value());
                 //b_real.print("Real Box");
                 //b_synth.print("Synth Box");
                 //qInfo() << __FUNCTION__ << " Matched objects:" << ++count;

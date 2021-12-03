@@ -84,7 +84,7 @@ public:
 
     void retranslateUi(QMainWindow *guiDlg)
     {
-        guiDlg->setWindowTitle(QApplication::translate("guiDlg", "yolov4_tracker", nullptr));
+        guiDlg->setWindowTitle(QApplication::translate("guiDlg", "yolov4_person", nullptr));
         actionSave->setText(QApplication::translate("guiDlg", "Save", nullptr));
         actionStart_Stop->setText(QApplication::translate("guiDlg", "Start/Stop", nullptr));
         menuSimulation->setTitle(QApplication::translate("guiDlg", "Simulation", nullptr));

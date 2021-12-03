@@ -1,0 +1,15 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+agent_id = 46 # Change id
+agent_name = human_model
+tree_view = false
+graph_view = true
+2d_view = true
+3d_view = false
+#Ice.MessageSizeMax=20004800
+
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
+Ice.MessageSizeMax=20004800
