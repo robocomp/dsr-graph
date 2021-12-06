@@ -57,8 +57,8 @@ TARGET_LINK_LIBRARIES( qt3d_pruebas ${LIBS} ${STATIC_LIBS} ${SPECIFIC_LIBS} ${QT
         Qt5::3DAnimation
         Qt5::3DExtras
         Qt5::3DInput
-        flann
-        lz4
+        #flann
+        #lz4
         )
 
 

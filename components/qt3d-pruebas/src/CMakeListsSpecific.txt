@@ -4,8 +4,8 @@ SET ( SOURCES
     specificworker.cpp
     specificmonitor.cpp
     3D_view.h
-    PointCloud.cpp
-    TriangleMesh.cpp
+    #PointCloud.cpp
+    #TriangleMesh.cpp
     WireFrameMat.h
     WireFrameEffect.h
     Cuboid.cpp
@@ -15,7 +15,7 @@ SET ( SOURCES
 SET ( HEADERS
     specificworker.h
     specificmonitor.h
-    KdTree.h
+    #KdTree.h
     Cuboid.h
 )
 
