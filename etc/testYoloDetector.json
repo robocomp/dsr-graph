@@ -33,11 +33,11 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -231.932816
+                        "value": 271.903076
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 26.806305
+                        "value": 59.191803
                     }
                 },
                 "id": "1",
@@ -68,6 +68,129 @@
                 ],
                 "name": "world",
                 "type": "world"
+            },
+            "56751101810049044": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 40
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 40
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "60"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 588.960022
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -41.32
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 60
+                    }
+                },
+                "id": "56751101810049044",
+                "links": [
+                ],
+                "name": "yolooven",
+                "type": "oven"
+            },
+            "56752207260811284": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 120
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 200
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "60"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 583.26001
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -149.630005
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 400
+                    }
+                },
+                "id": "56752207260811284",
+                "links": [
+                ],
+                "name": "yolobigtable",
+                "type": "table"
+            },
+            "56752488631500820": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 60
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 2
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "60"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 575.252014
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -249.485474
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 200
+                    }
+                },
+                "id": "56752488631500820",
+                "links": [
+                ],
+                "name": "yolotable",
+                "type": "table"
             },
             "60": {
                 "attribute": {
@@ -103,107 +226,15 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 207.614548
+                        "value": 471.30072
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -50.222984
+                        "value": -102.064377
                     }
                 },
                 "id": "60",
                 "links": [
-                    {
-                        "dst": "62",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    1825,
-                                    58,
-                                    450
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "64",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    2900,
-                                    1100,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "68",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    1500,
-                                    1950,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "71",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -100,
-                                    1970,
-                                    925
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
                     {
                         "dst": "72",
                         "label": "RT",
@@ -226,522 +257,79 @@
                             }
                         },
                         "src": "60"
+                    },
+                    {
+                        "dst": "56751101810049044",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "60"
+                    },
+                    {
+                        "dst": "56752207260811284",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "60"
+                    },
+                    {
+                        "dst": "56752488631500820",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "60"
                     }
                 ],
                 "name": "kitchen",
                 "type": "room"
-            },
-            "62": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "LightBlue"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "path": {
-                        "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 103.683792
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -409.674133
-                    },
-                    "scalex": {
-                        "type": 1,
-                        "value": 1400
-                    },
-                    "scaley": {
-                        "type": 1,
-                        "value": 450
-                    },
-                    "scalez": {
-                        "type": 1,
-                        "value": 890
-                    }
-                },
-                "id": "62",
-                "links": [
-                ],
-                "name": "kitchen_side_table",
-                "type": "mesh"
-            },
-            "64": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "SteelBlue"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 288.825256
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -210.973022
-                    }
-                },
-                "id": "64",
-                "links": [
-                    {
-                        "dst": "65",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -50,
-                                    0,
-                                    890
-                                ]
-                            }
-                        },
-                        "src": "64"
-                    },
-                    {
-                        "dst": "66",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -100,
-                                    -1200,
-                                    450
-                                ]
-                            }
-                        },
-                        "src": "64"
-                    },
-                    {
-                        "dst": "67",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -400,
-                                    100,
-                                    450
-                                ]
-                            }
-                        },
-                        "src": "64"
-                    }
-                ],
-                "name": "tableF",
-                "type": "transform"
-            },
-            "65": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "LightBlue"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 20
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 2500
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "64"
-                    },
-                    "path": {
-                        "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 279.673004
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -387.529816
-                    },
-                    "scalex": {
-                        "type": 1,
-                        "value": 800
-                    },
-                    "scaley": {
-                        "type": 1,
-                        "value": 2200
-                    },
-                    "scalez": {
-                        "type": 1,
-                        "value": 100
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 750
-                    }
-                },
-                "id": "65",
-                "links": [
-                ],
-                "name": "tableF_countertop",
-                "type": "mesh"
-            },
-            "66": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "Khaki"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 890
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 9
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "64"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 416.914063
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -372.246368
-                    },
-                    "texture": {
-                        "type": 0,
-                        "value": "#008888"
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 650
-                    }
-                },
-                "id": "66",
-                "links": [
-                ],
-                "name": "tableF_side_panel",
-                "type": "plane"
-            },
-            "67": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "Khaki"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 890
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 2490
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "64"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 449.677429
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -285.117462
-                    },
-                    "texture": {
-                        "type": 0,
-                        "value": "#008888"
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 9
-                    }
-                },
-                "id": "67",
-                "links": [
-                ],
-                "name": "tableF_front_panel",
-                "type": "plane"
-            },
-            "68": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "SteelBlue"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 422.61557
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -78.870842
-                    }
-                },
-                "id": "68",
-                "links": [
-                    {
-                        "dst": "69",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    -50,
-                                    890
-                                ]
-                            }
-                        },
-                        "src": "68"
-                    },
-                    {
-                        "dst": "70",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    3.1415927410125732,
-                                    0.0003792187781073153,
-                                    3.1415927410125732
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    -400,
-                                    450
-                                ]
-                            }
-                        },
-                        "src": "68"
-                    }
-                ],
-                "name": "tableG",
-                "type": "transform"
-            },
-            "69": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "LightBlue"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 20
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 720
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "68"
-                    },
-                    "path": {
-                        "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 493.13559
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -199.510101
-                    },
-                    "scalex": {
-                        "type": 1,
-                        "value": 2000
-                    },
-                    "scaley": {
-                        "type": 1,
-                        "value": 800
-                    },
-                    "scalez": {
-                        "type": 1,
-                        "value": 100
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 2110
-                    }
-                },
-                "id": "69",
-                "links": [
-                ],
-                "name": "tableG_countertop",
-                "type": "mesh"
-            },
-            "70": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "Khaki"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 890
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 9
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 3
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "68"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 588.178711
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -49.175545
-                    },
-                    "texture": {
-                        "type": 0,
-                        "value": "#888800"
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 2110
-                    }
-                },
-                "id": "70",
-                "links": [
-                ],
-                "name": "tableG_front",
-                "type": "plane"
-            },
-            "71": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "LightBlue"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "path": {
-                        "type": 0,
-                        "value": "/home/robocomp/robocomp/files/osgModels/basics/cube2.3ds"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 390.973236
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -179.124725
-                    },
-                    "scalex": {
-                        "type": 1,
-                        "value": 600
-                    },
-                    "scaley": {
-                        "type": 1,
-                        "value": 600
-                    },
-                    "scalez": {
-                        "type": 1,
-                        "value": 1850
-                    }
-                },
-                "id": "71",
-                "links": [
-                ],
-                "name": "fridge_mesh",
-                "type": "mesh"
             },
             "72": {
                 "attribute": {
