@@ -5,19 +5,19 @@
                 "attribute": {
                     "OuterRegionBottom": {
                         "type": 1,
-                        "value": -7500
+                        "value": -1900
                     },
                     "OuterRegionLeft": {
                         "type": 1,
-                        "value": -7500
+                        "value": -1900
                     },
                     "OuterRegionRight": {
                         "type": 1,
-                        "value": 7500
+                        "value": 1900
                     },
                     "OuterRegionTop": {
                         "type": 1,
-                        "value": 7500
+                        "value": 1900
                     },
                     "color": {
                         "type": 0,
@@ -33,17 +33,63 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 271.903076
+                        "value": -28.786829
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": 59.191803
+                        "value": -139.134506
                     }
                 },
                 "id": "1",
                 "links": [
                     {
-                        "dst": "60",
+                        "dst": "57491388815638548",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57491732496908308",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57491775966674964",
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -69,7 +115,7 @@
                 "name": "world",
                 "type": "world"
             },
-            "56751101810049044": {
+            "57491388815638548": {
                 "attribute": {
                     "color": {
                         "type": 0,
@@ -77,144 +123,11 @@
                     },
                     "depth": {
                         "type": 1,
-                        "value": 40
+                        "value": 50
                     },
                     "height": {
-                        "type": 1,
-                        "value": 40
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 588.960022
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -41.32
-                    },
-                    "width": {
                         "type": 1,
                         "value": 60
-                    }
-                },
-                "id": "56751101810049044",
-                "links": [
-                ],
-                "name": "yolooven",
-                "type": "oven"
-            },
-            "56752207260811284": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 120
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 200
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 583.26001
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -149.630005
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 400
-                    }
-                },
-                "id": "56752207260811284",
-                "links": [
-                ],
-                "name": "yolobigtable",
-                "type": "table"
-            },
-            "56752488631500820": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 60
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 100
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 575.252014
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -249.485474
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 200
-                    }
-                },
-                "id": "56752488631500820",
-                "links": [
-                ],
-                "name": "yolotable",
-                "type": "table"
-            },
-            "60": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "SteelBlue"
-                    },
-                    "delimiting_polygon_x": {
-                        "type": 3,
-                        "value": [
-                            -262,
-                            3237,
-                            -280,
-                            3181
-                        ]
-                    },
-                    "delimiting_polygon_y": {
-                        "type": 3,
-                        "value": [
-                            -1690,
-                            -1690,
-                            2301,
-                            2283
-                        ]
                     },
                     "level": {
                         "type": 1,
@@ -226,238 +139,104 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 471.30072
+                        "value": 211.638947
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -102.064377
+                        "value": -367.449615
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 150
                     }
                 },
-                "id": "60",
+                "id": "57491388815638548",
                 "links": [
-                    {
-                        "dst": "72",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    3.140000104904175,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    -100,
-                                    1970,
-                                    925
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "56751101810049044",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "56752207260811284",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    },
-                    {
-                        "dst": "56752488631500820",
-                        "label": "RT",
-                        "linkAttribute": {
-                            "rt_rotation_euler_xyz": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            "rt_translation": {
-                                "type": 3,
-                                "value": [
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            }
-                        },
-                        "src": "60"
-                    }
-                ],
-                "name": "kitchen",
-                "type": "room"
-            },
-            "72": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "GreenYellow"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "obj_depth": {
-                        "type": 1,
-                        "value": 600
-                    },
-                    "obj_height": {
-                        "type": 1,
-                        "value": 1850
-                    },
-                    "obj_id": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "obj_interaction_angle": {
-                        "type": 2,
-                        "value": 0.785
-                    },
-                    "obj_interaction_shape": {
-                        "type": 0,
-                        "value": "trapezoid"
-                    },
-                    "obj_interaction_space": {
-                        "type": 2,
-                        "value": 1500
-                    },
-                    "obj_width": {
-                        "type": 1,
-                        "value": 600
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "60"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 106
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -160
-                    }
-                },
-                "id": "72",
-                "links": [
-                    {
-                        "dst": "72",
-                        "label": "interactive",
-                        "linkAttribute": {
-                        },
-                        "src": "72"
-                    }
-                ],
-                "name": "fridge",
-                "type": "object"
-            },
-            "74": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "GreenYellow"
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 2
-                    },
-                    "obj_depth": {
-                        "type": 1,
-                        "value": 1200
-                    },
-                    "obj_height": {
-                        "type": 1,
-                        "value": 770
-                    },
-                    "obj_id": {
-                        "type": 1,
-                        "value": 0
-                    },
-                    "obj_interaction_angle": {
-                        "type": 2,
-                        "value": 0
-                    },
-                    "obj_interaction_shape": {
-                        "type": 0,
-                        "value": "circle"
-                    },
-                    "obj_interaction_space": {
-                        "type": 2,
-                        "value": 500
-                    },
-                    "obj_width": {
-                        "type": 1,
-                        "value": 1200
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "50"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 85
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -130
-                    }
-                },
-                "id": "74",
-                "links": [
-                    {
-                        "dst": "74",
-                        "label": "interactive",
-                        "linkAttribute": {
-                        },
-                        "src": "74"
-                    }
                 ],
                 "name": "table",
-                "type": "object"
+                "type": "table"
+            },
+            "57491732496908308": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 291.290436
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -237.065079
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 100
+                    }
+                },
+                "id": "57491732496908308",
+                "links": [
+                ],
+                "name": "dish",
+                "type": "dish"
+            },
+            "57491775966674964": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 100
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 120
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 330.86264
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -94.274811
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 300
+                    }
+                },
+                "id": "57491775966674964",
+                "links": [
+                ],
+                "name": "diningtable",
+                "type": "diningtable"
             }
         }
     }
