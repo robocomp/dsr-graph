@@ -1,0 +1,371 @@
+{
+    "DSRModel": {
+        "symbols": {
+            "1": {
+                "attribute": {
+                    "OuterRegionBottom": {
+                        "type": 1,
+                        "value": -1900
+                    },
+                    "OuterRegionLeft": {
+                        "type": 1,
+                        "value": -1900
+                    },
+                    "OuterRegionRight": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "OuterRegionTop": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "color": {
+                        "type": 0,
+                        "value": "SeaGreen"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 0
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "0"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 94.164696
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -226.569199
+                    }
+                },
+                "id": "1",
+                "links": [
+                    {
+                        "dst": "57501069806141460",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57501676319277076",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57502062212022292",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57502079878430740",
+                        "label": "RT",
+                        "linkAttribute": {
+                            "rt_rotation_euler_xyz": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rt_translation": {
+                                "type": 3,
+                                "value": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "src": "1"
+                    },
+                    {
+                        "dst": "57598747445559297",
+                        "label": "has",
+                        "linkAttribute": {
+                        },
+                        "src": "1"
+                    }
+                ],
+                "name": "world",
+                "type": "world"
+            },
+            "57501069806141460": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 316.47052
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -214.319824
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 250
+                    }
+                },
+                "id": "57501069806141460",
+                "links": [
+                ],
+                "name": "table1",
+                "type": "table"
+            },
+            "57501676319277076": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 318.195282
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -276.485046
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 150
+                    }
+                },
+                "id": "57501676319277076",
+                "links": [
+                ],
+                "name": "table3",
+                "type": "table"
+            },
+            "57502062212022292": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 311.591766
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -155.503723
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 300
+                    }
+                },
+                "id": "57502062212022292",
+                "links": [
+                ],
+                "name": "table2",
+                "type": "table"
+            },
+            "57502079878430740": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "depth": {
+                        "type": 1,
+                        "value": 60
+                    },
+                    "height": {
+                        "type": 1,
+                        "value": 50
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 280.752594
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -107.051125
+                    },
+                    "width": {
+                        "type": 1,
+                        "value": 60
+                    }
+                },
+                "id": "57502079878430740",
+                "links": [
+                ],
+                "name": "circulartable",
+                "type": "table"
+            },
+            "57598747445559297": {
+                "attribute": {
+                    "agent_description": {
+                        "type": 0,
+                        "value": "TODO"
+                    },
+                    "agent_id": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "agent_name": {
+                        "type": 0,
+                        "value": "Participant_1 ( idserver )"
+                    },
+                    "cpu_usage": {
+                        "type": 2,
+                        "value": 0
+                    },
+                    "memory_usage": {
+                        "type": 6,
+                        "value": 97596
+                    },
+                    "num_procs": {
+                        "type": 6,
+                        "value": 29
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 172.162506
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -27.267159
+                    },
+                    "timestamp_agent": {
+                        "type": 7,
+                        "value": "1643796551347717998"
+                    },
+                    "timestamp_alivetime": {
+                        "type": 7,
+                        "value": "5822"
+                    },
+                    "timestamp_creation": {
+                        "type": 7,
+                        "value": "1643790728813323207"
+                    }
+                },
+                "id": "57598747445559297",
+                "links": [
+                ],
+                "name": "Participant_1 ( idserver )",
+                "type": "agent"
+            }
+        }
+    }
+}
