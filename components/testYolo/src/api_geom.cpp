@@ -1,0 +1,9 @@
+#include "api_geom.h"
+
+float api_geom::distancia()
+{
+    float x1 = 1 ,y1 = 1,z1 = 0,x2 = 0,y2 = 0,z2 = 0;
+
+    return sqrt(pow(abs(x1-x2),2) + pow(abs(y1-y2),2) + pow(abs(z1-z2),2));
+
+}
