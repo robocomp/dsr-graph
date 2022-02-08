@@ -3,12 +3,14 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  api_geom.cpp
 )
 
 # Headers set
 SET ( HEADERS
   specificworker.h
   specificmonitor.h
+  api_geom.h
 )
 
 

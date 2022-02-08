@@ -31,6 +31,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include "api_geom.h"
 
 class SpecificWorker : public GenericWorker
 {

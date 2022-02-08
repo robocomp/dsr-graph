@@ -8,6 +8,7 @@ class api_geom
     
     public:
 
+        api_geom();
         static float distancia();
 
 

@@ -24,6 +24,8 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
+
 }
 
 /**
@@ -132,7 +134,10 @@ void SpecificWorker::compute()
 	//}
 
 	cout << "Prueba" << endl;
-	auto node = G->get_node("world");
+	auto node = G->get_nodes_by_type("container");
+	cout << node.size() << endl;
+	cout << api_geom::distancia() << endl;
+
 
 }
 

@@ -43,7 +43,7 @@
                 "id": "1",
                 "links": [
                     {
-                        "dst": "57501069806141460",
+                        "dst": "58510434667331604",
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -66,7 +66,7 @@
                         "src": "1"
                     },
                     {
-                        "dst": "57501676319277076",
+                        "dst": "58510455773069332",
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -89,7 +89,7 @@
                         "src": "1"
                     },
                     {
-                        "dst": "57502062212022292",
+                        "dst": "58510506121494548",
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -112,7 +112,7 @@
                         "src": "1"
                     },
                     {
-                        "dst": "57502079878430740",
+                        "dst": "58510526774247444",
                         "label": "RT",
                         "linkAttribute": {
                             "rt_rotation_euler_xyz": {
@@ -138,19 +138,11 @@
                 "name": "world",
                 "type": "world"
             },
-            "57501069806141460": {
+            "58510434667331604": {
                 "attribute": {
                     "color": {
                         "type": 0,
                         "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 50
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 50
                     },
                     "level": {
                         "type": 1,
@@ -162,36 +154,24 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 427.481842
+                        "value": 285.567413
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -229.012497
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 250
+                        "value": -254.770935
                     }
                 },
-                "id": "57501069806141460",
+                "id": "58510434667331604",
                 "links": [
                 ],
                 "name": "table1",
-                "type": "table"
+                "type": "container"
             },
-            "57501676319277076": {
+            "58510455773069332": {
                 "attribute": {
                     "color": {
                         "type": 0,
                         "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 50
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 50
                     },
                     "level": {
                         "type": 1,
@@ -203,77 +183,24 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 386.761078
+                        "value": 223.974442
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -384.231323
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 150
+                        "value": -163.781311
                     }
                 },
-                "id": "57501676319277076",
-                "links": [
-                ],
-                "name": "table3",
-                "type": "table"
-            },
-            "57502062212022292": {
-                "attribute": {
-                    "color": {
-                        "type": 0,
-                        "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 50
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 50
-                    },
-                    "level": {
-                        "type": 1,
-                        "value": 1
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "1"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 438.928284
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": -119.588303
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 300
-                    }
-                },
-                "id": "57502062212022292",
+                "id": "58510455773069332",
                 "links": [
                 ],
                 "name": "table2",
-                "type": "table"
+                "type": "container"
             },
-            "57502079878430740": {
+            "58510506121494548": {
                 "attribute": {
                     "color": {
                         "type": 0,
                         "value": "GoldenRod"
-                    },
-                    "depth": {
-                        "type": 1,
-                        "value": 60
-                    },
-                    "height": {
-                        "type": 1,
-                        "value": 50
                     },
                     "level": {
                         "type": 1,
@@ -285,22 +212,47 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 346.053345
+                        "value": 387.755768
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -13.997526
-                    },
-                    "width": {
-                        "type": 1,
-                        "value": 60
+                        "value": -357.65921
                     }
                 },
-                "id": "57502079878430740",
+                "id": "58510506121494548",
+                "links": [
+                ],
+                "name": "table3",
+                "type": "container"
+            },
+            "58510526774247444": {
+                "attribute": {
+                    "color": {
+                        "type": 0,
+                        "value": "GoldenRod"
+                    },
+                    "level": {
+                        "type": 1,
+                        "value": 1
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 177.079788
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": -42.695126
+                    }
+                },
+                "id": "58510526774247444",
                 "links": [
                 ],
                 "name": "circulartable",
-                "type": "table"
+                "type": "container"
             }
         }
     }

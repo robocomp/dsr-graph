@@ -1,5 +1,7 @@
 #include "api_geom.h"
 
+api_geom::api_geom(){};
+
 float api_geom::distancia()
 {
     float x1 = 1 ,y1 = 1,z1 = 0,x2 = 0,y2 = 0,z2 = 0;
