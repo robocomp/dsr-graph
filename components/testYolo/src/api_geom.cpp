@@ -2,7 +2,7 @@
 
 api_geom::api_geom(){};
 
-float api_geom::distancia()
+float api_geom::distancia(Node n1, node n2, DSR::DSRGraph G)
 {
     float x1 = 1 ,y1 = 1,z1 = 0,x2 = 0,y2 = 0,z2 = 0;
 
