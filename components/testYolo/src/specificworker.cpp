@@ -120,25 +120,26 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
+
+	auto rt_api = G->get_rt_api(); //Move to initialize
+
+	//Create a new compute
+	auto containers = G->get_nodes_by_type("container");
+
+	auto cup = G->get_nodes_by_type("cup");
+	//auto cup_edge = rt_api->get_edge_RT(cup.at(0),G->get_node_root().value().id()); 
+
+	//TODO: insert in JSON the circular table's transalation
+
+	//for(auto&& container : containers)
 	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
+	
+		auto container_edge = rt_api->get_edge_RT(G->get_parent_node(containers.at(1)).value(), containers.at(1).id());
+		//auto container_edge2 = rt_api->get_edge_RT(containers.at(1),G->get_parent_node(containers.at(1)).value().id());
+		//Change one container_edge for cup_edge
+		std::cout << "Distance: " << api_geom::distance_between_objects(G,container_edge, container_edge) << std::endl;
 	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-
-	cout << "Prueba" << endl;
-	auto node = G->get_nodes_by_type("container");
-	cout << node.size() << endl;
-	cout << api_geom::distancia() << endl;
-
-
+        
 }
 
 int SpecificWorker::startup_check()

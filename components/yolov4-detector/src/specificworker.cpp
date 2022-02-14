@@ -202,17 +202,8 @@ void SpecificWorker::compute()
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
-        //Create new compute 
-        //auto distancia = api_geom::distancia(G);
-        /*
-        Check the distance between a cup and all the containers in the graph        auto cups = G->get_nodes_by_type("cup");
+        //Create new compute
         
-        auto containers = G->get_nodes_by_type("container");
-
-        for(auto&& container : node)
-            std::cout << container.name();
-        */
-
         //auto &[a,b] = lists_after_delete;
         //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }

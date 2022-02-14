@@ -11,8 +11,6 @@ class api_geom
     public:
 
         api_geom();
-        static float distancia(Node n1, Node n2, DSR::DSRGraph G);
-
-
+        static float distance_between_objects(std::shared_ptr<DSR::DSRGraph> G, std::optional<DSR::Edge> edge1, std::optional<DSR::Edge> edge2);
 
 };
