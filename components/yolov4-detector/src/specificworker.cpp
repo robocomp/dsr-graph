@@ -203,12 +203,34 @@ void SpecificWorker::compute()
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
         //Create new compute
-        
+        compute_testYolo();
         //auto &[a,b] = lists_after_delete;
         //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
     //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
-    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+    //fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SpecificWorker::compute_testYolo()
+{
+    auto containers = G->get_nodes_by_type("container");
+
+    auto cup = G->get_nodes_by_type("cup");
+    std::cout << cup.size() << std::endl;
+
+    if( cup.size() == 1 )
+    {
+        if( auto cup_edge = rt_api->get_edge_RT(G->get_node_root().value(), cup.at(0).id()); cup_edge.has_value())
+        {
+            for(auto&& container : containers)
+            {
+                if(auto container_edge = rt_api->get_edge_RT(G->get_parent_node(container).value(), container.id()) ; container_edge.has_value())
+                    std::cout << "Distance: " << api_geom::distance_between_objects(G,cup_edge, container_edge) << std::endl;
+            }
+        }
+    }
+
+    
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)

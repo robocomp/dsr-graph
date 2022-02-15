@@ -13,10 +13,9 @@
 
 class api_geom
 {
-    //static std::vector<> get_large_size_objects();
-    //static std::vector<> get_container_objects();
+
     public:
-        static float distancia(std::shared_ptr<DSR::DSRGraph> G, DSR::Node n1, DSR::Node n2);
+        static float distance_between_objects(std::shared_ptr<DSR::DSRGraph> G, std::optional<DSR::Edge> edge1, std::optional<DSR::Edge> edge2);
 };
 
 

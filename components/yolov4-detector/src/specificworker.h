@@ -192,6 +192,7 @@ private:
         std::tuple<bool, std::string> contained_in_known_objects(const std::string &candidate);
         DSR::Node create_node_with_type(const std::string &type, const std::string &name);
         void compute_visible_objects(std::uint64_t timestamp);
+        void compute_testYolo();
         std::vector<Box> get_visible_objects_from_graph(std::uint64_t timestamp);
         std::tuple<Boxes, Boxes> match_lists(Boxes &real_objects, Boxes &synth_objects, const std::vector<float> &depth_array);
         std::tuple<Boxes, Boxes> add_new_objects(std::tuple<Boxes, Boxes> &lists_after_match, std::uint64_t timestamp);
