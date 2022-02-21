@@ -225,7 +225,7 @@ void SpecificWorker::compute_testYolo()
             for(auto&& container : containers)
             {
                 if(auto container_edge = rt_api->get_edge_RT(G->get_parent_node(container).value(), container.id()) ; container_edge.has_value())
-                    std::cout << "Distance: " << api_geom::distance_between_objects(G,cup_edge, container_edge) << std::endl;
+                    std::cout << "Distance: " << api_geom::distance_between_objects(G,rt_api,cup_edge, container_edge) << std::endl;
             }
         }
     }
