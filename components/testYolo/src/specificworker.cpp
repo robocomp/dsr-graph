@@ -121,41 +121,31 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 
-	// auto rt_api = G->get_rt_api(); //Move to initialize
+    auto containers = G->get_nodes_by_type("container");
+    auto cup = G->get_node("cup");
 
-	// //Create a new compute
-	// auto containers = G->get_nodes_by_type("container");
-
-	// auto cup = G->get_nodes_by_type("cup");
-	// //auto cup_edge = rt_api->get_edge_RT(cup.at(0),G->get_node_root().value().id()); 
-
-	// //TODO: insert in JSON the circular table's transalation
-
-	// //for(auto&& container : containers)
-	// //{
-	
-	// 	auto container_edge = rt_api->get_edge_RT(G->get_parent_node(containers.at(1)).value(), containers.at(1).id());
-	// 	//auto container_edge2 = rt_api->get_edge_RT(containers.at(1),G->get_parent_node(containers.at(1)).value().id());
-	// 	//Change one container_edge for cup_edge
-	// 	std::cout << "Distance: " << api_geom::distance_between_objects(G,container_edge, container_edge) << std::endl;
-	// //}
-
+    if(cup.has_value() && containers.size() > 0)
+    {
+        for(auto&& container : containers)
+            std::cout << "Distance: " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
+        
+    }
 
 	////////////////////////////////////////////////////////////
-	auto table = G->get_node("table3");
-	auto rt_api = G->get_rt_api();
+	// auto table = G->get_node("table3");
+	// auto rt_api = G->get_rt_api();
 
-	if(auto table_edge = rt_api->get_edge_RT(G->get_parent_node(table.value()).value(), table.value().id()))
-	{
+	// if(auto table_edge = rt_api->get_edge_RT(G->get_parent_node(table.value()).value(), table.value().id()))
+	// {
 
-		auto values_table_edge = G->get_attrib_by_name<rt_translation_att>(table_edge.value());
+	// 	auto values_table_edge = G->get_attrib_by_name<rt_translation_att>(table_edge.value());
 
-		float x1 = values_table_edge.value().get().at(0);
-        float y1 = values_table_edge.value().get().at(1);
-        float z1 = values_table_edge.value().get().at(2);
+	// 	float x1 = values_table_edge.value().get().at(0);
+    //     float y1 = values_table_edge.value().get().at(1);
+    //     float z1 = values_table_edge.value().get().at(2);
 
-		std::cout << x1 << y1 << z1 << endl;
-	}
+	// 	std::cout << x1 << y1 << z1 << endl;
+	// }
 
 
 }
