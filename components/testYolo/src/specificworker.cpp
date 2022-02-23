@@ -120,35 +120,33 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+	compute_testYolo();
+}
 
-    auto containers = G->get_nodes_by_type("container");
+void SpecificWorker::compute_testYolo()
+{
+
+	auto rt_api = G->get_rt_api();
+	auto inner_eigen = G->get_inner_eigen_api();
+
+    // auto containers = G->get_nodes_by_type("container");
     auto cup = G->get_node("cup");
+    auto table = G->get_node("table1");
 
-    if(cup.has_value() && containers.size() > 0)
-    {
-        for(auto&& container : containers)
-            std::cout << "Distance: " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
-        
-    }
+    //if(cup.has_value() && containers.size() > 0)
+    // {
+    //     for(auto&& container : containers)
+    //     {
+    //         //auto container_name = G->get_attrib_by_name<rt_translation_att>(edge2.value());
+    //         std::cout << "Distance: " << container.name() << " " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
+    //     }
+    // }
 
-	////////////////////////////////////////////////////////////
-	// auto table = G->get_node("table3");
-	// auto rt_api = G->get_rt_api();
-
-	// if(auto table_edge = rt_api->get_edge_RT(G->get_parent_node(table.value()).value(), table.value().id()))
-	// {
-
-	// 	auto values_table_edge = G->get_attrib_by_name<rt_translation_att>(table_edge.value());
-
-	// 	float x1 = values_table_edge.value().get().at(0);
-    //     float y1 = values_table_edge.value().get().at(1);
-    //     float z1 = values_table_edge.value().get().at(2);
-
-	// 	std::cout << x1 << y1 << z1 << endl;
-	// }
-
+    // if(cup.has_value() && table.has_value())
+    //     api_geom::distance_object_parent(G,rt_api,cup.value(),table.value());
 
 }
+
 
 int SpecificWorker::startup_check()
 {

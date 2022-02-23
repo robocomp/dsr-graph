@@ -45,6 +45,7 @@ public:
 
 public slots:
 	void compute();
+	void compute_testYolo();
 	int startup_check();
 	void initialize(int period);
 private:
