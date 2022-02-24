@@ -126,13 +126,14 @@ void SpecificWorker::compute()
 void SpecificWorker::compute_testYolo()
 {
 
-	auto rt_api = G->get_rt_api();
-	auto inner_eigen = G->get_inner_eigen_api();
+	std::shared_ptr<DSR::RT_API> rt_api = G->get_rt_api();
+	std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G->get_inner_eigen_api();
 
     // auto containers = G->get_nodes_by_type("container");
-    auto cup = G->get_node("cup");
-    auto table = G->get_node("table1");
-
+    //auto cup = G->get_node("cup");
+    auto table1 = G->get_node("table1");
+	auto table2 = G->get_node("table2");
+	api_geom api_geom(G,rt_api,inner_eigen);
     //if(cup.has_value() && containers.size() > 0)
     // {
     //     for(auto&& container : containers)
@@ -144,6 +145,8 @@ void SpecificWorker::compute_testYolo()
 
     // if(cup.has_value() && table.has_value())
     //     api_geom::distance_object_parent(G,rt_api,cup.value(),table.value());
+
+	api_geom.distance_object_parent(table2.value(),table1.value());
 
 }
 

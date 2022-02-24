@@ -466,7 +466,7 @@
                 "id": "1000",
                 "links": [
                     {
-                        "dst": "59529567575998465",
+                        "dst": "60854451757383681",
                         "label": "has",
                         "linkAttribute": {
                         },
@@ -1920,17 +1920,29 @@
                         "type": 1,
                         "value": 2
                     },
+                    "obj_depth": {
+                        "type": 1,
+                        "value": 1900
+                    },
+                    "obj_height": {
+                        "type": 1,
+                        "value": 900
+                    },
+                    "obj_width": {
+                        "type": 1,
+                        "value": 600
+                    },
                     "parent": {
                         "type": 7,
                         "value": "60"
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 398.622406
+                        "value": 450.109985
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -159.065674
+                        "value": -155.389999
                     }
                 },
                 "id": "58775003377696788",
@@ -1949,17 +1961,29 @@
                         "type": 1,
                         "value": 2
                     },
+                    "obj_depth": {
+                        "type": 1,
+                        "value": 600
+                    },
+                    "obj_height": {
+                        "type": 1,
+                        "value": 900
+                    },
+                    "obj_width": {
+                        "type": 1,
+                        "value": 2600
+                    },
                     "parent": {
                         "type": 7,
                         "value": "60"
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 356.460419
+                        "value": 419.269989
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -122.653053
+                        "value": -100.589996
                     }
                 },
                 "id": "58775017906765844",
@@ -1978,17 +2002,29 @@
                         "type": 1,
                         "value": 2
                     },
+                    "obj_depth": {
+                        "type": 1,
+                        "value": 1400
+                    },
+                    "obj_height": {
+                        "type": 1,
+                        "value": 900
+                    },
+                    "obj_width": {
+                        "type": 1,
+                        "value": 450
+                    },
                     "parent": {
                         "type": 7,
                         "value": "60"
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 377.911499
+                        "value": 363.809998
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -89.514763
+                        "value": -94.18
                     }
                 },
                 "id": "58775032788156436",
@@ -2007,17 +2043,29 @@
                         "type": 1,
                         "value": 2
                     },
+                    "obj_depth": {
+                        "type": 1,
+                        "value": 1988
+                    },
+                    "obj_height": {
+                        "type": 1,
+                        "value": 806
+                    },
+                    "obj_width": {
+                        "type": 1,
+                        "value": 1988
+                    },
                     "parent": {
                         "type": 7,
                         "value": "60"
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": 233.036789
+                        "value": 348.029999
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -68.268929
+                        "value": -75.290001
                     }
                 },
                 "id": "58775054044889108",
@@ -2025,63 +2073,6 @@
                 ],
                 "name": "circulartable",
                 "type": "container"
-            },
-            "59529567575998465": {
-                "attribute": {
-                    "agent_description": {
-                        "type": 0,
-                        "value": "TODO"
-                    },
-                    "agent_id": {
-                        "type": 6,
-                        "value": 1
-                    },
-                    "agent_name": {
-                        "type": 0,
-                        "value": "Participant_1 ( idserver )"
-                    },
-                    "cpu_usage": {
-                        "type": 2,
-                        "value": 0
-                    },
-                    "memory_usage": {
-                        "type": 6,
-                        "value": 94644
-                    },
-                    "num_procs": {
-                        "type": 6,
-                        "value": 29
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "1000"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 10
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": 10
-                    },
-                    "timestamp_agent": {
-                        "type": 7,
-                        "value": "1644943751315361466"
-                    },
-                    "timestamp_alivetime": {
-                        "type": 7,
-                        "value": "2164"
-                    },
-                    "timestamp_creation": {
-                        "type": 7,
-                        "value": "1644941587295813131"
-                    }
-                },
-                "id": "59529567575998465",
-                "links": [
-                ],
-                "name": "Participant_1 ( idserver )",
-                "type": "agent"
             },
             "60": {
                 "attribute": {
@@ -2336,6 +2327,63 @@
                 ],
                 "name": "kitchen",
                 "type": "room"
+            },
+            "60854451757383681": {
+                "attribute": {
+                    "agent_description": {
+                        "type": 0,
+                        "value": "TODO"
+                    },
+                    "agent_id": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "agent_name": {
+                        "type": 0,
+                        "value": "Participant_1 ( idserver )"
+                    },
+                    "cpu_usage": {
+                        "type": 2,
+                        "value": 6
+                    },
+                    "memory_usage": {
+                        "type": 6,
+                        "value": 119868
+                    },
+                    "num_procs": {
+                        "type": 6,
+                        "value": 44
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1000"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": 10
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 10
+                    },
+                    "timestamp_agent": {
+                        "type": 7,
+                        "value": "1645735586057115279"
+                    },
+                    "timestamp_alivetime": {
+                        "type": 7,
+                        "value": "4306"
+                    },
+                    "timestamp_creation": {
+                        "type": 7,
+                        "value": "1645731279801144159"
+                    }
+                },
+                "id": "60854451757383681",
+                "links": [
+                ],
+                "name": "Participant_1 ( idserver )",
+                "type": "agent"
             },
             "62": {
                 "attribute": {

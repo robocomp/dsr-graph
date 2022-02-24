@@ -1,6 +1,14 @@
 #include "api_geom.h"
 
-float api_geom::distance_between_objects(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, DSR::Node node1, DSR::Node node2)
+
+api_geom::api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, std::shared_ptr<DSR::InnerEigenAPI> inner_eigen)
+{
+    this->G = G;
+    this->rt_api = rt_api;
+    this->inner_eigen = inner_eigen;
+}
+
+float api_geom::distance_between_objects(DSR::Node node1, DSR::Node node2)
 {
     
     auto edge1 = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
@@ -36,7 +44,7 @@ float api_geom::distance_between_objects(std::shared_ptr<DSR::DSRGraph> G, std::
     }
 }
 
-float api_geom::distance_object_parent(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, std::unique_ptr<DSR::InnerEigenAPI> inner_eigen, DSR::Node little_object, DSR::Node big_object)
+float api_geom::distance_object_parent(DSR::Node little_object, DSR::Node big_object)
 {
     
     auto little_object_edge = rt_api->get_edge_RT(G->get_parent_node(little_object).value(), little_object.id());
@@ -55,24 +63,54 @@ float api_geom::distance_object_parent(std::shared_ptr<DSR::DSRGraph> G, std::sh
             auto big_object_depth = G->get_attrib_by_name<obj_depth_att>(big_object);
             auto big_object_height = G->get_attrib_by_name<obj_height_att>(big_object);
 
+            // std::cout << "BIG OBJECT DIMENSIONS VALUES" << std::endl;
+            // std::cout << big_object_width.value() << std::endl;
+            // std::cout << big_object_depth.value() << std::endl;
+            // std::cout << big_object_height.value() << std::endl;
+
             //Calculate big_object_corners
-            auto top_left_point = Eigen::Vector3d(-big_object_width.value(),big_object_depth.value(),big_object_height.value());
-            auto top_right_point = Eigen::Vector3d(big_object_width.value(),big_object_depth.value(),big_object_height.value());
-            auto bottom_left_point = Eigen::Vector3d(-big_object_width.value(),-big_object_depth.value(),big_object_height.value());
-            auto bottom_right_point = Eigen::Vector3d(big_object_width.value(),-big_object_depth.value(),big_object_height.value());
+            auto top_left_point = Eigen::Vector3d(-(big_object_width.value()/2),big_object_depth.value()/2,big_object_height.value());
+            auto top_right_point = Eigen::Vector3d(big_object_width.value()/2,big_object_depth.value()/2,big_object_height.value());
+            auto bottom_left_point = Eigen::Vector3d(-(big_object_width.value()/2),-(big_object_depth.value()/2),big_object_height.value());
+            auto bottom_right_point = Eigen::Vector3d(big_object_width.value()/2,-(big_object_depth.value()/2),big_object_height.value());
+
+            // std::cout << "VECTOR3D TABLE VALUES" << std::endl;
+            // std::cout << top_left_point << std::endl;
+            // std::cout << top_right_point << std::endl;
+            // std::cout << bottom_left_point << std::endl;
+            // std::cout << bottom_left_point << std::endl;
 
             auto world_top_left_point = inner_eigen->transform(world_name,top_left_point,big_object.name());
             auto world_top_right_point = inner_eigen->transform(world_name,top_right_point,big_object.name());
             auto world_bottom_left_point = inner_eigen->transform(world_name,bottom_left_point,big_object.name());
             auto world_bottom_right_point = inner_eigen->transform(world_name,bottom_right_point,big_object.name());
 
-            // auto world_points_vector = QVector<Qpoint>();
-            auto world_big_object_polygon = QPolygon();
-            world_big_object_polygon.setPoints(4,world_top_left_point.value().x(),world_top_left_point.value().y(),
-                                                world_top_right_point.value().x(),world_top_right_point.value().y(),
-                                                world_bottom_left_point.value().x(),world_bottom_left_point.value().y(),
-                                                world_bottom_right_point.value().x(),world_bottom_right_point.value().y());
-                                                
+            // std::cout << "VECTOR3D WORLD VALUES" << std::endl;
+            // std::cout << (int)world_top_left_point.value().x()<< std::endl;
+            // std::cout << (int)world_top_right_point.value() << std::endl;
+            // std::cout << (int)world_bottom_left_point.value() << std::endl;
+            // std::cout << (int)world_bottom_right_point.value() << std::endl;
+            
+            auto world_points_list = std::initializer_list{ QPoint(world_top_left_point.value().x(), world_top_left_point.value().y()),
+                                                            QPoint(world_top_right_point.value().x(), world_top_right_point.value().y()),
+                                                            QPoint(world_bottom_right_point.value().x(), world_bottom_right_point.value().y()),
+                                                            QPoint(world_bottom_left_point.value().x(), world_bottom_left_point.value().y()) };
+
+            auto world_big_object_polygon = QPolygon(QVector(world_points_list));
+
+            // std::cout << world_big_object_polygon << std::endl;
+            
+            //world_big_object_polygon.contains(QPoint(little_object_translation.value().get().at(0), little_object_translation.value().get().at(1)));
+            
+            //Checks if big object contains in its plane the little object
+            if(world_big_object_polygon.containsPoint(QPoint(2625,803),Qt::OddEvenFill))
+            {
+                std::cout << "Contiene el punto" << std::endl;
+            }                                    
+            else
+            {
+                std::cout << "No contiene el punto" << std::endl;
+            }
                 // float x1 = values_edge1.value().get().at(0);
                 // float y1 = values_edge1.value().get().at(1) - (littleObjectHeight.value()/2);
                 // float z1 = values_edge1.value().get().at(2);

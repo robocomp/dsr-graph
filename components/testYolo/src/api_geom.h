@@ -14,11 +14,14 @@ Comments:
 class api_geom
 {
     private:
-
+        //DSR Graph
+        std::shared_ptr<DSR::DSRGraph> G;
+        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+        std::shared_ptr<DSR::RT_API> rt_api;
     
     public:
         
-        static float distance_between_objects(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, DSR::Node node1, DSR::Node node2);
-        static float distance_object_parent(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, 
-                                            std::unique_ptr<DSR::InnerEigenAPI> innerEigen_api, DSR::Node little_object, DSR::Node big_object);
+        api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, std::shared_ptr<DSR::InnerEigenAPI> inner_eigen);
+        float distance_between_objects(DSR::Node node1, DSR::Node node2);
+        float distance_object_parent(DSR::Node little_object, DSR::Node big_object);
 };
