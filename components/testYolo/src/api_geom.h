@@ -1,5 +1,5 @@
 #include <cmath>
-#include <QVector>
+#include <QVector3D>
 #include <functional>
 #include <QPoint>
 #include <typeinfo>
