@@ -146,7 +146,7 @@ void SpecificWorker::compute_testYolo()
     // if(cup.has_value() && table.has_value())
     //     api_geom::distance_object_parent(G,rt_api,cup.value(),table.value());
 
-	api_geom.distance_object_parent(table2.value(),table1.value());
+
 
 }
 

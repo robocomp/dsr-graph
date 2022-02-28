@@ -8,7 +8,7 @@ api_geom::api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API
     this->inner_eigen = inner_eigen;
 }
 
-float api_geom::distance_between_objects(DSR::Node node1, DSR::Node node2)
+float api_geom::distance_between_objects(DSR::Node &node1, DSR::Node &node2)
 {
     
     auto edge1 = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
@@ -44,7 +44,14 @@ float api_geom::distance_between_objects(DSR::Node node1, DSR::Node node2)
     }
 }
 
-float api_geom::distance_object_parent(DSR::Node little_object, DSR::Node big_object)
+DSR::Node api_geom::get_closest_type_object(DSR::Node &node, std::string type)
+{
+    auto nodes_of_type = G->get_nodes_by_type("type");
+
+    std::vector<DSR::Node>::iterator it = std::find_if(nodes_of_type.begin(),nodes_of_type.end(),[](const DSR::Node a){return G->distance_between_objects(node,a)});
+}
+
+float api_geom::distance_of_over_object(DSR::Node &little_object, DSR::Node &big_object)
 {
 
     auto little_object_edge = rt_api->get_edge_RT(G->get_parent_node(little_object).value(), little_object.id());
@@ -98,21 +105,18 @@ float api_geom::distance_object_parent(DSR::Node little_object, DSR::Node big_ob
                         little_object_bottom_middle_point.distanceToPlane(big_object_top_middle_point,big_object_top_middle_point.normalized());
                         
                         //Checks if big object contains in its plane the little object CHANGE QPOINT VALUE FOR LITTLE OBJECT VALUES
-                        if(world_big_object_polygon.containsPoint(QPoint(3000,-150),Qt::OddEvenFill) )
-                        {
-                            //auto little_object_height = G->get_attrib_by_name<obj_height_att>(little_object);
-                            std::cout << "Contiene el punto" << std::endl;
-                        }                                    
+                        if(world_big_object_polygon.containsPoint(QPoint(2400,-150),Qt::OddEvenFill))
+                            return little_object_bottom_middle_point.distanceToPlane(big_object_top_middle_point,big_object_top_middle_point.normalized());
                         else
-                        {
-                            std::cout << "No contiene el punto" << std::endl;
-                        }
+                            return -1;
                     }
                 }
             }
         }
     }
-    
-    return 0;
+}
 
+bool api_geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_object)
+{
+    return distance_of_over_object(little_object, big_object) < 500;      
 }
