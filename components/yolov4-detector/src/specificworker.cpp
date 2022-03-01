@@ -216,7 +216,8 @@ void SpecificWorker::compute_testYolo()
 
     // auto containers = G->get_nodes_by_type("container");
     auto cup = G->get_node("cup");
-    auto table = G->get_node("table1");
+	auto table = G->get_node("table1");
+	api_geom api_geom(G,rt_api,inner_eigen);
 
     //if(cup.has_value() && containers.size() > 0)
     // {
@@ -228,7 +229,8 @@ void SpecificWorker::compute_testYolo()
     // }
 
     if(cup.has_value() && table.has_value())
-        api_geom::distance_object_parent(G,rt_api,cup.value(),table.value());
+        if( auto distance = api_geom.height_difference(cup.value(),table.value()) ; distance.has_value())
+            std::cout << distance.value() << std::endl;
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
