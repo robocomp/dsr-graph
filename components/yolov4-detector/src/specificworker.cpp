@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include "api_geom.h"
 #include <ranges>
 #include <algorithm>
 #include <cppitertools/product.hpp>
@@ -201,11 +202,36 @@ void SpecificWorker::compute()
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
+        //Create new compute
+        compute_testYolo();
         //auto &[a,b] = lists_after_delete;
         //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
     //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
-    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+    //fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SpecificWorker::compute_testYolo()
+{
+
+    // auto containers = G->get_nodes_by_type("container");
+    auto cup = G->get_node("cup");
+	auto table = G->get_node("table1");
+	api_geom api_geom(G,rt_api,inner_eigen);
+
+    //if(cup.has_value() && containers.size() > 0)
+    // {
+    //     for(auto&& container : containers)
+    //     {
+    //         //auto container_name = G->get_attrib_by_name<rt_translation_att>(edge2.value());
+    //         std::cout << "Distance: " << container.name() << " " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
+    //     }
+    // }
+
+    if(cup.has_value() && table.has_value())
+        if( auto distance = api_geom.height_difference(cup.value(),table.value()) ; distance.has_value())
+            std::cout << distance.value() << std::endl;
+
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)

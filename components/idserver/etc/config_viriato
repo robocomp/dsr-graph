@@ -13,7 +13,7 @@ agent_name = idserver
 #dsr_input_file = ../../etc/autonomyLab_one_room.simscene.json
 #dsr_input_file = ../../etc/autonomyLab_two_rooms_no_objects.simscene.json
 #dsr_input_file = ../../etc/autonomyLab_two_rooms_no_objects_development.simscene.json
-dsr_input_file = ../../etc/autonomyLab_objects.simscene.json
+dsr_input_file = ../../etc/autonomyLab_objects_container.simscene.json
 
 
 
