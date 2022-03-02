@@ -31,7 +31,7 @@
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
-#include  "../../../etc/viriato_graph_names.h"
+#include  "../../../etc/graph_names.h"
 #include <fps/fps.h>
 
 class SpecificWorker : public GenericWorker
@@ -80,6 +80,7 @@ private:
     QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
     void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
     void draw_laser(std::vector<float> angles, std::vector<float> dist, QGraphicsScene* viewer_2d);
+    void update_social_laser(const std::vector<float> &dist, const std::vector<float> &angles);
 
 
 	// laser stuff
@@ -87,7 +88,6 @@ private:
     //void modificar_laser(Eigen::VectorXf all_gauss_x, Eigen::VectorXf all_gauss_y, auto angles, auto &dist) ;
     //QPointF mod_privado(QVector<QLineF> lines,QPointF robot, float dist, float angle);
     //void obtener_puntos_gausianas(auto personal_space, Eigen::VectorXf &all_gauss_x, Eigen::VectorXf &all_gauss_y);
-    void update_social_laser(const std::vector<float> &dist, const std::vector<float> &angles);
     std::vector<float> modify_laser(const std::vector<DSR::Node> &personal_spaces, const std::vector<float> &angles, const std::vector<float> &dist);
 
 };
