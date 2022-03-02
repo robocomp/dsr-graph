@@ -27,5 +27,6 @@ public:
     std::optional<float> distance_of_over_object(const DSR::Node &little_object,const DSR::Node &big_object);
     //Doenst work with cup on the floor
     std::optional<float> height_difference(const DSR::Node &node1,const DSR::Node &node2);
+    bool insert_node(DSR::Node &node,DSR::Node &parent);
     bool strictly_over_object(DSR::Node &little_object, DSR::Node &big_object);
 };

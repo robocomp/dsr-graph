@@ -152,3 +152,44 @@ bool api_geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_obj
 {
     return distance_of_over_object(little_object, big_object) < 500;
 }
+
+bool api_geom::insert_node(DSR::Node &node,DSR::Node &parent)
+{
+    // G->add_or_modify_attrib_local<parent_att>(object_node, parent_node.value().id());
+    // G->add_or_modify_attrib_local<level_att>(object_node, G->get_node_level(parent_node.value()).value() + 1);
+    // G->add_or_modify_attrib_local<obj_width_att>(object_node, size[0]);
+    // G->add_or_modify_attrib_local<obj_height_att>(object_node, size[1]);
+    // G->add_or_modify_attrib_local<obj_depth_att>(object_node, size[2]);
+    // const auto &[random_x, random_y] = get_random_position_to_draw_in_graph("object");
+    // G->add_or_modify_attrib_local<pos_x_att>(object_node, random_x);
+    // G->add_or_modify_attrib_local<pos_y_att>(object_node, random_y);
+    //G->get_parent_node(node).value().id()
+    //G->get_node(world_name).value() --- (float)parent_rt.value().y()
+
+    if(G->get_parent_node(node).value().id() == 1)
+    {
+        std::cout << "IF" << std::endl;
+        auto world = G->get_node(world_name).value();
+        //auto parent_rt = inner_eigen->transform(world.name(),node.name());
+        
+        G->delete_edge(world.id(),node.id(),"RT");
+        G->update_node(world);
+
+        std::cout << "Borramos world-cup y updateamos world" << std::endl; 
+
+        DSR::Edge edge = DSR::Edge::create<RT_edge_type>(parent.id(), node.id());
+        G->add_or_modify_attrib_local<parent_att>(node, parent.id());
+        G->update_node(node);
+
+        
+        G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{0., 0., 0.});
+        G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
+        G->insert_or_assign_edge(edge);
+
+        G->update_node(parent);
+    }
+    else
+        std::cout << "ELSE" << std::endl;
+
+    return true;
+}

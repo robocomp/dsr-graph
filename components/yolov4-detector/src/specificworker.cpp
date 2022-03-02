@@ -228,9 +228,12 @@ void SpecificWorker::compute_testYolo()
     //     }
     // }
 
+    // if(cup.has_value() && table.has_value())
+    //     if( auto distance = api_geom.height_difference(cup.value(),table.value()) ; distance.has_value())
+    //         std::cout << distance.value() << std::endl;
+
     if(cup.has_value() && table.has_value())
-        if( auto distance = api_geom.height_difference(cup.value(),table.value()) ; distance.has_value())
-            std::cout << distance.value() << std::endl;
+        api_geom.insert_node(cup.value(),table.value());
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
