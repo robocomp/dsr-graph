@@ -146,8 +146,23 @@ void SpecificWorker::compute_testYolo()
     // if(cup.has_value() && table.has_value())
     //     api_geom::distance_object_parent(G,rt_api,cup.value(),table.value());
 
+	auto transformwithoutpoints = inner_eigen->transform(table1.value().name(),table2.value().name());
 
+	auto world = G->get_node(world_name).value();
+	G->delete_edge(world.id(), table2.value().id(), "RT");
+	G->update_node(world);
 
+    float x = transformwithoutpoints.value().x();
+    float y = transformwithoutpoints.value().y();
+    float z = transformwithoutpoints.value().z();
+
+	G->add_or_modify_attrib_local<parent_att>(table2.value(), table1.value().id());
+    G->add_or_modify_attrib_local<level_att>(table2.value(), 2);
+	rt_api->insert_or_assign_edge_RT(table1.value(),table2.value().id(),std::vector<float>{x, y, z},std::vector<float>{0., 0., 0.});
+
+	G->update_node(table1.value());
+	G->update_node(table2.value());
+	G->update_node(world);
 }
 
 
