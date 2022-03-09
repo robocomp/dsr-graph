@@ -281,7 +281,10 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 auto parent = G->get_parent_node(synth_node.value());
                 auto edge = rt_api->get_edge_RT(parent.value(), synth_node->id()).value();
                 G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0);  // reset unseen counter
-                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                //IF
+                auto translation = inner_eigen->transform(parent.value().name(),Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name);
+                //IF
+                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
                 G->update_node(synth_node.value());
