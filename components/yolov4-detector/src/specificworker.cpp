@@ -233,7 +233,14 @@ void SpecificWorker::compute_testYolo()
     //         std::cout << distance.value() << std::endl;
 
     if(cup.has_value() && table.has_value())
-        api_geom.insert_node(cup.value(),table.value());
+    {
+        if( auto result = api_geom.get_closest_objects_by_type(cup.value(),"container") ; result.has_value())
+            std::cout << result.value().name() << std::endl;
+        else
+            std::cout << "Lets fckng ir" << std::endl;
+    }
+
+
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,10 +288,13 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 auto parent = G->get_parent_node(synth_node.value());
                 auto edge = rt_api->get_edge_RT(parent.value(), synth_node->id()).value();
                 G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0);  // reset unseen counter
-                //IF
-                auto translation = inner_eigen->transform(parent.value().name(),Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name);
-                //IF
-                G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                if(parent.has_value())
+                    if(auto translation = inner_eigen->transform(parent.value().name(),Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name);translation.has_value())
+                        G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                    else
+                        qWarning() <<__FUNCTION__<< "Transform result has not value";
+                else
+                    qWarning() <<__FUNCTION__<< "Parent has not value";
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
                 G->update_node(synth_node.value());

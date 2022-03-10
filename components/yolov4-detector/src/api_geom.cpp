@@ -1,5 +1,6 @@
 #include "api_geom.h"
 
+//Lets f*cking ir
 api_geom::api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, std::shared_ptr<DSR::InnerEigenAPI> inner_eigen)
 {
     this->G = G;
@@ -7,6 +8,7 @@ api_geom::api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API
     this->inner_eigen = inner_eigen;
 }
 
+//Lets f*cking ir
 std::optional<float> api_geom::distance_between_objects(const DSR::Node &node1, const DSR::Node &node2)
 {
 
@@ -39,10 +41,11 @@ std::optional<float> api_geom::distance_between_objects(const DSR::Node &node1, 
     return {};
 }
 
+//Lets f*cking ir but not sure
 std::optional<DSR::Node> api_geom::get_closest_objects_by_type(const DSR::Node &node, const std::string &type)
 {
     auto nodes_of_type = G->get_nodes_by_type(type);
-
+    std::cout << nodes_of_type.size() <<std::endl;
     if (not nodes_of_type.empty())
     {
         auto it = std::ranges::min_element(nodes_of_type, [node, this](auto a, auto b)
@@ -153,102 +156,42 @@ bool api_geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_obj
     return distance_of_over_object(little_object, big_object) < 500;
 }
 
-bool api_geom::insert_node(DSR::Node &node, DSR::Node &parent)
+bool api_geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 {
-    // G->add_or_modify_attrib_local<parent_att>(object_node, parent_node.value().id());
-    // G->add_or_modify_attrib_local<level_att>(object_node, G->get_node_level(parent_node.value()).value() + 1);
-    // G->add_or_modify_attrib_local<obj_width_att>(object_node, size[0]);
-    // G->add_or_modify_attrib_local<obj_height_att>(object_node, size[1]);
-    // G->add_or_modify_attrib_local<obj_depth_att>(object_node, size[2]);
-    // const auto &[random_x, random_y] = get_random_position_to_draw_in_graph("object");
-    // G->add_or_modify_attrib_local<pos_x_att>(object_node, random_x);
-    // G->add_or_modify_attrib_local<pos_y_att>(object_node, random_y);
-    // G->get_parent_node(node).value().id()
-    // G->get_node(world_name).value() --- (float)parent_rt.value().y()
-
-    if (G->get_parent_node(node).value().id() == 1)
+    if (auto current_parent = G->get_parent_node(node); current_parent.has_value()) // Obtain the current parent
     {
-        std::cout << "IF" << std::endl;
-        auto world = G->get_node(world_name).value();
-
-        if (auto node_edge = rt_api->get_edge_RT(world, node.id()); node_edge.has_value())
+        if (auto node_edge = rt_api->get_edge_RT(current_parent.value(), node.id()); node_edge.has_value()) // Obtain current edge
         {
-            auto node_translation = G->get_attrib_by_name<rt_translation_att>(node_edge.value());
-
-            qInfo() << "world cup position" << node_translation.value().get();
-
-            if (auto parent_rt = inner_eigen->transform(parent.name(),
-                            Eigen::Vector3d(node_translation.value().get().at(0), node_translation.value().get().at(1), node_translation.value().get().at(2)), world_name);
-                parent_rt.has_value())
+            // auto node_translation = G->get_attrib_by_name<rt_translation_att>(node_edge.value());
+            if (auto translation_from_parent = inner_eigen->transform(new_parent.name(), node.name()); translation_from_parent.has_value()) // Obtain the translation from parent
             {
-                auto transformwithoutpoints = inner_eigen->transform(parent.name(),node.name());
+                std::cout << "tranformwithoutpoints" << translation_from_parent.value() << std::endl;
 
-                std::cout << "tranformwithoutpoints" << transformwithoutpoints.value() << std::endl;
-                std::cout << "table cup position " << parent_rt.value() << std::endl;
-
-                float x = transformwithoutpoints.value().x();
-                float y = transformwithoutpoints.value().y();
-                float z = transformwithoutpoints.value().z();
+                float x = translation_from_parent.value().x();
+                float y = translation_from_parent.value().y();
+                float z = translation_from_parent.value().z();
 
                 // Delete previous edge
-                auto world = G->get_node(world_name).value();
-                G->delete_edge(world.id(), node.id(), "RT");
-                G->update_node(world);
+                G->delete_edge(current_parent.value().id(), node.id(), "RT");
+                G->update_node(current_parent.value());
 
-                // Update parent node
-                G->add_or_modify_attrib_local<parent_att>(node, parent.id());
-                //Hardcode level value
-                G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(parent).value() + 1);
-                G->update_node(node);
-                G->update_node(parent);
-                G->update_node(world);
+                // Update node attributes
+                G->add_or_modify_attrib_local<parent_att>(node, new_parent.id());
+                G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(new_parent).value() + 1);
+                G->update_node(new_parent);
 
                 // Create new edge
-                DSR::Edge edge = DSR::Edge::create<RT_edge_type>(parent.id(), node.id());
-                
-                // std::cout << "Primer transform" << parent_rt.value() << std::endl;
-
-                rt_api->insert_or_assign_edge_RT(parent,node.id(),std::vector<float>{x, y, z},std::vector<float>{0., 0., 0.});
-                G->update_node(parent);
-                // // Cam problem
-                // G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{x, y, z});
-
-                // G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
-
-                // Get and set rotation matrix
-                //  auto RT = inner_eigen->get_rotation_matrix(parent.name(),node.name());
-                //  std::cout << "ROTATION MATRIX" << RT.value() << std::endl;
-                // std::cout << "RTVALUES" << RT.value().x() << (float)RT.value().y() << (float)RT.value().z() << std::endl;
-
-                // Insert edges and updates
-                // G->insert_or_assign_edge(edge);
-                // G->update_node(node);
-                // G->update_node(parent);
-                // G->update_node(world);
+                rt_api->insert_or_assign_edge_RT(new_parent, node.id(), std::vector<float>{x, y, z}, std::vector<float>{0., 0., 0.});
+                return true;
             }
-
-            // auto world_node_translation = G->get_attrib_by_name<rt_translation_att>(world_edge_node.value());
-
-            // auto big_object_edge_node = inner_eigen->transform(parent.name(), Eigen::Vector3d
-            //                             (world_node_translation.value().get().at(0),world_node_translation.value().get().at(1),world_node_translation.value().get().at(2)), world_name);
-
-            // auto RT = inner_eigen->get_rotation_matrix(parent.name(), node.name());
-
-            // std::cout << "Translation:" << big_object_edge_node.value() << std::endl;
-
-            // std::cout << "Rotation Matrix:" << RT.value() << std::endl;
-
-            // std::cout << "Borramos world-cup y updateamos world" << std::endl;
-
-            // G->add_or_modify_attrib_local<parent_att>(node, parent.id());
-            // G->update_node(node);
-
-            // G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>
-            //                             {(float)big_object_edge_node.value().x(), (float)big_object_edge_node.value().y(), (float)big_object_edge_node.value().z()});
-
-            // G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
-            // G->insert_or_assign_edge(edge);
+            else
+                qWarning() << __FUNCTION__ << "Transform result has not value";
         }
+        else
+            qWarning() << __FUNCTION__ << "Edge between current parent and node does not exist";
     }
-    return true;
+    else
+        qWarning() << __FUNCTION__ << "Current parent of the node does not exist";
+
+    return false;
 }
