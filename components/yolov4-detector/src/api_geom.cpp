@@ -1,15 +1,15 @@
 #include "api_geom.h"
 
-//Lets f*cking ir
-api_geom::api_geom(std::shared_ptr<DSR::DSRGraph> G, std::shared_ptr<DSR::RT_API> rt_api, std::shared_ptr<DSR::InnerEigenAPI> inner_eigen)
+using namespace DSR;
+
+Api_Geom::Api_Geom(std::shared_ptr<DSR::DSRGraph> G)
 {
     this->G = G;
-    this->rt_api = rt_api;
-    this->inner_eigen = inner_eigen;
+    this->rt_api = G->get_rt_api();
+    this->inner_eigen = G->get_inner_eigen_api();
 }
 
-//Lets f*cking ir
-std::optional<float> api_geom::distance_between_objects(const DSR::Node &node1, const DSR::Node &node2)
+std::optional<float> Api_Geom::distance_between_objects(const DSR::Node &node1, const DSR::Node &node2)
 {
 
     auto edge1 = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
@@ -41,11 +41,10 @@ std::optional<float> api_geom::distance_between_objects(const DSR::Node &node1, 
     return {};
 }
 
-//Lets f*cking ir but not sure
-std::optional<DSR::Node> api_geom::get_closest_objects_by_type(const DSR::Node &node, const std::string &type)
+std::optional<DSR::Node> Api_Geom::get_closest_objects_by_type(const DSR::Node &node, const std::string &type)
 {
     auto nodes_of_type = G->get_nodes_by_type(type);
-    std::cout << nodes_of_type.size() <<std::endl;
+    std::cout << nodes_of_type.size() << std::endl;
     if (not nodes_of_type.empty())
     {
         auto it = std::ranges::min_element(nodes_of_type, [node, this](auto a, auto b)
@@ -56,29 +55,29 @@ std::optional<DSR::Node> api_geom::get_closest_objects_by_type(const DSR::Node &
         return {};
 }
 
-std::optional<float> api_geom::distance_of_over_object(const DSR::Node &little_object, const DSR::Node &big_object)
+std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_object, const DSR::Node &below_object)
 {
-    auto little_object_edge = rt_api->get_edge_RT(G->get_parent_node(little_object).value(), little_object.id());
-    auto big_object_edge = rt_api->get_edge_RT(G->get_parent_node(big_object).value(), big_object.id());
+    auto this_object_edge = rt_api->get_edge_RT(G->get_parent_node(this_object).value(), this_object.id());
+    auto below_object_edge = rt_api->get_edge_RT(G->get_parent_node(below_object).value(), below_object.id());
 
-    if (little_object_edge.has_value() && big_object_edge.has_value())
+    if (this_object_edge.has_value() && below_object_edge.has_value())
     {
-        auto little_object_translation = G->get_attrib_by_name<rt_translation_att>(little_object_edge.value());
-        auto big_object_translation = G->get_attrib_by_name<rt_translation_att>(big_object_edge.value());
+        auto this_object_translation = G->get_attrib_by_name<rt_translation_att>(this_object_edge.value());
+        auto below_object_translation = G->get_attrib_by_name<rt_translation_att>(below_object_edge.value());
 
-        if (little_object_translation.has_value() && big_object_translation.has_value())
+        if (this_object_translation.has_value() && below_object_translation.has_value())
         {
-            auto big_object_width = G->get_attrib_by_name<obj_width_att>(big_object);
-            auto big_object_depth = G->get_attrib_by_name<obj_depth_att>(big_object);
-            auto big_object_height = G->get_attrib_by_name<obj_height_att>(big_object);
+            auto below_object_width = G->get_attrib_by_name<obj_width_att>(below_object);
+            auto below_object_depth = G->get_attrib_by_name<obj_depth_att>(below_object);
+            auto below_object_height = G->get_attrib_by_name<obj_height_att>(below_object);
 
-            if (big_object_width.has_value() && big_object_depth.has_value() && big_object_height.has_value())
+            if (below_object_width.has_value() && below_object_depth.has_value() && below_object_height.has_value())
             {
                 // Transform the big object' corners in its reference system to the world reference system
-                auto world_top_left_point = inner_eigen->transform(world_name, Eigen::Vector3d(-(big_object_width.value() / 2), big_object_depth.value() / 2, big_object_height.value()), big_object.name());
-                auto world_top_right_point = inner_eigen->transform(world_name, Eigen::Vector3d(big_object_width.value() / 2, big_object_depth.value() / 2, big_object_height.value()), big_object.name());
-                auto world_bottom_left_point = inner_eigen->transform(world_name, Eigen::Vector3d(-(big_object_width.value() / 2), -(big_object_depth.value() / 2), big_object_height.value()), big_object.name());
-                auto world_bottom_right_point = inner_eigen->transform(world_name, Eigen::Vector3d(big_object_width.value() / 2, -(big_object_depth.value() / 2), big_object_height.value()), big_object.name());
+                auto world_top_left_point = inner_eigen->transform(world_name, Eigen::Vector3d(-(below_object_width.value() / 2), below_object_depth.value() / 2, below_object_height.value()), below_object.name());
+                auto world_top_right_point = inner_eigen->transform(world_name, Eigen::Vector3d(below_object_width.value() / 2, below_object_depth.value() / 2, below_object_height.value()), below_object.name());
+                auto world_bottom_left_point = inner_eigen->transform(world_name, Eigen::Vector3d(-(below_object_width.value() / 2), -(below_object_depth.value() / 2), below_object_height.value()), below_object.name());
+                auto world_bottom_right_point = inner_eigen->transform(world_name, Eigen::Vector3d(below_object_width.value() / 2, -(below_object_depth.value() / 2), below_object_height.value()), below_object.name());
 
                 if (world_top_left_point.has_value() and world_top_right_point.has_value() && world_bottom_left_point.has_value() && world_bottom_right_point.has_value())
                 {
@@ -88,13 +87,17 @@ std::optional<float> api_geom::distance_of_over_object(const DSR::Node &little_o
                                                                QPointF(world_bottom_right_point.value().x(), world_bottom_right_point.value().y()),
                                                                QPointF(world_bottom_left_point.value().x(), world_bottom_left_point.value().y())};
 
-                    auto world_big_object_polygon = QPolygonF(QVector(world_points_list));
+                    auto world_below_object_polygon = QPolygonF(QVector(world_points_list));
 
-                    if (auto little_object_height = G->get_attrib_by_name<obj_height_att>(little_object); little_object_height.has_value())
+                    if (auto this_object_height = G->get_attrib_by_name<obj_height_att>(this_object); this_object_height.has_value())
                     {
 
-                        if (world_big_object_polygon.containsPoint(QPointF(little_object_translation.value().get().at(0), little_object_translation.value().get().at(1)), Qt::OddEvenFill))
-                            return (little_object_translation.value().get().at(2) - (little_object_height.value() / 2) - (big_object_translation.value().get().at(2) + (big_object_height.value() / 2)));
+                        if (world_below_object_polygon.containsPoint(QPointF(this_object_translation.value().get().at(0), this_object_translation.value().get().at(1)), Qt::OddEvenFill))
+                        {
+
+                            if (auto distance = height_difference(this_object, below_object); distance.has_value())
+                                return distance.value() - (this_object_height.value() / 2) - (below_object_height.value() / 2);
+                        }
                         else
                             qWarning() << __FUNCTION__ << "Big object not contain little object";
                     }
@@ -116,7 +119,7 @@ std::optional<float> api_geom::distance_of_over_object(const DSR::Node &little_o
     return {};
 }
 
-std::optional<float> api_geom::height_difference(const DSR::Node &node1, const DSR::Node &node2)
+std::optional<float> Api_Geom::height_difference(const DSR::Node &node1, const DSR::Node &node2)
 {
     auto node1_edge = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
     auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
@@ -130,17 +133,7 @@ std::optional<float> api_geom::height_difference(const DSR::Node &node1, const D
         {
             auto node1_translation = G->get_attrib_by_name<rt_translation_att>(node1_edge.value());
             auto node2_translation = G->get_attrib_by_name<rt_translation_att>(node2_edge.value());
-
-            if (node1_translation.value().get().at(2) > node2_translation.value().get().at(2))
-            {
-                std::cout << "Else" << std::endl;
-                return (node1_translation.value().get().at(2) - node1_height.value() / 2) - (node2_translation.value().get().at(2) + node2_height.value() / 2);
-            }
-            else
-            {
-                std::cout << "Else" << std::endl;
-                return (node1_translation.value().get().at(2) + node1_height.value() / 2) - (node2_translation.value().get().at(2) - node2_height.value() / 2);
-            }
+            return node1_translation.value().get().at(2) - node2_translation.value().get().at(2);
         }
         else
             qWarning() << __FUNCTION__ << "Incorrect edges values of node1 or node2";
@@ -151,12 +144,12 @@ std::optional<float> api_geom::height_difference(const DSR::Node &node1, const D
     return {};
 }
 
-bool api_geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_object)
+bool Api_Geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_object)
 {
-    return distance_of_over_object(little_object, big_object) < 500;
+    return distance_to_object_below(little_object, big_object) < 500;
 }
 
-bool api_geom::update_node(DSR::Node &node, DSR::Node &new_parent)
+bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 {
     if (auto current_parent = G->get_parent_node(node); current_parent.has_value()) // Obtain the current parent
     {
@@ -193,5 +186,24 @@ bool api_geom::update_node(DSR::Node &node, DSR::Node &new_parent)
     else
         qWarning() << __FUNCTION__ << "Current parent of the node does not exist";
 
+    return false;
+}
+
+bool Api_Geom::insert_node_in_container(DSR::Node &node)
+{
+    auto containers = G->get_nodes_by_type("container");
+    if (not containers.empty())
+        for (auto &&container : containers)
+            if (auto distance = distance_to_object_below(node, container); distance.has_value())
+            {
+                std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
+                if (distance.value() < 120)
+                {
+                    if (not this->update_node(node, container))
+                        qWarning() << __FUNCTION__ << "Does not insert properly";
+                    else
+                        return true;
+                }
+            } // change to over or above
     return false;
 }

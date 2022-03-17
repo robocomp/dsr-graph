@@ -17,7 +17,6 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
-#include "api_geom.h"
 #include <ranges>
 #include <algorithm>
 #include <cppitertools/product.hpp>
@@ -25,47 +24,46 @@
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/chunked.hpp>
 
-
 /**
-* \brief Default constructor
-*/
+ * \brief Default constructor
+ */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
     QLoggingCategory::setFilterRules("*.debug=false\n");
-	this->startup_check_flag = startup_check;
+    this->startup_check_flag = startup_check;
 }
 
 /**
-* \brief Default destructor
-*/
+ * \brief Default destructor
+ */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
-	//G->write_to_json_file("./"+agent_name+".json");
+    std::cout << "Destroying SpecificWorker" << std::endl;
+    // G->write_to_json_file("./"+agent_name+".json");
     delete ynets[0]; // deallocate YOLOv4 network
-	G.reset();
+    G.reset();
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	agent_name = params["agent_name"].value;
-	agent_id = stoi(params["agent_id"].value);
+    agent_name = params["agent_name"].value;
+    agent_id = stoi(params["agent_id"].value);
 
-	tree_view = params["tree_view"].value == "true";
-	graph_view = params["graph_view"].value == "true";
-	qscene_2d_view = params["2d_view"].value == "true";
-	osg_3d_view = params["3d_view"].value == "true";
+    tree_view = params["tree_view"].value == "true";
+    graph_view = params["graph_view"].value == "true";
+    qscene_2d_view = params["2d_view"].value == "true";
+    osg_3d_view = params["3d_view"].value == "true";
 
-	cfg_file = params["cfg_file"].value;
+    cfg_file = params["cfg_file"].value;
     weights_file = params["weight_file"].value;
-	names_file = params["names_file"].value;
+    names_file = params["names_file"].value;
 
     // initialize YOLOv4 network instances
-    for(uint i=0; i<YOLO_INSTANCES; ++i)
+    for (uint i = 0; i < YOLO_INSTANCES; ++i)
     {
         ynets.push_back(init_detector());
     }
-	return true;
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
@@ -80,7 +78,7 @@ void SpecificWorker::initialize(int period)
         G = std::make_shared<DSR::DSRGraph>(0, agent_name, agent_id); // Init nodes
         std::cout << __FUNCTION__ << " Graph loaded" << std::endl;
 
-        //dsr update signals
+        // dsr update signals
         connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
         // connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::add_or_assign_edge_slot);
         // connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
@@ -118,8 +116,11 @@ void SpecificWorker::initialize(int period)
         else
             qFatal("YoloV4_tracker terminate: could not find a camera node");
 
-        //RT APi
+        // RT APi
         rt_api = G->get_rt_api();
+
+        // GEOMETRY API
+        api_geom = std::make_shared<DSR::Api_Geom>(G);
 
         // custom_widget
         graph_viewer->add_custom_widget_to_dock("YoloV4-tracker", &custom_widget);
@@ -131,7 +132,7 @@ void SpecificWorker::initialize(int period)
         // Initialize combobox
         initialize_combobox();
         connect(custom_widget.clearButton, SIGNAL(clicked()), this, SLOT(clear_button_slot()));
-        //connect(custom_widget.comboBox, SIGNAL(activated(int)), this, SLOT(change_attention_object_slot(int)));
+        // connect(custom_widget.comboBox, SIGNAL(activated(int)), this, SLOT(change_attention_object_slot(int)));
 
         // clear al attention_action edges
         clear_all_attention_edges();
@@ -139,15 +140,16 @@ void SpecificWorker::initialize(int period)
         this->Period = 60;
         timer.start(Period);
         READY_TO_GO = true;
-	}
+    }
 }
-Detector* SpecificWorker::init_detector()
+Detector *SpecificWorker::init_detector()
 {
     // read objects yolo_names from file
     std::ifstream file(names_file);
-    for(std::string line; getline(file, line);) yolo_names.push_back(line);
+    for (std::string line; getline(file, line);)
+        yolo_names.push_back(line);
     // initialize YOLOv4 detector
-    Detector* detector = new Detector(cfg_file, weights_file);
+    Detector *detector = new Detector(cfg_file, weights_file);
 
     // PROTO SEMANTIC MEMORY. Standard size of objects in object's reference frame.
     //          now: center at roi center. x,y,z as in world coordinate system
@@ -162,32 +164,32 @@ Detector* SpecificWorker::init_detector()
     //                  function: "usualy used for Y"
     //                  changes of state after actions: "it brakes if it falls", "it fills if poured with a liquid"
 
-    known_object_types.insert( {"glass",        {80, 100, 80}});
-    known_object_types.insert( {"cup",          {80, 100, 80}});
-    known_object_types.insert( {"microwave",    {450, 250, 350}});
-    known_object_types.insert( {"plant",        {500, 900, 500}});
-    known_object_types.insert( {"person",       {350, 1700, 350}});
-    known_object_types.insert( {"vase",         {300, 300, 350}});
-    known_object_types.insert( {"oven",         {400, 100, 400}});
-    known_object_types.insert( {"refrigerator", {600, 1600, 600}});
-    known_object_types.insert( {"book",         {100, 250, 200}});
-    known_object_types.insert( {"bottle",       {80, 250, 80}});
-    known_object_types.insert( {"fork",         {50, 50, 150}});
-    known_object_types.insert( {"knife",        {50, 50, 150}});
-    known_object_types.insert( {"spoon",        {50, 50, 150}});
-    known_object_types.insert( {"bowl",         {200, 200, 200}});
-    known_object_types.insert( {"diningtable",  {800, 600, 800}});
-    known_object_types.insert( {"apple",        {80, 80, 80}});
+    known_object_types.insert({"glass", {80, 100, 80}});
+    known_object_types.insert({"cup", {80, 100, 80}});
+    known_object_types.insert({"microwave", {450, 250, 350}});
+    known_object_types.insert({"plant", {500, 900, 500}});
+    known_object_types.insert({"person", {350, 1700, 350}});
+    known_object_types.insert({"vase", {300, 300, 350}});
+    known_object_types.insert({"oven", {400, 100, 400}});
+    known_object_types.insert({"refrigerator", {600, 1600, 600}});
+    known_object_types.insert({"book", {100, 250, 200}});
+    known_object_types.insert({"bottle", {80, 250, 80}});
+    known_object_types.insert({"fork", {50, 50, 150}});
+    known_object_types.insert({"knife", {50, 50, 150}});
+    known_object_types.insert({"spoon", {50, 50, 150}});
+    known_object_types.insert({"bowl", {200, 200, 200}});
+    known_object_types.insert({"diningtable", {800, 600, 800}});
+    known_object_types.insert({"apple", {80, 80, 80}});
     return detector;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute()
 {
-    //auto begin = myclock::now();
+    // auto begin = myclock::now();
     const auto g_depth = depth_buffer.try_get();
     const auto g_image_o = rgb_buffer.try_get();
 
-    if( g_image_o.has_value() and g_depth.has_value())
+    if (g_image_o.has_value() and g_depth.has_value())
     {
         auto &[g_image, timestamp] = g_image_o.value();
         auto img_timestamp = timestamp;
@@ -202,13 +204,13 @@ void SpecificWorker::compute()
         auto lists_after_match = match_lists(real_objects, synth_objects, depth_array);
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
-        //Create new compute
-        compute_testYolo();
-        //auto &[a,b] = lists_after_delete;
-        //qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
+        // Create new compute
+        //  compute_testYolo();
+        // auto &[a,b] = lists_after_delete;
+        // qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
-    //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
-    //fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+    // std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(myclock::now() - begin).count() << "[ms]" << std::endl;
+    // fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_testYolo()
@@ -216,43 +218,51 @@ void SpecificWorker::compute_testYolo()
 
     // auto containers = G->get_nodes_by_type("container");
     auto cup = G->get_node("cup");
-	auto table = G->get_node("table1");
-	api_geom api_geom(G,rt_api,inner_eigen);
-
-    //if(cup.has_value() && containers.size() > 0)
-    // {
-    //     for(auto&& container : containers)
-    //     {
-    //         //auto container_name = G->get_attrib_by_name<rt_translation_att>(edge2.value());
-    //         std::cout << "Distance: " << container.name() << " " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
-    //     }
-    // }
+    auto table1 = G->get_node("table1");
+    // if(cup.has_value() && containers.size() > 0)
+    //  {
+    //      for(auto&& container : containers)
+    //      {
+    //          //auto container_name = G->get_attrib_by_name<rt_translation_att>(edge2.value());
+    //          std::cout << "Distance: " << container.name() << " " << api_geom::distance_between_objects(G,rt_api,cup.value(), container) << std::endl;
+    //      }
+    //  }
 
     // if(cup.has_value() && table.has_value())
     //     if( auto distance = api_geom.height_difference(cup.value(),table.value()) ; distance.has_value())
     //         std::cout << distance.value() << std::endl;
 
-    if(cup.has_value() && table.has_value())
+    // if(cup.has_value() && table.has_value())
+    // {
+    //     if( auto result = api_geom->get_closest_objects_by_type(cup.value(),"container") ; result.has_value())
+    //         std::cout << result.value().name() << std::endl;
+    //     else
+    //         std::cout << "Lets fckng ir" << std::endl;
+    // }
+    if (cup.has_value() and table1.has_value())
     {
-        if( auto result = api_geom.get_closest_objects_by_type(cup.value(),"container") ; result.has_value())
-            std::cout << result.value().name() << std::endl;
+        if (auto aux = api_geom->distance_to_object_below(cup.value(), table1.value()); aux.has_value())
+        {
+            qInfo() << aux.value();
+            std::cout << "DENTRO DEL CUP HAS VALUE" << std::endl;
+        }
         else
-            std::cout << "Lets fckng ir" << std::endl;
+            std::cout << "FUERA DEL CUP HAS VALUE" << std::endl;
     }
-
-
-
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
 {
-    if(synth_objects.empty()) { /*qWarning() << __FUNCTION__ << "Empty list";*/ return; }
+    if (synth_objects.empty())
+    { /*qWarning() << __FUNCTION__ << "Empty list";*/
+        return;
+    }
     // get the one closest to robot's centre
-    //auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
+    // auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
     //        { return Eigen::Vector2d(a.pan_tilt.x(), a.pan_tilt.z()).norm() < Eigen::Vector2d(b.pan_tilt.x(), b.pan_tilt.z()).norm();});
     // get the one closes to the center of the image
     auto min = std::ranges::min_element(synth_objects, [](auto &a, auto &b)
-            { return Eigen::Vector2d(a.cx(), a.cy()).norm() < Eigen::Vector2d(b.cx(), b.cy()).norm();});
+                                        { return Eigen::Vector2d(a.cx(), a.cy()).norm() < Eigen::Vector2d(b.cx(), b.cy()).norm(); });
     Box attending = *min;
     if (auto object = G->get_node(attending.name); object.has_value())
     {
@@ -270,49 +280,65 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                                                                                      Boxes &synth_objects,
                                                                                      const std::vector<float> &depth_array)
 {
-    //int count = 0;
+    // int count = 0;
     auto world_node = G->get_node(world_name);
-    for (auto&& [b_real, b_synth] : iter::product(real_objects, synth_objects))
+    for (auto &&[b_real, b_synth] : iter::product(real_objects, synth_objects))
     {
-        //std::cout << __FUNCTION__ << " trying match between " << b_synth.name << " and " << b_real.name << std::endl;
+        // std::cout << __FUNCTION__ << " trying match between " << b_synth.name << " and " << b_real.name << std::endl;
         if (b_synth.name.find(b_real.name, 0) == 0) // or b_synth.name.find("glass", 0) == 0)
         {
-            //std::cout << __FUNCTION__ << " potential match " << std::endl;
-            //std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
-            //std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
+            // std::cout << __FUNCTION__ << " potential match " << std::endl;
+            // std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
+            // std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
             if (not b_synth.match and not b_real.match and both_boxes_match(b_synth, b_real))
             {
-                //std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
-                b_synth.match = true; b_real.match = true;
+                // std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
+                b_synth.match = true;
+                b_real.match = true;
                 auto synth_node = G->get_node(b_synth.name);
                 auto parent = G->get_parent_node(synth_node.value());
                 auto edge = rt_api->get_edge_RT(parent.value(), synth_node->id()).value();
-                G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0);  // reset unseen counter
-                if(parent.has_value())
-                    if(auto translation = inner_eigen->transform(parent.value().name(),Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name);translation.has_value())
-                        G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0); // reset unseen counter
+
+                if (parent.has_value() and synth_node.has_value())
+                {
+                    if (parent.value().type() == "container")
+                        api_geom->insert_node_in_container(synth_node.value());
                     else
-                        qWarning() <<__FUNCTION__<< "Transform result has not value";
+                    {
+                        if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
+                            G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                        else
+                            qWarning() << __FUNCTION__ << "Transform result has not value";
+                        // else
+                        //     if(synth_node.has_value()) api_geom->insert_node_in_container(synth_node.value());
+                    }
+                }
                 else
-                    qWarning() <<__FUNCTION__<< "Parent has not value";
+                    qWarning() << __FUNCTION__ << "Parent has not value";
+
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
                 G->insert_or_assign_edge(edge);
                 G->update_node(synth_node.value());
-                //b_real.print("Real Box");
-                //b_synth.print("Synth Box");
-                //qInfo() << __FUNCTION__ << " Matched objects:" << ++count;
+                // b_real.print("Real Box");
+                // b_synth.print("Synth Box");
+                // qInfo() << __FUNCTION__ << " Matched objects:" << ++count;
             }
         }
     }
     // remove matched elements from both lists
-    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),
-                           [](Box const &p) { return p.match == true; }), real_objects.end());
-    synth_objects.erase(std::remove_if(synth_objects.begin(),synth_objects.end(),
-                                       [](Box const &p) { return p.match == true; }), synth_objects.end());
-    return(std::make_tuple(real_objects, synth_objects));
+    real_objects.erase(std::remove_if(real_objects.begin(), real_objects.end(),
+                                      [](Box const &p)
+                                      { return p.match == true; }),
+                       real_objects.end());
+    synth_objects.erase(std::remove_if(synth_objects.begin(), synth_objects.end(),
+                                       [](Box const &p)
+                                       { return p.match == true; }),
+                        synth_objects.end());
+    return (std::make_tuple(real_objects, synth_objects));
 }
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
-        SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match, std::uint64_t timestamp)
+SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_match, std::uint64_t timestamp)
 {
     auto world_node = G->get_node(world_name);
     auto &[real_objects, synth_objects] = lists_after_match;
@@ -321,8 +347,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 
     // replace by distance
     QPolygonF room_polygon;
-    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
-        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
+    if (auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
+        if (auto room_node = G->get_node(in_edges.front().to()); room_node.has_value()) // THIS CAN BE MOVED TO the SLOTs and create a list
         {
             auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
             auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
@@ -330,18 +356,25 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                 for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
                     room_polygon << QPointF(px, py);
         }
-        else { qWarning() << __FUNCTION__ << "No room node found for robot";  return lists_after_match;}
-    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room";  return lists_after_match;}
+        else
+        {
+            qWarning() << __FUNCTION__ << "No room node found for robot";
+            return lists_after_match;
+        }
+    else
+    {
+        qWarning() << __FUNCTION__ << "No IN edge from robot to room";
+        return lists_after_match;
+    }
 
-
-    for (auto&& b_real : real_objects)
+    for (auto &&b_real : real_objects)
     {
         // if (not room_polygon.containsPoint(QPointF(b_real.Tx, b_real.Ty), Qt::OddEvenFill))
         //         continue;
 
         DSR::Node object_node;
         // before actually creating the object, it has to be seen a minimun number of times at the same place
-        if(real_object_is_stable(b_real, room_polygon, timestamp))  // insert
+        if (real_object_is_stable(b_real, room_polygon, timestamp)) // insert
         {
             object_node = create_node_with_type(b_real.type, b_real.name);
             auto size = known_object_types.at(b_real.type);
@@ -366,33 +399,37 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
 
             if (std::optional<int> id = G->insert_node(object_node); id.has_value())
             {
-                //std::cout << __FUNCTION__ << "object id " << object_node.id() << endl;
-                //std::cout << __FUNCTION__ << "T " << b_real.Tx <<" "<< b_real.Ty << " " << b_real.Tz << endl;
+                // std::cout << __FUNCTION__ << "object id " << object_node.id() << endl;
+                // std::cout << __FUNCTION__ << "T " << b_real.Tx <<" "<< b_real.Ty << " " << b_real.Tz << endl;
                 DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
                 G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
                 G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
                 G->insert_or_assign_edge(edge);
+                api_geom->insert_node_in_container(object_node); // Check if the new object is in a container and if it is create the edge with the container
                 G->update_node(world_node.value());
                 b_real.marked_for_delete = true;
                 // qInfo() << __FUNCTION__ << "Created node " << QString::fromStdString(b_real.name);
                 initialize_combobox();
-            } else
+            }
+            else
                 qWarning() << "Object " << QString::fromStdString(b_real.name) << " could NOT be created";
             // qInfo() << __FUNCTION__ << " Added objects:" << ++count;
         }
     }
     // remove marked objects
-    real_objects.erase(std::remove_if(real_objects.begin(),real_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), real_objects.end());
+    real_objects.erase(std::remove_if(real_objects.begin(), real_objects.end(), [](Box const &p)
+                                      { return p.marked_for_delete == true; }),
+                       real_objects.end());
     return lists_after_match;
 }
 
 std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
-        SpecificWorker::delete_unseen_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
+SpecificWorker::delete_unseen_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> &lists_after_add)
 {
     auto &[real_objects, synth_objects] = lists_after_add;
-    for (auto&& b_synth : synth_objects)
+    for (auto &&b_synth : synth_objects)
     {
-        if (not b_synth.match)   // objects in G not corroborated
+        if (not b_synth.match) // objects in G not corroborated
         {
             if (auto object_node = G->get_node(b_synth.name); object_node.has_value())
             {
@@ -404,7 +441,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
                         b_synth.marked_for_delete = true;
                         initialize_combobox();
                     }
-                    else  //update unseen time
+                    else // update unseen time
                     {
                         G->add_or_modify_attrib_local<unseen_time_att>(object_node.value(), unseen_time.value() + 1);
                         G->update_node(object_node.value());
@@ -418,7 +455,9 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes>
             }
         }
     }
-    synth_objects.erase(std::remove_if(synth_objects.begin(),synth_objects.end(),[](Box const &p) { return p.marked_for_delete == true; }), synth_objects.end());
+    synth_objects.erase(std::remove_if(synth_objects.begin(), synth_objects.end(), [](Box const &p)
+                                       { return p.marked_for_delete == true; }),
+                        synth_objects.end());
     return lists_after_add;
 }
 ////////////////////////////////////////////////////////////////////////
@@ -429,7 +468,7 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
     static std::mt19937 mt(rd());
 
     float low_x_limit = -800, low_y_limit = -700, upper_x_limit = 800, upper_y_limit = 500;
-    if(type == "object")
+    if (type == "object")
     {
         low_x_limit = -300;
         upper_x_limit = 0;
@@ -441,27 +480,28 @@ std::tuple<float, float> SpecificWorker::get_random_position_to_draw_in_graph(co
 
     return std::make_tuple(dist_x(mt), dist_y(mt));
 }
-bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp)     // a copy of Box
+bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room, std::uint64_t timestamp) // a copy of Box
 {
     static std::vector<Box> candidates;
     // remove those  in other room
-//    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
-//            { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
+    //    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[robot_room](Box const &b)
+    //            { return not robot_room.containsPoint(QPointF(b.Tx, b.Ty), Qt::OddEvenFill);}), candidates.end());
 
     // remove those behind the camera
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),[this, timestamp](Box const &b)
-            {
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [this, timestamp](Box const &b)
+                                    {
                 auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, Eigen::Vector3d(b.Tx,b.Ty,b.Tz), world_name, timestamp);
-                return not (pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0);
-            }), candidates.end());
+                return not (pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0); }),
+                     candidates.end());
 
     // check if new box type equals to one of the existing boxes and close enough to it
-    if(auto r = std::ranges::find_if(candidates, [this, box](auto &b)mutable{ return box.type == b.type and box.distance_in_world_frame_to(b) < 300;}); r != candidates.end())
+    if (auto r = std::ranges::find_if(candidates, [this, box](auto &b) mutable
+                                      { return box.type == b.type and box.distance_in_world_frame_to(b) < 300; });
+        r != candidates.end())
     {
         // if old enough, delete it from the list and return true
         auto now = std::chrono::steady_clock::now();
-        if(r->creation_ticks > CONSTANTS.min_ticks_to_add_object_threshold
-            and std::chrono::duration_cast<std::chrono::milliseconds>(now - r->creation_time).count() > CONSTANTS.min_time_to_add_object_threshold)
+        if (r->creation_ticks > CONSTANTS.min_ticks_to_add_object_threshold and std::chrono::duration_cast<std::chrono::milliseconds>(now - r->creation_time).count() > CONSTANTS.min_time_to_add_object_threshold)
         {
             candidates.erase(r);
             // qInfo() << __FUNCTION__ << "Candidate found. List size: " << candidates.size();
@@ -481,26 +521,29 @@ bool SpecificWorker::real_object_is_stable(Box box, const QPolygonF &robot_room,
 }
 std::tuple<float, float, float> SpecificWorker::estimate_object_size_through_projection_optimization(const Box &b_synth, const Box &b_real)
 {
-    return std::make_tuple(0,0,0);
+    return std::make_tuple(0, 0, 0);
 }
 std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(std::uint64_t timestamp)
 {
     std::vector<Box> boxes;
-    const auto visibles = G->get_edges_by_type("visible");  //Should taka a type instead of a string
-    //qInfo() << __FUNCTION__ << visibles.size();
-    for(const auto &edge: visibles)
+    const auto visibles = G->get_edges_by_type("visible"); // Should taka a type instead of a string
+    // qInfo() << __FUNCTION__ << visibles.size();
+    for (const auto &edge : visibles)
     {
-        if(auto att = G->get_attrib_by_name<projected_bounding_box_att>(edge); att.has_value())
+        if (auto att = G->get_attrib_by_name<projected_bounding_box_att>(edge); att.has_value())
         {
             auto object = G->get_node(edge.to());
             Box box;
-            box.left = (int)att.value().get()[0]; box.top=(int)att.value().get()[1]; box.right=(int)att.value().get()[2]; box.bot=(int)att.value().get()[3];
+            box.left = (int)att.value().get()[0];
+            box.top = (int)att.value().get()[1];
+            box.right = (int)att.value().get()[2];
+            box.bot = (int)att.value().get()[3];
             box.name = object.value().name();
             box.prob = 100;
             box.match = false;
             box.visible = true;
             box.type = object.value().type();
-            if(auto t_world = inner_eigen->transform(world_name, object.value().name(), timestamp); t_world.has_value())
+            if (auto t_world = inner_eigen->transform(world_name, object.value().name(), timestamp); t_world.has_value())
             {
                 if (auto t_camera = inner_eigen->transform(viriato_head_camera_name, object.value().name(), timestamp); t_camera.has_value())
                 {
@@ -511,12 +554,12 @@ std::vector<SpecificWorker::Box> SpecificWorker::get_visible_objects_from_graph(
                     box.Tx = t_world.value().x();
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
-                    boxes.emplace_back(box);  //move
+                    boxes.emplace_back(box); // move
                 }
                 if (auto t_pan_tilt = inner_eigen->transform(viriato_head_camera_pan_tilt_name, object.value().name(), timestamp); t_pan_tilt.has_value())
                     box.pan_tilt = t_pan_tilt.value();
             }
-            //qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
+            // qInfo()<<"geting visible object"<<QString::fromStdString(box.name)<<box.left<<box.right<<box.top<<box.bot;
         }
     }
     return boxes;
@@ -527,14 +570,14 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
     image_t yolo_img = createImage(img);
     std::vector<bbox_t> detections = ynets[0]->detect(yolo_img, CONSTANTS.min_yolo_probability_threshold / 100.f, false);
     // process detected bounding boxes
-    std::vector<Box> bboxes; //bboxes.reserve(detections.size());
+    std::vector<Box> bboxes; // bboxes.reserve(detections.size());
     int width = cam_api->get_width();
     int height = cam_api->get_height();
 
     auto robot_node = G->get_node(robot_name);
     QPolygonF room_polygon;
-    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
-        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
+    if (auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
+        if (auto room_node = G->get_node(in_edges.front().to()); room_node.has_value()) // THIS CAN BE MOVED TO the SLOTs and create a list
         {
             auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
             auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
@@ -542,12 +585,20 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                 for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
                     room_polygon << QPointF(px, py);
         }
-        else { qWarning() << __FUNCTION__ << "No room node found for robot";  return bboxes;}
-    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room";  return bboxes;}
-
-    for(const auto &d : detections)
+        else
+        {
+            qWarning() << __FUNCTION__ << "No room node found for robot";
+            return bboxes;
+        }
+    else
     {
-        if( auto &&[success, type] = contained_in_known_objects(yolo_names.at(d.obj_id)); success == true)
+        qWarning() << __FUNCTION__ << "No IN edge from robot to room";
+        return bboxes;
+    }
+
+    for (const auto &d : detections)
+    {
+        if (auto &&[success, type] = contained_in_known_objects(yolo_names.at(d.obj_id)); success == true)
         {
             Box box;
             int cls = d.obj_id;
@@ -557,10 +608,14 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
             box.right = d.x + d.w - yolo_img.w / 2;
             box.top = d.y - yolo_img.h / 2;
             box.bot = d.y + d.h - yolo_img.h / 2;
-            if (box.left < -yolo_img.w / 2) box.left = -yolo_img.w / 2;
-            if (box.right > yolo_img.w / 2 - 1) box.right = yolo_img.w / 2 - 1;
-            if (box.top < -yolo_img.h / 2) box.top = -yolo_img.h / 2;
-            if (box.bot > yolo_img.h / 2 - 1) box.bot = yolo_img.h / 2 - 1;
+            if (box.left < -yolo_img.w / 2)
+                box.left = -yolo_img.w / 2;
+            if (box.right > yolo_img.w / 2 - 1)
+                box.right = yolo_img.w / 2 - 1;
+            if (box.top < -yolo_img.h / 2)
+                box.top = -yolo_img.h / 2;
+            if (box.bot > yolo_img.h / 2 - 1)
+                box.bot = yolo_img.h / 2 - 1;
             box.left = (box.left * width) / YOLO_IMG_SIZE;
             box.right = (box.right * width) / YOLO_IMG_SIZE;
             box.top = (box.top * height) / YOLO_IMG_SIZE;
@@ -569,31 +624,35 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
             box.visible = true;
             box.match = false;
             int BDleft = box.left + width / 2;
-            if (BDleft < 0) BDleft = 0;
+            if (BDleft < 0)
+                BDleft = 0;
             int BDright = box.right + width / 2;
-            if (BDright >= width) BDright = width - 1;
+            if (BDright >= width)
+                BDright = width - 1;
             int BDtop = box.top + height / 2;
-            if (BDtop < 0) BDtop = 0;
+            if (BDtop < 0)
+                BDtop = 0;
             int BDbot = box.bot + height / 2;
-            if (BDbot >= height) BDbot = height - 1;
+            if (BDbot >= height)
+                BDbot = height - 1;
 
             auto tp = cam_api->get_roi_depth(depth_array, Eigen::AlignedBox<float, 2>(Eigen::Vector2f(BDleft, BDbot),
                                                                                       Eigen::Vector2f(BDright, BDtop)));
             if (tp.has_value())
             {
-                auto[x, y, z] = tp.value();
+                auto [x, y, z] = tp.value();
                 if (auto t_world = inner_eigen->transform(world_name, Mat::Vector3d(x, y, z), viriato_head_camera_name, timestamp); t_world.has_value())
                 {
-                    //std::cout << "POS 3D "<<yolo_names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
-                    box.depth = (float) Mat::Vector3d(x, y, z).norm();  // center ROI
+                    // std::cout << "POS 3D "<<yolo_names.at(cls)<<" "<<t_world[0]<<" "<<t_world[1]<<" "<<t_world[2] << std::endl;
+                    box.depth = (float)Mat::Vector3d(x, y, z).norm(); // center ROI
                     box.Cx = x;
                     box.Cy = y;
                     box.Cz = z;
                     box.Tx = t_world.value().x();
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
-                    //if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
-                        bboxes.push_back(box);
+                    // if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
+                    bboxes.push_back(box);
                 }
             }
         }
@@ -605,7 +664,7 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
 std::tuple<bool, std::string> SpecificWorker::contained_in_known_objects(const std::string &candidate)
 {
     std::string type;
-    for(const auto &[known_object, size] : this->known_object_types)
+    for (const auto &[known_object, size] : this->known_object_types)
         if (candidate.find(known_object, 0) != string::npos)
             return std::make_tuple(true, known_object);
     return std::make_tuple(false, type);
@@ -615,21 +674,21 @@ DSR::Node SpecificWorker::create_node_with_type(const std::string &type, const s
     DSR::Node object_node;
 
     if (type == "glass")
-    object_node = DSR::Node::create<glass_node_type>(name);
+        object_node = DSR::Node::create<glass_node_type>(name);
     else if (type == "cup")
-    object_node = DSR::Node::create<cup_node_type>(name);
+        object_node = DSR::Node::create<cup_node_type>(name);
     else if (type == "plant")
-    object_node = DSR::Node::create<plant_node_type>(name);
+        object_node = DSR::Node::create<plant_node_type>(name);
     else if (type == "microwave")
-    object_node = DSR::Node::create<microwave_node_type>(name);
+        object_node = DSR::Node::create<microwave_node_type>(name);
     else if (type == "person")
-    object_node = DSR::Node::create<person_node_type>(name);
+        object_node = DSR::Node::create<person_node_type>(name);
     else if (type == "oven")
-    object_node = DSR::Node::create<oven_node_type>(name);
+        object_node = DSR::Node::create<oven_node_type>(name);
     else if (type == "vase")
-    object_node = DSR::Node::create<vase_node_type>(name);
+        object_node = DSR::Node::create<vase_node_type>(name);
     else if (type == "refrigerator")
-    object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<refrigerator_node_type>(name);
     else if (type == "bottle")
         object_node = DSR::Node::create<refrigerator_node_type>(name);
     else if (type == "book")
@@ -647,23 +706,25 @@ DSR::Node SpecificWorker::create_node_with_type(const std::string &type, const s
 }
 bool SpecificWorker::both_boxes_match(Box &real_box, Box &synth_box)
 {
-    //A rectangle with the real object is created
+    // A rectangle with the real object is created
     QRect r(QPoint(real_box.left, real_box.top), QSize(real_box.width(), real_box.height()));
-    //A rectangle with the sythetic object is created
+    // A rectangle with the sythetic object is created
     QRect rs(QPoint(synth_box.left, synth_box.top), QSize(synth_box.width(), synth_box.height()));
-    //Compute intersection percentage between synthetic and real
+    // Compute intersection percentage between synthetic and real
     QRect i = rs.intersected(r);
-    //The area is normalized between 0 and 1 dividing by the minimum between both areas of each object
+    // The area is normalized between 0 and 1 dividing by the minimum between both areas of each object
     float area = (float)(i.width() * i.height()) / std::min(rs.width() * rs.height(), r.width() * r.height());
-    //The displacement vector between the two images is calculated
+    // The displacement vector between the two images is calculated
     QPoint error = r.center() - rs.center();
     // If the area is 0 there is no intersection
     // If the error is less than three times width of the synthetic rectangle
-    if(area > 0 or error.manhattanLength() < rs.width()*CONSTANTS.times_the_width_of_synth_box) //ADD DEPTH CHECK
+    if (area > 0 or error.manhattanLength() < rs.width() * CONSTANTS.times_the_width_of_synth_box) // ADD DEPTH CHECK
     {
-        //qInfo() << __FUNCTION__ << " area " << area << "error " << error.manhattanLength() << "rs widrh " << rs.width()*3;
-        real_box.area = area; real_box.match_error = error.manhattanLength();
-        synth_box.area = area; synth_box.match_error = error.manhattanLength();
+        // qInfo() << __FUNCTION__ << " area " << area << "error " << error.manhattanLength() << "rs widrh " << rs.width()*3;
+        real_box.area = area;
+        real_box.match_error = error.manhattanLength();
+        synth_box.area = area;
+        synth_box.match_error = error.manhattanLength();
         return true;
     }
     else
@@ -675,16 +736,16 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
     std::vector<Box> synth_box;
     std::vector<DSR::Node> object_nodes;
     // get all potentially visible objects
-    for(const auto &[known_object, size] : known_object_types)
+    for (const auto &[known_object, size] : known_object_types)
     {
-        auto new_nodes = G->get_nodes_by_type(known_object); 
+        auto new_nodes = G->get_nodes_by_type(known_object);
         object_nodes.insert(object_nodes.end(), new_nodes.begin(), new_nodes.end());
     }
     // computer room's delimiting polygon that contains the robot
     auto robot_node = G->get_node(robot_name);
     QPolygonF room_polygon;
-    if( auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
-        if( auto room_node = G->get_node(in_edges.front().to()); room_node.has_value() )   // THIS CAN BE MOVED TO the SLOTs and create a list
+    if (auto in_edges = G->get_node_edges_by_type(robot_node.value(), in_type_name); not in_edges.empty())
+        if (auto room_node = G->get_node(in_edges.front().to()); room_node.has_value()) // THIS CAN BE MOVED TO the SLOTs and create a list
         {
             auto polygon_x = G->get_attrib_by_name<delimiting_polygon_x_att>(room_node.value());
             auto polygon_y = G->get_attrib_by_name<delimiting_polygon_y_att>(room_node.value());
@@ -692,14 +753,22 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
                 for (auto &&[px, py] : iter::zip(polygon_x.value().get(), polygon_y.value().get()))
                     room_polygon << QPointF(px, py);
         }
-        else { qWarning() << __FUNCTION__ << "No room node found for robot"; return; }
-    else { qWarning() << __FUNCTION__ << "No IN edge from robot to room"; return; }
+        else
+        {
+            qWarning() << __FUNCTION__ << "No room node found for robot";
+            return;
+        }
+    else
+    {
+        qWarning() << __FUNCTION__ << "No IN edge from robot to room";
+        return;
+    }
 
     // project object
     int width = cam_api->get_width();
     int height = cam_api->get_height();
     int final_counter = 0;
-    for(auto &object : object_nodes)
+    for (auto &object : object_nodes)
     {
         const std::string &object_name = object.name();
 
@@ -711,15 +780,15 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
         float d = d_attr.value();
 
         // check if object is in front of the robot. Its position relative to the camera must have positive Y value
-        if(auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, timestamp); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
+        if (auto pos_wrt_camera = inner_eigen->transform(viriato_head_camera_name, object_name, timestamp); pos_wrt_camera.has_value() and pos_wrt_camera.value().y() > 0)
         {
             // check if object is in the same room as the robot
-//            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
-//            if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
-//            {
-//                G->delete_edge(cam_api->get_id(), object.id(), "visible");
-//                continue;
-//            }
+            //            auto object_pos = inner_eigen->transform(world_name, object_name, timestamp);
+            //            if (not room_polygon.containsPoint(QPointF(object_pos.value().x(), object_pos.value().y()), Qt::OddEvenFill))
+            //            {
+            //                G->delete_edge(cam_api->get_id(), object.id(), "visible");
+            //                continue;
+            //            }
 
             // project corners of object's bounding box in the camera image plane
             std::vector<Mat::Vector2d> bb_in_camera(8);
@@ -734,11 +803,13 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
 
             // Compute a 2D projected bounding box
             auto xExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
-                                                 [](const Mat::Vector2d &lhs, const Mat::Vector2d &rhs) {
+                                                 [](const Mat::Vector2d &lhs, const Mat::Vector2d &rhs)
+                                                 {
                                                      return lhs.x() < rhs.x();
                                                  });
             auto yExtremes = std::minmax_element(bb_in_camera.begin(), bb_in_camera.end(),
-                                                 [](const Mat::Vector2d &lhs, const Mat::Vector2d &rhs) {
+                                                 [](const Mat::Vector2d &lhs, const Mat::Vector2d &rhs)
+                                                 {
                                                      return lhs.y() < rhs.y();
                                                  });
             // Take the most separated ends to build the rectangle
@@ -757,52 +828,58 @@ void SpecificWorker::compute_visible_objects(std::uint64_t timestamp)
             auto bT = std::clamp(box.top, -height / 2, height / 2);
             auto bB = std::clamp(box.bot, -height / 2, height / 2);
 
-            float areaV = (bR - bL) * (bB - bT); // clamped area
-            float areaR = (box.right - box.left) * (box.bot - box.top);  // projected area
+            float areaV = (bR - bL) * (bB - bT);                        // clamped area
+            float areaR = (box.right - box.left) * (box.bot - box.top); // projected area
 
             // check if is inside the image
-            //if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
+            // if( box.left>=-c and box.right<c and box.top>=-c and box.bot<c)
             if (areaV / areaR > CONSTANTS.percentage_of_visible_area_to_be_visible / 100.f) // ratio between clamped area and projected area
             {
                 box.visible = true;
-                //if (auto d = rt_api->get_translation(cam_api->get_id(), object.id(), timestamp); d.has_value())
+                // if (auto d = rt_api->get_translation(cam_api->get_id(), object.id(), timestamp); d.has_value())
                 if (auto d = inner_eigen->transform(viriato_head_camera_name, object.name(), timestamp); d.has_value())
-                        box.depth = d.value().norm();
-                else box.depth = 0;
+                    box.depth = d.value().norm();
+                else
+                    box.depth = 0;
                 synth_box.push_back(box);
 
                 // update edges
                 auto edges = G->get_edges_to_id(object.id());
-                if (auto it = std::ranges::find_if(edges, [](const auto &e) { return e.type() == "visible"; }); it == edges.end())  //not found
+                if (auto it = std::ranges::find_if(edges, [](const auto &e)
+                                                   { return e.type() == "visible"; });
+                    it == edges.end()) // not found
                 {
-                    //add edge
+                    // add edge
                     DSR::Edge new_edge = DSR::Edge::create<visible_edge_type>(cam_api->get_id(), object.id());
-                    G->add_or_modify_attrib_local<projected_bounding_box_att>(new_edge, std::vector<float>{(float) box.left, (float) box.top, (float) box.right,
-                                                                                                           (float) box.bot});
+                    G->add_or_modify_attrib_local<projected_bounding_box_att>(new_edge, std::vector<float>{(float)box.left, (float)box.top, (float)box.right,
+                                                                                                           (float)box.bot});
                     G->insert_or_assign_edge(new_edge);
-                } else    // already there. update projection bounding box
+                }
+                else // already there. update projection bounding box
                 {
-                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value()) {
+                    if (auto old_edge = G->get_edge(cam_api->get_id(), object.id(), "visible"); old_edge.has_value())
+                    {
                         G->add_or_modify_attrib_local<projected_bounding_box_att>(old_edge.value(),
-                                                                                  std::vector<float>{(float) box.left,
-                                                                                                     (float) box.top,
-                                                                                                     (float) box.right,
-                                                                                                     (float) box.bot});
+                                                                                  std::vector<float>{(float)box.left,
+                                                                                                     (float)box.top,
+                                                                                                     (float)box.right,
+                                                                                                     (float)box.bot});
                         G->insert_or_assign_edge(old_edge.value());
-                    } else
+                    }
+                    else
                         qWarning() << __FUNCTION__ << "No VISIBLE edge going from camera to " << QString::fromStdString(object.name());
                 }
-               final_counter++;
+                final_counter++;
             }
-            else  // remove edge
+            else // remove edge
             {
                 G->delete_edge(cam_api->get_id(), object.id(), "visible");
             }
         }
-        else  // remove edge
+        else // remove edge
         {
             G->delete_edge(cam_api->get_id(), object.id(), "visible");
-            //qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera. Deleting edge";
+            // qWarning() << __FUNCTION__ << "Object  " << QString::fromStdString(object_name)  << " behind the camera. Deleting edge";
         }
     }
     // qInfo() << __FUNCTION__ << "Total visible: " << final_counter << " Total: " << object_nodes.size();
@@ -822,21 +899,24 @@ image_t SpecificWorker::createImage(const cv::Mat &src)
     const int &h = src.rows;
     const int &w = src.cols;
     const int &c = src.channels();
-    int step = w*c;
+    int step = w * c;
 
     int i, j, k;
     image_t out;
     out.h = h;
     out.w = w;
     out.c = c;
-    out.data = (float *)calloc(h*w*c, sizeof(float));
+    out.data = (float *)calloc(h * w * c, sizeof(float));
 
     unsigned char *data = (unsigned char *)src.data;
 
-    for(i = 0; i < h; ++i){
-        for(k= 0; k < c; ++k){
-            for(j = 0; j < w; ++j){
-                out.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
+    for (i = 0; i < h; ++i)
+    {
+        for (k = 0; k < c; ++k)
+        {
+            for (j = 0; j < w; ++j)
+            {
+                out.data[k * w * h + i * w + j] = data[i * step + j * c + k] / 255.;
             }
         }
     }
@@ -848,40 +928,40 @@ void SpecificWorker::show_image(cv::Mat &imgdst, const vector<Box> &real_boxes, 
     int width = cam_api->get_width();
     int height = cam_api->get_height();
 
-    for(const auto &box : real_boxes)
+    for (const auto &box : real_boxes)
     {
-        //qInfo() << __FUNCTION__ << QString::fromStdString(box.name) << box.prob;
-        if(box.prob > CONSTANTS.min_yolo_probability_threshold)
+        // qInfo() << __FUNCTION__ << QString::fromStdString(box.name) << box.prob;
+        if (box.prob > CONSTANTS.min_yolo_probability_threshold)
         {
-            auto left = box.left+width/2;
-            auto right = box.right+width/2;
-            auto top = box.top+height/2;
-            auto bot = box.bot+height/2;
-            auto p1 = cv::Point((left*YOLO_IMG_SIZE)/width, (top*YOLO_IMG_SIZE)/height);
-            auto p2 = cv::Point((right*YOLO_IMG_SIZE)/width, (bot*YOLO_IMG_SIZE)/height);
-            auto offset = int((((bot - top)*YOLO_IMG_SIZE)/height) / 2);
+            auto left = box.left + width / 2;
+            auto right = box.right + width / 2;
+            auto top = box.top + height / 2;
+            auto bot = box.bot + height / 2;
+            auto p1 = cv::Point((left * YOLO_IMG_SIZE) / width, (top * YOLO_IMG_SIZE) / height);
+            auto p2 = cv::Point((right * YOLO_IMG_SIZE) / width, (bot * YOLO_IMG_SIZE) / height);
+            auto offset = int((((bot - top) * YOLO_IMG_SIZE) / height) / 2);
             auto pt = cv::Point(left + offset, top + offset);
             cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 0, 255), 4);
             auto font = cv::FONT_HERSHEY_SIMPLEX;
             cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 255), 2);
         }
     }
-    for(const auto &box : synth_boxes)
+    for (const auto &box : synth_boxes)
     {
-        auto left = box.left+width/2;
-        auto right = box.right+width/2;
-        auto top = box.top+height/2;
-        auto bot = box.bot+height/2;
-        auto p1 = cv::Point((left*YOLO_IMG_SIZE)/width, (top*YOLO_IMG_SIZE)/height);
-        auto p2 = cv::Point((right*YOLO_IMG_SIZE)/width, (bot*YOLO_IMG_SIZE)/height);
-        auto offset = int((((bot - top)*YOLO_IMG_SIZE)/height) / 2);
+        auto left = box.left + width / 2;
+        auto right = box.right + width / 2;
+        auto top = box.top + height / 2;
+        auto bot = box.bot + height / 2;
+        auto p1 = cv::Point((left * YOLO_IMG_SIZE) / width, (top * YOLO_IMG_SIZE) / height);
+        auto p2 = cv::Point((right * YOLO_IMG_SIZE) / width, (bot * YOLO_IMG_SIZE) / height);
+        auto offset = int((((bot - top) * YOLO_IMG_SIZE) / height) / 2);
         auto pt = cv::Point(left + offset, top + offset);
         cv::rectangle(imgdst, p1, p2, cv::Scalar(0, 255, 0), 4);
         auto font = cv::FONT_HERSHEY_SIMPLEX;
         cv::putText(imgdst, box.name + " " + std::to_string(int(box.prob)) + "%", pt, font, 0.8, cv::Scalar(0, 255, 0), 2);
-        //cout<<box.name<<" "<<"p1 "<<p1.x<<" "<<p1.y<<endl;
+        // cout<<box.name<<" "<<"p1 "<<p1.x<<" "<<p1.y<<endl;
     }
-    cv::drawMarker(imgdst, cv::Point(imgdst.cols/2, imgdst.rows/2),  cv::Scalar(0, 128, 128), cv::MARKER_CROSS, 60, 1);
+    cv::drawMarker(imgdst, cv::Point(imgdst.cols / 2, imgdst.rows / 2), cv::Scalar(0, 128, 128), cv::MARKER_CROSS, 60, 1);
     auto pix = QPixmap::fromImage(QImage(imgdst.data, imgdst.cols, imgdst.rows, QImage::Format_RGB888));
     custom_widget.rgb_image->setPixmap(pix);
 }
@@ -892,39 +972,41 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
 {
     if (/*type == rgbd_type_name and*/ id == cam_api->get_id())
     {
-        if(auto cam_node = G->get_node(id); cam_node.has_value())
+        if (auto cam_node = G->get_node(id); cam_node.has_value())
         {
             if (const auto g_image = G->get_attrib_by_name<cam_rgb_att>(cam_node.value()); g_image.has_value())
             {
-                    rgb_buffer.put(std::vector<uint8_t>(g_image.value().get().begin(), g_image.value().get().end()),
+                rgb_buffer.put(std::vector<uint8_t>(g_image.value().get().begin(), g_image.value().get().end()),
                                [this, cam_node](const std::vector<std::uint8_t> &in, std::tuple<cv::Mat, std::uint64_t> &out)
                                {
                                    cv::Mat img(cam_api->get_height(), cam_api->get_width(), CV_8UC3,
                                                const_cast<std::vector<uint8_t> &>(in).data());
                                    cv::Mat scaled;
                                    cv::resize(img, scaled, cv::Size(YOLO_IMG_SIZE, YOLO_IMG_SIZE), 0, 0);
-                                   if( auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()); timestamp.has_value())
-                                       out = std::make_tuple(scaled, timestamp.value()/1000000);
+                                   if (auto timestamp = G->get_attrib_timestamp<cam_rgb_att>(cam_node.value()); timestamp.has_value())
+                                       out = std::make_tuple(scaled, timestamp.value() / 1000000);
                                    else
                                        out = std::make_tuple(scaled, 0);
                                });
             }
             if (auto g_depth = G->get_attrib_by_name<cam_depth_att>(cam_node.value()); g_depth.has_value())
             {
-                float *depth_array = (float *) g_depth.value().get().data();
-                std::vector<float> res{depth_array, depth_array + g_depth.value().get().size() /sizeof(float) };
+                float *depth_array = (float *)g_depth.value().get().data();
+                std::vector<float> res{depth_array, depth_array + g_depth.value().get().size() / sizeof(float)};
                 depth_buffer.put(std::move(res));
             }
         }
-        else qWarning() << __FUNCTION__ << "No camera_node found in G";
+        else
+            qWarning() << __FUNCTION__ << "No camera_node found in G";
     }
     else if (type == intention_type_name)
     {
         auto node = G->get_node(id);
         if (auto parent = G->get_parent_node(node.value()); parent.has_value() and parent.value().name() == robot_name)
         {
-            if( std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value()); plan.has_value())
-                plan_buffer.put(std::move(plan.value()),[](const std::string& plan_text, Plan &plan){ plan.json_to_plan(plan_text);});
+            if (std::optional<std::string> plan = G->get_attrib_by_name<plan_att>(node.value()); plan.has_value())
+                plan_buffer.put(std::move(plan.value()), [](const std::string &plan_text, Plan &plan)
+                                { plan.json_to_plan(plan_text); });
         }
     }
 }
@@ -932,7 +1014,7 @@ void SpecificWorker::add_or_assign_node_slot(std::uint64_t id, const std::string
 ///////////////////////////////////////////////////////////////////
 void SpecificWorker::clear_button_slot()
 {
-   clear_all_attention_edges();
+    clear_all_attention_edges();
 }
 void SpecificWorker::initialize_combobox()
 {
@@ -958,7 +1040,7 @@ void SpecificWorker::change_attention_object_slot(int index)
         G->delete_edge(cam_api->get_id(), this->last_object_of_attention, attention_action_type_name);
         auto edge = DSR::Edge::create<attention_action_edge_type>(cam_api->get_id(), object.value().id());
         if (G->insert_or_assign_edge(edge))
-                this->last_object_of_attention = object.value().id();
+            this->last_object_of_attention = object.value().id();
     }
     else
         std::cout << __FUNCTION__ << " WARNING: Error inserting new edge from camera: " << cam_api->get_id() << "->"
@@ -968,9 +1050,9 @@ void SpecificWorker::change_attention_object_slot(int index)
 //////////////////////////////////////////////////////77777
 int SpecificWorker::startup_check()
 {
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
 }
 
 /**************************************/
@@ -981,35 +1063,35 @@ int SpecificWorker::startup_check()
 // From the RoboCompDSRGetID you can call this methods:
 // this->dsrgetid1_proxy->getID(...)
 
-//Test
+// Test
 
-//if( auto rt_edge = rt_api->get_edge_RT(G->get_node_root().value(), robot.value().id()); rt_edge.has_value())
+// if( auto rt_edge = rt_api->get_edge_RT(G->get_node_root().value(), robot.value().id()); rt_edge.has_value())
 //{
-//if (auto tr_o = rt_api->get_translation(G->get_parent_id(robot.value()).value(), robot.value().id(), img_timestamp); tr_o.has_value())
+// if (auto tr_o = rt_api->get_translation(G->get_parent_id(robot.value()).value(), robot.value().id(), img_timestamp); tr_o.has_value())
 //{
-//if (auto tr2 = G->get_attrib_by_name<rt_translation_att>(rt_edge.value()); tr2.has_value())
+// if (auto tr2 = G->get_attrib_by_name<rt_translation_att>(rt_edge.value()); tr2.has_value())
 //{
-//if (auto index = G->get_attrib_by_name<rt_head_index_att>(rt_edge.value()); index.has_value())
+// if (auto index = G->get_attrib_by_name<rt_head_index_att>(rt_edge.value()); index.has_value())
 //{
-//auto tstamps = G->get_attrib_by_name<rt_timestamps_att>(rt_edge.value()).value().get();
-//const auto trg = tr2.value().get();
-//const auto idx = index.value();
-//const auto tr = tr_o.value();
-//for(int i= 0; auto &&[t, ts] : iter::zip(iter::chunked(trg, 3), tstamps))
-//std::cout << " direct att " << i++ << " - " << t[0] << " " << t[1] << " " << t[2] << " - " << ts << std::endl;
+// auto tstamps = G->get_attrib_by_name<rt_timestamps_att>(rt_edge.value()).value().get();
+// const auto trg = tr2.value().get();
+// const auto idx = index.value();
+// const auto tr = tr_o.value();
+// for(int i= 0; auto &&[t, ts] : iter::zip(iter::chunked(trg, 3), tstamps))
+// std::cout << " direct att " << i++ << " - " << t[0] << " " << t[1] << " " << t[2] << " - " << ts << std::endl;
 ////std::cout << __FUNCTION__ << " tr  "  << " " << tr.x() << " " << tr.y() << " " << tr.z() << std::endl;
 ////auto res = (tr - Eigen::Vector3d(trg[3*idx], trg[3*idx+1], trg[3*idx+2]));
 ////std::cout << __FUNCTION__ << " diff " << res.x() << " " << res.y() << " " << res.z() << std::endl;
-//qInfo() << "----------";
-//std::cout << __FUNCTION__ << " api_aligned  "  << " " << tr.x() << " " << tr.y() << " " << tr.z()  << std::endl;
-//std::cout << __FUNCTION__ << " img_stamp " << img_timestamp << std::endl;
-//std::cout << __FUNCTION__ << " head " << (int)(idx/3) << std::endl;
-//qInfo() << "--------------------------";
-//}
-//else qWarning() << "NO index";
-//}
-//else qWarning() << "NO tr2";
-//}
-//else qWarning() << "NO tr";
-//}
-//else qWarning() << "NO rt_edge";
+// qInfo() << "----------";
+// std::cout << __FUNCTION__ << " api_aligned  "  << " " << tr.x() << " " << tr.y() << " " << tr.z()  << std::endl;
+// std::cout << __FUNCTION__ << " img_stamp " << img_timestamp << std::endl;
+// std::cout << __FUNCTION__ << " head " << (int)(idx/3) << std::endl;
+// qInfo() << "--------------------------";
+// }
+// else qWarning() << "NO index";
+// }
+// else qWarning() << "NO tr2";
+// }
+// else qWarning() << "NO tr";
+// }
+// else qWarning() << "NO rt_edge";
