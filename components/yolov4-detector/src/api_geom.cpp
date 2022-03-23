@@ -62,7 +62,7 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
 
     if (this_object_edge.has_value() && below_object_edge.has_value())
     {
-        auto this_object_translation = G->get_attrib_by_name<rt_translation_att>(this_object_edge.value());
+        auto this_object_translation = inner_eigen->transform(world_name, this_object.name());
         auto below_object_translation = G->get_attrib_by_name<rt_translation_att>(below_object_edge.value());
 
         if (this_object_translation.has_value() && below_object_translation.has_value())
@@ -91,15 +91,18 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
 
                     if (auto this_object_height = G->get_attrib_by_name<obj_height_att>(this_object); this_object_height.has_value())
                     {
+                        std::cout << "Taza:" << this_object_translation.value() << std::endl;
 
-                        if (world_below_object_polygon.containsPoint(QPointF(this_object_translation.value().get().at(0), this_object_translation.value().get().at(1)), Qt::OddEvenFill))
+                        if (world_below_object_polygon.containsPoint(QPointF(this_object_translation.value().x(), this_object_translation.value().y()), Qt::OddEvenFill))
                         {
-
                             if (auto distance = height_difference(this_object, below_object); distance.has_value())
                                 return distance.value() - (this_object_height.value() / 2) - (below_object_height.value() / 2);
                         }
                         else
-                            qWarning() << __FUNCTION__ << "Big object not contain little object";
+                        {
+                            std::cout << below_object.name() << " not contain little object" << std::endl;
+                            // qWarning() << __FUNCTION__ << "Big object not contain little object";
+                        }
                     }
                     else
                         qWarning() << __FUNCTION__ << "Incorrect little object height value";
@@ -121,29 +124,38 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
 
 std::optional<float> Api_Geom::height_difference(const DSR::Node &node1, const DSR::Node &node2)
 {
-    auto node1_edge = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
-    auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
-
-    auto node1_height = G->get_attrib_by_name<obj_height_att>(node1);
-    auto node2_height = G->get_attrib_by_name<obj_height_att>(node2);
-
-    if (node1_height.has_value() and node2_height.has_value())
+    auto world_node = G->get_node(world_name);
+    // auto node1_edge = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
+    // auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
+    if (world_node.has_value())
     {
-        if (node1_edge.has_value() and node2_edge.has_value())
+        // auto node1_edge = rt_api->get_edge_RT(world_node.value(), node1.id());
+        auto node1_edge = inner_eigen->transform(world_name, node1.name());
+        auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
+
+        auto node1_height = G->get_attrib_by_name<obj_height_att>(node1);
+        auto node2_height = G->get_attrib_by_name<obj_height_att>(node2);
+
+        if (node1_height.has_value() and node2_height.has_value())
         {
-            auto node1_translation = G->get_attrib_by_name<rt_translation_att>(node1_edge.value());
-            auto node2_translation = G->get_attrib_by_name<rt_translation_att>(node2_edge.value());
-            return node1_translation.value().get().at(2) - node2_translation.value().get().at(2);
+            if (node1_edge.has_value() and node2_edge.has_value())
+            {
+                // auto node1_translation = G->get_attrib_by_name<rt_translation_att>(node1_edge.value());
+                auto node2_translation = G->get_attrib_by_name<rt_translation_att>(node2_edge.value());
+                return node1_edge.value().z() - node2_translation.value().get().at(2);
+            }
+            else
+                qWarning() << __FUNCTION__ << "Incorrect edges values of node1 or node2";
         }
         else
-            qWarning() << __FUNCTION__ << "Incorrect edges values of node1 or node2";
+            qWarning() << __FUNCTION__ << "Incorrect height values of node1 or node2";
     }
     else
-        qWarning() << __FUNCTION__ << "Incorrect height values of node1 or node2";
-
+        qWarning() << __FUNCTION__ << "Incorrect world node value";
     return {};
 }
 
+// IN PROGRESS
 bool Api_Geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_object)
 {
     return distance_to_object_below(little_object, big_object) < 500;
@@ -153,35 +165,38 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 {
     if (auto current_parent = G->get_parent_node(node); current_parent.has_value()) // Obtain the current parent
     {
-        if (auto node_edge = rt_api->get_edge_RT(current_parent.value(), node.id()); node_edge.has_value()) // Obtain current edge
+        if (current_parent.value().id() != new_parent.id())
         {
-            // auto node_translation = G->get_attrib_by_name<rt_translation_att>(node_edge.value());
-            if (auto translation_from_parent = inner_eigen->transform(new_parent.name(), node.name()); translation_from_parent.has_value()) // Obtain the translation from parent
+            if (auto node_edge = rt_api->get_edge_RT(current_parent.value(), node.id()); node_edge.has_value()) // Obtain current edge
             {
-                std::cout << "tranformwithoutpoints" << translation_from_parent.value() << std::endl;
+                if (auto translation_from_parent = inner_eigen->transform(new_parent.name(), node.name()); translation_from_parent.has_value()) // Obtain the translation from parent
+                {
+                    // Change for casting in insert or assign edge RT
+                    float x = translation_from_parent.value().x();
+                    float y = translation_from_parent.value().y();
+                    float z = translation_from_parent.value().z();
 
-                float x = translation_from_parent.value().x();
-                float y = translation_from_parent.value().y();
-                float z = translation_from_parent.value().z();
+                    std::cout << "PARENT NAME PREVIOUS TO ACTUALIZATION" << current_parent.value().name() << std::endl;
 
-                // Delete previous edge
-                G->delete_edge(current_parent.value().id(), node.id(), "RT");
-                G->update_node(current_parent.value());
+                    // Delete previous edge
+                    G->delete_edge(current_parent.value().id(), node.id(), "RT");
+                    G->update_node(current_parent.value());
 
-                // Update node attributes
-                G->add_or_modify_attrib_local<parent_att>(node, new_parent.id());
-                G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(new_parent).value() + 1);
-                G->update_node(new_parent);
+                    // Update node attributes
+                    G->add_or_modify_attrib_local<parent_att>(node, new_parent.id());
+                    G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(new_parent).value() + 1);
+                    G->update_node(new_parent);
 
-                // Create new edge
-                rt_api->insert_or_assign_edge_RT(new_parent, node.id(), std::vector<float>{x, y, z}, std::vector<float>{0., 0., 0.});
-                return true;
+                    // Create new edge
+                    rt_api->insert_or_assign_edge_RT(new_parent, node.id(), std::vector<float>{x, y, z}, std::vector<float>{0., 0., 0.});
+                    return true;
+                }
+                else
+                    qWarning() << __FUNCTION__ << "Transform result has not value";
             }
             else
-                qWarning() << __FUNCTION__ << "Transform result has not value";
+                qWarning() << __FUNCTION__ << "Edge between current parent and node does not exist";
         }
-        else
-            qWarning() << __FUNCTION__ << "Edge between current parent and node does not exist";
     }
     else
         qWarning() << __FUNCTION__ << "Current parent of the node does not exist";
@@ -197,7 +212,7 @@ bool Api_Geom::insert_node_in_container(DSR::Node &node)
             if (auto distance = distance_to_object_below(node, container); distance.has_value())
             {
                 std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
-                if (distance.value() < 120)
+                if (0 < distance.value() and distance.value() < 200)
                 {
                     if (not this->update_node(node, container))
                         qWarning() << __FUNCTION__ << "Does not insert properly";
@@ -205,5 +220,6 @@ bool Api_Geom::insert_node_in_container(DSR::Node &node)
                         return true;
                 }
             } // change to over or above
+
     return false;
 }
