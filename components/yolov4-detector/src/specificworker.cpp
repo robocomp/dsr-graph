@@ -290,7 +290,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
             // std::cout << __FUNCTION__ << " potential match " << std::endl;
             // std::cout << "\t " << b_synth.top << " " << b_synth.left << " " << b_synth.right << " " << b_synth.bot << std::endl;
             // std::cout << "\t " << b_real.top << " " << b_real.left << " " << b_real.right << " " << b_real.bot << std::endl;
-            //Solo objectos conocidos
+            // Solo objectos conocidos
             if (not b_synth.match and not b_real.match and both_boxes_match(b_synth, b_real))
             {
                 // std::cout << __FUNCTION__ << " success match between " << b_synth.name << " and " << b_real.name << std::endl;
@@ -300,29 +300,35 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 auto parent = G->get_parent_node(synth_node.value());
                 auto edge = rt_api->get_edge_RT(parent.value(), synth_node->id()).value();
                 G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0); // reset unseen counter
-        
-                // //Actualization
+
+                if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
+                    G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                else
+                    qWarning() << __FUNCTION__ << "Transform result has not value";
+
+                G->insert_or_assign_edge(edge);
+                G->update_node(synth_node.value()); // //Actualization
+
                 if (parent.has_value() and synth_node.has_value())
                 {
-                    qInfo() << "Dentro de actualization" ;
-                    //if (parent.value().type() == "container")
-                    api_geom->insert_node_in_container(synth_node.value());
-                //     else
-                //     {
-                    if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
-                        G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
-                    else
-                        qWarning() << __FUNCTION__ << "Transform result has not value";
-                        // else
-                //         //     if(synth_node.has_value()) api_geom->insert_node_in_container(synth_node.value());
-                //     }
+                    // qInfo() << "Dentro de actualization" ;
+                    // if (parent.value().type() == "container")
+                    if (!api_geom->insert_node_in_container(synth_node.value()))
+                    {
+                        std::cout << "Does not inserte in container" << std::endl;
+                        // api_geom->update_node(synth_node.value(),world_node.value());
+                    }
+                    //     else
+                    //     {
+
+                    // else
+                    //         //     if(synth_node.has_value()) api_geom->insert_node_in_container(synth_node.value());
                 }
                 else
-                     qWarning() << __FUNCTION__ << "Parent has not value";
+                    qWarning() << __FUNCTION__ << "Parent has not value";
 
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
-                G->insert_or_assign_edge(edge);
-                G->update_node(synth_node.value());
+
                 // b_real.print("Real Box");
                 // b_synth.print("Synth Box");
                 // qInfo() << __FUNCTION__ << " Matched objects:" << ++count;
@@ -693,17 +699,17 @@ DSR::Node SpecificWorker::create_node_with_type(const std::string &type, const s
     else if (type == "refrigerator")
         object_node = DSR::Node::create<refrigerator_node_type>(name);
     else if (type == "bottle")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<bottle_node_type>(name);
     else if (type == "book")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<book_node_type>(name);
     else if (type == "fork")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<fork_node_type>(name);
     else if (type == "knife")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<knife_node_type>(name);
     else if (type == "bowl")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<bowl_node_type>(name);
     else if (type == "diningtable")
-        object_node = DSR::Node::create<refrigerator_node_type>(name);
+        object_node = DSR::Node::create<diningtable_node_type>(name);
 
     return object_node;
 }

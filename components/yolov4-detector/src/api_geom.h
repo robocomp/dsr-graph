@@ -20,8 +20,7 @@ namespace DSR
         std::shared_ptr<DSR::DSRGraph> G;
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
-        // Update node and its RT with the new parent
-        bool update_node(DSR::Node &node, DSR::Node &new_parent);
+        
 
     public:
         Api_Geom(std::shared_ptr<DSR::DSRGraph> G);
@@ -38,5 +37,7 @@ namespace DSR
         bool strictly_over_object(DSR::Node &little_object, DSR::Node &big_object);
         // Check which container contains the objet and update it, change name
         bool insert_node_in_container(DSR::Node &node);
+        // Update node and its RT with the new parent
+        bool update_node(DSR::Node &node, DSR::Node &new_parent);
     };
 }

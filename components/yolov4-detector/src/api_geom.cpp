@@ -1,4 +1,5 @@
 #include "api_geom.h"
+#include <unistd.h>
 
 using namespace DSR;
 
@@ -91,18 +92,18 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
 
                     if (auto this_object_height = G->get_attrib_by_name<obj_height_att>(this_object); this_object_height.has_value())
                     {
-                        std::cout << "Taza:" << this_object_translation.value() << std::endl;
+                        // std::cout << "Taza:" << this_object_translation.value() << std::endl;
 
                         if (world_below_object_polygon.containsPoint(QPointF(this_object_translation.value().x(), this_object_translation.value().y()), Qt::OddEvenFill))
                         {
                             if (auto distance = height_difference(this_object, below_object); distance.has_value())
                                 return distance.value() - (this_object_height.value() / 2) - (below_object_height.value() / 2);
                         }
-                        else
-                        {
-                            std::cout << below_object.name() << " not contain little object" << std::endl;
-                            // qWarning() << __FUNCTION__ << "Big object not contain little object";
-                        }
+                        // else
+                        // {
+                        //     // std::cout << below_object.name() << " not contain little object" << std::endl;
+                        //     // qWarning() << __FUNCTION__ << "Big object not contain little object";                        
+                        // }
                     }
                     else
                         qWarning() << __FUNCTION__ << "Incorrect little object height value";
@@ -161,6 +162,9 @@ bool Api_Geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_obj
     return distance_to_object_below(little_object, big_object) < 500;
 }
 
+
+
+
 bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 {
     if (auto current_parent = G->get_parent_node(node); current_parent.has_value()) // Obtain the current parent
@@ -176,12 +180,12 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
                     float y = translation_from_parent.value().y();
                     float z = translation_from_parent.value().z();
 
-                    std::cout << "PARENT NAME PREVIOUS TO ACTUALIZATION" << current_parent.value().name() << std::endl;
+                    std::cout << "PARENT NAME PREVIOUS TO ACTUALIZATION " << current_parent.value().name() << std::endl;
 
                     // Delete previous edge
                     G->delete_edge(current_parent.value().id(), node.id(), "RT");
                     G->update_node(current_parent.value());
-
+                    
                     // Update node attributes
                     G->add_or_modify_attrib_local<parent_att>(node, new_parent.id());
                     G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(new_parent).value() + 1);
@@ -207,15 +211,20 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 bool Api_Geom::insert_node_in_container(DSR::Node &node)
 {
     auto containers = G->get_nodes_by_type("container");
-    if (not containers.empty())
+    auto parent = G->get_parent_node(node);
+
+    if (not containers.empty() && parent.has_value())
         for (auto &&container : containers)
-            if (auto distance = distance_to_object_below(node, container); distance.has_value())
+            if (auto distance = distance_to_object_below(node, container); distance.has_value() &&  parent.value().id() != container.id())
             {
-                std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
+                // std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
                 if (0 < distance.value() and distance.value() < 200)
                 {
                     if (not this->update_node(node, container))
-                        qWarning() << __FUNCTION__ << "Does not insert properly";
+                    {
+                        return false;
+                        // qWarning() << __FUNCTION__ << "Does not insert properly";
+                    }
                     else
                         return true;
                 }
