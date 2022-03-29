@@ -39,5 +39,7 @@ namespace DSR
         bool insert_node_in_container(DSR::Node &node);
         // Update node and its RT with the new parent
         bool update_node(DSR::Node &node, DSR::Node &new_parent);
+        //Set the attribute average size of the object
+        void set_average_size(DSR::Node &node);
     };
 }

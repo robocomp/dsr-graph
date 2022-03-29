@@ -102,7 +102,7 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
                         // else
                         // {
                         //     // std::cout << below_object.name() << " not contain little object" << std::endl;
-                        //     // qWarning() << __FUNCTION__ << "Big object not contain little object";                        
+                        //     // qWarning() << __FUNCTION__ << "Big object not contain little object";
                         // }
                     }
                     else
@@ -162,13 +162,11 @@ bool Api_Geom::strictly_over_object(DSR::Node &little_object, DSR::Node &big_obj
     return distance_to_object_below(little_object, big_object) < 500;
 }
 
-
-
-
 bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
 {
     if (auto current_parent = G->get_parent_node(node); current_parent.has_value()) // Obtain the current parent
     {
+        std::cout << current_parent.value().name() << std::endl;
         if (current_parent.value().id() != new_parent.id())
         {
             if (auto node_edge = rt_api->get_edge_RT(current_parent.value(), node.id()); node_edge.has_value()) // Obtain current edge
@@ -185,7 +183,7 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
                     // Delete previous edge
                     G->delete_edge(current_parent.value().id(), node.id(), "RT");
                     G->update_node(current_parent.value());
-                    
+
                     // Update node attributes
                     G->add_or_modify_attrib_local<parent_att>(node, new_parent.id());
                     G->add_or_modify_attrib_local<level_att>(node, G->get_node_level(new_parent).value() + 1);
@@ -215,7 +213,7 @@ bool Api_Geom::insert_node_in_container(DSR::Node &node)
 
     if (not containers.empty() && parent.has_value())
         for (auto &&container : containers)
-            if (auto distance = distance_to_object_below(node, container); distance.has_value() &&  parent.value().id() != container.id())
+            if (auto distance = distance_to_object_below(node, container); distance.has_value() && parent.value().id() != container.id())
             {
                 // std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
                 if (0 < distance.value() and distance.value() < 200)
@@ -231,4 +229,25 @@ bool Api_Geom::insert_node_in_container(DSR::Node &node)
             } // change to over or above
 
     return false;
+}
+
+void Api_Geom::set_average_size(DSR::Node &node)
+{
+    auto height = G->get_attrib_by_name<obj_height_att>(node);
+    auto depth = G->get_attrib_by_name<obj_depth_att>(node);
+    auto width = G->get_attrib_by_name<obj_width_att>(node);
+    if (height.has_value() and depth.has_value() and width.has_value())
+    {
+        float vol = height.value() * depth.value() * width.value();
+        std::string average_size = "";
+        if (vol < 1500000)
+            average_size = "small";
+        else if (vol < 15000000)
+            average_size = "medium";
+        else
+            average_size = "big";
+
+        G->add_or_modify_attrib_local<average_size_att>(node, average_size);
+        std::cout << G->get_attrib_by_name<average_size_att>(node).value().get() << std::endl;
+    }
 }

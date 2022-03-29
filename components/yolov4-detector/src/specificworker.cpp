@@ -248,7 +248,10 @@ void SpecificWorker::compute_testYolo()
         }
         else
             std::cout << "FUERA DEL CUP HAS VALUE" << std::endl;
+        api_geom->set_average_size(cup.value());
     }
+
+    
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
@@ -312,12 +315,26 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 if (parent.has_value() and synth_node.has_value())
                 {
                     // qInfo() << "Dentro de actualization" ;
-                    // if (parent.value().type() == "container")
-                    if (!api_geom->insert_node_in_container(synth_node.value()))
-                    {
-                        std::cout << "Does not inserte in container" << std::endl;
-                        // api_geom->update_node(synth_node.value(),world_node.value());
-                    }
+                    //if (parent.value().type() == "container")
+                        if (!api_geom->insert_node_in_container(synth_node.value()) and parent.value().name() != world_name)
+                        {
+                            std::cout << "PADRE:" << parent.value().name() << std::endl;
+                            std::cout << "SYNTH:" << synth_node.value().name() << std::endl;
+
+                            //HAVE TO BE CHECKED
+                            
+                            if( auto distance_to_parent = api_geom->distance_to_object_below(synth_node.value(),parent.value()) ; distance_to_parent.has_value())
+                            {
+                                std::cout << "VOLANDO1" << std::endl;
+                                if(distance_to_parent.value() > 200)
+                                    std::cout << "VOLANDO2" << std::endl;
+                            }
+                            else 
+                            {
+                                std::cout << "DEBERIA DE IR AL MUNDO" << std::endl;
+                                api_geom->update_node(synth_node.value(),world_node.value());
+                            }
+                        }
                     //     else
                     //     {
 
@@ -326,6 +343,8 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 }
                 else
                     qWarning() << __FUNCTION__ << "Parent has not value";
+
+                std::cout << "1" << std::endl;
 
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
 
@@ -405,6 +424,8 @@ SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker
             const auto &[random_x, random_y] = get_random_position_to_draw_in_graph("object");
             G->add_or_modify_attrib_local<pos_x_att>(object_node, random_x);
             G->add_or_modify_attrib_local<pos_y_att>(object_node, random_y);
+            //Set a description size to object
+            api_geom->set_average_size(object_node);
 
             if (std::optional<int> id = G->insert_node(object_node); id.has_value())
             {
