@@ -178,7 +178,7 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
                     float y = translation_from_parent.value().y();
                     float z = translation_from_parent.value().z();
 
-                    std::cout << "PARENT NAME PREVIOUS TO ACTUALIZATION " << current_parent.value().name() << std::endl;
+                    //std::cout << "PARENT NAME PREVIOUS TO ACTUALIZATION " << current_parent.value().name() << std::endl;
 
                     // Delete previous edge
                     G->delete_edge(current_parent.value().id(), node.id(), "RT");

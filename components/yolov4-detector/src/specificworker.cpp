@@ -215,7 +215,7 @@ void SpecificWorker::compute()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_testYolo()
 {
-
+    //LETS FUCKING IR 
     // auto containers = G->get_nodes_by_type("container");
     auto cup = G->get_node("cup");
     auto table1 = G->get_node("table1");
@@ -250,8 +250,6 @@ void SpecificWorker::compute_testYolo()
             std::cout << "FUERA DEL CUP HAS VALUE" << std::endl;
         api_geom->set_average_size(cup.value());
     }
-
-    
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
@@ -305,7 +303,10 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 G->add_or_modify_attrib_local<unseen_time_att>(synth_node.value(), 0); // reset unseen counter
 
                 if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
+                {
                     G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
+                    qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
+                }
                 else
                     qWarning() << __FUNCTION__ << "Transform result has not value";
 
@@ -315,37 +316,36 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 if (parent.has_value() and synth_node.has_value())
                 {
                     // qInfo() << "Dentro de actualization" ;
-                    //if (parent.value().type() == "container")
-                        if (!api_geom->insert_node_in_container(synth_node.value()) and parent.value().name() != world_name)
-                        {
-                            std::cout << "PADRE:" << parent.value().name() << std::endl;
-                            std::cout << "SYNTH:" << synth_node.value().name() << std::endl;
+                    // if (parent.value().type() == "container")
+                    if (!api_geom->insert_node_in_container(synth_node.value()) and parent.value().name() != world_name)
+                    {
+                        // std::cout << "PADRE:" << parent.value().name() << std::endl;
+                        // std::cout << "SYNTH:" << synth_node.value().name() << std::endl;
 
-                            //HAVE TO BE CHECKED
-                            
-                            if( auto distance_to_parent = api_geom->distance_to_object_below(synth_node.value(),parent.value()) ; distance_to_parent.has_value())
-                            {
-                                std::cout << "VOLANDO1" << std::endl;
-                                if(distance_to_parent.value() > 200)
-                                    std::cout << "VOLANDO2" << std::endl;
-                            }
-                            else 
-                            {
-                                std::cout << "DEBERIA DE IR AL MUNDO" << std::endl;
-                                api_geom->update_node(synth_node.value(),world_node.value());
-                            }
+                        // HAVE TO BE CHECKED
+
+                        if (auto distance_to_parent = api_geom->distance_to_object_below(synth_node.value(), parent.value()); distance_to_parent.has_value())
+                        {
+                            // std::cout << "VOLANDO1" << std::endl;
+                            if (distance_to_parent.value() > 200)
+                                std::cout << "VOLANDO2" << std::endl;
                         }
-                    //     else
+                        else
+                        {
+                            // std::cout << "DEBERIA DE IR AL MUNDO" << std::endl;
+                            api_geom->update_node(synth_node.value(), world_node.value());
+                        }
+                    }
+                    // else
                     //     {
 
                     // else
-                    //         //     if(synth_node.has_value()) api_geom->insert_node_in_container(synth_node.value());
+                    //     if(synth_node.has_value()) api_geom->insert_node_in_container(synth_node.value());
                 }
                 else
                     qWarning() << __FUNCTION__ << "Parent has not value";
 
-                std::cout << "1" << std::endl;
-
+                
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
 
                 // b_real.print("Real Box");
@@ -424,7 +424,7 @@ SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker
             const auto &[random_x, random_y] = get_random_position_to_draw_in_graph("object");
             G->add_or_modify_attrib_local<pos_x_att>(object_node, random_x);
             G->add_or_modify_attrib_local<pos_y_att>(object_node, random_y);
-            //Set a description size to object
+            // Set a description size to object
             api_geom->set_average_size(object_node);
 
             if (std::optional<int> id = G->insert_node(object_node); id.has_value())
@@ -433,6 +433,7 @@ SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker
                 // std::cout << __FUNCTION__ << "T " << b_real.Tx <<" "<< b_real.Ty << " " << b_real.Tz << endl;
                 DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
                 G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
+                qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
                 G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
                 G->insert_or_assign_edge(edge);
                 api_geom->insert_node_in_container(object_node); // Check if the new object is in a container and if it is create the edge with the container
@@ -682,12 +683,17 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                     box.Ty = t_world.value().y();
                     box.Tz = t_world.value().z();
                     // if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
-                    bboxes.push_back(box);
+
+                    // si x,y,z reproyectado a imagen se encuentre dentro del tamaño de imagen de pixel(width,height) entonces lo inserta en
+                    Eigen::Vector2d cam_projection = cam_api->project(Eigen::Vector3d(x,y,z),-1,-1);
+                    
+                    if( cam_projection.x() < width and 0 < cam_projection.x() and cam_projection.y() < height and 0 < cam_projection.y() and y > 0)
+                        bboxes.push_back(box);
                 }
             }
         }
     }
-    // qInfo() << __FILE__ << __FUNCTION__ << "LABELS " << bboxes.size();
+    // qInfo() << __FILE__ << _ << "LABELS " << bboxes.size();
     ynets[0]->free_image(yolo_img);
     return bboxes;
 }
