@@ -31,7 +31,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
+	//std::cout << "Destroying SpecificWorker" << std::endl;
 	G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
@@ -117,20 +117,11 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+
+	auto table2 = G->get_node("table2");
+	if(table2.has_value())
+		set_attention(table2.value());
+
 }
 
 int SpecificWorker::startup_check()
@@ -139,6 +130,13 @@ int SpecificWorker::startup_check()
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
+
+void SpecificWorker::set_attention(DSR::Node &node)
+{
+	G->add_or_modify_attrib_local<yolo_attention_att>(node, true);
+	G->update_node(node);
+}
+
 
 
 

@@ -23,6 +23,8 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/chunked.hpp>
+#include  "../../../etc/viriato_graph_names.h"
+
 
 /**
  * \brief Default constructor
@@ -1081,6 +1083,32 @@ void SpecificWorker::change_attention_object_slot(int index)
     else
         std::cout << __FUNCTION__ << " WARNING: Error inserting new edge from camera: " << cam_api->get_id() << "->"
                   << node_name << std::endl;
+}
+
+void SpecificWorker::track_object_of_interest(DSR::Node &robot)
+{
+    static Eigen::Vector3d ant_pose;
+    auto object = G->get_node("cup");
+    auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt");
+
+    if(object.has_value() and pan_tilt.has_value())
+    {
+        // get object pose in world coordinate frame
+        auto po = inner_eigen->transform(world_name, "cup");
+        auto pose = inner_eigen->transform("viriato_head_camera_pan_tilt", "cup");
+        // pan-tilt center
+        if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
+        {
+//            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
+            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+            G->update_node(pan_tilt.value());
+            //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+        }
+        ant_pose = pose.value();
+        move_base(robot);
+    }
+    else
+        qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
 }
 
 //////////////////////////////////////////////////////77777

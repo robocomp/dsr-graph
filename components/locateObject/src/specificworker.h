@@ -21,15 +21,13 @@
 	\brief
 	@author authorname
 */
-
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
+#include  "../../../etc/graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
 
 class SpecificWorker : public GenericWorker
@@ -70,6 +68,7 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
+	void set_attention(DSR::Node &node);
 };
 
 #endif

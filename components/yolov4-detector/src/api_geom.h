@@ -41,5 +41,6 @@ namespace DSR
         bool update_node(DSR::Node &node, DSR::Node &new_parent);
         //Set the attribute average size of the object
         void set_average_size(DSR::Node &node);
+
     };
 }

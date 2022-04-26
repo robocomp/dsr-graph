@@ -214,6 +214,7 @@ private:
         void clear_all_attention_edges();
         void compute_attention_list(const std::vector<Box> &synth_objects);
 
+        void track_object_of_interest(DSR::Node &robot);
 
 };
 
