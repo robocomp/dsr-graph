@@ -248,7 +248,6 @@ void Api_Geom::set_average_size(DSR::Node &node)
             average_size = "big";
 
         G->add_or_modify_attrib_local<average_size_att>(node, average_size);
-        G->update_node(node); // ALL RIGTH BRO, YOU ROCK
         std::cout << G->get_attrib_by_name<average_size_att>(node).value().get() << std::endl;
     }
 }

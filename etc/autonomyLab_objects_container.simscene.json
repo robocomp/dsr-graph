@@ -1269,7 +1269,7 @@
                         "type": 2,
                         "value": -204.563416
                     },
-                    "viriato_head_pan_tilt_nose_target": {
+                    "nose_pose_ref": {
                         "type": 3,
                         "value": [
                             1000,

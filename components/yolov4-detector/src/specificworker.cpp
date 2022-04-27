@@ -207,7 +207,7 @@ void SpecificWorker::compute()
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
         // Create new compute
-        //  compute_testYolo();
+        compute_testYolo();
         // auto &[a,b] = lists_after_delete;
         // qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
@@ -243,14 +243,7 @@ void SpecificWorker::compute_testYolo()
     // }
     if (cup.has_value() and table1.has_value())
     {
-        if (auto aux = api_geom->distance_to_object_below(cup.value(), table1.value()); aux.has_value())
-        {
-            qInfo() << aux.value();
-            std::cout << "DENTRO DEL CUP HAS VALUE" << std::endl;
-        }
-        else
-            std::cout << "FUERA DEL CUP HAS VALUE" << std::endl;
-        api_geom->set_average_size(cup.value());
+        track_object_of_interest(cup.value());
     }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +300,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
                 {
                     G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
-                    qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
+                    //qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
                 }
                 else
                     qWarning() << __FUNCTION__ << "Transform result has not value";
@@ -1100,15 +1093,17 @@ void SpecificWorker::track_object_of_interest(DSR::Node &robot)
         if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
         {
 //            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+            G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
             G->update_node(pan_tilt.value());
-            //qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+            qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+            if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
+            {
+                qInfo() << tr2.value().get();
+            }
         }
-        ant_pose = pose.value();
-        move_base(robot);
+        //ant_pose = pose.value();
+        //move_base(robot);
     }
-    else
-        qWarning() << __FILE__ << __FUNCTION__ << "No object of interest " << QString::fromStdString(object_of_interest) << "found in G";
 }
 
 //////////////////////////////////////////////////////77777

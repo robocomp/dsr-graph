@@ -133,8 +133,19 @@ int SpecificWorker::startup_check()
 
 void SpecificWorker::set_attention(DSR::Node &node)
 {
-	G->add_or_modify_attrib_local<yolo_attention_att>(node, true);
-	G->update_node(node);
+	static bool already_executed = false;
+
+	if(	auto mind = G->get_node("mind") ; mind.has_value())
+	{
+		if(!already_executed)
+		{
+			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
+			G->insert_or_assign_edge(edge);
+			already_executed = true;
+		}
+	}
+	else
+		qWarning() << "Mind node has no value";
 }
 
 
