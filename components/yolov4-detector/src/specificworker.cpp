@@ -23,8 +23,7 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/chunked.hpp>
-#include  "../../../etc/viriato_graph_names.h"
-
+#include "../../../etc/viriato_graph_names.h"
 
 /**
  * \brief Default constructor
@@ -180,7 +179,7 @@ Detector *SpecificWorker::init_detector()
     known_object_types.insert({"knife", {50, 50, 150}});
     known_object_types.insert({"spoon", {50, 50, 150}});
     known_object_types.insert({"bowl", {200, 200, 200}});
-    known_object_types.insert({"diningtable", {800, 600, 800}});
+    // known_object_types.insert({"diningtable", {800, 600, 800}});
     known_object_types.insert({"apple", {80, 80, 80}});
     return detector;
 }
@@ -217,8 +216,8 @@ void SpecificWorker::compute()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_testYolo()
 {
-    //LETS FUCKING IR 
-    // auto containers = G->get_nodes_by_type("container");
+    // LETS FUCKING IR
+    //  auto containers = G->get_nodes_by_type("container");
     auto cup = G->get_node("cup");
     auto table1 = G->get_node("table1");
     // if(cup.has_value() && containers.size() > 0)
@@ -300,7 +299,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 if (auto translation = inner_eigen->transform(parent.value().name(), Eigen::Vector3d(b_real.Tx, b_real.Ty, b_real.Tz), world_name); translation.has_value())
                 {
                     G->modify_attrib_local<rt_translation_att>(edge, std::vector<float>{(float)translation.value().x(), (float)translation.value().y(), (float)translation.value().z()});
-                    //qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
+                    // qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
                 }
                 else
                     qWarning() << __FUNCTION__ << "Transform result has not value";
@@ -340,7 +339,6 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 else
                     qWarning() << __FUNCTION__ << "Parent has not value";
 
-                
                 // const auto &[width, depth, height] = estimate_object_size_through_projection_optimization(b_synth, b_real);
 
                 // b_real.print("Real Box");
@@ -680,9 +678,9 @@ std::vector<SpecificWorker::Box> SpecificWorker::process_image_with_yolo(const c
                     // if (room_polygon.containsPoint(QPointF(box.Tx, box.Ty), Qt::OddEvenFill))
 
                     // si x,y,z reproyectado a imagen se encuentre dentro del tamaño de imagen de pixel(width,height) entonces lo inserta en
-                    Eigen::Vector2d cam_projection = cam_api->project(Eigen::Vector3d(x,y,z),-1,-1);
-                    
-                    if( cam_projection.x() < width and 0 < cam_projection.x() and cam_projection.y() < height and 0 < cam_projection.y() and y > 0)
+                    Eigen::Vector2d cam_projection = cam_api->project(Eigen::Vector3d(x, y, z), -1, -1);
+
+                    if (cam_projection.x() < width and 0 < cam_projection.x() and cam_projection.y() < height and 0 < cam_projection.y() and y > 0)
                         bboxes.push_back(box);
                 }
             }
@@ -1080,29 +1078,34 @@ void SpecificWorker::change_attention_object_slot(int index)
 
 void SpecificWorker::track_object_of_interest(DSR::Node &robot)
 {
-    static Eigen::Vector3d ant_pose;
-    auto object = G->get_node("cup");
-    auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt");
-
-    if(object.has_value() and pan_tilt.has_value())
+    auto focus_edge = G->get_edges_by_type("on_focus");
+    if (focus_edge.size() > 0)
     {
-        // get object pose in world coordinate frame
-        auto po = inner_eigen->transform(world_name, "cup");
-        auto pose = inner_eigen->transform("viriato_head_camera_pan_tilt", "cup");
-        // pan-tilt center
-        if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/)   // OJO AL PASAR A METROS
+        static Eigen::Vector3d ant_pose;
+        // auto object = G->get_node("cup");
+        auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt");
+        auto object = G->get_node(focus_edge.at(0).to());
+
+        if (object.has_value() and pan_tilt.has_value())
         {
-//            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
-            G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
-            G->update_node(pan_tilt.value());
-            qInfo() <<"NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
-            if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
+            // get object pose in world coordinate frame
+            auto po = inner_eigen->transform(world_name, object.value().name());
+            auto pose = inner_eigen->transform("viriato_head_camera_pan_tilt", object.value().name());
+            // pan-tilt center
+            if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/) // OJO AL PASAR A METROS
             {
-                qInfo() << tr2.value().get();
+                //            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
+                G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+                G->update_node(pan_tilt.value());
+                qInfo() << "NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+                if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
+                {
+                    qInfo() << tr2.value().get();
+                }
             }
+            // ant_pose = pose.value();
+            // move_base(robot);
         }
-        //ant_pose = pose.value();
-        //move_base(robot);
     }
 }
 

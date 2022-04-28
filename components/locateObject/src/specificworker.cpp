@@ -118,9 +118,9 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 
-	auto table2 = G->get_node("table2");
-	if(table2.has_value())
-		set_attention(table2.value());
+	auto object = G->get_node("cup");
+	if(object.has_value())
+		set_attention(object.value());
 
 }
 
