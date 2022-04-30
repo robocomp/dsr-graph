@@ -17,6 +17,7 @@
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "specificworker.h"
+#include <cppitertools/enumerate.hpp>
 
 /**
 * \brief Default constructor
@@ -40,15 +41,18 @@ SpecificWorker::~SpecificWorker()
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	agent_name = params["agent_name"].value;
-	agent_id = stoi(params["agent_id"].value);
+    try
+    {
+        agent_name = params.at("agent_name").value;
+        agent_id = stoi(params.at("agent_id").value);
+        tree_view = params.at("tree_view").value == "true";
+        graph_view = params.at("graph_view").value == "true";
+        qscene_2d_view = params.at("2d_view").value == "true";
+        osg_3d_view = params.at("3d_view").value == "true";
+    }
+    catch(const std::exception &e){ std::cout << e.what() << " Error reading params from config file" << std::endl;};
 
-	tree_view = params["tree_view"].value == "true";
-	graph_view = params["graph_view"].value == "true";
-	qscene_2d_view = params["2d_view"].value == "true";
-	osg_3d_view = params["3d_view"].value == "true";
-
-	return true;
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
@@ -98,18 +102,24 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+        // Ignore attributes from G
+        G->set_ignored_attributes<cam_rgb_att, cam_depth_att, laser_angles_att, laser_dists_att>();
 
-        log_file.open("log_file", std::ofstream::out | std::ofstream::trunc);
+        // self agent api
+        agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
+
+        log_file.open("log_file.txt", std::ofstream::out | std::ofstream::trunc);
         if ( not log_file)
         {
-            std::cout << __FUNCTION__ << "Error opening for write" << std::endl;
+            std::cout << __FUNCTION__ << "Error opening log_file.txt for writing" << std::endl;
             std::exit(EXIT_FAILURE);
         }
+
+        list_of_excluded_nodes.push_back("agent");
 
 		this->Period = period;
 		timer.start(Period);
 	}
-
 }
 
 void SpecificWorker::compute()
@@ -118,34 +128,36 @@ void SpecificWorker::compute()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::string SpecificWorker::visitor(DSR::ValType &var)
+std::string SpecificWorker::visitor(DSR::ValType &var, unsigned int vector_elements_to_write)
 {
+    auto vector_to_str = [vector_elements_to_write]<typename T>(const T &vec)
+            {  stringstream  str; str << "[";
+               for(auto &&[i, elem]: vec | iter::enumerate)
+               {
+                   if (i == vector_elements_to_write) break;
+                   str << std::to_string(elem) << ", ";
+               }
+                auto s = str.str();
+                s.pop_back();s.pop_back();  // remove last comma
+                s += "]";
+                return s;
+            };
     auto TypeSelector = Overload
         {
                 [](std::basic_string<char> &a) { return std::string(a); },
                 [](std::int32_t &a) { return std::to_string(a); },
                 [](float &a) { return std::to_string(a); },
-                [](std::vector<float> &a) { return std::string("vector<float>"); },
+                [vector_to_str](std::vector<float> &a) { return vector_to_str(a);},
                 [](bool a) { if(a) return std::string("True"); else return std::string("False"); },
-                [](std::vector<uint8_t> &a) { return std::string("vector<float>e"); },
+                [vector_to_str](std::vector<uint8_t> &a) { return vector_to_str(a); },
                 [](std::uint32_t &a) { return std::to_string(a); },
                 [](std::uint64_t &a) { return std::to_string(a); },
                 [](double &a) { return std::to_string(a); },
-                [](std::vector<std::uint64_t> &a) { return std::string("vector<uint64_t>"); },
-                [](std::array<float, 2> &a) { return std::string("[" + std::to_string(a[0]) + ", " + std::to_string(a[1]) + "]"); },
-                [](std::array<float, 3> &a) { return std::string("[" + std::to_string(a[0]) + ", "
-                                                                 + std::to_string(a[1]) + ", "
-                                                                 + std::to_string(a[2]) + "]"); },
-                [](std::array<float, 4> &a) { return std::string("[" + std::to_string(a[0]) + ", "
-                                                                 + std::to_string(a[1]) + ", "
-                                                                 + std::to_string(a[2]) + ", "
-                                                                 + std::to_string(a[3]) + "]"); },
-                [](std::array<float, 6> &a) { return std::string("[" + std::to_string(a[0]) + ", "
-                                                                 + std::to_string(a[1]) + ", "
-                                                                 + std::to_string(a[2]) + ", "
-                                                                 + std::to_string(a[3]) + ", "
-                                                                 + std::to_string(a[4]) + ", "
-                                                                 + std::to_string(a[5]) + "]"); }
+                [vector_to_str](std::vector<std::uint64_t> &a) { return vector_to_str(a); },
+                [vector_to_str](std::array<float, 2> &a) { return vector_to_str(a); },
+                [vector_to_str](std::array<float, 3> &a) { return vector_to_str(a); },
+                [vector_to_str](std::array<float, 4> &a) { return vector_to_str(a); },
+                [vector_to_str](std::array<float, 6> &a) { return vector_to_str(a); }
         };
 
     return std::visit(TypeSelector, var);
@@ -155,16 +167,14 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
     if(const auto node_o = G->get_node(id); node_o.has_value())
     {
         auto node = node_o.value();
-        if (node.type() == "agent") return;
-        for(const auto att_name : att_names)
+        if (auto res = std::ranges::find(list_of_excluded_nodes, node.type()); res != std::end(list_of_excluded_nodes))
+            return;
+        for(const auto &att_name : att_names)
         {
             stringstream str;
             if (auto att = node.attrs().find(att_name); att != node.attrs().end())
             {
-                auto timestamp = att->second.timestamp();
-                auto var = att->second.value();
-                std::string att_value = visitor(var);
-                str << "NODE " << node.name() << " " << att_name << " " << att_value << " " << timestamp << std::endl;
+                str << "NODE, " << node.name() << ", " << att_name << ", " << visitor(att->second.value(), 3) << ", " << att->second.timestamp() << std::endl;
                 std::cout << str.str() << std::endl;
                 log_file << str.str();
             }
@@ -183,17 +193,13 @@ void SpecificWorker::modify_edge_attrs_slot(std::uint64_t from, std::uint64_t to
             stringstream str;
             if (auto att = edge.attrs().find(att_name); att != edge.attrs().end())
             {
-                auto timestamp = att->second.timestamp();
-                auto var = att->second.value();
-                std::string att_value = visitor(var);
-                str << "EDGE " << type << " from " << node_from << " to " << node_to << att_name << " " << att_value << " " << timestamp << std::endl;
+                str << "EDGE. " << type << ", " << node_from << ", " << node_to << ", " << att_name << ", " << visitor(att->second.value(), 3) << ", " << att->second.timestamp() << std::endl;
                 std::cout << str.str() << std::endl;
                 log_file << str.str();
             }
         }
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

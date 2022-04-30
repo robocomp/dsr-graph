@@ -34,11 +34,13 @@
 #include <variant>
 #include <fstream>
 
+// The struct Overload can have arbitrary many base classes (Ts ...).
+// It derives from each class public and brings the call operator (Ts::operator...) of each base class into its scope.
+//The base classes need an overloaded call operator (Ts::operator()).
+//Lambdas provide this call operator.
 template<typename ... Ts>
-struct Overload : Ts ... {
-    using Ts::operator() ...;
-};
-template<class... Ts> Overload(Ts...) -> Overload<Ts...>;
+struct Overload : Ts ... { using Ts::operator() ...; };
+template<class... Ts> Overload(Ts...) -> Overload<Ts...>;   // custom deduction rule
 
 class SpecificWorker : public GenericWorker
 {
@@ -48,10 +50,7 @@ class SpecificWorker : public GenericWorker
         ~SpecificWorker();
         bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-
-
-
-public slots:
+    public slots:
         void compute();
         int startup_check();
         void initialize(int period);
@@ -65,6 +64,7 @@ public slots:
     private:
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
+        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
 
         //DSR params
         std::string agent_name;
@@ -82,8 +82,8 @@ public slots:
         bool startup_check_flag;
 
         std::ofstream log_file;
-
-        std::string visitor(DSR::ValType &var);
+        std::vector<std::string> list_of_excluded_nodes;
+        std::string visitor(DSR::ValType &var, unsigned int vector_elements_to_write = 0);
 
 };
 
