@@ -136,7 +136,7 @@ void SpecificWorker::read_battery()
         auto battery_level = batterystatus_proxy->getBatteryState();
         if( auto battery = G->get_node(battery_name); battery.has_value())
         {
-            G->add_or_modify_attrib_local<battery_load_att>(battery.value(), (int)(100*battery_level.percentage));
+            G->add_or_modify_attrib_local<battery_load_att>(battery.value(), (100*battery_level.percentage));
             G->update_node(battery.value());
         }
     }
