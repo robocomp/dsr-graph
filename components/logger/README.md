@@ -1,6 +1,7 @@
 # logger
 Intro to component here
 
+This agent logs to a file all changes in attributes of nodes and edges occuring in G.
 
 ## Configuration parameters
 As any other component, *logger* needs a configuration file to start. In
