@@ -166,13 +166,13 @@
                                 "value": [
                                     0,
                                     0,
-                                    3.075709999346541e-41
+                                    3.074308700882216e-41
                                 ]
                             },
                             "rt_translation": {
                                 "type": 3,
                                 "value": [
-                                    1.401298464324817e-45,
+                                    0,
                                     0,
                                     0
                                 ]
@@ -209,6 +209,10 @@
                     "pos_y": {
                         "type": 2,
                         "value": -445.151031
+                    },
+                    "simulation": {
+                        "type": 4,
+                        "value": true
                     }
                 },
                 "id": "1000",
@@ -306,9 +310,9 @@
                     "robot_local_linear_velocity": {
                         "type": 3,
                         "value": [
-                            -6744541763731456,
-                            2.978086517386285e+28,
-                            3.075709999346541e-41
+                            -4.22406803843702e+28,
+                            -1.2986088983660271e-12,
+                            3.074308700882216e-41
                         ]
                     },
                     "robot_ref_adv_speed": {
@@ -569,7 +573,7 @@
             "220": {
                 "attribute": {
                     "battery_load": {
-                        "type": 1,
+                        "type": 2,
                         "value": 10000
                     },
                     "color": {
@@ -793,7 +797,7 @@
                     },
                     "cam_rgb_alivetime": {
                         "type": 1,
-                        "value": -1577039631
+                        "value": 2078204136
                     },
                     "cam_rgb_cameraID": {
                         "type": 1,
@@ -989,7 +993,7 @@
                     },
                     "cam_rgb_alivetime": {
                         "type": 1,
-                        "value": -1577039633
+                        "value": -898030155
                     },
                     "cam_rgb_cameraID": {
                         "type": 1,
@@ -1074,7 +1078,7 @@
                     },
                     "memory_usage": {
                         "type": 6,
-                        "value": 98620
+                        "value": 94208
                     },
                     "num_procs": {
                         "type": 6,
@@ -1094,11 +1098,11 @@
                     },
                     "timestamp_agent": {
                         "type": 7,
-                        "value": "1634805500097010956"
+                        "value": "1651345645700791924"
                     },
                     "timestamp_alivetime": {
                         "type": 7,
-                        "value": "1634805500"
+                        "value": "1651345645"
                     },
                     "timestamp_creation": {
                         "type": 7,
