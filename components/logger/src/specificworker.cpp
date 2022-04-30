@@ -38,7 +38,6 @@ SpecificWorker::~SpecificWorker()
 	G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
-
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
     try
@@ -49,12 +48,14 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
         graph_view = params.at("graph_view").value == "true";
         qscene_2d_view = params.at("2d_view").value == "true";
         osg_3d_view = params.at("3d_view").value == "true";
+
+        file_name = params.at("file_name").value;
+        display = params.at("display").value == "true";
     }
     catch(const std::exception &e){ std::cout << e.what() << " Error reading params from config file" << std::endl;};
 
     return true;
 }
-
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
@@ -108,23 +109,25 @@ void SpecificWorker::initialize(int period)
         // self agent api
         agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
-        log_file.open("log_file.txt", std::ofstream::out | std::ofstream::trunc);
+        log_file.open(file_name, std::ofstream::out | std::ofstream::trunc);
         if ( not log_file)
         {
             std::cout << __FUNCTION__ << "Error opening log_file.txt for writing" << std::endl;
             std::exit(EXIT_FAILURE);
         }
+        path.assign(file_name);
 
         list_of_excluded_nodes.push_back("agent");
+        //list_of_excluded_nodes.push_back("");
 
-		this->Period = period;
+		this->Period = 1000;
 		timer.start(Period);
 	}
 }
-
 void SpecificWorker::compute()
 {
-
+    // print every second the size of the file and the KB/s written to the file
+    std::cout << "File size of " << file_name << " in disk:" << std::filesystem::file_size(path)/1000 << "KB. Lines: " << line_counter << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -175,8 +178,9 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
             if (auto att = node.attrs().find(att_name); att != node.attrs().end())
             {
                 str << "NODE, " << node.name() << ", " << att_name << ", " << visitor(att->second.value(), 3) << ", " << att->second.timestamp() << std::endl;
-                std::cout << str.str() << std::endl;
+                if(display) std::cout << str.str() << std::endl;
                 log_file << str.str();
+                line_counter++;
             }
         }
     }
@@ -186,6 +190,8 @@ void SpecificWorker::modify_edge_attrs_slot(std::uint64_t from, std::uint64_t to
     if(const auto edge_o = G->get_edge(from, to, type); edge_o.has_value())
     {
         auto edge = edge_o.value();
+        if (auto res = std::ranges::find(list_of_excluded_edges, type); res != std::end(list_of_excluded_nodes))
+            return;
         auto node_from = G->get_node(from).value().name();
         auto node_to = G->get_node(to).value().name();
         for(const auto att_name : att_names)
@@ -194,15 +200,15 @@ void SpecificWorker::modify_edge_attrs_slot(std::uint64_t from, std::uint64_t to
             if (auto att = edge.attrs().find(att_name); att != edge.attrs().end())
             {
                 str << "EDGE. " << type << ", " << node_from << ", " << node_to << ", " << att_name << ", " << visitor(att->second.value(), 3) << ", " << att->second.timestamp() << std::endl;
-                std::cout << str.str() << std::endl;
+                if(display) std::cout << str.str() << std::endl;
                 log_file << str.str();
+                line_counter++;
             }
         }
     }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;

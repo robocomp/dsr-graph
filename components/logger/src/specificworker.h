@@ -33,6 +33,7 @@
 #include <doublebuffer/DoubleBuffer.h>
 #include <variant>
 #include <fstream>
+#include <filesystem>
 
 // The struct Overload can have arbitrary many base classes (Ts ...).
 // It derives from each class public and brings the call operator (Ts::operator...) of each base class into its scope.
@@ -82,8 +83,12 @@ class SpecificWorker : public GenericWorker
         bool startup_check_flag;
 
         std::ofstream log_file;
-        std::vector<std::string> list_of_excluded_nodes;
+        std::string file_name = "log_file.txt";
+        bool display = true;
+        std::filesystem::path path;
+        std::vector<std::string> list_of_excluded_nodes, list_of_excluded_edges;
         std::string visitor(DSR::ValType &var, unsigned int vector_elements_to_write = 0);
+        std::uint64_t line_counter = 0;
 
 };
 

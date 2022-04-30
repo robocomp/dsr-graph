@@ -6,6 +6,10 @@ tree_view = true
 graph_view = true
 2d_view = true
 3d_view = false
+
+file_name = log_file.txt
+display = true
+
 #Ice.MessageSizeMax=20004800
 
 
