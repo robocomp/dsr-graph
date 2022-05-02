@@ -105,7 +105,9 @@ void SpecificWorker::initialize(int period)
     // 2d widget
     widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
     if (widget_2d != nullptr)
+    {
         widget_2d->set_draw_laser(true);
+    }
 
 	this->Period = period;
 	if(this->startup_check_flag)
@@ -624,4 +626,8 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
 // From the RoboCompRealSenseFaceID you can use this types:
 // RoboCompRealSenseFaceID::UserData
 
-
+/**************************************/
+// From the RoboCompBillCoppelia you can call this methods:
+// this->billcoppelia_proxy->getPose(...)
+// this->billcoppelia_proxy->setSpeed(...)
+// this->billcoppelia_proxy->setTarget(...)
