@@ -206,7 +206,7 @@ void SpecificWorker::compute()
         auto lists_after_add = add_new_objects(lists_after_match, img_timestamp);
         auto lists_after_delete = delete_unseen_objects(lists_after_add);
         // Create new compute
-        compute_testYolo();
+        //compute_testYolo();
         // auto &[a,b] = lists_after_delete;
         // qInfo() << __FUNCTION__ << "real: " << a.size() << " synth:" << b.size();
     }
@@ -240,10 +240,6 @@ void SpecificWorker::compute_testYolo()
     //     else
     //         std::cout << "Lets fckng ir" << std::endl;
     // }
-    if (cup.has_value() and table1.has_value())
-    {
-        track_object_of_interest(cup.value());
-    }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::compute_attention_list(const std::vector<Box> &synth_objects)
@@ -1076,38 +1072,6 @@ void SpecificWorker::change_attention_object_slot(int index)
                   << node_name << std::endl;
 }
 
-void SpecificWorker::track_object_of_interest(DSR::Node &robot)
-{
-    auto focus_edge = G->get_edges_by_type("on_focus");
-    if (focus_edge.size() > 0)
-    {
-        static Eigen::Vector3d ant_pose;
-        // auto object = G->get_node("cup");
-        auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt");
-        auto object = G->get_node(focus_edge.at(0).to());
-
-        if (object.has_value() and pan_tilt.has_value())
-        {
-            // get object pose in world coordinate frame
-            auto po = inner_eigen->transform(world_name, object.value().name());
-            auto pose = inner_eigen->transform("viriato_head_camera_pan_tilt", object.value().name());
-            // pan-tilt center
-            if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/) // OJO AL PASAR A METROS
-            {
-                //            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
-                G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
-                G->update_node(pan_tilt.value());
-                qInfo() << "NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
-                if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
-                {
-                    qInfo() << tr2.value().get();
-                }
-            }
-            // ant_pose = pose.value();
-            // move_base(robot);
-        }
-    }
-}
 
 //////////////////////////////////////////////////////77777
 int SpecificWorker::startup_check()

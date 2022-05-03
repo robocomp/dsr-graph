@@ -18,6 +18,9 @@
  */
 #include "specificworker.h"
 
+
+//#DEFINE cam_range_angle 35;
+
 /**
 * \brief Default constructor
 */
@@ -109,6 +112,12 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+		//Inner api
+	    inner_eigen = G->get_inner_eigen_api();
+
+		// RT APi
+        rt_api = G->get_rt_api();
+
 		this->Period = period;
 		timer.start(Period);
 	}
@@ -121,6 +130,9 @@ void SpecificWorker::compute()
 	auto object = G->get_node("cup");
 	if(object.has_value())
 		set_attention(object.value());
+	
+	track_object_of_interest();
+	move_base();
 
 }
 
@@ -148,7 +160,62 @@ void SpecificWorker::set_attention(DSR::Node &node)
 		qWarning() << "Mind node has no value";
 }
 
+void SpecificWorker::track_object_of_interest()
+{
+    auto focus_edge = G->get_edges_by_type("on_focus");
+    if (focus_edge.size() > 0)
+    {
+        static Eigen::Vector3d ant_pose;
+        // auto object = G->get_node("cup");
+        auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt");
+        auto object = G->get_node(focus_edge.at(0).to());
 
+        if (object.has_value() and pan_tilt.has_value())
+        {
+            // get object pose in world coordinate frame
+            auto po = inner_eigen->transform(world_name, object.value().name());
+            auto pose = inner_eigen->transform("viriato_head_camera_pan_tilt", object.value().name());
+            // pan-tilt center
+            if (po.has_value() and pose.has_value() /*and ((pose.value() - ant_pose).cwiseAbs2().sum() > 10)*/) // OJO AL PASAR A METROS
+            {
+                //            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_target_att>(pan_tilt.value(), std::vector<float>{(float)po.value().x(), (float)po.value().y(), (float)po.value().z()});
+                G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
+                G->update_node(pan_tilt.value());
+                qInfo() << "NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+                if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
+                {
+                    qInfo() << tr2.value().get();
+                }
+            }
+            // ant_pose = pose.value();
+            //move_base(robot);
+        }
+    }
+}
 
+void SpecificWorker::move_base()
+{
+	if(auto robot = G->get_node("robot") ; robot.has_value())
+	{
+		if( auto head_camera_pan_joint = G->get_node("viriato_head_camera_pan_joint") ; head_camera_pan_joint.has_value())
+		{
+			auto cam_axis = inner_eigen->transform_axis("robot", "viriato_head_camera_pan_joint");	
+
+			// std::cout << "ANGULOS DE LA CAMARA " << (float)cam_axis.value()[3] << std::endl;
+			// std::cout << "ANGULOS DE LA CAMARA " << (float)cam_axis.value()[4] << std::endl;
+			std::cout << "ANGULOS DE LA CAMARA " << cam_axis.value()[5]*180.0/M_PI << std::endl;
+
+			if(abs(cam_axis.value()[5]*180.0/M_PI) > 20.0)
+			{
+				float rot_speed = cam_axis.value()[5]*0.3f;
+				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
+				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
+				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), -rot_speed);
+				G->update_node(robot.value());
+			}
+
+		}
+	}
+}
 
 

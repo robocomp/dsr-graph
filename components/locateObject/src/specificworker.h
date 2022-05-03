@@ -47,6 +47,9 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
+	
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+    std::shared_ptr<DSR::RT_API> rt_api;
 
 	//DSR params
 	std::string agent_name;
@@ -69,6 +72,9 @@ private:
 	bool startup_check_flag;
 
 	void set_attention(DSR::Node &node);
+	void track_object_of_interest();
+	void move_base();
+
 };
 
 #endif
