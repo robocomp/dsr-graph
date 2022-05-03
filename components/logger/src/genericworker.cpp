@@ -23,15 +23,6 @@
 GenericWorker::GenericWorker(TuplePrx tprx) : Ui_guiDlg()
 {
 
-	batterystatus_proxy = std::get<0>(tprx);
-	camerargbdsimple_proxy = std::get<1>(tprx);
-	camerasimple_proxy = std::get<2>(tprx);
-	camerasimple1_proxy = std::get<3>(tprx);
-	differentialrobot_proxy = std::get<4>(tprx);
-	fullposeestimation_proxy = std::get<5>(tprx);
-	giraff_proxy = std::get<6>(tprx);
-	laser_proxy = std::get<7>(tprx);
-	realsensefaceid_proxy = std::get<8>(tprx);
 
 	mutex = new QMutex(QMutex::Recursive);
 

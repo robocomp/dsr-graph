@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "giraff_dsr"
-#define SERVER_FULL_NAME   "RoboComp giraff_dsr:: giraff_dsr"
+#define PROGRAM_NAME    "logger"
+#define SERVER_FULL_NAME   "RoboComp logger:: logger"
 
 #endif
