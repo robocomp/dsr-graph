@@ -70,6 +70,9 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
+	void set_focus(DSR::Node &node);
+	void get_table3s_cup();
+
 };
 
 #endif

@@ -140,6 +140,35 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
+void SpecificWorker::set_focus(DSR::Node &node)
+{
+	//static bool already_executed = false;
+
+	if(	auto mind = G->get_node("mind") ; mind.has_value())
+	{
+		// if(!already_executed)
+		// {
+			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
+			G->insert_or_assign_edge(edge);
+			//already_executed = true;
+		//}
+	}
+	else
+		qWarning() << "Mind node has no value";
+}
+
+void SpecificWorker::get_table3s_cup()
+{
+	
+	if(auto cups = G->get_nodes_by_type("cup") ; cups.size() > 0)
+	{
+		for( auto cup : cups)
+		{
+			if( auto parent = G->get_parent_node(cup); parent.has_value())
+				;
+		}
+	}
+}
 
 
 

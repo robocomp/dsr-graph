@@ -71,7 +71,7 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
-	void set_attention(DSR::Node &node);
+	//void set_attention(DSR::Node &node);
 	void track_object_of_interest();
 	void move_base();
 

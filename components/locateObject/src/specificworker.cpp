@@ -127,10 +127,10 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
 
-	auto object = G->get_node("cup");
-	
-	if(object.has_value())
-		set_attention(object.value());
+	// auto object = G->get_node("cup");
+
+	// if(object.has_value())
+	// 	set_attention(object.value());
 	
 	track_object_of_interest();
 	move_base();
@@ -144,25 +144,26 @@ int SpecificWorker::startup_check()
 	return 0;
 }
 
-void SpecificWorker::set_attention(DSR::Node &node)
-{
-	//static bool already_executed = false;
+// void SpecificWorker::set_attention(DSR::Node &node)
+// {
+// 	//static bool already_executed = false;
 
-	if(	auto mind = G->get_node("mind") ; mind.has_value())
-	{
-		// if(!already_executed)
-		// {
-			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
-			G->insert_or_assign_edge(edge);
-			//already_executed = true;
-		//}
-	}
-	else
-		qWarning() << "Mind node has no value";
-}
+// 	if(	auto mind = G->get_node("mind") ; mind.has_value())
+// 	{
+// 		// if(!already_executed)
+// 		// {
+// 			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
+// 			G->insert_or_assign_edge(edge);
+// 			//already_executed = true;
+// 		//}
+// 	}
+// 	else
+// 		qWarning() << "Mind node has no value";
+// }
 
 void SpecificWorker::track_object_of_interest()
 {
+	//Sacar fuera?
     auto focus_edge = G->get_edges_by_type("on_focus");
 
     if (focus_edge.size() > 0)
