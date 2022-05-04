@@ -128,6 +128,7 @@ void SpecificWorker::compute()
 {
 
 	auto object = G->get_node("cup");
+	
 	if(object.has_value())
 		set_attention(object.value());
 	
@@ -145,16 +146,16 @@ int SpecificWorker::startup_check()
 
 void SpecificWorker::set_attention(DSR::Node &node)
 {
-	static bool already_executed = false;
+	//static bool already_executed = false;
 
 	if(	auto mind = G->get_node("mind") ; mind.has_value())
 	{
-		if(!already_executed)
-		{
+		// if(!already_executed)
+		// {
 			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
 			G->insert_or_assign_edge(edge);
-			already_executed = true;
-		}
+			//already_executed = true;
+		//}
 	}
 	else
 		qWarning() << "Mind node has no value";
@@ -163,6 +164,7 @@ void SpecificWorker::set_attention(DSR::Node &node)
 void SpecificWorker::track_object_of_interest()
 {
     auto focus_edge = G->get_edges_by_type("on_focus");
+
     if (focus_edge.size() > 0)
     {
         static Eigen::Vector3d ant_pose;
@@ -205,12 +207,19 @@ void SpecificWorker::move_base()
 			// std::cout << "ANGULOS DE LA CAMARA " << (float)cam_axis.value()[4] << std::endl;
 			std::cout << "ANGULOS DE LA CAMARA " << cam_axis.value()[5]*180.0/M_PI << std::endl;
 
-			if(abs(cam_axis.value()[5]*180.0/M_PI) > 20.0)
+			if( (abs(cam_axis.value()[5]*180.0/M_PI) != 0.0))
 			{
 				float rot_speed = cam_axis.value()[5]*0.3f;
 				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), -rot_speed);
+				G->update_node(robot.value());
+			}
+			else
+			{
+				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
+				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
+				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), 0.0f);
 				G->update_node(robot.value());
 			}
 
