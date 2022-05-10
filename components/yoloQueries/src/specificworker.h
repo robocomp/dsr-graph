@@ -71,7 +71,9 @@ private:
 	bool startup_check_flag;
 
 	void set_focus(DSR::Node &node);
-	void get_table3s_cup();
+	bool delete_on_focus_edge();	
+	bool get_object_in_container(string object, string container);
+
 
 };
 

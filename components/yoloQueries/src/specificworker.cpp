@@ -130,13 +130,17 @@ void SpecificWorker::compute()
 	//  std::cout << "Error reading from Camera" << e << std::endl;
 	//}
 	
-	
+	get_object_in_container("cup" , "table1");
+		
+	// auto table3 = G->get_node("table3");
+	// set_focus(table3.value());
+	//delete_on_focus_edge();
 }
 
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
+	//QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
 
@@ -148,27 +152,56 @@ void SpecificWorker::set_focus(DSR::Node &node)
 	{
 		// if(!already_executed)
 		// {
+		//If on_focus edge already exists change the to variable
+		if( auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
+			edge_on_focus[0].to(node.id());
+		else//If does not exists create the edge
+		{
 			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
 			G->insert_or_assign_edge(edge);
-			//already_executed = true;
-		//}
+		}
+		// 	already_executed = true;
+		// }
 	}
 	else
 		qWarning() << "Mind node has no value";
 }
 
-void SpecificWorker::get_table3s_cup()
+bool SpecificWorker::get_object_in_container(string object_type, string container)
 {
 	
-	if(auto cups = G->get_nodes_by_type("cup") ; cups.size() > 0)
+	if(auto objects = G->get_nodes_by_type(object_type) ; objects.size() > 0)
 	{
-		for( auto cup : cups)
+		for( auto object : objects)
 		{
-			if( auto parent = G->get_parent_node(cup); parent.has_value())
-				;
+			if( auto parent = G->get_parent_node(object); parent.has_value())
+			{
+				if(parent.value().name() == container)
+				{
+					std::cout << "####################################EXISTE##################################" << std::endl;
+					set_focus(object);
+					return true; //First object that fullfill the condition, use a return
+				}
+			}
+			else
+			{
+				qWarning() << "Object's parent does not exist";
+			}
 		}
 	}
+	else
+		qWarning() << "Cups size lower than zero";
+
+	return false;
 }
 
+bool SpecificWorker::delete_on_focus_edge()
+{
+	if( auto on_focus_edge = G->get_edges_by_type("on_focus"); on_focus_edge.size() > 0)
+		return G->delete_edge(on_focus_edge[0].from(), on_focus_edge[0].to(), "on_focus");
+	else
+		qWarning() << "on_focus_edge does not exist";
+		return false;
+}
 
 

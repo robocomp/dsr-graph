@@ -72,7 +72,7 @@ private:
 	bool startup_check_flag;
 
 	//void set_attention(DSR::Node &node);
-	void track_object_of_interest();
+	void track_object_of_interest(DSR::Node);
 	void move_base();
 
 };
