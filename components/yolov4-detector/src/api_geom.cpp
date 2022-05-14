@@ -13,6 +13,7 @@ Api_Geom::Api_Geom(std::shared_ptr<DSR::DSRGraph> G)
 std::optional<float> Api_Geom::distance_between_objects(const DSR::Node &node1, const DSR::Node &node2)
 {
 
+    //Check value del padre¿?
     auto edge1 = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
     auto edge2 = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
 

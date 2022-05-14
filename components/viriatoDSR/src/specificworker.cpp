@@ -148,7 +148,7 @@ void SpecificWorker::compute()
         //update_pantilt_position();
         //update_arm_state();
 
-        //check_new_nose_referece_for_pan_tilt();
+        check_new_nose_referece_for_pan_tilt();
     }
     
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});

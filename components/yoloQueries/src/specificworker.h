@@ -21,13 +21,15 @@
 	\brief
 	@author authorname
 */
+
+
+
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
-#include  "../../../etc/graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
 
 class SpecificWorker : public GenericWorker
@@ -47,9 +49,6 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
-	
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-    std::shared_ptr<DSR::RT_API> rt_api;
 
 	//DSR params
 	std::string agent_name;
@@ -71,9 +70,10 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
-	//void set_attention(DSR::Node &node);
-	void track_object_of_interest(DSR::Node);
-	void move_base();
+	void set_focus(DSR::Node &node);
+	bool delete_on_focus_edge();	
+	bool get_object_in_container(string object, string container);
+
 
 };
 
