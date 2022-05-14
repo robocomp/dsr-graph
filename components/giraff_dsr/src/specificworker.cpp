@@ -131,6 +131,8 @@ void SpecificWorker::compute()
     update_rgbd();
     auto laser = read_laser_from_robot();
     update_laser(laser);
+
+    graph_viewer->set_external_hz(fps.print(""));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

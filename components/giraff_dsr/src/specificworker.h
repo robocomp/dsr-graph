@@ -36,7 +36,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-
+#include <fps/fps.h>
 
 class SpecificWorker : public GenericWorker
 {
@@ -116,6 +116,8 @@ class SpecificWorker : public GenericWorker
         QPolygonF filter_laser(const RoboCompLaser::TLaserData &ldata);
         void ramer_douglas_peucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out);
 
+        // Timer
+        FPSCounter fps;
 };
 
 #endif
