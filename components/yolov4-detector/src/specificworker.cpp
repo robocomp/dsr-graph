@@ -307,7 +307,7 @@ std::tuple<SpecificWorker::Boxes, SpecificWorker::Boxes> SpecificWorker::match_l
                 {
                     // qInfo() << "Dentro de actualization" ;
                     // if (parent.value().type() == "container")
-                    if (!api_geom->insert_node_in_container(synth_node.value()) and parent.value().name() != world_name)
+                    if (!api_geom->insert_node_in_type(synth_node.value(),"container") and parent.value().name() != world_name)
                     {
                         // std::cout << "PADRE:" << parent.value().name() << std::endl;
                         // std::cout << "SYNTH:" << synth_node.value().name() << std::endl;
@@ -422,10 +422,10 @@ SpecificWorker::add_new_objects(std::tuple<SpecificWorker::Boxes, SpecificWorker
                 // std::cout << __FUNCTION__ << "T " << b_real.Tx <<" "<< b_real.Ty << " " << b_real.Tz << endl;
                 DSR::Edge edge = DSR::Edge::create<RT_edge_type>(world_node.value().id(), object_node.id());
                 G->add_or_modify_attrib_local<rt_translation_att>(edge, std::vector<float>{b_real.Tx, b_real.Ty, b_real.Tz});
-                qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
+                // qInfo() << "X:" << b_real.Tx << "Y:" << b_real.Ty << "Z:" << b_real.Tz;
                 G->add_or_modify_attrib_local<rt_rotation_euler_xyz_att>(edge, std::vector<float>{0., 0., 0.});
                 G->insert_or_assign_edge(edge);
-                api_geom->insert_node_in_container(object_node); // Check if the new object is in a container and if it is create the edge with the container
+                api_geom->insert_node_in_type(object_node,"container"); // Check if the new object is in a container and if it is create the edge with the container
                 G->update_node(world_node.value());
                 b_real.marked_for_delete = true;
                 // qInfo() << __FUNCTION__ << "Created node " << QString::fromStdString(b_real.name);

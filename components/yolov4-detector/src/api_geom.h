@@ -36,7 +36,7 @@ namespace DSR
         //IN PROGRESS
         bool strictly_over_object(DSR::Node &little_object, DSR::Node &big_object);
         // Check which container contains the objet and update it, change name
-        bool insert_node_in_container(DSR::Node &node);
+        bool insert_node_in_type(DSR::Node &node, const std::string &type);
         // Update node and its RT with the new parent
         bool update_node(DSR::Node &node, DSR::Node &new_parent);
         //Set the attribute average size of the object

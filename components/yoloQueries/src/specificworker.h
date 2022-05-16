@@ -72,7 +72,7 @@ private:
 
 	void set_focus(DSR::Node &node);
 	bool delete_on_focus_edge();	
-	bool get_object_in_container(string object, string container);
+	optional<DSR::Node> get_object(string object, string container, string size);
 
 
 };
