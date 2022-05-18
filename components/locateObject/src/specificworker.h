@@ -21,6 +21,9 @@
 	\brief
 	@author authorname
 */
+
+
+
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
@@ -47,8 +50,8 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
-	
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+
+	std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
     std::shared_ptr<DSR::RT_API> rt_api;
 
 	//DSR params
@@ -71,7 +74,6 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
-	//void set_attention(DSR::Node &node);
 	void track_object_of_interest(DSR::Node);
 	void move_base();
 

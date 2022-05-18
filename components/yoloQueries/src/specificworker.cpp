@@ -24,6 +24,8 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+	QLoggingCategory::setFilterRules("*.debug=false\n");
+
 }
 
 /**
@@ -125,7 +127,7 @@ void SpecificWorker::compute()
 	//   std::cout << "Error reading from Camera" << e << std::endl;
 	// }
 
-	if(auto focus_object = get_object("cup", "table2", "small") ; focus_object.has_value())
+	if(auto focus_object = get_object("cup", "table3", "small") ; focus_object.has_value())
 		set_focus(focus_object.value());
 
 	// auto table3 = G->get_node("table3");
@@ -152,8 +154,10 @@ void SpecificWorker::set_focus(DSR::Node &node)
 		if (auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
 		{
 			std::cout << "CHANGE ON FOCUS EDGE" << std::endl;
+			std::cout << node.id() << std::endl;
+			G->delete_edge(edge_on_focus[0].from(), edge_on_focus[0].to(), "on_focus");			
 			edge_on_focus[0].to(node.id());
-
+			G->insert_or_assign_edge(edge_on_focus[0]);
 		}
 		else // If does not exists create the edge
 		{
@@ -161,6 +165,8 @@ void SpecificWorker::set_focus(DSR::Node &node)
 			G->insert_or_assign_edge(edge);
 		}
 		G->update_node(mind.value());
+		G->update_node(node);
+
 		// 	already_executed = true;
 		// }
 	}

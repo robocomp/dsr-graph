@@ -18,14 +18,13 @@
  */
 #include "specificworker.h"
 
-//#DEFINE cam_range_angle 35;
-
 /**
  * \brief Default constructor
  */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+	QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -33,7 +32,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
  */
 SpecificWorker::~SpecificWorker()
 {
-	// std::cout << "Destroying SpecificWorker" << std::endl;
+	std::cout << "Destroying SpecificWorker" << std::endl;
 	G->write_to_json_file("./" + agent_name + ".json");
 	G.reset();
 }
@@ -120,17 +119,21 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+	if (auto mind = G->get_node("mind"); mind.has_value())
+	{
+		G->update_node(mind.value());
+	}
 
 	if (auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
 	{
 		if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 		{
 			track_object_of_interest(object.value());
-			std::cout << "TRRACKING " << std::endl;
+			std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$TRRACKING$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " << std::endl;
 		}
 	}
 	else
-		std::cout<< "NO TENGO NADA QUE HACER " << std::endl;
+		std::cout << "NO TENGO NADA QUE HACER " << std::endl;
 
 	move_base();
 }
@@ -141,23 +144,6 @@ int SpecificWorker::startup_check()
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
-
-// void SpecificWorker::set_attention(DSR::Node &node)
-// {
-// 	//static bool already_executed = false;
-
-// 	if(	auto mind = G->get_node("mind") ; mind.has_value())
-// 	{
-// 		// if(!already_executed)
-// 		// {
-// 			auto edge = DSR::Edge::create<on_focus_edge_type>(mind.value().id(), node.id());
-// 			G->insert_or_assign_edge(edge);
-// 			//already_executed = true;
-// 		//}
-// 	}
-// 	else
-// 		qWarning() << "Mind node has no value";
-// }
 
 void SpecificWorker::track_object_of_interest(DSR::Node object)
 {
