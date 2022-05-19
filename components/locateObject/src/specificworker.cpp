@@ -129,7 +129,7 @@ void SpecificWorker::compute()
 		if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 		{
 			track_object_of_interest(object.value());
-			std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$TRRACKING$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " << std::endl;
+			// std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$TRRACKING$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " << std::endl;
 		}
 	}
 	else
@@ -156,10 +156,10 @@ void SpecificWorker::track_object_of_interest(DSR::Node object)
 		{
 			G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{(float)pose.value().x(), (float)pose.value().y(), (float)pose.value().z()});
 			G->update_node(pan_tilt.value());
-			qInfo() << "NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
+			// qInfo() << "NOW ...." << pose.value().x() << pose.value().y() << pose.value().z();
 			if (auto tr2 = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); tr2.has_value())
 			{
-				qInfo() << tr2.value().get();
+				;// qInfo() << tr2.value().get();
 			}
 		}
 	}
@@ -175,9 +175,9 @@ void SpecificWorker::move_base()
 
 			std::cout << "ANGULO DE LA CAMARITA " << cam_axis.value()[5] * 180.0 / M_PI << std::endl;
 
-			if ((abs(cam_axis.value()[5] * 180.0 / M_PI) != 0.0))
+			if ((abs(cam_axis.value()[5] * 180.0 / M_PI) > 0.2) || (abs(cam_axis.value()[5] * 180.0 / M_PI) < -0.2))
 			{
-				float rot_speed = cam_axis.value()[5] * 0.3f;
+				float rot_speed = cam_axis.value()[5];
 				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), -rot_speed);
