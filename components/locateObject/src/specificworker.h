@@ -32,6 +32,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include  "../../../etc/graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include "/home/robocomp/robocomp/components/robocomp-giraff/etc/plan.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -76,6 +77,7 @@ private:
 
 	void track_object_of_interest(DSR::Node);
 	void move_base();
+	void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
 
 };
 

@@ -127,7 +127,7 @@ void SpecificWorker::compute()
 	//   std::cout << "Error reading from Camera" << e << std::endl;
 	// }
 
-	if(auto focus_object = get_object("cup", "table3", "small") ; focus_object.has_value())
+	if(auto focus_object = get_object("cup", "table1", "small") ; focus_object.has_value())
 		set_focus(focus_object.value());
 
 	// auto table3 = G->get_node("table3");
