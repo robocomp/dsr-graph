@@ -127,30 +127,32 @@ void SpecificWorker::compute()
 		{
 			if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 			{
-				track_object_of_interest(object.value());
 				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value())
 				{
 					if (auto intention_node = G->get_node("current_intention"); intention_node.has_value())
 					{
+						std::cout << "X position:" << node_world.value()[0] << "Y position:" << node_world.value()[1] << std::endl;
 						Plan plan(Plan::Actions::GOTO);
-						plan.insert_attribute("x", 100);
-						plan.insert_attribute("y", 100);
+						plan.insert_attribute("x", node_world.value()[0]);
+						plan.insert_attribute("y", node_world.value()[1]);
 						plan.insert_attribute("destiny", QString::fromStdString("floor"));
+
 						if (plan.is_complete())
 							G->add_or_modify_attrib_local<current_intention_att>(intention_node.value(), plan.to_json());
+
 						G->update_node(intention_node.value());
 						std::cout << node_world.value() << std::endl;
 					}
+				}
+				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
+				{
+					track_object_of_interest(object.value());
+					move_base();
 				}
 			}
 		}
 		else
 			std::cout << "NO TENGO NADA QUE HACER " << std::endl;
-
-		if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
-		{
-			move_base();
-		}
 	}
 }
 
@@ -210,67 +212,3 @@ void SpecificWorker::move_base()
 	}
 }
 
-void SpecificWorker::new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id)
-{
-	qInfo() << __FUNCTION__ << "[" << pos_x << " " << pos_y << "] Id:" << id;
-
-	if (auto node = G->get_node(id); node.has_value())
-	{
-		Plan plan(Plan::Actions::GOTO);
-		plan.insert_attribute("x", pos_x);
-		plan.insert_attribute("y", pos_y);
-		plan.insert_attribute("destiny", QString::fromStdString(node.value().name()));
-		if (plan.is_complete())
-		{
-			std::cout << plan.pprint() << " " << plan.to_json() << std::endl;
-			if (auto mind = G->get_node(robot_mind_name); mind.has_value())
-			{
-				// Check if there is not 'intention' node yet in G
-				if (auto intention = G->get_node(current_intention_name); not intention.has_value())
-				{
-					DSR::Node intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
-					G->add_or_modify_attrib_local<parent_att>(intention_node, mind.value().id());
-					G->add_or_modify_attrib_local<level_att>(intention_node, G->get_node_level(mind.value()).value() + 1);
-					G->add_or_modify_attrib_local<pos_x_att>(intention_node, (float)-440);
-					G->add_or_modify_attrib_local<pos_y_att>(intention_node, (float)13);
-					G->add_or_modify_attrib_local<current_intention_att>(intention_node, plan.to_json());
-					if (std::optional<int> intention_node_id = G->insert_node(intention_node); intention_node_id.has_value())
-					{
-						DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), intention_node.id());
-						if (G->insert_or_assign_edge(edge))
-							std::cout << __FUNCTION__ << " Edge successfully inserted: " << mind.value().id() << "->"
-									  << intention_node_id.value()
-									  << " type: has" << std::endl;
-						else
-						{
-							std::cout << __FUNCTION__ << ": Fatal error inserting new edge: " << mind.value().id() << "->"
-									  << intention_node_id.value()
-									  << " type: has" << std::endl;
-							std::terminate();
-						}
-					}
-					else
-					{
-						std::cout << __FUNCTION__ << ": Fatal error inserting_new 'intention' node" << std::endl;
-						std::terminate();
-					}
-				}
-				else
-				{
-					std::cout << __FUNCTION__ << ": Updating existing intention node with Id: " << intention.value().id()
-							  << std::endl;
-					G->add_or_modify_attrib_local<current_intention_att>(intention.value(), plan.to_json());
-					G->update_node(intention.value());
-					std::cout << __FUNCTION__ << " INSERT: " << plan.to_json() << std::endl;
-				}
-			}
-			else
-			{
-				std::cout << __FUNCTION__ << " No node " << robot_mind_name << " found in G" << std::endl;
-				std::terminate();
-			}
-		}
-	}
-	else
-		std::cout << __FUNCTION__ << " No target object node " << node.value().name() << " found in G" << std::endl;
-}

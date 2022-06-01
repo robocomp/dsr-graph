@@ -73,8 +73,8 @@ private:
 	void set_focus(DSR::Node &node);
 	bool delete_on_focus_edge();	
 	optional<DSR::Node> get_object(string object, string container, string size);
-
-
+	optional<std::vector<std::string>> queries(std::string query);
+	std::vector<std::string> string_splitter(std::string s);
 };
 
 #endif

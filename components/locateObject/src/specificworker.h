@@ -77,8 +77,6 @@ private:
 
 	void track_object_of_interest(DSR::Node);
 	void move_base();
-	void new_target_from_mouse(int pos_x, int pos_y, std::uint64_t id);
-
 };
 
 #endif

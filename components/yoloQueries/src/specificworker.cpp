@@ -126,10 +126,10 @@ void SpecificWorker::compute()
 	//{
 	//   std::cout << "Error reading from Camera" << e << std::endl;
 	// }
-
-	if(auto focus_object = get_object("cup", "table1", "small") ; focus_object.has_value())
+	queries("a");
+	if(auto focus_object = get_object("cup", "table3", "small") ; focus_object.has_value())
 		set_focus(focus_object.value());
-
+	
 	// auto table3 = G->get_node("table3");
 	// set_focus(table3.value());
 	// delete_on_focus_edge();
@@ -215,4 +215,28 @@ bool SpecificWorker::delete_on_focus_edge()
 	else
 		qWarning() << "on_focus_edge does not exist";
 	return false;
+}
+
+optional<std::vector<std::string>> SpecificWorker::queries(std::string query)
+{
+	std::string test = "find small cup in table2";
+	std::cout << "1" << std::endl;
+	std::vector<std::string> words = string_splitter(test);
+	return words;
+}
+
+// A quick way to split strings separated via spaces.
+std::vector<std::string> SpecificWorker::string_splitter(std::string s)
+{
+    std::stringstream ss(s);
+    std::string word;
+	std::vector<std::string> split;
+    while (ss >> word) {
+        split.push_back(word);
+		std::cout << word << std::endl;
+    }
+
+	std::cout << split.at(0) << std::endl;
+
+	return split;
 }
