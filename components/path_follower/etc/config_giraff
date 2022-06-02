@@ -10,15 +10,15 @@ graph_view = true
 robot_length = 500
 robot_width = 400
 robot_radius = 250
-max_advance_speed = 800
-max_rotation_speed = 1.2
+max_advance_speed = 1000
+max_rotation_speed = 2
 max_side_speed = 0
 lateral_correction_gain = 1.2
 lateral_correction_for_side_velocity = 0
-rotation_gain = 1
+rotation_gain = 0.9
 times_final_distance_to_target_before_zero_rotation = 1
-advance_gaussian_cut_x = 0.8
-advance_gaussian_cut_y = 0.4
+advance_gaussian_cut_x = 0.7
+advance_gaussian_cut_y = 0.3
 final_distance_to_target = 200  # mm
 
 ################################################

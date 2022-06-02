@@ -78,11 +78,15 @@ private:
     float av_anterior = 9999;
     float rot_anterior = 9999;
 
+    float servo_speed_anterior = 0;
+    float servo_pos_anterior = 0;
+
     void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
-	
-	
+
+    Eigen::Vector2f from_world_to_robot(const Eigen::Vector2f &p,
+                                                        const RoboCompFullPoseEstimation::FullPoseEuler &r_state);
 	
 	///Remote services
     void update_robot_localization();
@@ -94,11 +98,15 @@ private:
     float focalx, focaly;
     void update_camera_rgbd(std::string camera, const cv::Mat &virtual_frame, float focalx, float focaly);
 
+    std::string giraff_camera_realsense_name = "giraff_camera_realsense";
+
     cv::Mat compute_camera_simple_frame();
     void update_camera_simple(std::string camera, const cv::Mat &virtual_frame);
 
     cv::Mat compute_camera_simple1_frame();
     void update_camera_simple1(std::string camera, const cv::Mat &virtual_frame);
+
+    void update_servo_position();
 
     bool are_different(const vector<float> &a, const vector<float> &b, const vector<float> &epsilon);
     void update_rgbd();

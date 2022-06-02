@@ -37,6 +37,7 @@ from rich.console import Console
 
 console = Console(highlight=False)
 
+import time
 
 # import librobocomp_qmat
 # import librobocomp_osgviewer
@@ -77,19 +78,19 @@ class SpecificWorker(GenericWorker):
 
     def __init__(self, proxy_map, startup_check=False):
         super(SpecificWorker, self).__init__(proxy_map)
-        self.Period = 500
+        self.Period = 100
 
         self.agent_id = 121
         self.g = DSRGraph(0, "human_social_spaces_dsr", self.agent_id)
         self.rt_api = rt_api(self.g)
 
         try:
-            signals.connect(self.g, signals.UPDATE_NODE_ATTR, self.update_node_att)
+            # signals.connect(self.g, signals.UPDATE_NODE_ATTR, self.update_node_att)
             signals.connect(self.g, signals.UPDATE_NODE, self.update_node)
-            signals.connect(self.g, signals.DELETE_NODE, self.delete_node)
-            signals.connect(self.g, signals.UPDATE_EDGE, self.update_edge)
-            signals.connect(self.g, signals.UPDATE_EDGE_ATTR, self.update_edge_att)
-            signals.connect(self.g, signals.DELETE_EDGE, self.delete_edge)
+            # signals.connect(self.g, signals.DELETE_NODE, self.delete_node)
+            # signals.connect(self.g, signals.UPDATE_EDGE, self.update_edge)
+            # signals.connect(self.g, signals.UPDATE_EDGE_ATTR, self.update_edge_att)
+            # signals.connect(self.g, signals.DELETE_EDGE, self.delete_edge)
             print("signals connected")
         except RuntimeError as e:
             print(e)
@@ -110,19 +111,7 @@ class SpecificWorker(GenericWorker):
 
     @QtCore.Slot()
     def compute(self):
-
-        # PEOPLE
-        people_list = self.get_people_from_dsr()
-        if len(people_list) != 0:
-            spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
-            dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
-            self.update_personal_spaces(dict_ids_personal_spaces)
-        else:
-            console.print('No humans found in dsr', style='red')
-        # OBJECTS
-        objects_list = self.get_interactive_objects_from_drs()
-        self.update_affordance_spaces(objects_list)
-        return True
+        pass
 
     def startup_check(self):
         QTimer.singleShot(200, QApplication.instance().quit)
@@ -136,6 +125,10 @@ class SpecificWorker(GenericWorker):
             edge_rt = self.rt_api.get_edge_RT(self.g.get_node("world"), person_node.id)
             tx, ty, tz = edge_rt.attrs['rt_translation'].value
             rx, ry, rz = edge_rt.attrs['rt_rotation_euler_xyz'].value
+
+            # print("PERSON ID: ",person_id)
+            # print("TX",tx,ty,tz)
+            # print("RX",rx,ry,rz)
             person_type = PersonType(person_id, tx, ty, ry)
             people_list.append(person_type)
 
@@ -183,6 +176,9 @@ class SpecificWorker(GenericWorker):
         return dict_ids_personal_spaces
 
     def update_personal_spaces(self, dict_ids_personal_spaces):
+
+        existing_person_node_ids = []
+
         console.print(' ----- update_personal_space -----', style='blue')
 
         people_nodes = self.g.get_nodes_by_type('person')
@@ -190,6 +186,8 @@ class SpecificWorker(GenericWorker):
         for person_node in people_nodes:
             person_id = person_node.attrs['person_id'].value
 
+            existing_person_node_ids.append(person_id)
+            print("PERSON ID: ", person_node.id)
             x_intimate, y_intimate = zip(*dict_ids_personal_spaces[person_id].intimate_polyline)
             x_personal, y_personal = zip(*dict_ids_personal_spaces[person_id].personal_polyline)
             x_social, y_social = zip(*dict_ids_personal_spaces[person_id].social_polyline)
@@ -197,11 +195,13 @@ class SpecificWorker(GenericWorker):
             personal_space_node = None
 
             for destination, type_edge in person_node.edges:
-                print(destination, type_edge)
+                print("----EDGE_HAS-----",destination, type_edge)
                 dest_node = self.g.get_node(destination)
                 if type_edge == 'has' and dest_node.type == 'personal_space':
                     personal_space_node = dest_node
                     break
+
+
 
             # Update personal_space node
             if personal_space_node is not None:
@@ -221,11 +221,18 @@ class SpecificWorker(GenericWorker):
             # Create personal_space node
             else:
                 print('Create personal_space node')
+                pos_x = np.random.randint(180, 500)
+                pos_y = np.random.randint(-440, -160)
+
                 node_name = 'personal_space_' + str(person_id)
 
                 new_node = Node(agent_id=self.agent_id, type='personal_space', name=node_name)
 
                 new_node.attrs['person_id'] = Attribute(person_id, self.agent_id)
+
+                new_node.attrs['pos_x'] = Attribute(float(pos_x), self.agent_id)
+                new_node.attrs['pos_y'] = Attribute(float(pos_y), self.agent_id)
+
                 new_node.attrs['ps_social_x_pos'] = Attribute(np.array(x_social,dtype=np.float32), self.agent_id)
                 new_node.attrs['ps_social_y_pos'] = Attribute(np.array(y_social,dtype=np.float32), self.agent_id)
                 new_node.attrs['ps_personal_x_pos'] = Attribute(np.array(x_personal,dtype=np.float32), self.agent_id)
@@ -237,6 +244,7 @@ class SpecificWorker(GenericWorker):
                 try:
                     id_result = self.g.insert_node(new_node)
                     console.print('Personal space node created -- ', id_result, style='red')
+                    time.sleep(0.1)
                     has_edge = Edge(id_result, person_node.id, 'has', self.agent_id)
                     self.g.insert_or_assign_edge(has_edge)
 
@@ -245,6 +253,19 @@ class SpecificWorker(GenericWorker):
                 except:
                     traceback.print_exc()
                     print('cant insert node or add edge RT')
+
+        personal_space_nodes = self.g.get_nodes_by_type("personal_space")
+        print("EXISTING NODES: ", existing_person_node_ids)
+        for node in personal_space_nodes:
+            print("NODE PERSON ID: ", node.attrs['person_id'].value)
+
+            # console.print("EDGES-------------------------", style='red')
+            if node.attrs['person_id'].value not in existing_person_node_ids:
+                console.print("------REMOVE PERSONAL SPACE-------", node.attrs['person_id'].value, style='yellow')
+                self.g.delete_node(node.id)
+
+
+
 
     def get_interactive_objects_from_drs(self):
         interactive_edges = self.g.get_edges_by_type('interactive')
@@ -357,7 +378,7 @@ class SpecificWorker(GenericWorker):
             if person_node_in_dsr is not None:
 
                 try:
-                    self.rt_api.insert_or_assign_edge_RT(self.g.get_node('world'), person_node_in_dsr.id,
+                    self.rt_api.insert_or_assign_edge_RT(self.g.get_node('robot'), person_node_in_dsr.id,
                                                          [person.x, person.y, person.z], [.0, person.ry, .0])
                 except:
                     traceback.print_exc()
@@ -373,10 +394,11 @@ class SpecificWorker(GenericWorker):
                 new_node.attrs['person_id'] = Attribute(person.id, self.agent_id)
                 new_node.attrs['pos_x'] = Attribute(25.0, self.agent_id)
                 new_node.attrs['pos_y'] = Attribute(50.0, self.agent_id)
+                new_node.attrs['distance_to_robot'] = Attribute(10000.0, self.agent_id)
 
                 try:
                     id_result = self.g.insert_node(new_node)
-                    self.rt_api.insert_or_assign_edge_RT(self.g.get_node('world'), id_result,
+                    self.rt_api.insert_or_assign_edge_RT(self.g.get_node('robot'), id_result,
                                                          [person.x, person.y, person.z], [.0, person.ry, .0])
                     print(' inserted new node  ', id_result)
 
@@ -391,23 +413,38 @@ class SpecificWorker(GenericWorker):
     # =============================================
 
     def update_node_att(self, id: int, attribute_names: [str]):
-        console.print(f"UPDATE NODE ATT: {id} {attribute_names}", style='green')
+        #console.print(f"UPDATE NODE ATT: {id} {attribute_names}", style='green')
+        pass
 
     def update_node(self, id: int, type: str):
-        console.print(f"UPDATE NODE: {id} {type}", style='green')
+        if type == "person":
+            try:
+                # PEOPLE
+                people_list = self.get_people_from_dsr()
+                # if len(people_list) != 0:
+                spaces = self.personal_spaces_manager.get_personal_spaces(people_list, False)
+                dict_ids_personal_spaces = self.get_space_of_each_person(people_list, spaces)
+                print("DICCIONARIO: ",dict_ids_personal_spaces)
+                self.update_personal_spaces(dict_ids_personal_spaces)
+
+                # OBJECTS
+                objects_list = self.get_interactive_objects_from_drs()
+                self.update_affordance_spaces(objects_list)
+            except:
+                print("error")
 
     def delete_node(self, id: int):
-        console.print(f"DELETE NODE:: {id} ", style='green')
+        pass
 
     def update_edge(self, fr: int, to: int, type: str):
-        console.print(f"UPDATE EDGE: {fr} to {to} {type}", style='green')
-
+        #console.print(f"UPDATE EDGE: {fr} to {to} {type}", style='green')
+        pass
     def update_edge_att(self, fr: int, to: int, type: str, attribute_names: [str]):
-        console.print(f"UPDATE EDGE ATT: {fr} to {to} {attribute_names}", style='green')
-
+        #console.print(f"UPDATE EDGE ATT: {fr} to {to} {attribute_names}", style='green')
+        pass
     def delete_edge(self, fr: int, to: int, type: str):
-        console.print(f"DELETE EDGE: {fr} to {to} {type}", style='green')
-
+        #console.print(f"DELETE EDGE: {fr} to {to} {type}", style='green')
+        pass
     ######################
     # From the RoboCompHumanToDSRPub you can use this types:
     # RoboCompHumanToDSRPub.TJointData

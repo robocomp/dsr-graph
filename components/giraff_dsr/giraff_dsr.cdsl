@@ -6,12 +6,13 @@ import "RealSenseFaceID.idsl";
 import "CameraRGBDSimple.idsl";
 import "FullPoseEstimation.idsl";
 import "Laser.idsl";
+import "JointMotorSimple.idsl";
 
 Component giraff_dsr
 {
     Communications
     {
-        requires DifferentialRobot, BatteryStatus, Giraff, CameraSimple, CameraSimple, RealSenseFaceID, CameraRGBDSimple, FullPoseEstimation, Laser;
+        requires DifferentialRobot, BatteryStatus, Giraff, CameraSimple, CameraSimple, RealSenseFaceID, CameraRGBDSimple, FullPoseEstimation, Laser, JointMotorSimple;
     };
     language Cpp11;
     gui Qt(QMainWindow);

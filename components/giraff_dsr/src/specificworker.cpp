@@ -20,6 +20,7 @@
 #include <cppitertools/zip.hpp>
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/enumerate.hpp>
+#include <chrono>
 
 /**
 * \brief Default constructor
@@ -107,7 +108,7 @@ void SpecificWorker::initialize(int period)
         qWarning() << "No robot node found. Terminate";
         std::terminate();
     }
-	this->Period = period;
+	this->Period = 1;
 	if(this->startup_check_flag)
 		this->startup_check();
 	else
@@ -118,16 +119,46 @@ void SpecificWorker::initialize(int period)
 }
 void SpecificWorker::compute()
 {
+
+    auto t_start = std::chrono::high_resolution_clock::now();
     update_robot_localization();
+
     read_battery();
 //    auto camera_rgbd_frame = compute_camera_rgbd_frame();
-//    update_camera_rgbd(giraff_camera_realsense_name,camera_rgbd_frame, focalx, focaly);
-    auto camera_simple_frame = compute_camera_simple_frame();
-    update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
+
+// FOR COPPELIA
+try
+{
+    auto rgbd = camerargbdsimple_proxy->getImage("camera_top");
+    cv::Mat rgbd_frame (cv::Size(rgbd.width, rgbd.height), CV_8UC3, &rgbd.image[0]);
+
+    // FOR REAL ROBOT
+//    auto rgbd = camerargbdsimple_proxy->getImage("");
+//    cv::Mat rgbd_frame (cv::Size(rgbd.height, rgbd.width), CV_8UC3, &rgbd.image[0]);
+//    cv::Mat rgbd_frame_rotated (cv::Size(rgbd.width, rgbd.height), CV_8UC3);
+//    // Rotation process
+//    cv::Point2f src_center(rgbd_frame.cols/2.0F, rgbd_frame.rows/2.0F);
+//    cv::Mat rot_matrix = getRotationMatrix2D(src_center, 90, 1.0);
+//    warpAffine(rgbd_frame, rgbd_frame_rotated, rot_matrix, rgbd_frame.size());
+//
+//    cv::cvtColor(rgbd_frame_rotated, rgbd_frame_rotated, 4);
+
+    update_camera_rgbd(giraff_camera_realsense_name, rgbd_frame, rgbd.focalx, rgbd.focaly);
+}
+catch(const Ice::Exception &e) { /*std::cout << e.what() << std::endl;*/}
+
+
+
+//    auto camera_simple_frame = compute_camera_simple_frame();
+//    update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
     //auto camera_simple1_frame = compute_camera_simple1_frame();
     //update_camera_simple1(giraff_camera_face_id_name, camera_simple1_frame);
+    update_servo_position();
     auto laser = read_laser_from_robot();
     update_laser(laser);
+    auto t_end = std::chrono::high_resolution_clock::now();
+    double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
+//    std::cout << elapsed_time_ms << std::endl;
 }
 void SpecificWorker::read_battery()
 {
@@ -136,12 +167,32 @@ void SpecificWorker::read_battery()
         auto battery_level = batterystatus_proxy->getBatteryState();
         if( auto battery = G->get_node(battery_name); battery.has_value())
         {
-            G->add_or_modify_attrib_local<battery_load_att>(battery.value(), (int)(100*battery_level.percentage));
+            G->add_or_modify_attrib_local<battery_load_att>(battery.value(), (100*battery_level.percentage));
             G->update_node(battery.value());
         }
     }
-    catch(const Ice::Exception &e) { std::cout << e.what() << std::endl;}
+    catch(const Ice::Exception &e) { /*std::cout << e.what() << std::endl;*/}
 }
+
+void SpecificWorker::update_servo_position()
+{
+    try
+    {
+        auto servo_data = this->jointmotorsimple_proxy->getMotorState("eye_motor");
+        float servo_position = (float)servo_data.pos;
+        float servo_vel = (float)servo_data.vel;
+        bool moving = servo_data.isMoving;
+        if( auto servo = G->get_node("servo"); servo.has_value())
+        {
+            G->add_or_modify_attrib_local<servo_pos_att>(servo.value(), servo_position);
+            G->add_or_modify_attrib_local<servo_speed_att>(servo.value(), servo_vel);
+            G->add_or_modify_attrib_local<servo_moving_att>(servo.value(), moving);
+            G->update_node(servo.value());
+        }
+    }
+    catch(const Ice::Exception &e){ /*std::cout << e.what() <<  __FUNCTION__ << std::endl;*/};
+}
+
 void SpecificWorker::update_robot_localization()
 {
     static RoboCompFullPoseEstimation::FullPoseEuler last_state;
@@ -151,7 +202,7 @@ void SpecificWorker::update_robot_localization()
         pose = fullposeestimation_proxy->getFullPoseEuler();
         //qInfo() << "X:" << pose.x  << "// Y:" << pose.y << "// Z:" << pose.z << "// RX:" << pose.rx << "// RY:" << pose.ry << "// RZ:" << pose.rz;
     }
-    catch(const Ice::Exception &e){ std::cout << e.what() <<  __FUNCTION__ << std::endl;};
+    catch(const Ice::Exception &e){ /*std::cout << e.what() <<  __FUNCTION__ << std::endl;*/};
 
     if( auto robot = G->get_node(robot_name); robot.has_value())
     {
@@ -170,7 +221,13 @@ void SpecificWorker::update_robot_localization()
                 float side_velocity = -sin(pose.rz) * pose.vx + cos(pose.rz) * pose.vy;
                 float adv_velocity = -cos(pose.rz) * pose.vx + sin(pose.rz) * pose.vy;
                 G->insert_or_assign_edge(edge);
+//                std::cout << "VELOCITIES: " << adv_velocity << " " << pose.vrz << std::endl;
+
+
                 G->add_or_modify_attrib_local<robot_local_linear_velocity_att>(robot.value(), std::vector<float>{adv_velocity, side_velocity, pose.rz});
+                G->add_or_modify_attrib_local<robot_local_advance_speed_att>(robot.value(), -adv_velocity);
+                G->add_or_modify_attrib_local<robot_local_rotational_speed_att>(robot.value(), pose.vrz);
+
                 G->update_node(robot.value());
                 last_state = pose;
             }
@@ -188,7 +245,7 @@ cv::Mat SpecificWorker::compute_camera_rgbd_frame()
     cv::Mat rgbd_frame;
     try
     {
-        rgbd = camerargbdsimple_proxy->getImage("camera_tablet");
+        auto rgbd = camerargbdsimple_proxy->getImage("");
         this->focalx = rgbd.focalx;
         this->focaly = rgbd.focaly;
 
@@ -199,7 +256,7 @@ cv::Mat SpecificWorker::compute_camera_rgbd_frame()
 //        }
         rgbd_frame = cv::Mat(cv::Size(rgbd.width, rgbd.height), CV_8UC3, &rgbd.image[0]);
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
+    catch (const Ice::Exception &e){ /*std::cout << e.what() << std::endl;*/}
     return rgbd_frame;
 }
 
@@ -224,6 +281,14 @@ void SpecificWorker::update_camera_rgbd(std::string camera_name, const cv::Mat &
         qWarning() << __FUNCTION__ << "Node camera_rgbd not found";
 }
 
+Eigen::Vector2f SpecificWorker::from_world_to_robot(const Eigen::Vector2f &p,
+                                                    const RoboCompFullPoseEstimation::FullPoseEuler &r_state)
+{
+    Eigen::Matrix2f matrix;
+    matrix << cos(r_state.rz) , -sin(r_state.rz) , sin(r_state.rz) , cos(r_state.rz);
+    return (matrix.transpose() * (p - Eigen::Vector2f(r_state.x, r_state.y)));
+}
+
 cv::Mat SpecificWorker::compute_camera_simple_frame()
 {
     RoboCompCameraSimple::TImage cdata_camera_simple;
@@ -242,7 +307,7 @@ cv::Mat SpecificWorker::compute_camera_simple_frame()
             cv::cvtColor(camera_simple_frame, camera_simple_frame, cv::COLOR_BGR2RGB);
         }
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() <<  " In compute_camera_simple_frame" << std::endl;}
+    catch (const Ice::Exception &e){ /*std::cout << e.what() <<  " In compute_camera_simple_frame" << std::endl;*/}
     return camera_simple_frame;
 }
 
@@ -280,7 +345,7 @@ cv::Mat SpecificWorker::compute_camera_simple1_frame()
             //cv::cvtColor(camera_simple1_frame, camera_simple1_frame, cv::COLOR_BGR2RGB);
         }
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
+    catch (const Ice::Exception &e){ /*std::cout << e.what() << std::endl;*/}
 
     return camera_simple1_frame;
 }
@@ -311,7 +376,7 @@ void SpecificWorker::update_rgbd()
     {
         rgb = camerargbdsimple_proxy->getImage("giraff_camera_realsense");
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() << std::endl;}
+    catch (const Ice::Exception &e){ /*std::cout << e.what() << std::endl;*/}
 
     if( auto node = G->get_node(giraff_camera_realsense_name); node.has_value())
     {
@@ -367,7 +432,7 @@ std::vector<SpecificWorker::LaserPoint> SpecificWorker::read_laser_from_robot()
         //for(auto &d : laser)
         //    qInfo() << d.angle << d.dist;
         std::transform(laser.begin(), laser.end(), std::back_inserter(laser_data), [](const auto &l) {return LaserPoint{l.dist, l.angle}; });
-    }catch (const Ice::Exception &e){ std::cout << e.what() << " No laser_pioneer_data" << std::endl; return {};}
+    }catch (const Ice::Exception &e){ /*std::cout << e.what() << " No laser_pioneer_data" << std::endl;*/ return {};}
 
     return laser_data;
 }
@@ -475,16 +540,51 @@ void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, 
 
 void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
+    std::cout << "SIGNAL: " << type << std::endl;
+    if (type == "servo")
+    {
+        //            // servo
+        if (auto servo = G->get_node("servo"); servo.has_value())
+        {
+//            std::cout << "ENTERING IN SERVO" << std::endl;
+            if(auto servo_send_pos = G->get_attrib_by_name<servo_send_pos_att>(servo.value()); servo_send_pos.has_value())
+            {
+                float servo_pos = servo_send_pos.value();
+                if(auto servo_send_speed = G->get_attrib_by_name<servo_send_speed_att>(servo.value()); servo_send_speed.has_value())
+                {
+                    float servo_speed = servo_send_speed.value();
+                    servo_pos_anterior = servo_pos;
+                    servo_speed_anterior =  servo_speed;
+
+                    try {
+//                        std::cout << "SENDING POSITION" << std::endl;
+                        RoboCompJointMotorSimple::MotorGoalPosition goal;
+                        goal.maxSpeed = (float)servo_speed;
+                        goal.position = (float)servo_pos;
+                        this->jointmotorsimple_proxy->setPosition("eye_motor", goal);
+                    }
+                    catch (const RoboCompGenericBase::HardwareFailedException &re) {
+//                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
+//                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
+                    }
+                    catch (const Ice::Exception &e) {
+                        //std::cout << e.what() << '\n';
+                    }
+                }
+            }
+
+        }
+    }
 
     if (type == differentialrobot_type_name)   // pasar al SLOT the change attrib
     {
-        qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
+        qInfo() << __FUNCTION__  << "DIFFERIAL ROBOT";
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
             // speed
             auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
             auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-            qInfo() << __FUNCTION__ << ref_adv_speed.has_value() << ref_rot_speed.has_value();
+//            qInfo() << __FUNCTION__ << ref_adv_speed.has_value() << ref_rot_speed.has_value();
             if (ref_adv_speed.has_value() and ref_rot_speed.has_value())
             {
                 //comprobar si la velocidad ha cambiado y el cambio es mayor de 10mm o algo así, entonces entra y tiene que salir estos mensajes
@@ -499,18 +599,20 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
                 if ( adv != av_anterior or rot != rot_anterior)
                 {
                     std::cout<< "..................................."<<endl;
-                    std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " " << ref_rot_speed.value()
-                              << std::endl;
+//                    std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " " << ref_rot_speed.value()
+//                              << std::endl;
                     av_anterior = adv;
                     rot_anterior = rot;
                     try {
                         differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value());
+                        std::cout << "VELOCIDADES: " << ref_adv_speed.value() << " " << ref_rot_speed.value() << std::endl;
                     }
                     catch (const RoboCompGenericBase::HardwareFailedException &re) {
-                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
+//                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
+//                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
                     }
                     catch (const Ice::Exception &e) {
-                        std::cout << e.what() << '\n';
+                        //std::cout << e.what() << '\n';
                     }
                 }
             }

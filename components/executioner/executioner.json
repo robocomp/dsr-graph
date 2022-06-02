@@ -158,17 +158,17 @@
                     },
                     "pos_x": {
                         "type": 2,
-                        "value": -278.689453
+                        "value": -293.44104
                     },
                     "pos_y": {
                         "type": 2,
-                        "value": -3.151021
+                        "value": 9.331095
                     }
                 },
                 "id": "1000",
                 "links": [
                     {
-                        "dst": "44430886032113665",
+                        "dst": "71532755342589953",
                         "label": "has",
                         "linkAttribute": {
                         },
@@ -267,63 +267,6 @@
                 ],
                 "name": "robot",
                 "type": "omnirobot"
-            },
-            "44430886032113665": {
-                "attribute": {
-                    "agent_description": {
-                        "type": 0,
-                        "value": "TODO"
-                    },
-                    "agent_id": {
-                        "type": 6,
-                        "value": 1
-                    },
-                    "agent_name": {
-                        "type": 0,
-                        "value": "Participant_1 ( idserver )"
-                    },
-                    "cpu_usage": {
-                        "type": 2,
-                        "value": 0
-                    },
-                    "memory_usage": {
-                        "type": 6,
-                        "value": 73204
-                    },
-                    "num_procs": {
-                        "type": 6,
-                        "value": 26
-                    },
-                    "parent": {
-                        "type": 7,
-                        "value": "1000"
-                    },
-                    "pos_x": {
-                        "type": 2,
-                        "value": 10
-                    },
-                    "pos_y": {
-                        "type": 2,
-                        "value": 10
-                    },
-                    "timestamp_agent": {
-                        "type": 7,
-                        "value": "1635942136082315766"
-                    },
-                    "timestamp_alivetime": {
-                        "type": 7,
-                        "value": "64"
-                    },
-                    "timestamp_creation": {
-                        "type": 7,
-                        "value": "1635942071793708584"
-                    }
-                },
-                "id": "44430886032113665",
-                "links": [
-                ],
-                "name": "Participant_1 ( idserver )",
-                "type": "agent"
             },
             "50": {
                 "attribute": {
@@ -433,6 +376,63 @@
                 "name": "kitchen",
                 "type": "room"
             },
+            "71532755342589953": {
+                "attribute": {
+                    "agent_description": {
+                        "type": 0,
+                        "value": "TODO"
+                    },
+                    "agent_id": {
+                        "type": 6,
+                        "value": 1
+                    },
+                    "agent_name": {
+                        "type": 0,
+                        "value": "Participant_1 ( idserver )"
+                    },
+                    "cpu_usage": {
+                        "type": 2,
+                        "value": 6
+                    },
+                    "memory_usage": {
+                        "type": 6,
+                        "value": 76868
+                    },
+                    "num_procs": {
+                        "type": 6,
+                        "value": 26
+                    },
+                    "parent": {
+                        "type": 7,
+                        "value": "1000"
+                    },
+                    "pos_x": {
+                        "type": 2,
+                        "value": -270.280243
+                    },
+                    "pos_y": {
+                        "type": 2,
+                        "value": 93.970596
+                    },
+                    "timestamp_agent": {
+                        "type": 7,
+                        "value": "1652096555057464916"
+                    },
+                    "timestamp_alivetime": {
+                        "type": 7,
+                        "value": "510"
+                    },
+                    "timestamp_creation": {
+                        "type": 7,
+                        "value": "1652096044722872985"
+                    }
+                },
+                "id": "71532755342589953",
+                "links": [
+                ],
+                "name": "Participant_1 ( idserver )",
+                "type": "agent"
+            },
             "900": {
                 "attribute": {
                     "color": {
@@ -448,8 +448,8 @@
                         "value": "1"
                     },
                     "person_id": {
-                        "type": 7,
-                        "value": "0"
+                        "type": 1,
+                        "value": 0
                     },
                     "pos_x": {
                         "type": 2,

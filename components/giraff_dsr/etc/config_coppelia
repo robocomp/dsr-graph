@@ -10,13 +10,14 @@ FullPoseEstimationProxy = fullposeestimation:tcp  -p 10696
 GiraffProxy = giraff:tcp  -p 10052
 LaserProxy = laser:tcp  -p 10003
 RealSenseFaceIDProxy = realsensefaceid:tcp  -p 11070
+JointMotorSimpleProxy = jointmotorsimple:tcp -p 10086
 
 
 agent_id = 30 # Change id
 agent_name = giraff_dsr
-tree_view = false
+tree_view = true
 graph_view = true
-2d_view = true
+2d_view = false
 3d_view = false
 #Ice.MessageSizeMax=20004800
 
