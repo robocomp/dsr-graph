@@ -7,7 +7,7 @@ DSRGetID.Endpoints=tcp -p 11000
 agent_id = 1
 agent_name = idserver
 
-dsr_input_file = /home/robocomp/robocomp/components/robocomp-giraff/etc/corralgiraff.json
+dsr_input_file = /home/robocomp/robocomp/components/robocomp-giraff/etc/corralgiraff_servo.json
 
 tree_view = false
 graph_view = true
