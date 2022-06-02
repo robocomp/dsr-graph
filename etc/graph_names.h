@@ -70,7 +70,7 @@ const std::string has_type_name = "has";
 const std::string in_type_name = "in";
 const std::string attention_action_type_name = "attention_action";
 const std::string goto_action_type_name = "goto_action";
-
+const std::string following_action_type_name = "following";
 
 
 #endif

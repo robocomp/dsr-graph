@@ -86,7 +86,7 @@ void SpecificWorker::initialize(int period)
         if (auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
         {
             Eigen::Vector3f nose(0, 1000, 0);
-            G->add_or_modify_attrib_local<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value(),
+            G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(),
                                                                                  std::vector<float>{static_cast<float>(nose.x()), static_cast<float>(nose.y()),
                                                                                                     static_cast<float>(nose.z())});
             G->update_node(pan_tilt.value());
@@ -148,7 +148,7 @@ void SpecificWorker::compute()
         //update_pantilt_position();
         //update_arm_state();
 
-        //check_new_nose_referece_for_pan_tilt();
+        check_new_nose_referece_for_pan_tilt();
     }
     
     fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
@@ -569,7 +569,7 @@ void SpecificWorker::check_new_nose_referece_for_pan_tilt()
 {
     if( auto pan_tilt = G->get_node(viriato_head_camera_pan_tilt_name); pan_tilt.has_value())
     {
-        if( auto target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(pan_tilt.value()); target.has_value())
+        if( auto target = G->get_attrib_by_name<nose_pose_ref_att>(pan_tilt.value()); target.has_value())
         {
             RoboCompCoppeliaUtils::PoseType dummy_pose{ target.value().get()[0], target.value().get()[1], target.value().get()[2], 0.0, 0.0, 0.0};
             try
@@ -680,11 +680,11 @@ void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::
     if (id == 206)
         if(const auto node = G->get_node(206); node.has_value())
         {
-            if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_pos_ref"); att_name != std::end(att_names))
+            if (auto att_name = std::ranges::find(att_names, "nose_pose_ref"); att_name != std::end(att_names))
             {
                 //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_pos_ref");
                 //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
-                std::vector<float> target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_pos_ref_att>(node.value()).value().get();
+                std::vector<float> target = G->get_attrib_by_name<nose_pose_ref_att>(node.value()).value().get();
                 qInfo() << __FUNCTION__  << id << " Saccadic " <<  target[0] << target[1] << target[2];
                 RoboCompCoppeliaUtils::PoseType dummy_pose{target[0], target[1], target[2], 0.0, 0.0, 0.0};
                 try
@@ -692,11 +692,11 @@ void SpecificWorker::change_attrs_slot(std::uint64_t id, const std::vector<std::
                 catch (const Ice::Exception &e)
                 { std::cout << e << " Could not communicate through the CoppeliaUtils interface" << std::endl; }
             }
-            if (auto att_name = std::ranges::find(att_names, "viriato_head_pan_tilt_nose_speed_ref"); att_name != std::end(att_names))
+            if (auto att_name = std::ranges::find(att_names, "nose_speed_ref"); att_name != std::end(att_names))
             {
                 //const auto t_att = attribs.at("viriato_head_pan_tilt_nose_speed_ref");
                 //std::vector<float> target = std::get<std::vector<float>>(t_att.value());
-                std::vector<float> target = G->get_attrib_by_name<viriato_head_pan_tilt_nose_speed_ref_att>(node.value()).value().get();
+                std::vector<float> target = G->get_attrib_by_name<nose_speed_ref_att>(node.value()).value().get();
                 qInfo() << __FUNCTION__  << id << " Smooth " <<  target[0] << target[1] << target[2];
                 RoboCompCoppeliaUtils::SpeedType dummy_speed{target[0], target[1], target[2], 0.0, 0.0, 0.0};
                 try

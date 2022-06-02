@@ -46,6 +46,7 @@
 #include  "../../../etc/graph_names.h"
 #include "plan.h"
 #include <Eigen/Core>
+#include "api_geom.h"
 
 #define YOLO_IMG_SIZE 512  // 608, 512 change also in yolo.cgf file
 
@@ -139,6 +140,7 @@ private:
         std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
         std::shared_ptr<DSR::RT_API> rt_api;
         std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
+        std::shared_ptr<DSR::Api_Geom> api_geom;
 
         //DSR params
         std::string agent_name;
@@ -211,7 +213,6 @@ private:
         std::uint64_t last_object_of_attention;
         void clear_all_attention_edges();
         void compute_attention_list(const std::vector<Box> &synth_objects);
-
 
 };
 

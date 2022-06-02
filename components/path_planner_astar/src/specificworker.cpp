@@ -192,6 +192,9 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
     robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
     robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
     robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
+
+    //Initialize planner to 0,0 position of floor
+    //new_target_from_mouse(0,0,20);
 }
 
 void SpecificWorker::run_current_plan(const QPointF &target)
