@@ -36,96 +36,89 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-#include <fps/fps.h>
+
 
 class SpecificWorker : public GenericWorker
 {
     using MyClock = std::chrono::system_clock;
     using mSec = std::chrono::duration<double, std::milli>;
 
-    Q_OBJECT
-    public:
-        SpecificWorker(TuplePrx tprx, bool startup_check);
-        ~SpecificWorker();
-        bool setParams(RoboCompCommonBehavior::ParameterList params);
+Q_OBJECT
+public:
+	SpecificWorker(TuplePrx tprx, bool startup_check);
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
-    public slots:
-        void compute();
-        int startup_check();
-        void initialize(int period);
-        void modify_node_slot(std::uint64_t, const std::string &type){};
-        void modify_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
-        void add_or_assign_node_slot(std::uint64_t, const std::string &type);
-        void modify_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names);
+public slots:
+	void compute();
+	int startup_check();
+	void initialize(int period);
+private:
+	/// DSR graph
+	std::shared_ptr<DSR::DSRGraph> G;
+    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+    std::unique_ptr<DSR::RT_API> rt;
+	///DSR params
+	std::string agent_name;
+	int agent_id;
+    std::string dsr_input_file;
 
-    private:
-        /// DSR graph
-        std::shared_ptr<DSR::DSRGraph> G;
-        std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
-        std::unique_ptr<DSR::RT_API> rt;
-        std::unique_ptr<DSR::AgentInfoAPI> agent_info_api;
+	bool tree_view;
+	bool graph_view;
+	bool qscene_2d_view;
+	bool osg_3d_view;
 
-    ///DSR params
-        std::string agent_name;
-        int agent_id;
-        std::string dsr_input_file;
+	/// DSR graph viewer
+	std::unique_ptr<DSR::DSRViewer> graph_viewer;
+	QHBoxLayout mainLayout;
+	void modify_node_slot(std::uint64_t, const std::string &type){};
+	void modify_edge_slot(std::uint64_t from, std::uint64_t to,  const std::string &type){};
+    void add_or_assign_node_slot(std::uint64_t, const std::string &type);
+    void modify_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names);
+    float av_anterior = 9999;
+    float rot_anterior = 9999;
 
-        bool tree_view;
-        bool graph_view;
-        bool qscene_2d_view;
-        bool osg_3d_view;
+    float servo_speed_anterior = 0;
+    float servo_pos_anterior = 0;
 
-        /// DSR graph viewer
-        std::unique_ptr<DSR::DSRViewer> graph_viewer;
-        QHBoxLayout mainLayout;
-        DSR::QScene2dViewer * widget_2d;
+    void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
+	void del_node_slot(std::uint64_t from){};     
+	bool startup_check_flag;
 
-        float av_anterior = 9999;
-        float rot_anterior = 9999;
+    Eigen::Vector2f from_world_to_robot(const Eigen::Vector2f &p,
+                                                        const RoboCompFullPoseEstimation::FullPoseEuler &r_state);
+	
+	///Remote services
+    void update_robot_localization();
+    void read_battery();
+    //void read_RSSI();
 
-        float servo_speed_anterior = 0;
-        float servo_pos_anterior = 0;
+    ///Virtual Frame
+    cv::Mat compute_camera_rgbd_frame();
+    float focalx, focaly;
+    void update_camera_rgbd(std::string camera, const cv::Mat &virtual_frame, float focalx, float focaly);
 
-        void del_edge_slot(std::uint64_t from, std::uint64_t to, const std::string &edge_tag){};
-        void del_node_slot(std::uint64_t from){};
-        bool startup_check_flag;
+    std::string giraff_camera_realsense_name = "giraff_camera_realsense";
 
-        Eigen::Vector2f from_world_to_robot(const Eigen::Vector2f &p,
-                                                            const RoboCompFullPoseEstimation::FullPoseEuler &r_state);
+    cv::Mat compute_camera_simple_frame();
+    void update_camera_simple(std::string camera, const cv::Mat &virtual_frame);
 
-        ///Remote services
-        void update_robot_localization();
-        void read_battery();
-        //void read_RSSI();
+    cv::Mat compute_camera_simple1_frame();
+    void update_camera_simple1(std::string camera, const cv::Mat &virtual_frame);
 
-        ///Virtual Frame
-        cv::Mat compute_camera_rgbd_frame();
-        float focalx, focaly;
-        void update_camera_rgbd(std::string camera, const cv::Mat &virtual_frame, float focalx, float focaly);
+    void update_servo_position();
 
-        std::string giraff_camera_realsense_name = "giraff_camera_realsense";
+    bool are_different(const vector<float> &a, const vector<float> &b, const vector<float> &epsilon);
+    void update_rgbd();
 
-        cv::Mat compute_camera_simple_frame();
-        void update_camera_simple(std::string camera, const cv::Mat &virtual_frame);
+    //laser
+    using Point = std::pair<float, float>;
+    struct LaserPoint{ float dist; float angle;};
+    std::vector<LaserPoint> read_laser_from_robot();
+    void update_laser(const std::vector<LaserPoint> &laser_data);
+    QPolygonF filter_laser(const std::vector<SpecificWorker::LaserPoint> &ldata);
+    void ramer_douglas_peucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out);
 
-        cv::Mat compute_camera_simple1_frame();
-        void update_camera_simple1(std::string camera, const cv::Mat &virtual_frame);
-
-        void update_servo_position();
-
-        bool are_different(const vector<float> &a, const vector<float> &b, const vector<float> &epsilon);
-        void update_rgbd();
-
-        //laser
-        using Point = std::pair<float, float>;
-        struct LaserPoint{ float dist; float angle;};
-        std::vector<LaserPoint> read_laser_from_robot();
-        void update_laser(const std::vector<LaserPoint> &laser_data);
-        QPolygonF filter_laser(const std::vector<SpecificWorker::LaserPoint> &ldata);
-        void ramer_douglas_peucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out);
-
-        // Timer
-        FPSCounter fps;
 };
 
 #endif

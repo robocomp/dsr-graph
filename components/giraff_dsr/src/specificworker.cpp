@@ -37,23 +37,24 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
-	//G->write_to_json_file("./"+agent_name+".json");
+	G->write_to_json_file("./"+agent_name+".json");
 	G.reset();
 }
+
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    try
-    {
-        agent_name = params.at("agent_name").value;
-        agent_id = stoi(params.at("agent_id").value);
-        tree_view = params.at("tree_view").value == "true";
-        graph_view = params.at("graph_view").value == "true";
-        qscene_2d_view = params.at("2d_view").value == "true";
-        osg_3d_view = params.at("3d_view").value == "true";
-    }
-	catch(const std::exception &e){ std::cout << e.what() << "Error reading params from config" << std::endl;};
+    // TODO ESTO EN UN TRY CON .at()
+    //////////////////////////////////
+	agent_name = params["agent_name"].value;
+	agent_id = stoi(params["agent_id"].value);
+	tree_view = params["tree_view"].value == "true";
+	graph_view = params["graph_view"].value == "true";
+	qscene_2d_view = params["2d_view"].value == "true";
+	osg_3d_view = params["3d_view"].value == "true";
+
 	return true;
 }
+
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
@@ -62,11 +63,11 @@ void SpecificWorker::initialize(int period)
     std::cout<< __FUNCTION__ << "Graph loaded" << std::endl;
 
     //dsr update signals
-    //connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
-    //connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::modify_edge_slot);
-    connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::modify_attrs_slot);
-    //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
-    //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
+    connect(G.get(), &DSR::DSRGraph::update_node_signal, this, &SpecificWorker::add_or_assign_node_slot);
+    connect(G.get(), &DSR::DSRGraph::update_edge_signal, this, &SpecificWorker::modify_edge_slot);
+    //connect(G.get(), &DSR::DSRGraph::update_node_attr_signal, this, &SpecificWorker::modify_attrs_slot);
+    connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
+    connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
 
     // Graph viewer
     using opts = DSR::DSRViewer::view;
@@ -99,17 +100,15 @@ void SpecificWorker::initialize(int period)
 //        }
 //        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
 
-    // self agent api
-    agent_info_api = std::make_unique<DSR::AgentInfoAPI>(G.get());
 
-    // 2d widget
-    widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
-    if (widget_2d != nullptr)
+    if(auto robot_id = G->get_id_from_name(robot_name); robot_id.has_value())
+        robot_id = robot_id.value();
+    else
     {
-        widget_2d->set_draw_laser(true);
+        qWarning() << "No robot node found. Terminate";
+        std::terminate();
     }
-
-	this->Period = period;
+	this->Period = 1;
 	if(this->startup_check_flag)
 		this->startup_check();
 	else
@@ -125,14 +124,13 @@ void SpecificWorker::compute()
     update_robot_localization();
 
     read_battery();
+//    auto camera_rgbd_frame = compute_camera_rgbd_frame();
 
 // FOR COPPELIA
-try
-{
     auto rgbd = camerargbdsimple_proxy->getImage("camera_top");
     cv::Mat rgbd_frame (cv::Size(rgbd.width, rgbd.height), CV_8UC3, &rgbd.image[0]);
 
-    // FOR REAL ROBOT
+// FOR REAL ROBOT
 //    auto rgbd = camerargbdsimple_proxy->getImage("");
 //    cv::Mat rgbd_frame (cv::Size(rgbd.height, rgbd.width), CV_8UC3, &rgbd.image[0]);
 //    cv::Mat rgbd_frame_rotated (cv::Size(rgbd.width, rgbd.height), CV_8UC3);
@@ -144,10 +142,6 @@ try
 //    cv::cvtColor(rgbd_frame_rotated, rgbd_frame_rotated, 4);
 
     update_camera_rgbd(giraff_camera_realsense_name, rgbd_frame, rgbd.focalx, rgbd.focaly);
-}
-catch(const Ice::Exception &e) { /*std::cout << e.what() << std::endl;*/}
-
-
 
 //    auto camera_simple_frame = compute_camera_simple_frame();
 //    update_camera_simple(giraff_camera_usb_name, camera_simple_frame);
@@ -158,10 +152,8 @@ catch(const Ice::Exception &e) { /*std::cout << e.what() << std::endl;*/}
     update_laser(laser);
     auto t_end = std::chrono::high_resolution_clock::now();
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
-    graph_viewer->set_external_hz(fps.print(""));
+//    std::cout << elapsed_time_ms << std::endl;
 }
-
-////////////////////////////////////////////////////////////////////////////////////
 void SpecificWorker::read_battery()
 {
     try
@@ -226,11 +218,11 @@ void SpecificWorker::update_robot_localization()
 //                std::cout << "VELOCITIES: " << adv_velocity << " " << pose.vrz << std::endl;
 
 
-                G->add_or_modify_attrib_local<robot_local_linear_velocity_att>(robot.value(), std::vector<float>{adv_velocity, side_velocity, pose.rz});
-                G->add_or_modify_attrib_local<robot_local_advance_speed_att>(robot.value(), -adv_velocity);
-                G->add_or_modify_attrib_local<robot_local_rotational_speed_att>(robot.value(), pose.vrz);
-
-                G->update_node(robot.value());
+//                G->add_or_modify_attrib_local<robot_local_linear_velocity_att>(robot.value(), std::vector<float>{adv_velocity, side_velocity, pose.rz});
+//                G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), -adv_velocity);
+//                G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), pose.vrz);
+//
+//                G->update_node(robot.value());
                 last_state = pose;
             }
         }
@@ -238,6 +230,9 @@ void SpecificWorker::update_robot_localization()
     }
     else    qWarning() << __FUNCTION__ << " No node " << QString::fromStdString(robot_name);
 }
+
+
+
 cv::Mat SpecificWorker::compute_camera_rgbd_frame()
 {
     RoboCompCameraRGBDSimple::TImage rgbd;
@@ -258,8 +253,10 @@ cv::Mat SpecificWorker::compute_camera_rgbd_frame()
     catch (const Ice::Exception &e){ /*std::cout << e.what() << std::endl;*/}
     return rgbd_frame;
 }
+
 void SpecificWorker::update_camera_rgbd(std::string camera_name, const cv::Mat &v_image, float focalx, float focaly)
 {
+
     if( auto node = G->get_node(camera_name); node.has_value())
     {
         std::vector<uint8_t> rgb; rgb.assign(v_image.data, v_image.data + v_image.total()*v_image.channels());
@@ -277,7 +274,6 @@ void SpecificWorker::update_camera_rgbd(std::string camera_name, const cv::Mat &
     else
         qWarning() << __FUNCTION__ << "Node camera_rgbd not found";
 }
-<<<<<<< HEAD
 
 Eigen::Vector2f SpecificWorker::from_world_to_robot(const Eigen::Vector2f &p,
                                                     const RoboCompFullPoseEstimation::FullPoseEuler &r_state)
@@ -287,8 +283,6 @@ Eigen::Vector2f SpecificWorker::from_world_to_robot(const Eigen::Vector2f &p,
     return (matrix.transpose() * (p - Eigen::Vector2f(r_state.x, r_state.y)));
 }
 
-=======
->>>>>>> 2d1d18fd1ce836bf570cb70cbeae4db3186891fd
 cv::Mat SpecificWorker::compute_camera_simple_frame()
 {
     RoboCompCameraSimple::TImage cdata_camera_simple;
@@ -310,6 +304,7 @@ cv::Mat SpecificWorker::compute_camera_simple_frame()
     catch (const Ice::Exception &e){ /*std::cout << e.what() <<  " In compute_camera_simple_frame" << std::endl;*/}
     return camera_simple_frame;
 }
+
 void SpecificWorker::update_camera_simple(std::string camera_name, const cv::Mat &v_image)
 {
 
@@ -328,6 +323,7 @@ void SpecificWorker::update_camera_simple(std::string camera_name, const cv::Mat
     else
         qWarning() << __FUNCTION__ << "Node camera_simple not found";
 }
+
 cv::Mat SpecificWorker::compute_camera_simple1_frame()
 {
     RoboCompCameraSimple::TImage cdata_camera_simple1;
@@ -347,6 +343,7 @@ cv::Mat SpecificWorker::compute_camera_simple1_frame()
 
     return camera_simple1_frame;
 }
+
 void SpecificWorker::update_camera_simple1(std::string camera_name, const cv::Mat &v_image)
 {
 
@@ -365,40 +362,44 @@ void SpecificWorker::update_camera_simple1(std::string camera_name, const cv::Ma
     else
         qWarning() << __FUNCTION__ << "Node camera_simple1 not found";
 }
+
 void SpecificWorker::update_rgbd()
 {
-    RoboCompCameraRGBDSimple::TRGBD rgbd;
+    RoboCompCameraRGBDSimple::TImage rgb;
     try
     {
-        rgbd = camerargbdsimple_proxy->getAll("camera_top");
+        rgb = camerargbdsimple_proxy->getImage("giraff_camera_realsense");
     }
-    catch (const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
+    catch (const Ice::Exception &e){ /*std::cout << e.what() << std::endl;*/}
 
     if( auto node = G->get_node(giraff_camera_realsense_name); node.has_value())
     {
-        G->add_or_modify_attrib_local<cam_rgb_att>(node.value(), rgbd.image.image);
-        G->add_or_modify_attrib_local<cam_rgb_width_att>(node.value(), rgbd.image.width);
-        G->add_or_modify_attrib_local<cam_rgb_height_att>(node.value(), rgbd.image.height);
-        G->add_or_modify_attrib_local<cam_rgb_depth_att>(node.value(), rgbd.image.depth);
-        G->add_or_modify_attrib_local<cam_rgb_cameraID_att>(node.value(), rgbd.image.cameraID);
-        G->add_or_modify_attrib_local<cam_rgb_focalx_att>(node.value(), rgbd.image.focalx);
-        G->add_or_modify_attrib_local<cam_rgb_focaly_att>(node.value(), rgbd.image.focaly);
-        G->add_or_modify_attrib_local<cam_rgb_alivetime_att>(node.value(), rgbd.image.alivetime);
-
-        G->add_or_modify_attrib_local<cam_depth_att>(node.value(), rgbd.depth.depth);
-        G->add_or_modify_attrib_local<cam_depth_width_att>(node.value(), rgbd.depth.width);
-        G->add_or_modify_attrib_local<cam_depth_height_att>(node.value(), rgbd.depth.height);
-        G->add_or_modify_attrib_local<cam_depth_focalx_att>(node.value(), rgbd.depth.focalx);
-        G->add_or_modify_attrib_local<cam_depth_focaly_att>(node.value(), rgbd.depth.focaly);
-        G->add_or_modify_attrib_local<cam_depth_cameraID_att>(node.value(), rgbd.depth.cameraID);
-        G->add_or_modify_attrib_local<cam_depthFactor_att>(node.value(), rgbd.depth.depthFactor);
-        G->add_or_modify_attrib_local<cam_depth_alivetime_att>(node.value(), rgbd.depth.alivetime);
+        G->add_or_modify_attrib_local<cam_rgb_att>(node.value(), rgb.image);
+        G->add_or_modify_attrib_local<cam_rgb_width_att>(node.value(), rgb.width);
+        G->add_or_modify_attrib_local<cam_rgb_height_att>(node.value(), rgb.height);
+        G->add_or_modify_attrib_local<cam_rgb_depth_att>(node.value(), rgb.depth);
+        G->add_or_modify_attrib_local<cam_rgb_cameraID_att>(node.value(), rgb.cameraID);
+        G->add_or_modify_attrib_local<cam_rgb_focalx_att>(node.value(), rgb.focalx);
+        G->add_or_modify_attrib_local<cam_rgb_focaly_att>(node.value(), rgb.focaly);
+        G->add_or_modify_attrib_local<cam_rgb_alivetime_att>(node.value(), rgb.alivetime);
+        // depth
+//        G->add_or_modify_attrib_local<cam_depth_att>(node.value(), depth.depth);
+//        G->add_or_modify_attrib_local<cam_depth_width_att>(node.value(), depth.width);
+//        G->add_or_modify_attrib_local<cam_depth_height_att>(node.value(), depth.height);
+//        G->add_or_modify_attrib_local<cam_depth_focalx_att>(node.value(), depth.focalx);
+//        G->add_or_modify_attrib_local<cam_depth_focaly_att>(node.value(), depth.focaly);
+//        G->add_or_modify_attrib_local<cam_depth_cameraID_att>(node.value(), depth.cameraID);
+//        G->add_or_modify_attrib_local<cam_depthFactor_att>(node.value(), depth.depthFactor);
+//        G->add_or_modify_attrib_local<cam_depth_alivetime_att>(node.value(), depth.alivetime);
         G->update_node(node.value());
     }
     else
-        qWarning() << __FUNCTION__ << "Node camera RGBD not found";
+        qWarning() << __FUNCTION__ << "Node not found";
 }
-RoboCompLaser::TLaserData SpecificWorker::read_laser_from_robot()
+
+
+
+int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
 	QTimer::singleShot(200, qApp, SLOT(quit()));
@@ -419,26 +420,26 @@ bool SpecificWorker::are_different(const std::vector<float> &a, const std::vecto
 std::vector<SpecificWorker::LaserPoint> SpecificWorker::read_laser_from_robot()
 {
     std::vector<LaserPoint> laser_data;
-    try
-    {
+
+    try {
         auto laser = laser_proxy->getLaserData();
         //for(auto &d : laser)
         //    qInfo() << d.angle << d.dist;
         std::transform(laser.begin(), laser.end(), std::back_inserter(laser_data), [](const auto &l) {return LaserPoint{l.dist, l.angle}; });
-    }
-    catch (const Ice::Exception &e){ /*std::cout << e.what() << " No laser_pioneer_data" << std::endl;*/ return {};}
+    }catch (const Ice::Exception &e){ /*std::cout << e.what() << " No laser_pioneer_data" << std::endl;*/ return {};}
 
     return laser_data;
 }
-void SpecificWorker::update_laser(const RoboCompLaser::TLaserData &ldata)
+
+void SpecificWorker::update_laser(const std::vector<LaserPoint> &laser_data)
 {
     if( auto node = G->get_node(laser_name); node.has_value())
     {
         // Transform laserData into two std::vector<float>
         std::vector<float> dists;
-        std::ranges::transform(ldata, std::back_inserter(dists), [](const auto &l) { return l.dist; });
+        std::transform(laser_data.begin(), laser_data.end(), std::back_inserter(dists), [](const auto &l) { return l.dist; });
         std::vector<float> angles;
-        std::ranges::transform(ldata, std::back_inserter(angles), [](const auto &l) { return l.angle; });
+        std::transform(laser_data.begin(), laser_data.end(), std::back_inserter(angles), [](const auto &l) { return l.angle; });
 
         // update laser in DSR
         G->add_or_modify_attrib_local<laser_dists_att>(node.value(), dists);
@@ -448,7 +449,8 @@ void SpecificWorker::update_laser(const RoboCompLaser::TLaserData &ldata)
     else
         qWarning() << __FUNCTION__ << "No laser node found";
 }
-QPolygonF SpecificWorker::filter_laser(const RoboCompLaser::TLaserData &ldata)
+
+QPolygonF SpecificWorker::filter_laser(const std::vector<SpecificWorker::LaserPoint> &ldata)
 {
     static const float MAX_RDP_DEVIATION_mm  =  70;
     static const float MAX_SPIKING_ANGLE_rads = 0.2;
@@ -480,6 +482,7 @@ QPolygonF SpecificWorker::filter_laser(const RoboCompLaser::TLaserData &ldata)
     laser_poly.pop_back();
     return laser_poly;  // robot coordinates
 }
+
 void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out)
 {
     if(pointList.size()<2)
@@ -524,36 +527,23 @@ void SpecificWorker::ramer_douglas_peucker(const std::vector<Point> &pointList, 
     }
 }
 
-//////////////////// AUX ///////////////////////////////////////////////
-bool SpecificWorker::are_different(const std::vector<float> &a, const std::vector<float> &b, const std::vector<float> &epsilon)
-{
-    for(auto &&[aa, bb, e] : iter::zip(a, b, epsilon))
-        if (fabs(aa - bb) > e)
-            return true;
-    return false;
-};
-int SpecificWorker::startup_check()
-{
-    std::cout << "Startup check" << std::endl;
-    QTimer::singleShot(200, qApp, SLOT(quit()));
-    return 0;
-}
+
 ///////////////////////////////////////////////////////////////////
 /// Asynchronous changes on G nodes from G signals
 ///////////////////////////////////////////////////////////////////
-void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<std::string>& att_names)
+
+void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
 {
-    std::cout << "SIGNAL: " << type << std::endl;
     if (type == "servo")
     {
         //            // servo
         if (auto servo = G->get_node("servo"); servo.has_value())
         {
 //            std::cout << "ENTERING IN SERVO" << std::endl;
-            if(auto servo_send_pos = G->get_attrib_by_name<servo_send_pos_att>(servo.value()); servo_send_pos.has_value())
+            if(auto servo_send_pos = G->get_attrib_by_name<servo_ref_pos_att>(servo.value()); servo_send_pos.has_value())
             {
                 float servo_pos = servo_send_pos.value();
-                if(auto servo_send_speed = G->get_attrib_by_name<servo_send_speed_att>(servo.value()); servo_send_speed.has_value())
+                if(auto servo_send_speed = G->get_attrib_by_name<servo_ref_speed_att>(servo.value()); servo_send_speed.has_value())
                 {
                     float servo_speed = servo_send_speed.value();
                     servo_pos_anterior = servo_pos;
@@ -581,7 +571,7 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
 
     if (type == differentialrobot_type_name)   // pasar al SLOT the change attrib
     {
-        qInfo() << __FUNCTION__  << "DIFFERIAL ROBOT";
+//        qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
         if (auto robot = G->get_node(robot_name); robot.has_value())
         {
             // speed
@@ -598,7 +588,7 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
                 float adv = ref_adv_speed.value();
                 float rot = ref_rot_speed.value();
                 //float inc = 10.0;
-                cout << __FUNCTION__ << "adv " << adv << " rot " << rot << endl;
+//                cout << __FUNCTION__ << "adv " << adv << " rot " << rot << endl;
                 if ( adv != av_anterior or rot != rot_anterior)
                 {
                     std::cout<< "..................................."<<endl;
@@ -620,53 +610,10 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
                 }
             }
         }
-        catch (const RoboCompGenericBase::HardwareFailedException &re)
-        { std::cout << __FUNCTION__ << "Exception setting base speed " << re << std::endl; }
-        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl;}
     }
-};
+}
 
-//void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::string &type)
-//{
-//    if (type == differentialrobot_type_name)   // pasar al SLOT the change attrib
-//    {
-//        qInfo() << __FUNCTION__  << " Dentro " << id << QString::fromStdString(type);
-//        if (auto robot = G->get_node(robot_name); robot.has_value())
-//        {
-//            // speed
-//            auto ref_adv_speed = G->get_attrib_by_name<robot_ref_adv_speed_att>(robot.value());
-//            auto ref_rot_speed = G->get_attrib_by_name<robot_ref_rot_speed_att>(robot.value());
-//            qInfo() << __FUNCTION__ << ref_adv_speed.has_value() << ref_rot_speed.has_value();
-//            if (ref_adv_speed.has_value() and ref_rot_speed.has_value())
-//            {
-//                //comprobar si la velocidad ha cambiado y el cambio es mayor de 10mm o algo así, entonces entra y tiene que salir estos mensajes
-//                //std::cout << __FUNCTION__  <<endl;
-//                // Check de values are within robot's accepted range. Read them from config
-//                //const float lowerA = -10, upperA = 10, lowerR = -10, upperR = 5, lowerS = -10, upperS = 10;
-//                //std::clamp(ref_adv_speed.value(), lowerA, upperA);
-//                float adv = ref_adv_speed.value();
-//                float rot = ref_rot_speed.value();
-//                //float inc = 10.0;
-//                cout << __FUNCTION__ << "adv " << adv << " rot " << rot << endl;
-//                if ( adv != av_anterior or rot != rot_anterior)
-//                {
-//                    //std::cout<< "..................................."<<endl;
-//                    //std::cout << __FUNCTION__ << " " << ref_adv_speed.value() << " " << ref_rot_speed.value() << std::endl;
-//                    av_anterior = adv;
-//                    rot_anterior = rot;
-//                    try
-//                    {
-//                        differentialrobot_proxy->setSpeedBase(ref_adv_speed.value(), ref_rot_speed.value());
-//                    }
-//                    catch (const RoboCompGenericBase::HardwareFailedException &re) {
-//                        std::cout << __FUNCTION__ << "Exception setting base speed " << re << '\n';
-//                    }
-//                    catch (const Ice::Exception &e) { std::cout << e.what() << '\n';}
-//                }
-//            }
-//        }
-//    }
-//}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -769,8 +716,4 @@ void SpecificWorker::modify_node_attrs_slot(std::uint64_t id, const std::vector<
 // From the RoboCompRealSenseFaceID you can use this types:
 // RoboCompRealSenseFaceID::UserData
 
-/**************************************/
-// From the RoboCompBillCoppelia you can call this methods:
-// this->billcoppelia_proxy->getPose(...)
-// this->billcoppelia_proxy->setSpeed(...)
-// this->billcoppelia_proxy->setTarget(...)
+
