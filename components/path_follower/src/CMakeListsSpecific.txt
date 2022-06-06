@@ -12,6 +12,8 @@ SET ( HEADERS
   specificmonitor.h
 )
 
+LIST( APPEND UI_HEADERS localUI.ui)
+
 set(CMAKE_CXX_STANDARD 20)
 add_definitions(-g  -fmax-errors=5 -fno-char8_t -std=c++20)
 SET(SPECIFIC_LIBS dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB fcl Eigen3::Eigen)

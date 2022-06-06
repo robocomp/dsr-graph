@@ -106,6 +106,7 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+		graph_viewer->add_custom_widget_to_dock("Path follower", &custom_widget);
 		// Inner api
 		inner_eigen = G->get_inner_eigen_api();
 
@@ -127,6 +128,7 @@ void SpecificWorker::compute()
 		{
 			if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 			{
+				//last_object = object;
 				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value())
 				{
 					if (auto intention_node = G->get_node("current_intention"); intention_node.has_value())
@@ -135,7 +137,7 @@ void SpecificWorker::compute()
 						Plan plan(Plan::Actions::GOTO);
 						plan.insert_attribute("x", node_world.value()[0]);
 						plan.insert_attribute("y", node_world.value()[1]);
-						plan.insert_attribute("destiny", QString::fromStdString("floor"));
+						plan.insert_attribute("destiny", QString::fromStdString("cup"));
 
 						if (plan.is_complete())
 							G->add_or_modify_attrib_local<current_intention_att>(intention_node.value(), plan.to_json());
@@ -144,11 +146,11 @@ void SpecificWorker::compute()
 						std::cout << node_world.value() << std::endl;
 					}
 				}
-				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
-				{
-					track_object_of_interest(object.value());
-					move_base();
-				}
+				// if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
+				// {
+				// 	track_object_of_interest(object.value());
+				// 	move_base();
+				// }
 			}
 		}
 		else

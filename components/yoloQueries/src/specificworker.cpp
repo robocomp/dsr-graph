@@ -25,7 +25,6 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 {
 	this->startup_check_flag = startup_check;
 	QLoggingCategory::setFilterRules("*.debug=false\n");
-
 }
 
 /**
@@ -109,6 +108,13 @@ void SpecificWorker::initialize(int period)
 
 		this->Period = period;
 		timer.start(Period);
+
+		// 2D widget
+		// widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
+		// if (widget_2d != nullptr)
+		// {
+		// 	widget_2d->scene.addEllipse(0, 0, 200, 200, QPen(QColor("magenta")), QBrush(QColor("magenta")));
+		// }
 	}
 }
 
@@ -127,9 +133,9 @@ void SpecificWorker::compute()
 	//   std::cout << "Error reading from Camera" << e << std::endl;
 	// }
 	queries("a");
-	if(auto focus_object = get_object("cup", "table3", "small") ; focus_object.has_value())
+	if (auto focus_object = get_object("cup", "table3", "small"); focus_object.has_value())
 		set_focus(focus_object.value());
-	
+
 	// auto table3 = G->get_node("table3");
 	// set_focus(table3.value());
 	// delete_on_focus_edge();
@@ -155,7 +161,7 @@ void SpecificWorker::set_focus(DSR::Node &node)
 		{
 			std::cout << "CHANGE ON FOCUS EDGE" << std::endl;
 			std::cout << node.id() << std::endl;
-			G->delete_edge(edge_on_focus[0].from(), edge_on_focus[0].to(), "on_focus");			
+			G->delete_edge(edge_on_focus[0].from(), edge_on_focus[0].to(), "on_focus");
 			edge_on_focus[0].to(node.id());
 			G->insert_or_assign_edge(edge_on_focus[0]);
 		}
@@ -228,13 +234,14 @@ optional<std::vector<std::string>> SpecificWorker::queries(std::string query)
 // A quick way to split strings separated via spaces.
 std::vector<std::string> SpecificWorker::string_splitter(std::string s)
 {
-    std::stringstream ss(s);
-    std::string word;
+	std::stringstream ss(s);
+	std::string word;
 	std::vector<std::string> split;
-    while (ss >> word) {
-        split.push_back(word);
+	while (ss >> word)
+	{
+		split.push_back(word);
 		std::cout << word << std::endl;
-    }
+	}
 
 	std::cout << split.at(0) << std::endl;
 

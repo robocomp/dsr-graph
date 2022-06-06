@@ -28,6 +28,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include <doublebuffer/DoubleBuffer.h>
@@ -47,6 +48,11 @@ public slots:
 	int startup_check();
 	void initialize(int period);
 private:
+
+	//Widget
+	DSR::QScene2dViewer* widget_2d;
+	Custom_widget custom_widget;
+
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
 

@@ -28,6 +28,7 @@
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
+#include <custom_widget.h>
 #include "dsr/api/dsr_api.h"
 #include "dsr/gui/dsr_gui.h"
 #include  "../../../etc/graph_names.h"
@@ -63,6 +64,11 @@ private:
 	bool graph_view;
 	bool qscene_2d_view;
 	bool osg_3d_view;
+
+	//local widget
+    Custom_widget custom_widget;
+
+	DSR::Node last_object;
 
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
