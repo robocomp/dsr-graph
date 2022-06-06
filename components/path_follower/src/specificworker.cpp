@@ -153,7 +153,6 @@ void SpecificWorker::initialize(int period)
             this->add_or_assign_node_slot(paths.front().id(), path_to_target_type_name);
         }
 
-        this->Period = 200;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
     }
@@ -161,6 +160,7 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+
     static std::vector<Eigen::Vector2f> path, saved_path;
 
     // Check for existing path_to_target_nodes
@@ -176,6 +176,7 @@ void SpecificWorker::compute()
         if(widget_2d != nullptr)
             draw_path(path, &widget_2d->scene);
     }
+
     // if there is a path in G
     if(auto node_path = G->get_node(current_path_name); node_path.has_value())
     {

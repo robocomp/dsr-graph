@@ -137,6 +137,7 @@ int ::giraff_dsr::run(int argc, char* argv[])
 	RoboCompDifferentialRobot::DifferentialRobotPrxPtr differentialrobot_proxy;
 	RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr fullposeestimation_proxy;
 	RoboCompGiraff::GiraffPrxPtr giraff_proxy;
+	RoboCompJointMotorSimple::JointMotorSimplePrxPtr jointmotorsimple_proxy;
 	RoboCompLaser::LaserPrxPtr laser_proxy;
 	RoboCompRealSenseFaceID::RealSenseFaceIDPrxPtr realsensefaceid_proxy;
 
@@ -257,6 +258,22 @@ int ::giraff_dsr::run(int argc, char* argv[])
 
 	try
 	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "JointMotorSimpleProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy JointMotorSimpleProxy\n";
+		}
+		jointmotorsimple_proxy = Ice::uncheckedCast<RoboCompJointMotorSimple::JointMotorSimplePrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy JointMotorSimple: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("JointMotorSimpleProxy initialized Ok!");
+
+
+	try
+	{
 		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserProxy", proxy, ""))
 		{
 			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
@@ -287,7 +304,7 @@ int ::giraff_dsr::run(int argc, char* argv[])
 	rInfo("RealSenseFaceIDProxy initialized Ok!");
 
 
-	tprx = std::make_tuple(batterystatus_proxy,camerargbdsimple_proxy,camerasimple_proxy,camerasimple1_proxy,differentialrobot_proxy,fullposeestimation_proxy,giraff_proxy,laser_proxy,realsensefaceid_proxy);
+	tprx = std::make_tuple(batterystatus_proxy,camerargbdsimple_proxy,camerasimple_proxy,camerasimple1_proxy,differentialrobot_proxy,fullposeestimation_proxy,giraff_proxy,jointmotorsimple_proxy,laser_proxy,realsensefaceid_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());
