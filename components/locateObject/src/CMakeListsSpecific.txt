@@ -3,8 +3,6 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 SET ( SOURCES
   specificworker.cpp
   specificmonitor.cpp
-  custom_widget.h
-
 )
 
 # Headers set
@@ -12,8 +10,6 @@ SET ( HEADERS
   specificworker.h
   specificmonitor.h
 )
-
-LIST( APPEND UI_HEADERS localUI.ui)
 
 add_definitions(-g  -fmax-errors=1 -std=c++2a -fno-char8_t)
 SET (LIBS ${LIBS}   dsr_core dsr_gui dsr_api fastcdr fastrtps osgDB OpenThreads Eigen3::Eigen)

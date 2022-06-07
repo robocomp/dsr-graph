@@ -106,6 +106,10 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
+		graph_viewer->add_custom_widget_to_dock("YoloQueries", &custom_widget);
+
+		connect(custom_widget.search_button, SIGNAL(clicked()), this, SLOT(queries()));
+		
 		this->Period = period;
 		timer.start(Period);
 
@@ -132,9 +136,9 @@ void SpecificWorker::compute()
 	//{
 	//   std::cout << "Error reading from Camera" << e << std::endl;
 	// }
-	queries("a");
-	if (auto focus_object = get_object("cup", "table3", "small"); focus_object.has_value())
-		set_focus(focus_object.value());
+	// queries("a");
+	// if (auto focus_object = get_object("cup", "table3", "small"); focus_object.has_value())
+	// 	set_focus(focus_object.value());
 
 	// auto table3 = G->get_node("table3");
 	// set_focus(table3.value());
@@ -189,12 +193,13 @@ optional<DSR::Node> SpecificWorker::get_object(string object_type, string contai
 			if (auto parent = G->get_parent_node(object); parent.has_value())
 			{
 				std::cout << "PADRE:" << parent.value().type() << std::endl;
-				if (parent.value().name() == container)
+				if (parent.value().name() == container || container == "-")
 				{
 					std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PADRE ES CONTENEDOR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
 					if (auto object_size = G->get_attrib_by_name<average_size_att>(object); object_size.has_value())
 					{
-						if (object_size.value().get() == size)
+						if (object_size.value().get() == size || size == "-")
 						{
 							std::cout << "####################################EXISTE##################################" << std::endl;
 							return object; // First object that fullfill the condition, use a return
@@ -209,7 +214,7 @@ optional<DSR::Node> SpecificWorker::get_object(string object_type, string contai
 		}
 	}
 	else
-		qWarning() << "Cups size lower than zero";
+		qWarning() << "Objects type array size lower than zero";
 
 	return {};
 }
@@ -223,12 +228,16 @@ bool SpecificWorker::delete_on_focus_edge()
 	return false;
 }
 
-optional<std::vector<std::string>> SpecificWorker::queries(std::string query)
+void SpecificWorker::queries()
 {
-	std::string test = "find small cup in table2";
-	std::cout << "1" << std::endl;
+	std::string test = custom_widget.query_text->displayText().toStdString();
+	//Check if the text is right
+	std::cout << test << std::endl;
 	std::vector<std::string> words = string_splitter(test);
-	return words;
+
+	if (auto focus_object = get_object(words.at(3), words.at(5), words.at(2)); focus_object.has_value())
+		set_focus(focus_object.value());
+	//return words;
 }
 
 // A quick way to split strings separated via spaces.
@@ -243,7 +252,7 @@ std::vector<std::string> SpecificWorker::string_splitter(std::string s)
 		std::cout << word << std::endl;
 	}
 
-	std::cout << split.at(0) << std::endl;
+	//std::cout << split.at(0) << std::endl;
 
 	return split;
 }

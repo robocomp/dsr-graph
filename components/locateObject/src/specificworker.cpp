@@ -106,7 +106,6 @@ void SpecificWorker::initialize(int period)
 		graph_viewer = std::make_unique<DSR::DSRViewer>(this, G, current_opts, main);
 		setWindowTitle(QString::fromStdString(agent_name + "-") + QString::number(agent_id));
 
-		graph_viewer->add_custom_widget_to_dock("Path follower", &custom_widget);
 		// Inner api
 		inner_eigen = G->get_inner_eigen_api();
 
@@ -120,17 +119,30 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
+	check_focus();
+}
+
+int SpecificWorker::startup_check()
+{
+	std::cout << "Startup check" << std::endl;
+	QTimer::singleShot(200, qApp, SLOT(quit()));
+	return 0;
+}
+
+void SpecificWorker::check_focus()
+{
 	if (auto mind = G->get_node("mind"); mind.has_value())
 	{
-		G->update_node(mind.value());
+		//G->update_node(mind.value());
 
 		if (auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
 		{
+			std::cout << edge_on_focus.size() << std::endl;
 			if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 			{
-				//last_object = object;
-				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value())
+				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value() && last_object != object.value().id())
 				{
+					last_object = object.value().id();
 					if (auto intention_node = G->get_node("current_intention"); intention_node.has_value())
 					{
 						std::cout << "X position:" << node_world.value()[0] << "Y position:" << node_world.value()[1] << std::endl;
@@ -146,23 +158,17 @@ void SpecificWorker::compute()
 						std::cout << node_world.value() << std::endl;
 					}
 				}
-				// if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
-				// {
-				// 	track_object_of_interest(object.value());
-				// 	move_base();
-				// }
+				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
+				{
+					std::cout << "Tracking" << std::endl;
+					track_object_of_interest(object.value());
+					move_base();
+				}
 			}
 		}
 		else
 			std::cout << "NO TENGO NADA QUE HACER " << std::endl;
 	}
-}
-
-int SpecificWorker::startup_check()
-{
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
 }
 
 void SpecificWorker::track_object_of_interest(DSR::Node object)
@@ -195,22 +201,23 @@ void SpecificWorker::move_base()
 
 			std::cout << "ANGULO DE LA CAMARITA " << cam_axis.value()[5] * 180.0 / M_PI << std::endl;
 
+			//(abs(cam_axis.value()[5] * 180.0 / M_PI) > 0.2) || (abs(cam_axis.value()[5] * 180.0 / M_PI) < -0.2)
 			if ((abs(cam_axis.value()[5] * 180.0 / M_PI) > 0.2) || (abs(cam_axis.value()[5] * 180.0 / M_PI) < -0.2))
 			{
 				float rot_speed = cam_axis.value()[5];
+				std::cout << "giro" << std::endl;
 				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), -rot_speed);
-				G->update_node(robot.value());
 			}
 			else
 			{
+				std::cout << "no giro" << std::endl;
 				G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
 				G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), 0.0f);
-				G->update_node(robot.value());
 			}
+			G->update_node(robot.value());
 		}
 	}
 }
-
