@@ -109,7 +109,7 @@ void SpecificWorker::initialize(int period)
 		graph_viewer->add_custom_widget_to_dock("YoloQueries", &custom_widget);
 
 		connect(custom_widget.search_button, SIGNAL(clicked()), this, SLOT(queries()));
-		
+
 		this->Period = period;
 		timer.start(Period);
 
@@ -197,13 +197,13 @@ optional<DSR::Node> SpecificWorker::get_object(string object_type, string contai
 				{
 					std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PADRE ES CONTENEDOR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 
-					if (auto object_size = G->get_attrib_by_name<average_size_att>(object); object_size.has_value())
+					if (size == "-")
+						return object;
+
+					if (auto object_size = G->get_attrib_by_name<average_size_att>(object); object_size.has_value() and object_size.value().get() == size)
 					{
-						if (object_size.value().get() == size || size == "-")
-						{
-							std::cout << "####################################EXISTE##################################" << std::endl;
-							return object; // First object that fullfill the condition, use a return
-						}
+						std::cout << "####################################EXISTE##################################" << std::endl;
+						return object; // First object that fullfill the condition, use a return
 					}
 				}
 			}
@@ -231,13 +231,13 @@ bool SpecificWorker::delete_on_focus_edge()
 void SpecificWorker::queries()
 {
 	std::string test = custom_widget.query_text->displayText().toStdString();
-	//Check if the text is right
+	// Check if the text is right
 	std::cout << test << std::endl;
 	std::vector<std::string> words = string_splitter(test);
 
 	if (auto focus_object = get_object(words.at(3), words.at(5), words.at(2)); focus_object.has_value())
 		set_focus(focus_object.value());
-	//return words;
+	// return words;
 }
 
 // A quick way to split strings separated via spaces.
@@ -252,7 +252,7 @@ std::vector<std::string> SpecificWorker::string_splitter(std::string s)
 		std::cout << word << std::endl;
 	}
 
-	//std::cout << split.at(0) << std::endl;
+	// std::cout << split.at(0) << std::endl;
 
 	return split;
 }

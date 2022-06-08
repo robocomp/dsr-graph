@@ -112,6 +112,8 @@ void SpecificWorker::initialize(int period)
 		// RT APi
 		rt_api = G->get_rt_api();
 
+		last_object = -1;
+
 		this->Period = period;
 		timer.start(Period);
 	}
@@ -133,7 +135,7 @@ void SpecificWorker::check_focus()
 {
 	if (auto mind = G->get_node("mind"); mind.has_value())
 	{
-		//G->update_node(mind.value());
+		// G->update_node(mind.value());
 
 		if (auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
 		{
@@ -143,21 +145,51 @@ void SpecificWorker::check_focus()
 				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value() && last_object != object.value().id())
 				{
 					last_object = object.value().id();
+					std::cout << 23 << std::endl;
+					Plan plan(Plan::Actions::GOTO);
+					plan.insert_attribute("x", node_world.value()[0]);
+					plan.insert_attribute("y", node_world.value()[1]);
+					plan.insert_attribute("destiny", QString::fromStdString(object.value().name()));
+
+					std::cout << 25 << std::endl;
+
 					if (auto intention_node = G->get_node("current_intention"); intention_node.has_value())
 					{
 						std::cout << "X position:" << node_world.value()[0] << "Y position:" << node_world.value()[1] << std::endl;
-						Plan plan(Plan::Actions::GOTO);
-						plan.insert_attribute("x", node_world.value()[0]);
-						plan.insert_attribute("y", node_world.value()[1]);
-						plan.insert_attribute("destiny", QString::fromStdString("cup"));
-
+						// plan.insert_attribute("x", node_world.value()[0]);
+						// plan.insert_attribute("y", node_world.value()[1]);
+						// plan.insert_attribute("destiny", QString::fromStdString("cup")
 						if (plan.is_complete())
 							G->add_or_modify_attrib_local<current_intention_att>(intention_node.value(), plan.to_json());
 
 						G->update_node(intention_node.value());
-						std::cout << node_world.value() << std::endl;
+					}
+					else
+					{
+						DSR::Node new_intention_node = DSR::Node::create<intention_node_type>(current_intention_name);
+						G->add_or_modify_attrib_local<parent_att>(new_intention_node, mind.value().id());
+						G->add_or_modify_attrib_local<level_att>(new_intention_node, G->get_node_level(mind.value()).value() + 1);
+						G->add_or_modify_attrib_local<pos_x_att>(new_intention_node, (float)-466);
+						G->add_or_modify_attrib_local<pos_y_att>(new_intention_node, (float)42);
+						if (plan.is_complete())
+							G->add_or_modify_attrib_local<current_intention_att>(new_intention_node, plan.to_json());
+
+						if (std::optional<int> new_intention_node_id = G->insert_node(new_intention_node); new_intention_node_id.has_value())
+						{
+							std::cout << __FUNCTION__ << " Node \"Intention\" successfully inserted in G" << std::endl;
+							// insert EDGE
+							DSR::Edge edge = DSR::Edge::create<has_edge_type>(mind.value().id(), new_intention_node.id());
+							if (G->insert_or_assign_edge(edge))
+								std::cout << __FUNCTION__ << " Edge \"has_type\" inserted in G" << std::endl;
+							else
+								std::cout << __FILE__ << __FUNCTION__ << " Fatal error inserting new edge: " << mind.value().id() << "->" << new_intention_node_id.value()
+										  << " type: has" << std::endl;
+						}
+						else
+							std::cout << __FUNCTION__ << " Node \"Intention\" could NOT be inserted in G" << std::endl;
 					}
 				}
+
 				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
 				{
 					std::cout << "Tracking" << std::endl;
