@@ -51,6 +51,8 @@ private:
 
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
+	std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+    std::shared_ptr<DSR::RT_API> rt_api;
 
 	// DSR params
 	std::string agent_name;
@@ -60,6 +62,10 @@ private:
 	bool graph_view;
 	bool qscene_2d_view;
 	bool osg_3d_view;
+
+	std::vector<std::string> words;
+	bool rotating;
+	float base_start_angle;
 
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
@@ -76,6 +82,7 @@ private:
 	bool delete_on_focus_edge();
 	optional<DSR::Node> get_object(string object, string container, string size);
 	std::vector<std::string> string_splitter(std::string s);
+	void set_robot_rot_speed(float speed);
 
 public slots:
 	void queries();

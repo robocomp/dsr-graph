@@ -171,6 +171,7 @@ void SpecificWorker::check_focus()
 						G->add_or_modify_attrib_local<level_att>(new_intention_node, G->get_node_level(mind.value()).value() + 1);
 						G->add_or_modify_attrib_local<pos_x_att>(new_intention_node, (float)-466);
 						G->add_or_modify_attrib_local<pos_y_att>(new_intention_node, (float)42);
+
 						if (plan.is_complete())
 							G->add_or_modify_attrib_local<current_intention_att>(new_intention_node, plan.to_json());
 
@@ -192,10 +193,18 @@ void SpecificWorker::check_focus()
 
 				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
 				{
-					std::cout << "Tracking" << std::endl;
-					track_object_of_interest(object.value());
+					std::cout << "MoveBase" << std::endl;
 					move_base();
+					track_object_of_interest(object.value());
 				}
+
+
+				// if(auto visible_edges = G->get_edges_by_type("visible"); visible_edges.size() > 0)
+				// 	for( auto visible_edge : visible_edges)
+				// 		if (auto visible_object = G->get_node(visible_edge.to()); visible_object.has_value())
+				// 			if(visible_object.value().id()==object.value().id())
+				//				track_object_of_interest(object.value());
+
 			}
 		}
 		else

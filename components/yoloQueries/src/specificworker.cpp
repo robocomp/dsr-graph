@@ -110,9 +110,14 @@ void SpecificWorker::initialize(int period)
 
 		connect(custom_widget.search_button, SIGNAL(clicked()), this, SLOT(queries()));
 
+		// Inner api
+		inner_eigen = G->get_inner_eigen_api();
+
 		this->Period = period;
 		timer.start(Period);
 
+		rotating = false;
+		base_start_angle = 0.0;
 		// 2D widget
 		// widget_2d = qobject_cast<DSR::QScene2dViewer *>(graph_viewer->get_widget(opts::scene));
 		// if (widget_2d != nullptr)
@@ -143,6 +148,30 @@ void SpecificWorker::compute()
 	// auto table3 = G->get_node("table3");
 	// set_focus(table3.value());
 	// delete_on_focus_edge();
+
+	// if (rotating)
+	if (words.size() == 6)
+		if (auto object = get_object(words.at(3), words.at(5), words.at(2)); object.has_value())
+		{
+			set_focus(object.value());
+			rotating = false;
+		}
+		else
+		{
+			if (auto base_axis = inner_eigen->transform_axis("world", "robot"); base_axis.has_value())
+			{
+				std::cout << "ANGULO DE LA BASE " << base_axis.value()[5] << std::endl;
+				std::cout << "Angulo de inicio" << base_start_angle << std::endl;
+
+				if (base_axis.value()[5] + 0.1 > base_start_angle && base_axis.value()[5] - 0.1 < base_start_angle)
+				{
+					rotating = false;
+					set_robot_rot_speed(0.0);
+					std::cout << "PARAAAAAAAAAAAAAAAAAAA" << std::endl;
+					// consulta fallida
+				}
+			}
+		}
 }
 
 int SpecificWorker::startup_check()
@@ -225,19 +254,46 @@ bool SpecificWorker::delete_on_focus_edge()
 		return G->delete_edge(on_focus_edge[0].from(), on_focus_edge[0].to(), "on_focus");
 	else
 		qWarning() << "on_focus_edge does not exist";
+
 	return false;
 }
 
 void SpecificWorker::queries()
 {
+	delete_on_focus_edge();
 	std::string test = custom_widget.query_text->displayText().toStdString();
 	// Check if the text is right
 	std::cout << test << std::endl;
-	std::vector<std::string> words = string_splitter(test);
+	words = string_splitter(test);
+	// checkear q la frase ete bien
+	if (words.size() == 6)
+	{
+		if (auto focus_object = get_object(words.at(3), words.at(5), words.at(2)); focus_object.has_value())
+			set_focus(focus_object.value());
+		else
+		{
 
-	if (auto focus_object = get_object(words.at(3), words.at(5), words.at(2)); focus_object.has_value())
-		set_focus(focus_object.value());
-	// return words;
+			set_robot_rot_speed(0.2);
+			rotating = true;
+
+			if (auto base_axis = inner_eigen->transform_axis("world", "robot"); base_axis.has_value())
+			{
+				base_start_angle = base_axis.value()[5] + 0.2;
+				std::cout << "base_start_angle " << base_start_angle << std::endl;
+			}
+		}
+	}
+}
+
+void SpecificWorker::set_robot_rot_speed(float speed)
+{
+	if (auto robot = G->get_node("robot"); robot.has_value())
+	{
+		G->add_or_modify_attrib_local<robot_ref_adv_speed_att>(robot.value(), 0.0f);
+		G->add_or_modify_attrib_local<robot_ref_side_speed_att>(robot.value(), 0.0f);
+		G->add_or_modify_attrib_local<robot_ref_rot_speed_att>(robot.value(), speed);
+		G->update_node(robot.value());
+	}
 }
 
 // A quick way to split strings separated via spaces.
