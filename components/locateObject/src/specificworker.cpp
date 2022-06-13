@@ -194,17 +194,24 @@ void SpecificWorker::check_focus()
 				if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
 				{
 					std::cout << "MoveBase" << std::endl;
+					//Cuidado
 					move_base();
 					track_object_of_interest(object.value());
 				}
-
-
-				// if(auto visible_edges = G->get_edges_by_type("visible"); visible_edges.size() > 0)
-				// 	for( auto visible_edge : visible_edges)
-				// 		if (auto visible_object = G->get_node(visible_edge.to()); visible_object.has_value())
-				// 			if(visible_object.value().id()==object.value().id())
-				//				track_object_of_interest(object.value());
-
+				else
+				{
+					if (auto pan_tilt = G->get_node("viriato_head_camera_pan_tilt"); pan_tilt.has_value())
+					{
+						G->add_or_modify_attrib_local<nose_pose_ref_att>(pan_tilt.value(), std::vector<float>{0.0, 1000.0, 0.0});
+						G->update_node(pan_tilt.value());
+					}
+				}
+				// else
+				// 	if(auto visible_edges = G->get_edges_by_type("visible"); visible_edges.size() > 0)
+				// 		for( auto visible_edge : visible_edges)
+				// 			if (auto visible_object = G->get_node(visible_edge.to()); visible_object.has_value())
+				// 				if(visible_object.value().id()==object.value().id())
+				// 					track_object_of_interest(object.value());
 			}
 		}
 		else
