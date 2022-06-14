@@ -145,7 +145,7 @@ void SpecificWorker::check_focus()
 				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value() && last_object != object.value().id())
 				{
 					last_object = object.value().id();
-					std::cout << 23 << std::endl;
+					std::cout << object.value().name() << std::endl;
 					Plan plan(Plan::Actions::GOTO);
 					plan.insert_attribute("x", node_world.value()[0]);
 					plan.insert_attribute("y", node_world.value()[1]);

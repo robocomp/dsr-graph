@@ -156,29 +156,27 @@ void SpecificWorker::compute()
 		{
 			set_focus(object.value());
 			rotating = false;
-			//custom_widget.information_text->setText(QString("Information: Object on focus."));
-			//check if arrived?
-			//if noseposeref == a la posicion del objeto en la posicion de la camara && no existe el currentpath
-			
-			if(auto cam_node = G->get_node("viriato_head_camera_pan_tilt"); cam_node.has_value())
+
+			if (auto cam_node = G->get_node("viriato_head_camera_pan_tilt"); cam_node.has_value())
 			{
 				auto nose_att = G->get_attrib_by_name<nose_pose_ref_att>(cam_node.value().id());
 				auto cam_object = inner_eigen->transform("viriato_head_camera_pan_tilt", object.value().name());
 
-				if(nose_att.has_value() && cam_object.has_value())
+				if (nose_att.has_value() && cam_object.has_value())
 				{
 					std::cout << "NOSE:" << nose_att.value().at(0) << "Object CAM:" << cam_object.value().x() << std::endl;
-					if(abs(nose_att.value().at(0) - cam_object.value().x()) < 2.0  && abs(nose_att.value().at(1) - cam_object.value().y()) < 2.0)
+					if (abs(nose_att.value().at(0) - cam_object.value().x()) < 2.0 && abs(nose_att.value().at(1) - cam_object.value().y()) < 2.0)
 					{
 						custom_widget.information_text->setText(QString("Information: Tracking object."));
-						if(auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
-							custom_widget.information_text->setText(QString("Information: Query completed."));
+						// if (auto current_path_node = G->get_node("current_path"); not current_path_node.has_value())
+						// 	custom_widget.information_text->setText(QString("Information: Query completed."));
 					}
 				}
-				else qWarning() <<__FUNCTION__ << "nose_att and object in cam relative position do not have values";
+				else
+					qWarning() << __FUNCTION__ << "nose_att and object in cam relative position do not have values";
 			}
-			else qWarning() <<__FUNCTION__ << "cam node has no value";
-
+			else
+				qWarning() << __FUNCTION__ << "cam node has no value";
 		}
 		else
 		{
@@ -187,23 +185,23 @@ void SpecificWorker::compute()
 				std::cout << "ANGULO DE LA BASE " << base_axis.value()[5] << std::endl;
 				std::cout << "Angulo de inicio" << base_start_angle << std::endl;
 
-				//y no existe currenpath
-				if (base_axis.value()[5] + 0.1 > base_start_angle && base_axis.value()[5] - 0.1 < base_start_angle)
+				if (auto current_path = G->get_node("current_path"); not current_path.has_value())
 				{
-					rotating = false;
-					set_robot_rot_speed(0.0);
-					std::cout << "PARAAAAAAAAAAAAAAAAAAA" << std::endl;
-					custom_widget.information_text->setText(QString("Information: Object not found."));
-					// consulta fallida
-				}else set_robot_rot_speed(0.2);
-
+					if (base_axis.value()[5] + 0.1 > base_start_angle && base_axis.value()[5] - 0.1 < base_start_angle)
+					{
+						rotating = false;
+						set_robot_rot_speed(0.0);
+						std::cout << "PARAAAAAAAAAAAAAAAAAAA" << std::endl;
+						custom_widget.information_text->setText(QString("Information: Object not found."));
+					}
+					else
+						set_robot_rot_speed(0.2);
+				}
 			}
 		}
 	}
 	else
 		custom_widget.information_text->setText(QString("Information: Write a query of the specific format."));
-
-
 }
 
 int SpecificWorker::startup_check()
@@ -236,7 +234,7 @@ void SpecificWorker::set_focus(DSR::Node &node)
 			G->insert_or_assign_edge(edge);
 		}
 		G->update_node(mind.value());
-		G->update_node(node);
+		//G->update_node(node);
 
 		// 	already_executed = true;
 		// }
@@ -308,14 +306,12 @@ void SpecificWorker::queries()
 			set_robot_rot_speed(0.2);
 			rotating = true;
 			custom_widget.information_text->setText(QString("Information: Looking for the object."));
-			
+
 			if (auto base_axis = inner_eigen->transform_axis("world", "robot"); base_axis.has_value())
 			{
 				base_start_angle = base_axis.value()[5] + 0.2;
 				std::cout << "base_start_angle " << base_start_angle << std::endl;
 			}
-
-
 		}
 	}
 }
