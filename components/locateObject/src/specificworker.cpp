@@ -140,6 +140,7 @@ void SpecificWorker::check_focus()
 		if (auto edge_on_focus = G->get_edges_by_type("on_focus"); edge_on_focus.size() > 0)
 		{
 			std::cout << edge_on_focus.size() << std::endl;
+			
 			if (auto object = G->get_node(edge_on_focus.at(0).to()); object.has_value())
 			{
 				if (auto node_world = inner_eigen->transform("world", object.value().name()); node_world.has_value() && last_object != object.value().id())

@@ -83,6 +83,7 @@ private:
 	optional<DSR::Node> get_object(string object, string container, string size);
 	std::vector<std::string> string_splitter(std::string s);
 	void set_robot_rot_speed(float speed);
+	void check_state(DSR::Node object);
 
 public slots:
 	void queries();
