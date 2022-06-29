@@ -65,9 +65,8 @@ std::optional<float> Api_Geom::distance_to_object_below(const DSR::Node &this_ob
     if (this_object_edge.has_value() && below_object_edge.has_value())
     {
         auto this_object_translation = inner_eigen->transform(world_name, this_object.name());
-        auto below_object_translation = G->get_attrib_by_name<rt_translation_att>(below_object_edge.value());
 
-        if (this_object_translation.has_value() && below_object_translation.has_value())
+        if (this_object_translation.has_value())
         {
             auto below_object_width = G->get_attrib_by_name<obj_width_att>(below_object);
             auto below_object_depth = G->get_attrib_by_name<obj_depth_att>(below_object);
@@ -131,29 +130,22 @@ std::optional<float> Api_Geom::height_difference(const DSR::Node &node1, const D
     // auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
     if (world_node.has_value())
     {
-        // auto node1_edge = rt_api->get_edge_RT(world_node.value(), node1.id());
-        auto node1_edge = inner_eigen->transform(world_name, node1.name());
+        auto node1_edge = rt_api->get_edge_RT(G->get_parent_node(node1).value(), node1.id());
         auto node2_edge = rt_api->get_edge_RT(G->get_parent_node(node2).value(), node2.id());
 
-        auto node1_height = G->get_attrib_by_name<obj_height_att>(node1);
-        auto node2_height = G->get_attrib_by_name<obj_height_att>(node2);
-
-        if (node1_height.has_value() and node2_height.has_value())
-        {
             if (node1_edge.has_value() and node2_edge.has_value())
             {
-                // auto node1_translation = G->get_attrib_by_name<rt_translation_att>(node1_edge.value());
+                auto node1_translation = G->get_attrib_by_name<rt_translation_att>(node1_edge.value());
                 auto node2_translation = G->get_attrib_by_name<rt_translation_att>(node2_edge.value());
-                return node1_edge.value().z() - node2_translation.value().get().at(2);
+
+                return node1_translation.value().get().at(2) - node2_translation.value().get().at(2);
             }
             else
                 qWarning() << __FUNCTION__ << "Incorrect edges values of node1 or node2";
-        }
-        else
-            qWarning() << __FUNCTION__ << "Incorrect height values of node1 or node2";
     }
     else
         qWarning() << __FUNCTION__ << "Incorrect world node value";
+
     return {};
 }
 
@@ -207,16 +199,16 @@ bool Api_Geom::update_node(DSR::Node &node, DSR::Node &new_parent)
     return false;
 }
 
-bool Api_Geom::insert_node_in_container(DSR::Node &node)
+bool Api_Geom::insert_node_in_type(DSR::Node &node, const std::string &type)
 {
-    auto containers = G->get_nodes_by_type("container");
+    auto containers = G->get_nodes_by_type(type);
     auto parent = G->get_parent_node(node);
 
     if (not containers.empty() && parent.has_value())
         for (auto &&container : containers)
-            if (auto distance = distance_to_object_below(node, container); distance.has_value() && parent.value().id() != container.id())
+            if (auto distance = distance_to_object_below(node, container); distance.has_value() && parent.value().id() != container.id())//Does not insert in the same container twice
             {
-                // std::cout << "Contenedor: " << container.name() << " Node:" << node.name() << " Distance:" << distance.value() << std::endl;
+                //200 too high, problem with Z value in long distances
                 if (0 < distance.value() and distance.value() < 200)
                 {
                     if (not this->update_node(node, container))
@@ -249,7 +241,7 @@ void Api_Geom::set_average_size(DSR::Node &node)
             average_size = "big";
 
         G->add_or_modify_attrib_local<average_size_att>(node, average_size);
-        std::cout << G->get_attrib_by_name<average_size_att>(node).value().get() << std::endl;
+        // std::cout << G->get_attrib_by_name<average_size_att>(node).value().get() << std::endl;
     }
 }
 

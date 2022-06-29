@@ -124,7 +124,7 @@ class SpecificWorker : public GenericWorker
             float robot_length = 500;
             float robot_width = 400;
             float robot_radius = robot_length / 2.0;
-            float max_adv_speed = 500;
+            float max_adv_speed = 2000;
             float max_rot_speed = 3;
             float max_side_speed = 400;
             float max_lag = 100;  // ms
@@ -133,7 +133,7 @@ class SpecificWorker : public GenericWorker
             float rotation_gain = 0.9;
             float times_final_distance_to_target_before_zero_rotation = 3;
             float advance_gaussian_cut_x = 0.7;
-            float advance_gaussian_cut_y = 0.2;
+            float advance_gaussian_cut_y = 0.3;
             float final_distance_to_target = 200; // mm
         };
         CONSTANTS consts;

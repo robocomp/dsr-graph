@@ -10,6 +10,7 @@ FullPoseEstimationProxy = fullposeestimation:tcp  -p 10696
 GiraffProxy = giraff:tcp  -p 10052
 LaserProxy = laser:tcp  -p 10003
 RealSenseFaceIDProxy = realsensefaceid:tcp  -p 11070
+JointMotorSimpleProxy = jointmotorsimple:tcp -p 10086
 
 
 agent_id = 30 # Change id

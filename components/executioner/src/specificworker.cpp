@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+    QLoggingCategory::setFilterRules("*.debug=false\n");
 }
 
 /**
@@ -122,12 +123,20 @@ void SpecificWorker::compute()
 	if(auto intention = G->get_node(current_intention_name); intention.has_value())
     {
         std::optional<std::string> plan = G->get_attrib_by_name<current_intention_att>(intention.value());
-        auto plan_string = QString::fromStdString(plan.value());
 
         /// GOTOPERSON
-        if (plan_string.contains("goToPerson")){
-            qInfo() << __FUNCTION__ << plan_string;
+        if (plan.value().find("goToPerson") != std::string::npos){
+            qInfo() << __FUNCTION__ << QString::fromStdString(plan.value());
             qInfo() << __FUNCTION__ << "ENCONTRADOOOO";
+
+            //char[] caracteres = plan.value().toCharArray();
+
+            auto plan_string = QString::fromStdString(plan.value());
+            qInfo() << __FUNCTION__ << plan_string << " PLLAAAAAAAAAAAN";
+            QString buscar = "goToPerson";
+            QString buscar2 = "@";
+            qInfo() << "La posición de goToPerson es: "<< plan_string.indexOf(buscar);
+            qInfo() << "La posición de @ es: "<< plan_string.indexOf(buscar2);
 
             // create ACTION edge to destination node (to be used instead of textual Plan)
             bool exists_edge = false;
@@ -155,8 +164,8 @@ void SpecificWorker::compute()
         }
 
         /// TAKETHEATTENTION
-        if (plan_string.contains("takeTheAttention")){
-            qInfo() << __FUNCTION__ << plan_string;
+        if (plan.value().find("takeTheAttention") != std::string::npos){
+            qInfo() << __FUNCTION__ << QString::fromStdString(plan.value());
             qInfo() << __FUNCTION__ << "ENCONTRADOOOO";
 
             // create ACTION edge to destination node (to be used instead of textual Plan)
@@ -185,8 +194,8 @@ void SpecificWorker::compute()
         }
 
         /// ASKFORINDIVIDUALPERMISSION
-        if (plan_string.contains("askForIndividualPermission")){
-            qInfo() << __FUNCTION__ << plan_string;
+        if (plan.value().find("askForIndividualPermission") != std::string::npos){
+            qInfo() << __FUNCTION__ << QString::fromStdString(plan.value());
             qInfo() << __FUNCTION__ << "ENCONTRADOOOO";
 
             // create ACTION edge to destination node (to be used instead of textual Plan)
@@ -214,8 +223,8 @@ void SpecificWorker::compute()
         }
 
         /// CHHANGEROOM
-        if (plan_string.contains("changeRoom")){
-            qInfo() << __FUNCTION__ << plan_string;
+        if (plan.value().find("changeRoom") != std::string::npos){
+            qInfo() << __FUNCTION__ << QString::fromStdString(plan.value());
             qInfo() << __FUNCTION__ << "ENCONTRADOOOO";
 
             // create ACTION edge to destination node (to be used instead of textual Plan)

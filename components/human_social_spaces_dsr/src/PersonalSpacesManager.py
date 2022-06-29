@@ -91,10 +91,10 @@ class PersonalSpacesManager:
                                    "social": [2, 1., 1.3, 0.3],  # 0.2
                                    }
         ##Limites de la representacion
-        self.lx_inf = -6
-        self.lx_sup = 10
-        self.ly_inf = -6
-        self.ly_sup = 10
+        self.lx_inf = -50
+        self.lx_sup = 50
+        self.ly_inf = -50
+        self.ly_sup = 50
 
     def _get_polyline(self, grid, resolution, lx_inf, ly_inf):
         total_points = []
@@ -143,10 +143,12 @@ class PersonalSpacesManager:
 
             #print("Number of gaussians ", len(normals))
 
-            resolution = 0.1
+            resolution = 0.3
             limits = [[self.lx_inf, self.lx_sup], [self.ly_inf, self.ly_sup]]
+
             _, z = Normal.makeGrid(normals, self.__dict_space_param[space][3], 2, limits=limits, resolution=resolution)
             grid = GM.filterEdges(z, self.__dict_space_param[space][3])
+
 
             ordered_points = self._get_polyline(grid, resolution, self.lx_inf, self.ly_inf)
 
@@ -155,8 +157,8 @@ class PersonalSpacesManager:
                 polyline_mm = []
                 for pnt in pol:
                     polyline.append([pnt[0], pnt[1]])
+                    # polyline_mm.append([round(pnt[0] * 1000), round(pnt[1] * 1000)])
                     polyline_mm.append([round(pnt[0] * 1000), round(pnt[1] * 1000)])
-
                 if len(polyline) != 0:
                     dict_spaces[space].append(polyline)
                     dict_spaces_mm[space].append(polyline_mm)

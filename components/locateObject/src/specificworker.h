@@ -21,6 +21,9 @@
 	\brief
 	@author authorname
 */
+
+
+
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
@@ -29,6 +32,7 @@
 #include "dsr/gui/dsr_gui.h"
 #include  "../../../etc/graph_names.h"
 #include <doublebuffer/DoubleBuffer.h>
+#include "/home/robocomp/robocomp/components/robocomp-giraff/etc/plan.h"
 
 class SpecificWorker : public GenericWorker
 {
@@ -47,8 +51,8 @@ public slots:
 private:
 	// DSR graph
 	std::shared_ptr<DSR::DSRGraph> G;
-	
-    std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
+
+	std::shared_ptr<DSR::InnerEigenAPI> inner_eigen;
     std::shared_ptr<DSR::RT_API> rt_api;
 
 	//DSR params
@@ -59,6 +63,8 @@ private:
 	bool graph_view;
 	bool qscene_2d_view;
 	bool osg_3d_view;
+
+	uint64_t last_object;
 
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
@@ -71,10 +77,9 @@ private:
 	void del_node_slot(std::uint64_t from){};     
 	bool startup_check_flag;
 
-	//void set_attention(DSR::Node &node);
+	void check_focus();
 	void track_object_of_interest(DSR::Node);
 	void move_base();
-
 };
 
 #endif

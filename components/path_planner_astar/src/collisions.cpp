@@ -5,12 +5,14 @@
 
 void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_)
 {
+    std::cout << "1" << std::endl;
     qDebug() << "Collisions - " <<__FUNCTION__;
     G = graph_;
     //read from World (DSR node)
     std::optional<Node> world_node = G->get_node(world_name);
     if(world_node.has_value())
     {
+        std::cout << "1" << std::endl;
         outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node.value()).value());
         outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node.value()).value());
         outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node.value()).value());
@@ -21,11 +23,12 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
         std::terminate();
     }
+    std::cout << "1" << std::endl;
     QStringList ls = QString::fromStdString(params_->at("ExcludedObjectsInCollisionCheck").value).replace(" ", "" ).split(',');
     std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;
     foreach(const QString &s, ls)
         excludedNodes.insert(s.toStdString());
-
+    std::cout << "1" << std::endl;
     // Compute the list of meshes that correspond to robot, world and possibly some additionally excluded ones
     robotNodes.clear(); restNodes.clear();
     recursiveIncludeMeshes(G->get_node_root().value(), robot_name, false, robotNodes, restNodes, excludedNodes);
@@ -39,7 +42,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
 //    for(auto r : excludedNodes)
 //        std::cout << r << std::endl;
     qsrand( QTime::currentTime().msec() );
-
+    std::cout << "1" << std::endl;
 }
 
 std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)

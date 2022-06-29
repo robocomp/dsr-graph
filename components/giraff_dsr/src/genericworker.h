@@ -38,6 +38,7 @@
 #include <FullPoseEstimation.h>
 #include <GenericBase.h>
 #include <Giraff.h>
+#include <JointMotorSimple.h>
 #include <Laser.h>
 #include <RealSenseFaceID.h>
 
@@ -46,7 +47,7 @@
 #define BASIC_PERIOD 100
 
 
-using TuplePrx = std::tuple<RoboCompBatteryStatus::BatteryStatusPrxPtr,RoboCompCameraRGBDSimple::CameraRGBDSimplePrxPtr,RoboCompCameraSimple::CameraSimplePrxPtr,RoboCompCameraSimple::CameraSimplePrxPtr,RoboCompDifferentialRobot::DifferentialRobotPrxPtr,RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr,RoboCompGiraff::GiraffPrxPtr,RoboCompLaser::LaserPrxPtr,RoboCompRealSenseFaceID::RealSenseFaceIDPrxPtr>;
+using TuplePrx = std::tuple<RoboCompBatteryStatus::BatteryStatusPrxPtr,RoboCompCameraRGBDSimple::CameraRGBDSimplePrxPtr,RoboCompCameraSimple::CameraSimplePrxPtr,RoboCompCameraSimple::CameraSimplePrxPtr,RoboCompDifferentialRobot::DifferentialRobotPrxPtr,RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr,RoboCompGiraff::GiraffPrxPtr,RoboCompJointMotorSimple::JointMotorSimplePrxPtr,RoboCompLaser::LaserPrxPtr,RoboCompRealSenseFaceID::RealSenseFaceIDPrxPtr>;
 
 
 class GenericWorker : public QMainWindow, public Ui_guiDlg
@@ -69,6 +70,7 @@ public:
 	RoboCompDifferentialRobot::DifferentialRobotPrxPtr differentialrobot_proxy;
 	RoboCompFullPoseEstimation::FullPoseEstimationPrxPtr fullposeestimation_proxy;
 	RoboCompGiraff::GiraffPrxPtr giraff_proxy;
+	RoboCompJointMotorSimple::JointMotorSimplePrxPtr jointmotorsimple_proxy;
 	RoboCompLaser::LaserPrxPtr laser_proxy;
 	RoboCompRealSenseFaceID::RealSenseFaceIDPrxPtr realsensefaceid_proxy;
 
