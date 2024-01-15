@@ -1,0 +1,22 @@
+CommonBehavior.Endpoints=tcp -p 10000
+
+# Proxies for required interfaces
+DSRGetIDProxy = dsrgetid:tcp -h localhost -p 11000
+DepthEstimationProxy = depthestimation:tcp -h localhost -p 10100
+
+# Agent configuration
+agent_id = 71
+agent_name = depthDSR
+tree_view = false
+graph_view = true
+2d_view = false
+3d_view = false
+
+InnerModelPath = innermodel.xml
+
+# Ice configuration
+Ice.MessageSizeMax=20004800
+
+Ice.Warn.Connections=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
