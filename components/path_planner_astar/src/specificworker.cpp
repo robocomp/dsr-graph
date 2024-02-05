@@ -126,6 +126,7 @@ void SpecificWorker::initialize(int period)
         std::cout << __FUNCTION__ << " Initialization complete. Starting 'compute' at " << 1/(this->Period/1000.f) << " Hz"<< std::endl;
         timer.start(Period);
     }
+   // hide();
 }
 
 void SpecificWorker::compute()
@@ -141,6 +142,7 @@ void SpecificWorker::compute()
         auto x = current_plan.get_attribute("x").toFloat();
         auto y = current_plan.get_attribute("y").toFloat();
         QPointF target(x,y);
+        qInfo() << __FUNCTION__ << target;
 
         if(target_draw != nullptr) delete target_draw;
         target_draw = widget_2d->scene.addEllipse(target.x(), target.y(), 200, 200, QPen(QColor("magenta")), QBrush(QColor("magenta")));
@@ -154,7 +156,9 @@ void SpecificWorker::compute()
         run_current_plan(target);
     }
     else //do whatever you do without a plan
-    {}
+    {
+        qInfo() << __FUNCTION__ << "without plan";
+    }
 
     update_grid();
 }
@@ -192,15 +196,15 @@ void SpecificWorker::path_planner_initialize(DSR::QScene2dViewer* widget_2d, boo
     robotBottomRight    = Mat::Vector3d ( - robotXWidth / 2,- robotZLong / 2, 0);
     robotTopRight       = Mat::Vector3d ( + robotXWidth / 2, - robotZLong / 2, 0);
     robotTopLeft        = Mat::Vector3d ( + robotXWidth / 2, + robotZLong / 2, 0);
-
-    //Initialize planner to 0,0 position of floor
-    //new_target_from_mouse(0,0,20);
 }
 
 void SpecificWorker::run_current_plan(const QPointF &target)
 {
     Eigen::Vector3d nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 380, 0), robot_name).value();
-    auto valid_target = search_a_feasible_target(current_plan);
+    qInfo() << __FUNCTION__ << "ANTES";
+            auto valid_target = search_a_feasible_target(current_plan);
+    qInfo() << __FUNCTION__ << "DESPUES";
+
     if( valid_target.has_value())
     {
         qInfo() << __FUNCTION__ <<  " x: " << valid_target->x() << " y: " << valid_target->y();
@@ -281,6 +285,12 @@ void SpecificWorker::update_grid()
 
 std::optional<QPointF> SpecificWorker::search_a_feasible_target(Plan &current_plan)
 {
+//        // path planner
+//        path_planner_initialize(widget_2d, read_from_file, grid_file_name);
+//        qInfo() << __FUNCTION__ << "Grid created with size " << grid.size() * sizeof(Grid::T) << "bytes";
+        inject_grid_in_G(grid);
+//        qInfo() << __FUNCTION__ << "Grid injected in G";
+
         QPointF target(current_plan.get_attribute("x").toFloat(), current_plan.get_attribute("y").toFloat());
         auto new_target = grid.closest_free_4x4(target);
         qInfo() << __FUNCTION__ << "requested target " << target << " new target " << new_target.value();
@@ -406,7 +416,7 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
             {
                 qInfo() << __FUNCTION__ << QString::fromStdString(plan.value()) << " " << intention.value().id();
                 Plan my_plan(plan.value());
-                if (my_plan.is_action(Plan::Actions::GOTO))
+                if (my_plan.is_action(Plan::Actions::GOTO) or my_plan.is_action(Plan::Actions::FOLLOW_PEOPLE))
                     plan_buffer.put(std::move(my_plan));
             }
         }

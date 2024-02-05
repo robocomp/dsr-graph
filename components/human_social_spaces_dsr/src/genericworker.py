@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-#    Copyright (C) 2021 by YOUR NAME HERE
+#    Copyright (C) 2023 by YOUR NAME HERE
 #
 #    This file is part of RoboComp
 #
@@ -30,31 +30,6 @@ except KeyError:
 
 Ice.loadSlice("-I ./src/ --all ./src/CommonBehavior.ice")
 import RoboCompCommonBehavior
-
-Ice.loadSlice("-I ./src/ --all ./src/HumanToDSRPub.ice")
-import RoboCompHumanToDSRPub
-
-class People(list):
-    def __init__(self, iterable=list()):
-        super(People, self).__init__(iterable)
-
-    def append(self, item):
-        assert isinstance(item, RoboCompHumanToDSRPub.Person)
-        super(People, self).append(item)
-
-    def extend(self, iterable):
-        for item in iterable:
-            assert isinstance(item, RoboCompHumanToDSRPub.Person)
-        super(People, self).extend(iterable)
-
-    def insert(self, index, item):
-        assert isinstance(item, RoboCompHumanToDSRPub.Person)
-        super(People, self).insert(index, item)
-
-setattr(RoboCompHumanToDSRPub, "People", People)
-
-
-import humantodsrpubI
 
 
 

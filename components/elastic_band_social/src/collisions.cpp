@@ -6,21 +6,28 @@
 void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const std::shared_ptr< RoboCompCommonBehavior::ParameterList > &params_)
 {
     qDebug() << "Collisions - " <<__FUNCTION__;
+    std::cout << "1" << std::endl;
     G = graph_;
+    std::cout << "2" << std::endl;
     //read from World (DSR node)
     std::optional<Node> world_node = G->get_node(world_name);
+    std::cout << "3" << std::endl;
     if(world_node.has_value())
     {
+        std::cout << "4" << std::endl;
         outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node.value()).value());
         outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node.value()).value());
         outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node.value()).value());
         outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop_att>(world_node.value()).value());
     }
+    std::cout << "5" << std::endl;
     if(outerRegion.isNull())
     {
+        std::cout << "6" << std::endl;
         qDebug()<<"[ERROR] OUTER REGION IS NULL";
         std::terminate();
     }
+    std::cout << "7" << std::endl;
     std::cout << __FILE__ << __FUNCTION__ << std::endl;
     QStringList ls = QString::fromStdString(params_->at("excluded_objects_in_collision_check").value).replace(" ", "" ).split(',');
     std::cout << __FILE__ << __FUNCTION__ << " " << ls.size() << "objects read for exclusion list" << std::endl;

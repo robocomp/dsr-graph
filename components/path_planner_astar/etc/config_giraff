@@ -11,8 +11,9 @@ graph_view = true
 
 NavigationAgent.RobotName = pioneer
 
-NavigationAgent.TileSize = 100
-NavigationAgent.grid_file_name= giraff_robolab_100.simscene.grid
+NavigationAgent.TileSize = 200
+#NavigationAgent.grid_file_name= exterior-robolab.simscene.grid
+NavigationAgent.grid_file_name=pioneer-200-vrep.simscene.grid
 NavigationAgent.num_threads_for_grid_occupancy = 15
 NavigationAgent.read_from_file = true 
 

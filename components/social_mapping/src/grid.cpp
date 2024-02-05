@@ -91,7 +91,7 @@ std::string Grid::saveToString() const
     for (const auto &[k, v] : fmap)
         stream << k << v << v.cost << std::endl;
 
-    std::cout << "Grid::" << __FUNCTION__ << " " << fmap.size() << " elements written to osdtringstream";
+//    std::cout << "Grid::" << __FUNCTION__ << " " << fmap.size() << " elements written to osdtringstream";
     return stream.str();
 }
 
@@ -359,8 +359,10 @@ inline double Grid::heuristicL2(const Key &a, const Key &b) const
 void Grid::draw(QGraphicsScene* scene)
 {
     //clear previous points
-    for (QGraphicsRectItem* item : scene_grid_points)
+    for (QGraphicsRectItem* item : scene_grid_points){
         scene->removeItem((QGraphicsItem*)item);
+        delete item;
+    }
 
     scene_grid_points.clear();
     //create new representation
@@ -381,7 +383,9 @@ void Grid::draw(QGraphicsScene* scene)
                 color = "#00BFFF";
             else if (value.cost == 8.0) //zona social
                 color = "#BF00FF";
-            else if (value.cost == 50.0) //Affordance maximum
+            else if (value.cost == 50.0) //Black
+                color = "#000000";
+            else if (value.cost == 100.0) //Affordance maximum
                 color = "#FF0000";
             else
                 color = "LightGreen";
@@ -395,6 +399,7 @@ void Grid::draw(QGraphicsScene* scene)
         aux->setZValue(1);
         aux->setPos(key.x, key.z);
         scene_grid_points.push_back(aux);
+
     }
 }
 

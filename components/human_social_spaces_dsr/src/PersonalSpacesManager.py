@@ -15,7 +15,7 @@ console = Console(highlight=False)
 from mpl_toolkits.mplot3d import Axes3D
 
 plt.figure()
-
+import time
 
 # plt.ion()
 
@@ -97,37 +97,61 @@ class PersonalSpacesManager:
         self.ly_sup = 50
 
     def _get_polyline(self, grid, resolution, lx_inf, ly_inf):
+        # Encuentra los índices donde grid es mayor que 0
+        j_indices, i_indices = np.nonzero(grid > 0)
+        
         total_points = []
-        for j in range(grid.shape[1]):
-            for i in range(grid.shape[0]):
-                if grid[j, i] > 0:
-                    same_cluster, pos = ck.checkboundaries(grid, i, j, total_points)
-                    if same_cluster is True:
-                        total_points[pos].append([i, j])
-                    else:
-                        points = [[i, j]]
-                        total_points.append(points)
-
+        for i, j in zip(i_indices, j_indices):
+            same_cluster, pos = ck.checkboundaries(grid, i, j, total_points)
+            if same_cluster:
+                total_points[pos].append([i, j])
+            else:
+                points = [[i, j]]
+                total_points.append(points)
+        
         ret = []
-        for list in total_points:
-            # los points en el grid sufren una traslacion, con esto los devolvemos a su posicion original
-            for points in list:
-                points[0] = points[0] * resolution + lx_inf
-                points[1] = points[1] * resolution + ly_inf
-
-            points = np.asarray(list)
-            hull = ConvexHull(points)
-            ret.append(points[hull.vertices])
-
+        for point_list in total_points:
+            # Realiza la traslación en un solo paso usando NumPy
+            point_array = np.array(point_list) * resolution + np.array([lx_inf, ly_inf])
+            
+            # Calcula el casco convexo
+            hull = ConvexHull(point_array)
+            ret.append(point_array[hull.vertices])
+        
         return ret
+
+
+    # def _get_polyline(self, grid, resolution, lx_inf, ly_inf):
+    #     total_points = []
+    #     for j in range(grid.shape[1]):
+    #         for i in range(grid.shape[0]):
+    #             if grid[j, i] > 0:
+    #                 same_cluster, pos = ck.checkboundaries(grid, i, j, total_points)
+    #                 if same_cluster is True:
+    #                     total_points[pos].append([i, j])
+    #                 else:
+    #                     points = [[i, j]]
+    #                     total_points.append(points)
+
+    #     ret = []
+    #     for list in total_points:
+    #         # los points en el grid sufren una traslacion, con esto los devolvemos a su posicion original
+    #         for points in list:
+    #             points[0] = points[0] * resolution + lx_inf
+    #             points[1] = points[1] * resolution + ly_inf
+
+    #         points = np.asarray(list)
+    #         hull = ConvexHull(points)
+    #         ret.append(points[hull.vertices])
+
+    #     return ret
 
     def get_personal_spaces(self, people_list, represent=False):
         #console.print(' ----- get_personal_spaces -----', style='blue')
-
         plt.clf()
         dict_spaces = dict(intimate=[], personal=[], social=[])
         dict_spaces_mm = dict(intimate=[], personal=[], social=[])
-
+        dict_res = {"intimate" : 0.2, "personal" : 0.3, "social" : 0.3}
         for space in self.__personal_spaces:
             normals = []
             for p in people_list:
@@ -143,15 +167,14 @@ class PersonalSpacesManager:
 
             #print("Number of gaussians ", len(normals))
 
-            resolution = 0.3
+            # resolution = 0.22
+            resolution = dict_res[space]
             limits = [[self.lx_inf, self.lx_sup], [self.ly_inf, self.ly_sup]]
-
             _, z = Normal.makeGrid(normals, self.__dict_space_param[space][3], 2, limits=limits, resolution=resolution)
+
+            # _, z = Normal.makeGrid(normals, self.__dict_space_param[space][3], 2, limits=limits, resolution=resolution)
             grid = GM.filterEdges(z, self.__dict_space_param[space][3])
-
-
             ordered_points = self._get_polyline(grid, resolution, self.lx_inf, self.ly_inf)
-
             for pol in ordered_points:
                 polyline = []
                 polyline_mm = []

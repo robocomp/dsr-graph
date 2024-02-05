@@ -7,6 +7,9 @@ graph_view = true
 2d_view = true
 3d_view = false
 tile_size = 100
+intimate_cost_value = 100
+personal_cost_value = 10
+social_cost_value = 8
 #Ice.MessageSizeMax=20004800
 
 InnerModelPath = innermodel.xml

@@ -140,11 +140,18 @@ class SpecificWorker(GenericWorker):
 
         # Read existing people
         self.people = {}
-        if Dummy.exists("Bill"):
-            self.people["Bill"] = Dummy("Bill")
+        # if Dummy.exists("Bill"):
+        #     self.people["Bill"] = Dummy("Bill")
+        # for i in range(0,2):
+        #     name = "Bill#" + str(i)
+        #     if Dummy.exists(name):
+        #         self.people[name] = Dummy(name)
+
         for i in range(0,2):
-            name = "Bill#" + str(i)
+            name = "/Bill"+ str(i) +"/Bill"+ str(i)
+            print(name)
             if Dummy.exists(name):
+                print("EXISTS", name)
                 self.people[name] = Dummy(name)
 
         self.joystick_newdata = []

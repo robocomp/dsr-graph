@@ -5,8 +5,8 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include "dsr/api/dsr_api.h"
-#include "dsr/api/dsr_inner_api.h"
+//#include "dsr/api/dsr_api.h"
+//#include "dsr/api/dsr_inner_api.h"
 #include <CommonBehavior.h>
 #include <fcl/collision.h>
 #include <fcl/distance.h>
@@ -24,12 +24,13 @@
 #include <osgDB/FileUtils>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
+#include <dsr/api/dsr_api.h>
 #include  "../../../etc/viriato_graph_names.h"
 
 typedef fcl::BVHModel<fcl::OBBRSS> FCLModel;
 typedef std::shared_ptr<FCLModel> FCLModelPtr;
 
-using namespace DSR;
+//using namespace DSR;
 
 struct IncludeTrianglesInFCL_functor
 {
@@ -139,12 +140,12 @@ class Collisions
         std::vector<std::string> restNodes;
         std::set<std::string> excludedNodes;
 
-        void recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
+        void recursiveIncludeMeshes(DSR::Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded);
         bool collide(std::shared_ptr<DSR::InnerEigenAPI> inner_eigen, const std::string &node_a_name, const std::string &node_b_name);
         // returns collison object, creates it if does not exist
         fcl::CollisionObject* get_collision_object(const std::string& node_name);
-        fcl::CollisionObject* create_mesh_collision_object(const Node &node);
-        fcl::CollisionObject* create_plane_collision_object(const Node &node);
+        fcl::CollisionObject* create_mesh_collision_object(const DSR::Node &node);
+        fcl::CollisionObject* create_plane_collision_object(const DSR::Node &node);
 };
 
 #endif //COLLISIONS_H

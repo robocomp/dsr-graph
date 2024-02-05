@@ -54,6 +54,7 @@ void Grid::initialize(std::shared_ptr<DSR::DSRGraph> graph_,
         std::thread threads[num_threads];
         std::vector<std::vector<float>> coordinates;
         std::vector<float> rot{0.0, 0.0, 0.0};
+        qInfo() << "DIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM "<<dim;
         for (float i = dim.left(); i < dim.right(); i += TILE_SIZE)
             for (float j = dim.top(); j < dim.bottom(); j += TILE_SIZE)
                 coordinates.emplace_back(std::vector<float>{i,j, 10.f});
@@ -108,6 +109,7 @@ std::tuple<bool, Grid::T&> Grid::getCell(const Key &k)  //overladed version
 //        return std::forward_as_tuple(false, T());
 //    else
 //        return std::forward_as_tuple(true, fmap.at(pointToGrid(k.x, k.z)));  // Key should already be correct
+//        qInfo() << __FUNCTION__ << k.x << k.z << pointToGrid(k.x, k.z).x <<  pointToGrid(k.x, k.z).z;
       try{ return std::forward_as_tuple(true, fmap.at(pointToGrid(k.x, k.z))); }
       catch(...){ /*qInfo() << __FUNCTION__ << " No key found in grid: (" << k.x << k.z << ")" ;*/ return std::forward_as_tuple(false, T()) ;}
 }
@@ -461,8 +463,10 @@ inline double Grid::heuristicL2(const Key &a, const Key &b) const
 void Grid::draw(QGraphicsScene* scene)
 {
     //clear previous points
-    for (QGraphicsRectItem* item : scene_grid_points)
+    for (QGraphicsRectItem* item : scene_grid_points){
         scene->removeItem((QGraphicsItem*)item);
+        delete item;
+    }
 
     scene_grid_points.clear();
     //create new representation
@@ -483,7 +487,9 @@ void Grid::draw(QGraphicsScene* scene)
                 color = "#BF00FF";
             else if (value.cost == 10.0) //zona personal
                 color = "#00BFFF";
-            else if (value.cost == 50.0) //Affordance maximum
+            else if (value.cost == 50.0) //Black
+                color = "#000000";
+            else if (value.cost == 100.0) //Affordance maximum
                 color = "#FF0000";
             else
                 color = "LightGreen";

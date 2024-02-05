@@ -29,8 +29,8 @@
 #include  "../../../etc/graph_names.h"
 
 #include <custom_widget.h>
-#include <dsr/api/dsr_api.h>
-#include <dsr/gui/dsr_gui.h>
+#include "dsr/api/dsr_api.h"
+#include "dsr/gui/dsr_gui.h"
 #include <dsr/gui/viewers/qscene_2d_viewer/qscene_2d_viewer.h>
 #include <localPerson.h>
 #include <QGraphicsPolygonItem>
@@ -77,6 +77,7 @@ class SpecificWorker : public GenericWorker
         void initialize(int period);
 
 private:
+        std::unique_ptr<DSR::RT_API> rt;
         // DSR graph
         std::shared_ptr<DSR::DSRGraph> G;
         std::unique_ptr<DSR::InnerEigenAPI> inner_eigen;
@@ -127,9 +128,9 @@ private:
             float robot_width = 400;
             float robot_radius = robot_length /2.0 ;
             float road_step_separation = robot_length * 0.9;
-            float KE = 30;
+            float KE = 0.08;
             float KI = 10;
-            float KS = 40; //elastic band social
+            float KS = 0.003; //elastic band social
             float delta = 50;   // x and y displacement for gradient
             float max_laser_range = 4000.f;
             float very_large_distance = 100000.f;
@@ -166,6 +167,7 @@ private:
         // Grid
         Grid grid;
         std::shared_ptr<Collisions> collisions;
+
 };
 
 #endif

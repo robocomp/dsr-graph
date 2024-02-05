@@ -47,6 +47,9 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	graph_view = params["graph_view"].value == "true";
 	qscene_2d_view = params["2d_view"].value == "true";
 	osg_3d_view = params["3d_view"].value == "true";
+    intimate_cost_value = stof(params["intimate_cost_value"].value);
+    personal_cost_value = stof(params["personal_cost_value"].value);
+    social_cost_value = stof(params["social_cost_value"].value);
 	return true;
 }
 
@@ -139,23 +142,67 @@ void SpecificWorker::initialize(int period)
 }
 
 void SpecificWorker::compute()
-{
-    if( auto space_nodes = space_nodes_buffer.try_get(); space_nodes.has_value())
-    {
-        const auto spaces = get_polylines_from_dsr(space_nodes.value());
+{   
+    if(!loaded_grid){
         if (auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
         {
-            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
+            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(
+                        grid_node.value()); grid_as_string.has_value())
             {
                 grid.readFromString(grid_as_string.value());
-                insert_polylines_in_grid(spaces);
+                loaded_grid = true;
+                std::cout << "---------LOADED GRID--------" << std::endl;
+
+            }
+        }
+        else
+        {
+            loaded_grid=false;
+            std::cout << "---------NO GRID--------" << std::endl;
+        }
+    }
+    else
+    {
+        if (auto space_nodes = space_nodes_buffer.try_get(); space_nodes.has_value()) {
+            // std::cout << "SPACE NODES"<< std::endl;
+            const auto spaces = get_polylines_from_dsr(space_nodes.value());
+            last_spaces = spaces;
+            spaces_saved = true;
+            insert_polylines_in_grid(spaces);
+            inject_grid_in_G();
+        }
+        else if (auto space_nod = G->get_nodes_by_type(personal_space_type_name); space_nod.size()==0)
+        {
+            // std::cout << "NO SPACE NODES"<< std::endl;
+            if(spaces_saved){
+                vector<QPolygonF> clear_polygon;
+                last_spaces = std::make_tuple(clear_polygon, clear_polygon, clear_polygon, get<3>(last_spaces));
+                insert_polylines_in_grid(last_spaces);
                 inject_grid_in_G();
             }
-            else
-            {}
-        } else
-        {}
+        }
     }
+    fps.print("FPS: ", [this](auto x){ graph_viewer->set_external_hz(x);});
+}
+
+//void SpecificWorker::compute()
+//{
+//    if( auto space_nodes = space_nodes_buffer.try_get(); space_nodes.has_value())
+//    {
+//        const auto spaces = get_polylines_from_dsr(space_nodes.value());
+//        if (auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
+//        {
+//            if (const auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
+//            {
+//                grid.readFromString(grid_as_string.value());
+//                insert_polylines_in_grid(spaces);
+//                inject_grid_in_G();
+//            }
+//            else
+//            {}
+//        } else
+//        {}
+//    }
 /*    if( auto grid_string = grid_buffer.try_get(); grid_string.has_value())
     {
         auto personal_spaces_nodes = G->get_nodes_by_type(personal_space_type_name);
@@ -175,7 +222,7 @@ void SpecificWorker::compute()
         else
         {}  // grid has not changed. Use current one.
     }*/
-}
+//}
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -224,22 +271,46 @@ void SpecificWorker::insert_polylines_in_grid(const Spaces &spaces)
 {
     const auto &[intimate_seq, personal_seq, social_seq, affordances_seq] = spaces;
     grid.resetGrid();
-    for (auto &&poly_soc : affordances_seq)
-        grid.modifyCostInGrid(poly_soc, 2.0);
+    for (auto &&poly_aff : affordances_seq)
+        grid.modifyCostInGrid(poly_aff, 2.0);
 
     //To set occupied
+
+    for (auto &&poly_soc : social_seq)
+        grid.modifyCostInGrid(poly_soc, social_cost_value);
+
+    for (auto &&poly_per : personal_seq)
+        grid.modifyCostInGrid(poly_per, personal_cost_value);
+
     for (auto &&poly_intimate : iter::chain(intimate_seq))
-        grid.markAreaInGridAs(poly_intimate, false);
+        /*grid.markAreaInGridAs(poly_intimate, false);*/grid.modifyCostInGrid(poly_intimate, intimate_cost_value);
 
-    for (auto &&poly_per : social_seq)
-        grid.modifyCostInGrid(poly_per, 10.0);
-
-    for (auto &&poly_soc : personal_seq)
-        grid.modifyCostInGrid(poly_soc, 8.0);
-
-    if (widget_2d != nullptr)
-        grid.draw(&widget_2d->scene);
+  //  if (widget_2d != nullptr)
+  //      grid.draw(&widget_2d->scene);
 }
+
+void SpecificWorker::empty_polylines_in_grid(const Spaces &spaces)
+{
+    const auto &[intimate_seq, personal_seq, social_seq, affordances_seq] = spaces;
+    grid.resetGrid();
+    for (auto &&poly_aff : affordances_seq)
+        grid.modifyCostInGrid(poly_aff, 2.0);
+
+    //To set occupied
+
+    for (auto &&poly_soc : social_seq)
+        grid.modifyCostInGrid(poly_soc, social_cost_value);
+
+    for (auto &&poly_per : personal_seq)
+        grid.modifyCostInGrid(poly_per, personal_cost_value);
+
+    for (auto &&poly_intimate : iter::chain(intimate_seq))
+        /*grid.markAreaInGridAs(poly_intimate, false);*/grid.modifyCostInGrid(poly_intimate, intimate_cost_value);
+
+   // if (widget_2d != nullptr)
+   //     grid.draw(&widget_2d->scene);
+}
+
 void SpecificWorker::inject_grid_in_G()
 {
     std::string grid_as_string = grid.saveToString();

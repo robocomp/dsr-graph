@@ -70,7 +70,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 void SpecificWorker::initialize(int period)
 {
 	std::cout << __FUNCTION__ << std::endl;
-	this->Period = period;
+	this->Period = Period;
 	if(this->startup_check_flag)
 	{
 		this->startup_check();
@@ -87,7 +87,7 @@ void SpecificWorker::initialize(int period)
         //connect(G.get(), &DSR::DSRGraph::update_attrs_signal, this, &SpecificWorker::add_or_assign_attrs_slot);
         //connect(G.get(), &DSR::DSRGraph::del_edge_signal, this, &SpecificWorker::del_edge_slot);
         //connect(G.get(), &DSR::DSRGraph::del_node_signal, this, &SpecificWorker::del_node_slot);
-
+        rt = G->get_rt_api();
         // Graph viewer
 		using opts = DSR::DSRViewer::view;
 		int current_opts = 0;
@@ -141,16 +141,20 @@ void SpecificWorker::initialize(int period)
         outerRegion.setRight(G->get_attrib_by_name<OuterRegionRight_att>(world_node).value());
         outerRegion.setBottom(G->get_attrib_by_name<OuterRegionBottom_att>(world_node).value());
         outerRegion.setTop(G->get_attrib_by_name<OuterRegionTop_att>(world_node).value());
+
         if(outerRegion.isNull())
         {
             qWarning() << __FILE__ << __FUNCTION__ << "Outer region of the scene could not be found in G. Aborting";
             std::terminate();
         }
+
+
         grid.dim.setCoords(outerRegion.left(), outerRegion.top(), outerRegion.right(), outerRegion.bottom());
         grid.TILE_SIZE = stoi(conf_params->at("tile_size").value);
         collisions =  std::make_shared<Collisions>();
         collisions->initialize(G, conf_params);
         grid.initialize(G, collisions, false);
+
         if( auto grid_node = G->get_node(current_grid_name); grid_node.has_value())
         {
             if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(grid_node.value()); grid_as_string.has_value())
@@ -161,7 +165,12 @@ void SpecificWorker::initialize(int period)
 		this->Period = 60;
         std::cout<< __FUNCTION__ << "Initialization finished" << std::endl;
         timer.start(Period);
+
+        cout << "KE: " << constants.KE << endl;
+        cout << "KI: " << constants.KI << endl;
+        cout << "KS: " << constants.KS << endl;
 	}
+  //  hide();
 }
 
 void SpecificWorker::compute()
@@ -172,6 +181,21 @@ void SpecificWorker::compute()
     // Check for existing path_to_target_nodes
     if (auto path_o = path_buffer.try_get(); path_o.has_value())
     {
+
+//        /**
+//         * PARTE DE OPTIMIZACIÓN DE FUERZAS --- CREAR NODO
+//         */º
+        if (auto forces_opt = G->get_node("optimized_params"); forces_opt.has_value())
+        {
+            constants.KE = G->get_attrib_by_name<robot_external_forces_att>(forces_opt.value()).value();
+            constants.KI = G->get_attrib_by_name<robot_internal_forces_att>(forces_opt.value()).value();
+            constants.KS = G->get_attrib_by_name<robot_social_forces_att>(forces_opt.value()).value(); //elastic band social
+        }
+
+        /*cout << "KE: " << constants.KE << endl;
+        cout << "KI: " << constants.KI << endl;
+        cout << "KS: " << constants.KS << endl;*/
+
         path.clear();
         path = path_o.value();
         qDebug() << __FUNCTION__ << " New path detected";
@@ -184,6 +208,7 @@ void SpecificWorker::compute()
                 node=node_laser.value();
             else
             {
+                if( auto node_laser = G->get_node(laser_name); node_laser.has_value())
                 if( auto node_laser = G->get_node(laser_name); node_laser.has_value())
                     node=node_laser.value();
             }
@@ -199,12 +224,20 @@ void SpecificWorker::compute()
             auto nose_3d = inner_eigen->transform(world_name, Mat::Vector3d(0, 360, 0), robot_name).value();
             auto current_robot_nose = QPointF(nose_3d.x(), nose_3d.y());
             auto current_robot_polygon = get_robot_polygon();  //in world coordinates. Think of a transform_multi
+//            std::cout << "1" << endl;
             compute_forces(path, laser_cart, laser_poly, current_robot_polygon, current_robot_nose);
+            std::cout << "2" << endl;
             clean_points(path, laser_poly, current_robot_polygon);
+            std::cout << "3" << endl;
             add_points(path, laser_poly, current_robot_polygon);
-            if(widget_2d != nullptr)
+            std::cout << "4" << endl;
+            if(widget_2d != nullptr) {
+                std::cout << "5" << endl;
                 draw_path(path, &widget_2d->scene, laser_poly);
+            }
+            std::cout << "6" << endl;
             save_path_in_G(path);
+            std::cout << "7" << endl;
         }
         else
             qDebug() << __FUNCTION__ << "No path node";
@@ -229,8 +262,10 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
     float total_energy_ratio = 0.f; // sum of gradients modules
     int iterations = 0;
 
-    while( total_energy_ratio > constants.max_total_energy_ratio or iterations++ < constants.max_free_energy_iterations)
+    while( total_energy_ratio > constants.max_total_energy_ratio or iterations < constants.max_free_energy_iterations)
     {
+        std::cout << "ITERATIONS: " << iterations << std::endl;
+        std::cout << "TOTAL ENERGY RATIO: " << total_energy_ratio << std::endl;
         total_energy_ratio = 0.f;
         float total_energy = 0.f;
         // Go through all points using a sliding window of 3
@@ -351,23 +386,26 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
 
             // people exists?
             if(auto person_list = G->get_nodes_by_type(person_type_name); not person_list.empty()) {
+                if (auto space = G->get_nodes_by_type(personal_space_type_name); not space.empty()) {
 
-                s_force_total = calculateSocialForce(s_force_total,person_list,p);
-
-
-                // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
-                QVector2D base_line_social = (p1 - p3).normalized();
-                const QVector2D itangential_social = QVector2D::dotProduct(s_force_total, base_line_social) * base_line_social;
-                s_force_total = s_force_total - itangential_social;
+                    s_force_total = calculateSocialForce(s_force_total, person_list, p);
+                    // Remove tangential component of repulsion force by projecting on line tangent to path (base_line)
+                    QVector2D base_line_social = (p1 - p3).normalized();
+                    const QVector2D itangential_social =
+                            QVector2D::dotProduct(s_force_total, base_line_social) * base_line_social;
+                    s_force_total = s_force_total - itangential_social;
+                }
             }
-
-
-
 
 
             ///////////////////////////////////////
 
             QVector2D total = (constants.KI * i_force) + (e_force) + (constants.KS * s_force_total);
+
+//            std::cout << " I_FORCE: " << (constants.KI * i_force).length() << " E_FORCE: " << e_force.length() << " S_FORCE: " << (constants.KS * s_force_total).length() << std::endl;
+            std::cout << " TOTAL FORCE: " << total.length() << std::endl;
+            //std::cout<<"KE: "<< constants.KE << endl;
+            //std::cout<<"KS: "<< constants.KS << endl;
             total_energy += total.length();
 
             // for drawing
@@ -391,6 +429,7 @@ void SpecificWorker::compute_forces(std::vector<QPointF> &path,
         }
         total_energy_ratio = total_energy / path.size();
         //qInfo() << __FUNCTION__ << " Remaining energy: " << total_energy << " Length: " << path.size() << " Ratio: " << total_energy / path.size();
+        iterations++;
     }
 }
 void SpecificWorker::clean_points(std::vector<QPointF> &path, const QPolygonF &laser_poly,  const QPolygonF &current_robot_polygon)
@@ -475,15 +514,20 @@ bool SpecificWorker::is_visible(QPointF p, const QPolygonF &laser_poly)
 }
 void SpecificWorker::save_path_in_G(const std::vector<QPointF> &path)
 {
-    if( auto node_path = G->get_node(last_path_id); node_path.has_value())
-    {
-        std::vector<float> x_points, y_points;
-        x_points.reserve(path.size()); y_points.reserve(path.size());
-        for(const auto &p : path)
+    try{
+        if( auto node_path = G->get_node(last_path_id); node_path.has_value())
+        {
+            std::vector<float> x_points, y_points;
+            x_points.reserve(path.size()); y_points.reserve(path.size());
+            for(const auto &p : path)
             { x_points.emplace_back(p.x()); y_points.emplace_back(p.y());  }
-        G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_points);
-        G->add_or_modify_attrib_local<path_y_values_att>(node_path.value(), y_points);
-        G->update_node(node_path.value());
+            G->add_or_modify_attrib_local<path_x_values_att>(node_path.value(), x_points);
+            G->add_or_modify_attrib_local<path_y_values_att>(node_path.value(), y_points);
+            G->update_node(node_path.value());
+        }
+    }
+    catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -543,7 +587,13 @@ void SpecificWorker::add_or_assign_node_slot(const std::uint64_t id, const std::
         if (auto node = G->get_node(id); node.has_value())
         {
             if (auto grid_as_string = G->get_attrib_by_name<grid_as_string_att>(node.value()); grid_as_string.has_value())
+            {
+                std::cout << "ACT GRID" << std::endl;
+
                 grid.readFromString(grid_as_string.value());
+                std::cout << "ACT GRID FINISH" << std::endl;
+            }
+
         }
     }
 //    else if (type == laser_type_name)    // Laser node updated
@@ -644,6 +694,7 @@ void SpecificWorker::draw_path(std::vector<QPointF> &path, QGraphicsScene* viewe
     //qInfo() << "----------";
 }
 
+
 int SpecificWorker::startup_check()
 {
 	std::cout << "Startup check" << std::endl;
@@ -716,84 +767,238 @@ void SpecificWorker::distancePointLine( const QPointF &p, const QLineF &line, fl
 
 QVector2D SpecificWorker::calculateSocialForce(QVector2D s_force_total, vector<Node> person_list, QPointF p)
 {
+    auto distance = 99999;
+    int closest_person_id;
+    Eigen::Matrix<double, 3, 1> person_pose;
+    bool close_people = false;
+    //Find closest person to p
+    for( const auto &person : person_list){
+        if(auto followed_person = G->get_attrib_by_name<is_followed_att>(person); followed_person.has_value() && followed_person.value() == false)
+        {
+            if(auto edge_robot_person = rt->get_edge_RT(G->get_node("world").value(), person.id()); edge_robot_person.has_value())
+            {
+                auto pose_edge = G->get_attrib_by_name<rt_translation_att>(edge_robot_person.value()).value().get();
+                Eigen::Matrix<double, 3, 1> pose_aux(pose_edge[0], pose_edge[1], 0);
+//        auto pose_aux = inner_eigen->transform(world_name, person.name()).value();
+                Eigen::Matrix<double, 3, 1> point (p.x(),p.y(),0);
+                if ( (point - pose_aux).norm() < distance && (point - pose_aux).norm() < 1500) {
+                    close_people = true;
+                    distance = (point - pose_aux).norm();// Distance point - person
+                    closest_person_id = G->get_attrib_by_name<person_id_att>(person).value();
+                    person_pose = pose_aux;
+                }
+            }
+        }
+    }
 
-    for( const auto &person : person_list)
-    {
-        // get personid
-        const auto personid = G->get_attrib_by_name<person_id_att>(person);
-        //get person pose
-        auto person_pose = inner_eigen->transform(world_name, person.name()).value();
+    if (close_people){
 
-        size_t mod = 1;
-
+        size_t mod = 50; // milímetros
         //A vector s_force for person
         QVector2D s_force((p.x() - person_pose.x()), (p.y() - person_pose.y()));
-        //Get Personal spaces
-        if(auto polylines_list = G->get_nodes_by_type(personal_space_type_name); not polylines_list.empty()) {
-            for( const auto &polyline : polylines_list)
-            {
-                // Get parent's personid
-                const auto padre = G->get_attrib_by_name<person_id_att>(polyline);
+        s_force = s_force/distance; //normalize s_force with the distance
 
-                if(padre == personid){
+        for( const auto &person : person_list)
+        {
+            //Get Personal spaces
+            if(auto polylines_list = G->get_nodes_by_type(personal_space_type_name); not polylines_list.empty()) {
+                for( const auto &polyline : polylines_list)
+                {
+                    // Get parent's personid
+                    const auto padre = G->get_attrib_by_name<person_id_att>(polyline);
 
-                    //VECTOR GAUSIANAS, SOCIAL ZONE
-                    QPolygonF social; //For each gaussian
+                    if(padre == closest_person_id && distance < 1500){
+                        //VECTOR GAUSIANAS, SOCIAL ZONE
+                        QPolygonF social; //For each gaussian
 
-                    // Get social zone polygon
-                    const auto social_x_o = G->get_attrib_by_name<ps_social_x_pos_att>(polyline);
-                    const auto social_y_o = G->get_attrib_by_name<ps_social_y_pos_att>(polyline);
-                    if( social_x_o.has_value() and social_y_o.has_value())
-                    {
-
-                        const std::vector<float> &social_x = social_x_o.value().get();
-                        const std::vector<float> &social_y = social_y_o.value().get();
-                        for(auto &&[point_x,point_y] : iter::zip(social_x, social_y))
+                        // Get social zone polygon
+                        const auto social_x_o = G->get_attrib_by_name<ps_social_x_pos_att>(polyline);
+                        const auto social_y_o = G->get_attrib_by_name<ps_social_y_pos_att>(polyline);
+                        if( social_x_o.has_value() and social_y_o.has_value())
                         {
-                            QPointF point(point_x,point_y);
-                            social.append(point);
-                        }
-
-                    }
-
-
-                    // if p is located inside the social zone, the social force will be bigger
-                    if (social.containsPoint(p, Qt::OddEvenFill)) {
-                        mod *= 2;
-
-                        /*QPolygonF personal;
-
-                        const auto personal_x_o = G->get_attrib_by_name<ps_personal_x_pos_att>(polyline);
-                        const auto personal_y_o = G->get_attrib_by_name<ps_personal_y_pos_att>(polyline);
-                        if( personal_x_o.has_value() and personal_y_o.has_value())
-                        {
-
-                            const std::vector<float> &personal_x = personal_x_o.value().get();
-                            const std::vector<float> &personal_y = personal_y_o.value().get();
-                            for(auto &&[point_x,point_y] : iter::zip(personal_x, personal_y))
+                            const std::vector<float> &social_x = social_x_o.value().get();
+                            const std::vector<float> &social_y = social_y_o.value().get();
+                            for(auto &&[point_x,point_y] : iter::zip(social_x, social_y))
                             {
                                 QPointF point(point_x,point_y);
-                                personal.append(point);
+                                social.append(point);
+                            }
+                        }
+                        // if p is located inside the social zone, the social force will be bigger
+                        if (social.containsPoint(p, Qt::OddEvenFill)) {
+                            mod *= 2;
+
+//                            qInfo() << "INVASION ZONA SOCIAL" ;
+                            QPolygonF personal;
+
+                            const auto personal_x_o = G->get_attrib_by_name<ps_personal_x_pos_att>(polyline);
+                            const auto personal_y_o = G->get_attrib_by_name<ps_personal_y_pos_att>(polyline);
+                            if( personal_x_o.has_value() and personal_y_o.has_value())
+                            {
+                                const std::vector<float> &personal_x = personal_x_o.value().get();
+                                const std::vector<float> &personal_y = personal_y_o.value().get();
+                                for(auto &&[point_x,point_y] : iter::zip(personal_x, personal_y))
+                                {
+                                    QPointF point(point_x,point_y);
+                                    personal.append(point);
+                                }
                             }
 
+                            if (personal.containsPoint(p, Qt::OddEvenFill)) { //Zona intima
+                                mod *= 2;
+
+//                                qInfo() << "INVASION ZONA INTIMA" ;
+
+                                //VECTOR GAUSIANAS, SOCIAL ZONE
+                                QPolygonF intimate; //For each gaussian
+
+                                // Get social zone polygon
+                                const auto intimate_x_o = G->get_attrib_by_name<ps_intimate_x_pos_att>(polyline);
+                                const auto intimate_y_o = G->get_attrib_by_name<ps_intimate_y_pos_att>(polyline);
+                                if( intimate_x_o.has_value() and intimate_y_o.has_value())
+                                {
+
+                                    const std::vector<float> &intimate_x = intimate_x_o.value().get();
+                                    const std::vector<float> &intimate_y = intimate_y_o.value().get();
+                                    for(auto &&[point_x,point_y] : iter::zip(intimate_x, intimate_y))
+                                    {
+                                        QPointF point(point_x,point_y);
+                                        intimate.append(point);
+                                    }
+                                }
+                                // if p is located inside the social zone, the social force will be bigger
+                                if (intimate.containsPoint(p, Qt::OddEvenFill)) {
+                                    mod *= 2;
+                                }
+                            }
                         }
-
-                        if (personal.containsPoint(p, Qt::OddEvenFill)) { //Zona intima
-                            mod *= 2;
-                        }*/
                     }
-
                 }
-
-
-
             }
         }
         //s_force_total acumula los vectores (s_force) si hay varias gausianas (personas)
-        s_force = s_force * mod;
-        s_force_total = s_force_total + s_force;
-
+//        mod = (1200-distance);
+        return s_force * mod;
+//        s_force = s_force * mod;
+//        s_force_total = s_force_total + s_force;
+//
+//        qInfo() << "s_force" << s_force;
+//        //}
+//        qInfo() << " s_force_total " << s_force_total;
+//        return s_force_total;
+    }
+    else
+    {
+//        qInfo() << " NO CLOSE PEOPLE " << s_force_total;
+        return QVector2D (0.0 , 0.0);
     }
 
-    return s_force_total;
+
+//    for( const auto &person : person_list)
+//    {
+//        auto person_pose = inner_eigen->transform(world_name, person.name()).value();
+//        Eigen::Matrix<double, 3, 1> point (p.x(),p.y(),0);
+//
+//        auto distance = (point - person_pose).norm();// Distance point - person
+//
+//        //if(distance <= 3600.0)
+//        //{
+//
+//            // get personid
+//            const auto personid = G->get_attrib_by_name<person_id_att>(person);
+//            //get person pose
+//            //auto person_pose = inner_eigen->transform(world_name, person.name()).value();
+//
+//            size_t mod = 1;
+//
+//            //A vector s_force for person
+//            QVector2D s_force((p.x() - person_pose.x()), (p.y() - person_pose.y()));
+//            s_force = s_force/distance; //normalize s_force with the distance
+//            //Get Personal spaces
+//            if(auto polylines_list = G->get_nodes_by_type(personal_space_type_name); not polylines_list.empty()) {
+//                for( const auto &polyline : polylines_list)
+//                {
+//                    // Get parent's personid
+//                    const auto padre = G->get_attrib_by_name<person_id_att>(polyline);
+//
+//                    if(padre == personid){
+//
+//                        //VECTOR GAUSIANAS, SOCIAL ZONE
+//                        QPolygonF social; //For each gaussian
+//
+//                        // Get social zone polygon
+//                        const auto social_x_o = G->get_attrib_by_name<ps_social_x_pos_att>(polyline);
+//                        const auto social_y_o = G->get_attrib_by_name<ps_social_y_pos_att>(polyline);
+//                        if( social_x_o.has_value() and social_y_o.has_value())
+//                        {
+//                            const std::vector<float> &social_x = social_x_o.value().get();
+//                            const std::vector<float> &social_y = social_y_o.value().get();
+//                            for(auto &&[point_x,point_y] : iter::zip(social_x, social_y))
+//                            {
+//                                QPointF point(point_x,point_y);
+//                                social.append(point);
+//                            }
+//                        }
+//                        // if p is located inside the social zone, the social force will be bigger
+//                        if (social.containsPoint(p, Qt::OddEvenFill)) {
+//                            mod *= 2;
+//
+//                            qInfo() << "INVASION ZONA SOCIAL" ;
+//                            QPolygonF personal;
+//
+//                            const auto personal_x_o = G->get_attrib_by_name<ps_personal_x_pos_att>(polyline);
+//                            const auto personal_y_o = G->get_attrib_by_name<ps_personal_y_pos_att>(polyline);
+//                            if( personal_x_o.has_value() and personal_y_o.has_value())
+//                            {
+//                                const std::vector<float> &personal_x = personal_x_o.value().get();
+//                                const std::vector<float> &personal_y = personal_y_o.value().get();
+//                                for(auto &&[point_x,point_y] : iter::zip(personal_x, personal_y))
+//                                {
+//                                    QPointF point(point_x,point_y);
+//                                    personal.append(point);
+//                                }
+//                            }
+//
+//                            if (personal.containsPoint(p, Qt::OddEvenFill)) { //Zona intima
+//                                mod *= 2;
+//
+//                                qInfo() << "INVASION ZONA INTIMA" ;
+//
+//                                //VECTOR GAUSIANAS, SOCIAL ZONE
+//                                QPolygonF intimate; //For each gaussian
+//
+//                                // Get social zone polygon
+//                                const auto intimate_x_o = G->get_attrib_by_name<ps_intimate_x_pos_att>(polyline);
+//                                const auto intimate_y_o = G->get_attrib_by_name<ps_intimate_y_pos_att>(polyline);
+//                                if( intimate_x_o.has_value() and intimate_y_o.has_value())
+//                                {
+//
+//                                    const std::vector<float> &intimate_x = intimate_x_o.value().get();
+//                                    const std::vector<float> &intimate_y = intimate_y_o.value().get();
+//                                    for(auto &&[point_x,point_y] : iter::zip(intimate_x, intimate_y))
+//                                    {
+//                                        QPointF point(point_x,point_y);
+//                                        intimate.append(point);
+//                                    }
+//                                }
+//                                // if p is located inside the social zone, the social force will be bigger
+//                                if (intimate.containsPoint(p, Qt::OddEvenFill)) {
+//                                    mod *= 2;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            //s_force_total acumula los vectores (s_force) si hay varias gausianas (personas)
+//            s_force = s_force * mod;
+//            s_force_total = s_force_total + s_force;
+//
+//        qInfo() << "s_force" << s_force;
+//        //}
+//
+//
+//    }
+
+
 }

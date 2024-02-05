@@ -42,28 +42,55 @@ class Normal(object):
                 Normal.calcExp(grids[:, i], mu, const, sigmaI, result[i])
 
     @staticmethod
-    def makeGrid(normals, h, dimensions=None, limits=None, resolution=0.1, grids=None):
-        if len(normals) > 0:
-            axes = []
-            if grids is None:
-                if dimensions is None:
-                    dimensions = normals[0].getDimensions()
-                if limits is None:
-                    limits = [[np.inf, -np.inf] for _ in range(dimensions)]
-                    for normal in normals:
-                        local = normal.getBounds(h)
-                        for i in range(dimensions):
-                            if local[i][0] < limits[i][0]:
-                                limits[i][0] = local[i][0]
-                            if local[i][1] > limits[i][1]:
-                                limits[i][1] = local[i][1]
-                for limit in limits:
-                    axes.append(np.arange(limit[0], limit[1], resolution))
-                grids = np.array(np.meshgrid(*axes))
-            result = np.zeros(grids.shape[1:])
+    def makeGrid(normals, h, dimensions=None, limits=None, resolution=0.1):
+        if len(normals) == 0:
+            return None  # No hay datos, devuelve None o lo que sea apropiado en tu caso.
+
+        if dimensions is None:
+            dimensions = normals[0].getDimensions()
+
+        if limits is None:
+            limits = [[np.inf, -np.inf] for _ in range(dimensions)]
             for normal in normals:
-                normal.addTo(grids, result)
-            return grids, result
+                local = normal.getBounds(h)
+                limits = [
+                    [min(local[i][0], limit[0]), max(local[i][1], limit[1])]
+                    for i, limit in enumerate(limits)
+                ]
+
+        axes = [np.arange(limit[0], limit[1], resolution) for limit in limits]
+        grids = np.array(np.meshgrid(*axes))
+
+        result = np.zeros(grids.shape[1:])
+        
+        for normal in normals:
+            normal.addTo(grids, result)
+        
+        return grids, result
+
+
+    # def makeGrid(normals, h, dimensions=None, limits=None, resolution=0.1, grids=None):
+    #     if len(normals) > 0:
+    #         axes = []
+    #         if grids is None:
+    #             if dimensions is None:
+    #                 dimensions = normals[0].getDimensions()
+    #             if limits is None:
+    #                 limits = [[np.inf, -np.inf] for _ in range(dimensions)]
+    #                 for normal in normals:
+    #                     local = normal.getBounds(h)
+    #                     for i in range(dimensions):
+    #                         if local[i][0] < limits[i][0]:
+    #                             limits[i][0] = local[i][0]
+    #                         if local[i][1] > limits[i][1]:
+    #                             limits[i][1] = local[i][1]
+    #             for limit in limits:
+    #                 axes.append(np.arange(limit[0], limit[1], resolution))
+    #             grids = np.array(np.meshgrid(*axes))
+    #         result = np.zeros(grids.shape[1:])
+    #         for normal in normals:
+    #             normal.addTo(grids, result)
+    #         return grids, result
 
     def move(self):
         self._mu += np.random.uniform(-0.1, 0.1, self._mu.shape)

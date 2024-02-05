@@ -35,6 +35,7 @@
 #include <cppitertools/chain.hpp>
 #include "grid.h"
 #include <QPolygonF>
+#include <fps/fps.h>
 #include <QPointF>
 #include "../../../etc/viriato_graph_names.h"
 //#include <gzip/compress.hpp>
@@ -65,6 +66,10 @@ private:
 	bool qscene_2d_view;
 	bool osg_3d_view;
 
+    float intimate_cost_value;
+    float personal_cost_value;
+    float social_cost_value;
+
 	// DSR graph viewer
 	std::unique_ptr<DSR::DSRViewer> graph_viewer;
 	QHBoxLayout mainLayout;
@@ -85,6 +90,9 @@ private:
     //bool personal_spaces_changed = false;
     std::shared_ptr<Collisions> collisions;
 
+    bool loaded_grid = false;
+	FPSCounter fps;
+
     std::shared_ptr<RoboCompCommonBehavior::ParameterList> conf_params;
 
     // double buffers
@@ -98,6 +106,11 @@ private:
     Spaces get_polylines_from_dsr(const std::tuple<std::vector<DSR::Node>,std::vector<DSR::Node>> &spaces);
     void insert_polylines_in_grid(const Spaces &spaces);
     void inject_grid_in_G();
+
+
+    tuple<vector<QPolygonF>, vector<QPolygonF>, vector<QPolygonF>, vector<QPolygonF>> last_spaces;
+    bool spaces_saved = false;
+    void empty_polylines_in_grid(const Spaces &spaces);
 
 };
 

@@ -8,7 +8,7 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
     qDebug() << "Collisions - " <<__FUNCTION__;
     G = graph_;
     //read from World (DSR node)
-    std::optional<Node> world_node = G->get_node(world_name);
+    std::optional<DSR::Node> world_node = G->get_node(world_name);
     if(world_node.has_value())
     {
         outerRegion.setLeft(G->get_attrib_by_name<OuterRegionLeft_att>(world_node.value()).value());
@@ -45,9 +45,9 @@ void Collisions::initialize(const std::shared_ptr<DSR::DSRGraph> &graph_,const s
 std::tuple<bool, std::string> Collisions::checkRobotValidStateAtTargetFast(DSR::DSRGraph *G_copy, const std::vector<float> &targetPos, const std::vector<float> &targetRot)
 {
     //First we move the robot in G_copy to the target coordinates
-    std::optional<Node> world = G_copy->get_node(world_name);
+    std::optional<DSR::Node> world = G_copy->get_node(world_name);
     std::optional<int> robot_id = G_copy->get_id_from_name(robot_name);
-    std::unique_ptr<RT_API> rt = G_copy->get_rt_api();
+    std::unique_ptr<DSR::RT_API> rt = G_copy->get_rt_api();
     rt->insert_or_assign_edge_RT(world.value(), robot_id.value(), targetPos, targetRot);
     std::shared_ptr<DSR::InnerEigenAPI> inner_eigen = G_copy->get_inner_eigen_api();
 
@@ -103,7 +103,7 @@ bool Collisions::collide(std::shared_ptr<DSR::InnerEigenAPI> inner_eigen, const 
         return false;
 }
 
-void Collisions::recursiveIncludeMeshes(Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded)
+void Collisions::recursiveIncludeMeshes(DSR::Node node, std::string robot_name, bool inside, std::vector<std::string> &in, std::vector<std::string> &out, std::set<std::string> &excluded)
 {
     if (node.name() == robot_name)
         inside = true;
@@ -130,7 +130,7 @@ fcl::CollisionObject* Collisions::get_collision_object(const std::string& node_n
     if (collision_objects.find(node_name) == collision_objects.end())
     {
         // object creation
-        std::optional<Node> node = G->get_node(node_name);
+        std::optional<DSR::Node> node = G->get_node(node_name);
         if (node.has_value())
         {
             if( node.value().type() == "plane" )
@@ -147,7 +147,7 @@ fcl::CollisionObject* Collisions::get_collision_object(const std::string& node_n
     return collision_objects[node_name];
 }
 
-fcl::CollisionObject* Collisions::create_mesh_collision_object(const Node &node)
+fcl::CollisionObject* Collisions::create_mesh_collision_object(const DSR::Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<std::string> meshPath = G->get_attrib_by_name<path_att>(node);
@@ -185,7 +185,7 @@ fcl::CollisionObject* Collisions::create_mesh_collision_object(const Node &node)
     return collision_object;
 }
 
-fcl::CollisionObject* Collisions::create_plane_collision_object(const Node &node)
+fcl::CollisionObject* Collisions::create_plane_collision_object(const DSR::Node &node)
 {
     fcl::CollisionObject* collision_object = nullptr;
     std::optional<int> width = G->get_attrib_by_name<width_att>(node);

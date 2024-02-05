@@ -106,6 +106,12 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 	params["3d_view"] = aux;
     configGetString( "","tile_size", aux.value,"250");
     params["tile_size"] = aux;
+    configGetString( "","intimate_cost_value", aux.value,"100");
+    params["intimate_cost_value"] = aux;
+    configGetString( "","personal_cost_value", aux.value,"10");
+    params["personal_cost_value"] = aux;
+    configGetString( "","social_cost_value", aux.value,"8");
+    params["social_cost_value"] = aux;
     configGetString( "","ExcludedObjectsInCollisionCheck", aux.value,"floor_plane");
     params["ExcludedObjectsInCollisionCheck"] = aux;
 }
